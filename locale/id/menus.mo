@@ -1,0 +1,11 @@
+menu_id=Id
+caption=Judul
+menu_position=Posisi
+menu_action_type=Tipe Aksi
+menu_action_name=Tipe Aksi
+menu_action=Aksi
+menu_index=Urutan
+menu_icon=Icon
+tooltip=Keterangan
+menu_state=Status
+menu_parent=Parent
