@@ -115,7 +115,6 @@ abstract class Template extends Object implements ITemplate, IConfiguration {
 		$this->_cacheDir = $dir;
 	}
 	protected function searchTemplateFile($templateName) {
-
 		$last = count ( $this->_lastRenderFile ) ? end ( $this->_lastRenderFile ) : null;
 		$retval = array (
 		$this->getTemplatePath () . DS . $templateName . $this->getTemplateFileExt (),
@@ -125,8 +124,8 @@ abstract class Template extends Object implements ITemplate, IConfiguration {
 		}
 		$retval = array_merge ( $retval, array (
 		$last ? dirname ( $last ) . DS . basename ( $templateName . $this->getTemplateFileExt () ) : null,
-		CGAF_PATH . '/Core/Views' . DS . $templateName . $this->getTemplateFileExt (),
-		CGAF_PATH . '/Core/Views/shared/' . DS . $templateName . $this->getTemplateFileExt () )
+		CGAF_CORE_PATH . '/Views' . DS . $templateName . $this->getTemplateFileExt (),
+		CGAF_CORE_PATH . '/Views/shared/' . DS . $templateName . $this->getTemplateFileExt () )
 		);
 		return $retval;
 	}
@@ -167,7 +166,7 @@ abstract class Template extends Object implements ITemplate, IConfiguration {
 	public function renderFile($fname, $return = true, $log = false) {
 		if (is_readable ( $fname )) {
 			$fname = realpath ( $fname );
-				
+
 			if ($log) {
 				Logger::write ( "Loading Template From $fname" );
 			}

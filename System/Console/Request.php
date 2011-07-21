@@ -2,7 +2,7 @@
 if (! defined ( "CGAF" ))
 	die ( "Restricted Access" );
 
-class TConsoleRequest implements IRequest {
+class ConsoleRequest implements IRequest {
 	private $_input;
 	function __construct() {
 		$arg = $_SERVER ["argv"];

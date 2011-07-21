@@ -56,7 +56,19 @@ class WebApplication extends Application implements IWebApplication {
 			$this->addClientAsset($this->getAppName().".css");
 		}
 	}
-
+	function getAsset($data,$prefix=null) {
+		if (!is_array($data)) {
+			//parent::getAsset($data,$prefix);
+			$ext =strtolower(Utils::getFileExt($data,false));
+			if ($ext ==='css' || $ext==="css") {
+				if (CGAF::isDebugMode()) {
+					$data =  Utils::changeFileExt($data, 'min.'.$ext);
+				}
+				return parent::getAsset($data,$prefix);
+			}
+		}
+		return parent::getAsset($data,$prefix);
+	}
 	function getAssetPath($data, $prefix = null) {
 		if ($data ===null) {
 			return $this->getAppPath(true). $this->getConfig ( 'livedatapath', 'assets' ).DS;
@@ -103,29 +115,25 @@ class WebApplication extends Application implements IWebApplication {
 			$ap =  $this->getConfig ( 'livedatapath', 'assets' );
 			$retval = array ();
 			$assetpath =$this->getLivePath(false);
-			foreach ( $search as $value ) {
-				$retval [] =	$assetpath .  $value;
-			}
 			if (CGAF_DEBUG) {
 				foreach ( $search as $value ) {
-					$retval[] = $this->getAppPath(true).'DevFiles/assets/'.$value;
+					$retval[] = $this->getDevPath($value);
 				}
+				foreach ( $search as $value ) {
+					$retval[] =  CGAF_DEV_PATH."$ap/$value/";
+				}
+				$retval[] = CGAF_DEV_PATH.$ap;
 			}
+
+			foreach ( $search as $value ) {
+				$retval [] =	$assetpath .  $value;
+				$retval [] =	$assetpath . '/assets/'. $value;
+			}
+
 			foreach ( $search as $value ) {
 				$retval [] = SITE_PATH . $ap . DS . $value;
 			}
-
-
 			$retval []= SITE_PATH . $ap ;
-			if (CGAF_DEBUG) {
-				foreach ( $search as $value ) {
-					$retval[] =CGAF_DEV_PATH.'assets/'.$value;
-				}
-			}
-
-			if (CGAF_DEBUG) {
-				$retval[] = CGAF_DEV_PATH.$ap;
-			}
 			$this->_assetCache [$type] [$prefix] = $retval;
 
 		}
@@ -184,7 +192,7 @@ class WebApplication extends Application implements IWebApplication {
 
 	protected function getDefaultTemplateParam() {
 		return array (
-				"baseurl" => BASE_URL, 
+				"baseurl" => BASE_URL,
 				"imageLogo" => $this->getLiveData ( "logo.pg" ) );
 	}
 
@@ -227,10 +235,10 @@ class WebApplication extends Application implements IWebApplication {
 	}
 	protected function checkInstall() {
 		$installPath =  $this->getAppPath(true)."install".DS;
-		if (is_dir($installPath) && (CGAF_DEBUG || Session::get("installmode"))) {
+		/*if (is_dir($installPath)) {
 			$dest = $this->getLivePath(false);
 			Utils::copyFile($installPath.DS."assets", $dest,array('overwrite'=>true),null,null);
-		}
+			}*/
 
 	}
 	private function cleanComment($c) {
@@ -262,84 +270,18 @@ class WebApplication extends Application implements IWebApplication {
 			return $this->prepareOutputData ( $s );
 		}
 
-		$head = $this->renderClientAsset();
+		$asset = $this->renderClientAsset();
 
-		if ($head) {
-			$s = str_replace ( '</head>', $head . '</head>', $s );
+		if ($asset) {
+			$s = str_replace ( '</head>', $asset . '</head>', $s );
 		}
 
 		$c = 0;
 
 		$stemp = $s;
 
-		if ($this->getConfig ( "output.prepare", false )) {
-
-			$this->_script = '';
-			$matches = array ();
-
-			$ss = array ();
-			if ($this->getConfig ( 'app.optimizeoutput', true )) {
-				$s = preg_replace_callback ( '/(<!--)([^>]*)(>)/i', array (
-				$this,
-						'cleanComment' ), $s );
-				$os = $s;
-				$s = trim ( $s );
-
-				$regex = '/((<[\s\/]*script\b[^>]*>)([^>]*)(<\/script>))/i';
-				$count = preg_match_all ( $regex, $s, $matches );
-
-				//TODO Fix some error on regex while not valid tag
-				$s = preg_replace_callback ( $regex, array (
-				$this,
-						'parseScript' ), $s );
-
-				$ss = array ();
-				//pp($s);
-				//ppd($this->_scripts);
-				foreach ( $this->_scripts as $script ) {
-
-					if (! isset ( $script ['src'] ))
-					continue;
-
-					if (! isset ( $script ['language'] )) {
-						$script ['language'] = 'javascript';
-					}
-					if (! isset ( $script ['type'] )) {
-						$script ['type'] = 'text/javascript';
-					}
-					$ss [] = '<script ' . HTMLUtils::renderAttr ( $script ) . '></script>';
-				}
-
-				if ($this->_script) {
-					$je = $this->getJSEngine ();
-					$ss [] = $je->renderScript ( '(function(){'.$this->_script.'})();' );
-
-				}
-
-				if ($this->_directSript) {
-					$ss [] = HTMLUtils::renderScript ( $this->_directSript );
-				}
-				$c = CGAF_CONTEXT . "Context";
-				$log = call_user_func ( array (
-				$c,
-						'getLog' ) );
-				if ($log) {
-					$ss [] = '<div id="server-log">' . $log . '</div>';
-				}
-				//put on the last body
-				$stemp = str_ireplace ( "</body>", implode ( "\n", $ss ) . '</body>', $s, $c );
-			}
-		}
-		$stoptimer = time () + microtime ();
-		$timer = round ( $stoptimer - CGAF::startTime (), 4 );
-		if (! Request::isDataRequest ()) {
-			if ($timer) {
-				$stemp = str_ireplace ( "{runtime}", $timer, $stemp );
-			}
-		}
-		if (! $c && $ss) {
-
-			$stemp = $s . implode ( "\n", $ss );
+		if ($this->getConfig ( "output.prepare", true )) {
+			$s = HTMLUtils::optimizeHTML($s);
 		}
 		if ($this->getConfig ( "output.prepare", false )) {
 			//return $stemp;

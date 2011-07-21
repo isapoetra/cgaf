@@ -5,8 +5,11 @@ abstract class MVCHelper {
 
 	public static function Initialize() {
 		using ( 'System.'.CGAF_CONTEXT.'.Application' );
-		using ( 'System.AppModel.MVC.*' );
 		using ( 'System.AppModel.MVC.interfaces.*' );
+		
+		using ( 'System.AppModel.MVC.*' );
+
+		
 
 		CGAF::RegisterAutoLoad ( array (
 				'MVCHelper', 
@@ -48,7 +51,7 @@ abstract class MVCHelper {
 				$retval ["_a"] = $var_array [1];
 			}
 		} else {
-			if ($c = Request::get ( '__c' )) {
+			if ($c = Request::get ( '__c' ,null,false)) {
 				$retval ["_c"] = $c;
 			}
 			if ($c = Request::get ( '__a', null, false )) {

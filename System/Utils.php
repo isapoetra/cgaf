@@ -4,8 +4,8 @@ defined ( "CGAF" ) or die ( "Restricted Access" );
 abstract class Utils {
 	private static $_imagesExt = array (
 		'jpeg',
-		'jpg', 
-		'gif', 
+		'jpg',
+		'gif',
 		'png' );
 	private static $_agentSuffix;
 	/**
@@ -39,104 +39,104 @@ abstract class Utils {
 		}
 		// now the only remaining whitespace attacks are \t, \n, and \r
 		$ra1 = Array (
-			'javascript', 
-			'vbscript', 
-			'expression', 
-			'applet', 
-			'meta', 
-			'xml', 
-			'blink', 
-			'link', 
-			'style', 
-			'script', 
-			'embed', 
-			'object', 
-			'iframe', 
-			'frame', 
-			'frameset', 
-			'ilayer', 
-			'layer', 
-			'bgsound', 
-			'title', 
+			'javascript',
+			'vbscript',
+			'expression',
+			'applet',
+			'meta',
+			'xml',
+			'blink',
+			'link',
+			'style',
+			'script',
+			'embed',
+			'object',
+			'iframe',
+			'frame',
+			'frameset',
+			'ilayer',
+			'layer',
+			'bgsound',
+			'title',
 			'base' );
 		$ra2 = Array (
-			'onabort', 
-			'onactivate', 
-			'onafterprint', 
-			'onafterupdate', 
-			'onbeforeactivate', 
-			'onbeforecopy', 
-			'onbeforecut', 
-			'onbeforedeactivate', 
-			'onbeforeeditfocus', 
-			'onbeforepaste', 
-			'onbeforeprint', 
-			'onbeforeunload', 
-			'onbeforeupdate', 
-			'onblur', 
-			'onbounce', 
-			'oncellchange', 
-			'onchange', 
-			'onclick', 
-			'oncontextmenu', 
-			'oncontrolselect', 
-			'oncopy', 
-			'oncut', 
-			'ondataavailable', 
-			'ondatasetchanged', 
-			'ondatasetcomplete', 
-			'ondblclick', 
-			'ondeactivate', 
-			'ondrag', 
-			'ondragend', 
-			'ondragenter', 
-			'ondragleave', 
-			'ondragover', 
-			'ondragstart', 
-			'ondrop', 
-			'onerror', 
-			'onerrorupdate', 
-			'onfilterchange', 
-			'onfinish', 
-			'onfocus', 
-			'onfocusin', 
-			'onfocusout', 
-			'onhelp', 
-			'onkeydown', 
-			'onkeypress', 
-			'onkeyup', 
-			'onlayoutcomplete', 
-			'onload', 
-			'onlosecapture', 
-			'onmousedown', 
-			'onmouseenter', 
-			'onmouseleave', 
-			'onmousemove', 
-			'onmouseout', 
-			'onmouseover', 
-			'onmouseup', 
-			'onmousewheel', 
-			'onmove', 
-			'onmoveend', 
-			'onmovestart', 
-			'onpaste', 
-			'onpropertychange', 
-			'onreadystatechange', 
-			'onreset', 
-			'onresize', 
-			'onresizeend', 
-			'onresizestart', 
-			'onrowenter', 
-			'onrowexit', 
-			'onrowsdelete', 
-			'onrowsinserted', 
-			'onscroll', 
-			'onselect', 
-			'onselectionchange', 
-			'onselectstart', 
-			'onstart', 
-			'onstop', 
-			'onsubmit', 
+			'onabort',
+			'onactivate',
+			'onafterprint',
+			'onafterupdate',
+			'onbeforeactivate',
+			'onbeforecopy',
+			'onbeforecut',
+			'onbeforedeactivate',
+			'onbeforeeditfocus',
+			'onbeforepaste',
+			'onbeforeprint',
+			'onbeforeunload',
+			'onbeforeupdate',
+			'onblur',
+			'onbounce',
+			'oncellchange',
+			'onchange',
+			'onclick',
+			'oncontextmenu',
+			'oncontrolselect',
+			'oncopy',
+			'oncut',
+			'ondataavailable',
+			'ondatasetchanged',
+			'ondatasetcomplete',
+			'ondblclick',
+			'ondeactivate',
+			'ondrag',
+			'ondragend',
+			'ondragenter',
+			'ondragleave',
+			'ondragover',
+			'ondragstart',
+			'ondrop',
+			'onerror',
+			'onerrorupdate',
+			'onfilterchange',
+			'onfinish',
+			'onfocus',
+			'onfocusin',
+			'onfocusout',
+			'onhelp',
+			'onkeydown',
+			'onkeypress',
+			'onkeyup',
+			'onlayoutcomplete',
+			'onload',
+			'onlosecapture',
+			'onmousedown',
+			'onmouseenter',
+			'onmouseleave',
+			'onmousemove',
+			'onmouseout',
+			'onmouseover',
+			'onmouseup',
+			'onmousewheel',
+			'onmove',
+			'onmoveend',
+			'onmovestart',
+			'onpaste',
+			'onpropertychange',
+			'onreadystatechange',
+			'onreset',
+			'onresize',
+			'onresizeend',
+			'onresizestart',
+			'onrowenter',
+			'onrowexit',
+			'onrowsdelete',
+			'onrowsinserted',
+			'onscroll',
+			'onselect',
+			'onselectionchange',
+			'onselectstart',
+			'onstart',
+			'onstop',
+			'onsubmit',
 			'onunload' );
 		$ra = array_merge ( $ra1, $ra2 );
 		$found = true; // keep replacing as long as the previous round replaced something
@@ -203,7 +203,7 @@ abstract class Utils {
 		}
 		//$pathname = dirname($pathname);
 		if (! is_dir ( $pathname )) {
-				
+
 			if (! @mkdir ( $pathname, $mode, true )) {
 				echo '<pre>';
 				debug_print_backtrace ();
@@ -225,7 +225,7 @@ abstract class Utils {
 		}
 		$files = array ();
 		while ( false !== ($filename = readdir ( $dh )) ) {
-				
+
 			if ($filename !== "." && $filename !== ".." && $filename !== ".svn" && is_dir ( $dir . "/" . $filename ))
 			$files [] = $filename;
 		}
@@ -276,7 +276,7 @@ abstract class Utils {
 		$rvar = get_object_vars ( $o );
 
 		foreach ( $arr as $k => $v ) {
-				
+
 			if ($all || array_key_exists ( $k, $rvar )) {
 
 				$o->$k = $v;
@@ -305,7 +305,7 @@ abstract class Utils {
 		if ($source === $dest) {
 			return $dest;
 		}
-		$result = false; 
+		$result = false;
 		if (is_file ( $source )) {
 			if ($dest [strlen ( $dest ) - 1] == DS) {
 				if (! file_exists ( $dest )) {
@@ -339,23 +339,25 @@ abstract class Utils {
 				if ($result) {
 					$result = $__dest;
 				}
+			}elseif (is_file ( $__dest )) {
+				return true;
 			}
 		} elseif (is_dir ( $source )) {
 			/*$files = self::getDirFiles($source,null,false);
-			foreach ($files as $file) {
-				$dname = $dest . $file ;			
-				self::copyFile($source.DS.$file, $dname);				
-			}
-			$dirs = self::getDirList($source);
-			foreach ($dirs as $file) {
-				$dname = $dest . $file ;			
-				self::copyFile($source.DS.$file, $dname);				
-			}				
-			*/	
+			 foreach ($files as $file) {
+				$dname = $dest . $file ;
+				self::copyFile($source.DS.$file, $dname);
+				}
+				$dirs = self::getDirList($source);
+				foreach ($dirs as $file) {
+				$dname = $dest . $file ;
+				self::copyFile($source.DS.$file, $dname);
+				}
+				*/
 			$dirHandle = opendir ( $source );
 			while ( $file = readdir ( $dirHandle ) ) {
 				if (substr($file, 0,1) !=='.') {
-					$__dest = $dest . DS . $file;									
+					$__dest = $dest . DS . $file;
 					$result = self::copyFile ( $source . DS . $file, $__dest, $options, $callback, $callbackparam );
 				}
 			}
@@ -420,7 +422,7 @@ abstract class Utils {
 			foreach($dir as $k=>$v) {
 				$retval[$k] = self::ToDirectory($v,$replaceSpace);
 			}
-				
+
 			return $retval;
 		}
 		$dir = str_replace ( "\\", DS, $dir );
@@ -593,10 +595,10 @@ abstract class Utils {
 
 		// add random characters to $password until $length is reached
 		while ( $i < $length ) {
-				
+
 			// pick a random character from the possible ones
 			$char = substr ( $possible, mt_rand ( 0, strlen ( $possible ) - 1 ), 1 );
-				
+
 			// we don't want this character if it's already in the password
 			if (! strstr ( $password, $char )) {
 				$password .= $char;
@@ -631,14 +633,14 @@ abstract class Utils {
 	public static function formatBytes($size, $retstring = null) {
 		// adapted from code at http://aidanlister.com/repos/v/function.size_readable.php
 		$sizes = array (
-			'B', 
-			'kB', 
-			'MB', 
-			'GB', 
-			'TB', 
-			'PB', 
-			'EB', 
-			'ZB', 
+			'B',
+			'kB',
+			'MB',
+			'GB',
+			'TB',
+			'PB',
+			'EB',
+			'ZB',
 			'YB' );
 		if ($retstring === null) {
 			$retstring = '%01.2f %s';
@@ -674,7 +676,7 @@ abstract class Utils {
 					return substr ( md5 ( mt_rand () ), 0, 2 );
 				}
 				break;
-					
+
 			case 'crypt-md5' :
 				if ($seed) {
 					return substr ( preg_replace ( '|^{crypt}|i', '', $seed ), 0, 12 );
@@ -682,7 +684,7 @@ abstract class Utils {
 					return '$1$' . substr ( md5 ( mt_rand () ), 0, 8 ) . '$';
 				}
 				break;
-					
+
 			case 'crypt-blowfish' :
 				if ($seed) {
 					return substr ( preg_replace ( '|^{crypt}|i', '', $seed ), 0, 16 );
@@ -690,7 +692,7 @@ abstract class Utils {
 					return '$2$' . substr ( md5 ( mt_rand () ), 0, 12 ) . '$';
 				}
 				break;
-					
+
 			case 'ssha' :
 				if ($seed) {
 					return substr ( preg_replace ( '|^{SSHA}|', '', $seed ), - 20 );
@@ -698,7 +700,7 @@ abstract class Utils {
 					return mhash_keygen_s2k ( MHASH_SHA1, $plaintext, substr ( pack ( 'h*', md5 ( mt_rand () ) ), 0, 8 ), 4 );
 				}
 				break;
-					
+
 			case 'smd5' :
 				if ($seed) {
 					return substr ( preg_replace ( '|^{SMD5}|', '', $seed ), - 16 );
@@ -706,7 +708,7 @@ abstract class Utils {
 					return mhash_keygen_s2k ( MHASH_MD5, $plaintext, substr ( pack ( 'h*', md5 ( mt_rand () ) ), 0, 8 ), 4 );
 				}
 				break;
-					
+
 			case 'aprmd5' :
 				/* 64 characters that are valid for APRMD5 passwords. */
 				$APRMD5 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -721,7 +723,7 @@ abstract class Utils {
 					return $salt;
 				}
 				break;
-					
+
 			default :
 				$salt = '';
 				if ($seed) {
@@ -740,29 +742,29 @@ abstract class Utils {
 		switch ($encryption) {
 			case 'plain' :
 				return $plaintext;
-					
+
 			case 'sha' :
 				$encrypted = base64_encode ( mhash ( MHASH_SHA1, $plaintext ) );
 				return ($show_encrypt) ? '{SHA}' . $encrypted : $encrypted;
-					
+
 			case 'crypt' :
 			case 'crypt-des' :
 			case 'crypt-md5' :
 			case 'crypt-blowfish' :
 				return ($show_encrypt ? '{crypt}' : '') . crypt ( $plaintext, $salt );
-					
+
 			case 'md5-base64' :
 				$encrypted = base64_encode ( mhash ( MHASH_MD5, $plaintext ) );
 				return ($show_encrypt) ? '{MD5}' . $encrypted : $encrypted;
-					
+
 			case 'ssha' :
 				$encrypted = base64_encode ( mhash ( MHASH_SHA1, $plaintext . $salt ) . $salt );
 				return ($show_encrypt) ? '{SSHA}' . $encrypted : $encrypted;
-					
+
 			case 'smd5' :
 				$encrypted = base64_encode ( mhash ( MHASH_MD5, $plaintext . $salt ) . $salt );
 				return ($show_encrypt) ? '{SMD5}' . $encrypted : $encrypted;
-					
+
 			case 'aprmd5' :
 				$length = strlen ( $plaintext );
 				$context = $plaintext . '$apr1$' . $salt;
@@ -800,7 +802,7 @@ abstract class Utils {
 				}
 
 				return '$apr1$' . $salt . '$' . implode ( '', $p ) . JUserHelper::_toAPRMD5 ( ord ( $binary [11] ), 3 );
-					
+
 			case 'md5-hex' :
 			default :
 				$encrypted = ($salt) ? md5 ( $plaintext . $salt ) : md5 ( $plaintext );
@@ -825,7 +827,7 @@ abstract class Utils {
 				$c = $cfg;
 				$lconfig = $cfg . '.';
 			}
-				
+
 			$lconfig = substr ( $configName, strlen ( $lconfig ) );
 			if (isset ( $configs [$c] )) {
 				if ($i < $cnt) {
@@ -927,15 +929,15 @@ EOT;
 			return $args;
 		} elseif (is_array ( $args ) || is_object ( $args )) {
 			$r = '';
-				
+
 			foreach ( $args as $k => $v ) {
 				if (is_array ( $v )) {
 					$r .= self::parseSysParam ( $v );
 				} elseif (is_numeric ( $k )) {
-						
+
 					$r .= ' ' . $v;
 				} elseif (is_string ( $k )) {
-						
+
 					$r .= ' ' . $k . '=' . $v;
 				}
 			}
@@ -1015,12 +1017,12 @@ EOT;
 		static $info;
 		if (! $info) {
 			$info = array (
-				'a' => php_uname ( 'a' ), 
-				's' => php_uname ( 's' ), 
-				'n' => php_uname ( 'n' ), 
-				'r' => php_uname ( 'r' ), 
-				'v' => php_uname ( 'v' ), 
-				'm' => php_uname ( 'm' ), 
+				'a' => php_uname ( 'a' ),
+				's' => php_uname ( 's' ),
+				'n' => php_uname ( 'n' ),
+				'r' => php_uname ( 'r' ),
+				'v' => php_uname ( 'v' ),
+				'm' => php_uname ( 'm' ),
 				'php' => array (
 					'v' => PHP_VERSION ) );
 		}
@@ -1161,6 +1163,9 @@ EOT;
 		if (! is_array ( $a2 )) {
 			$a2 = array (
 			$a2 );
+		}
+		if (!is_array($a1)) {
+			$a1 =array();
 		}
 		if ($uniqueValue) {
 			foreach ( $a2 as $k => $v ) {

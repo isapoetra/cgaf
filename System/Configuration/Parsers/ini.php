@@ -1,5 +1,5 @@
 <?php 
-class ConfigParserINI implements IConfigurationParser {
+class ConfigParserINI extends BaseConfigParser  {
 	function parseFile($f) {
 		if (!is_file($f)) {
 			return null;

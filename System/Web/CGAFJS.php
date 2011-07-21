@@ -30,12 +30,17 @@ final class CGAFJS {
 		self::$_css[] = $stylesheet;
 	}
 	public static function loadScript($js) {
-		self::$_jsToLoad[] =ASSET_URL.'js/'.$js;
+		if (!Utils::isLive($js)) {
+			$js=AppManager::getInstance()->getLiveAsset($js);
+		}
+		if ($js) {
+			self::$_jsToLoad[] =$js;
+		}
 	}
 	public static function loadPlugin($plugin) {
-		self::$_plugins[] = $plugin;
-		//self::callMethod("loadPlugin", func_get_args());
-		//self::getAppOwner()->addClientScript ( self::_JSInstance.'.loadPlugin(\''.$plugin.'\'' );
+		if (!in_array(self::$_plugins, $plugink)) {
+			self::$_plugins[] = $plugin;
+		}
 	}
 	public static function addToolbar($id,$title=null,$action=null) {
 		self::$_toolbars[] = array('id'=>$id,'title'=>$title,'action'=>$action);
@@ -46,7 +51,7 @@ final class CGAFJS {
 		$json = JSON::encode(self::getJSToLoad());
 
 		$config = self::_JSInstance.'.setConfig('.JSON::encode(self::$_configs).');';
-		
+
 		$css =count(self::$_css) ? self::_JSInstance.'.loadStyleSheet('.JSON::encode(self::$_css).');' : null;
 
 		if (count(self::$_plugins)) {
@@ -59,11 +64,12 @@ final class CGAFJS {
 		$retval .= PHP_EOL.'if (!$) { $=jQuery;}';
 		$retval .= PHP_EOL.$config;
 		$retval .=  PHP_EOL.$css;
-		
+
 		if (count(self::$_jsToLoad)) {
 			$retval .= PHP_EOL.'cgaf.require('.$json.',function(){';
 		}
 		$retval.=$plugin;
+		$retval .= "cgaf.setReady(true);";
 		$retval.= PHP_EOL.$s;
 		if (count(self::$_plugins)) {
 			$retval .= PHP_EOL.'});';
@@ -71,7 +77,7 @@ final class CGAFJS {
 		if (count(self::$_jsToLoad)) {
 			$retval .= PHP_EOL.'});';
 		}
-		
+
 		$retval .='})();</script>';
 		return $retval;
 	}

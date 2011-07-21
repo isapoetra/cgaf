@@ -54,9 +54,7 @@ abstract class Application extends Control implements IApplication {
 		//ppd($cf);
 		$this->_configs = new Configuration ( $_configs );
 		$this->_configs->loadFile ( $this->_appPath . DS . 'config', false );
-		if (CGAF::isDebugMode()) {
-			$this->checkInstall();
-		}
+
 	}
 
 	public function getClientAssets() {
@@ -365,14 +363,25 @@ abstract class Application extends Control implements IApplication {
 	function onSessionEvent($event) {
 
 	}
-
+	protected function getDevPath($path=NULL) {
+		$ap =  $this->getConfig ( 'livedatapath', 'assets' );
+		return Utils::ToDirectory($this->getAppPath()."DevFiles/$ap/$path/");
+	}
 	function Initialize() {
 		if ($this->isInitialized ()) {
 			return true;
 		}
 
+		if (CGAF::isDebugMode() || Session::get("installmode")) {
+			$this->checkInstall();
+		}
+
+		if (CGAF_DEBUG) {
+			CGAF::addAlowedLiveAssetPath($this->getDevPath());
+		}
 		$this->_initialized = true;
 		$this->initSession ();
+
 		return $this->_initialized;
 	}
 
@@ -491,6 +500,7 @@ abstract class Application extends Control implements IApplication {
 				case "css":
 				case "js":
 					$alt = Utils::changeFileExt($fname, "min.".$ext);
+					$s[] = $alt;
 					if (is_file ( $alt ) || is_dir ( $alt )) {
 						return $alt;
 					}
@@ -557,9 +567,15 @@ abstract class Application extends Control implements IApplication {
 	function getLiveAsset($data, $prefix = null, $callback = null) {
 		$asset = $this->getAsset ( $data, $prefix );
 		if ($asset !== null) {
-			return $this->assetToLive ( $asset );
+			$retval= $this->assetToLive ( $asset );
+			if (!$retval) {
+				ppd($asset);
+				return null;
+			}
+			$asset =$retval;
 		}
-		return null;
+
+		return $asset;
 	}
 
 	/**
@@ -589,15 +605,18 @@ abstract class Application extends Control implements IApplication {
 		}
 		$ext = Utils::getFileExt ( $file, FALSE );
 		return in_array ( $ext, array (
-				'gif', 
-				'png', 
-				'jpg', 
+				'js',
+				'gif',
+				'png',
+				'jpg',
 				'css' ) );
 	}
 	protected function getLiveAssetPath($asset,$sessionBased=false) {
-
-		$tmp =  str_ireplace($this->getAppPath(true), '', $asset);
-		return $this->getLivePath ( $sessionBased ) . DS . $tmp;
+		$tmp =null;
+		if ($asset) {
+			$tmp =  str_ireplace($this->getAppPath(true), '', $asset);
+		}
+		return $this->getLivePath ( $sessionBased ) .  $tmp;
 	}
 	function assetToLive($asset, $sessionBased = false) {
 		if (is_array ( $asset )) {
@@ -626,7 +645,19 @@ abstract class Application extends Control implements IApplication {
 		if (! is_file ( $asset )) {
 			return null;
 		}
-
+		if ( String::BeginWith( $asset,$this->getDevPath())) {
+			if (CGAF_DEBUG) {
+				$tmp =  str_replace($this->getDevPath(), '', $asset);
+				$stemp = $this->getLiveAssetPath($this->getConfig ( 'livedatapath', 'assets' )."/$tmp");
+				if (Utils::copyFile($asset, $stemp,array("overwrite"=>true))) {
+					$asset = $stemp;
+				}else {
+					return null;
+				}
+			}else{
+				return null;
+			}
+		}
 		return CGAF::assetToLive($asset);
 	}
 

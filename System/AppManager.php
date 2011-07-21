@@ -131,7 +131,7 @@ abstract class AppManager extends StaticObject {
 
 		if ($instance->Initialize ()) {
 			Session::set ( '__appId', $appId );
-			CGAF::addAlowedLiveAssetPath($instance->getAppPath(true));
+			//CGAF::addAlowedLiveAssetPath($instance->getAppPath(true));
 			self::$_instances [$appId] = $instance;
 			if (! self::$_activeApp) {
 				self::$_activeApp = $appId;
@@ -173,7 +173,11 @@ abstract class AppManager extends StaticObject {
 		}
 		return $infos [$o->app_id];
 	}
-
+	/**
+	 *
+	 * Enter description here ...
+	 * @return String
+	 */
 	public static function getActiveApp() {
 		return self::$_activeApp;
 	}
@@ -337,7 +341,12 @@ abstract class AppManager extends StaticObject {
 			}
 			return $r;
 		} elseif (is_object ( $o )) {
+
 			if (self::isAllowApp ( $o->app_id )) {
+				$path = self::getAppPath($o);
+				if (!is_dir($path)) {
+					return null;
+				}
 				return $o;
 			}
 		} else {

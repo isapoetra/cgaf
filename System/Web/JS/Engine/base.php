@@ -11,10 +11,10 @@ abstract class JSBaseEngine {
 		$this->_appOwner = $appOwner;
 		$this->_baseConfig = $baseConfig;
 		$this->_jqInfo = array (
-				'version' => $this->getConfig ( 'app.jQuery.version', 'latest' ), 
+				'version' => $this->getConfig ( 'app.jQuery.version', 'latest' ),
 				'compat' => $this->getConfig ( 'app.jQuery.compat', '1.4' ) );
 		$this->_info = array (
-				'version' => $this->getConfig ( 'app.' . $baseConfig . '.version', $defaultVersion ), 
+				'version' => $this->getConfig ( 'app.' . $baseConfig . '.version', $defaultVersion ),
 				'compat' => $this->getConfig ( 'app.' . $baseConfig . '.compat', $defaultCompat ) );
 		$this->_id = Utils::generateId ( 'template_' );
 
@@ -55,10 +55,6 @@ abstract class JSBaseEngine {
 			return $retval;
 		}
 		$old = $asset;
-		if ($this->getConfig ( 'minified',true)) {
-			$asset = Utils::changeFileExt ( $asset, 'min' . Utils::getFileExt ( $asset ) );
-		}
-
 		$spath = $this->getSearchPath();
 		$cpath = array();
 		foreach ( $spath as $alt ) {
@@ -70,6 +66,7 @@ abstract class JSBaseEngine {
 			$cpath[]= $alt . $old ;
 			$cpath[] = 'js/'.$alt . $old;
 		}
+
 		foreach ($cpath as $value) {
 			$r = $this->_appOwner->getAsset ($value );
 			if ($r) {
@@ -92,22 +89,27 @@ abstract class JSBaseEngine {
 	}
 
 	function initialize(IWebApplication &$app) {
+
 		if (! Request::isAJAXRequest ()) {
 			$theme = $this->getConfig ( 'themes', 'default' );
 			$version = $this->_info ['version'];
 
-			$assets = array_merge(array(
-			'jQuery/'.$this->_jqInfo['version'].'/jquery.js',
-			'cgaf/cgaf.js',
-			'cgaf/cgaf-ui.js',
-			'reset.css'
-			),$this->getJSAsset());
+			$assets = array(
+			'modernizr.js',
+			'jquery.js',
+			'cgaf/cgaf.js'
+			);
+			if ($this->getConfig("useui")) {
+				$assets[]="cgaf/ui/cgaf.ui.js";
+			}
+
+			$assets=array_merge($assets,$this->getJSAsset());
 
 			if (CGAF_DEBUG) {
-				$assets [] = 'cgaf/debug.js';
-				$assets [] = 'cgaf/css/debug.css';
+				$assets [] = 'debug.js';
+				$assets [] = 'debug.css';
 			}
-			
+
 			$retval = array ();
 
 			$app->addClientAsset($this->getAsset ( $assets ) );
@@ -117,8 +119,8 @@ abstract class JSBaseEngine {
 				CGAFJS::setConfig('jq.version', $this->_jqInfo['version']);
 				CGAFJS::setConfig('baseurl', BASE_URL);
 				CGAFJS::setConfig('appurl', APP_URL);
-				CGAFJS::loadStyleSheet(ASSET_URL.'js/cgaf/css/cgaf-ui.css');
-				//CGAFJS::loadScript("cgaf/cgaf-ui.js");
+				CGAFJS::loadStyleSheet(ASSET_URL.'css/cgaf.css');
+
 			}
 		}
 

@@ -1,6 +1,6 @@
 <?php
 if (! defined ( "CGAF" ))
-	die ( "Restricted Access" );
+die ( "Restricted Access" );
 
 /**
  * Enter description here ...
@@ -22,25 +22,25 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 		$this->_configFile = $value;
 	}
 	public function Save($fileName = null,$settings=NULL) {
-		
+
 		if (! $fileName && ! $this->_configFile) {
 			throw new Exception ( "Unable to find Config File", 505 );
 		}
-		
+
 		if (! $fileName) {
 			$fileName = $this->_configFile;
 		}
 		$parser = $this->getParser ( Utils::getFileExt ( $fileName, false ) );
 		$parser->save ( $fileName, $this ,$settings ? $settings : $this->_configs);
-	
+
 	}
-	
+
 	public function setConfigs($configs) {
 		$configs = $configs ? $configs : array ();
 		if (count ( $configs ) == 0 && $this->_useDef) {
 			$configs = array (
 				"System.DataPath" => Utils::ToDirectory ( CGAF_PATH . DS . "Data" ) );
-		
+
 		}
 		foreach ( $configs as $k => $v ) {
 			$this->setConfig ( $k, $v );
@@ -49,7 +49,7 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 	public function clear() {
 		$this->_configs = array ();
 		if ($this->_useDef) {
-			$this->setConfig ( "System.DataPath", Utils::ToDirectory ( CGAF_PATH . DS . "Data" ) );		
+			$this->setConfig ( "System.DataPath", Utils::ToDirectory ( CGAF_PATH . DS . "Data" ) );
 		}
 	}
 	public function getConfigGroups() {
@@ -58,7 +58,7 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 	private function _setConfig(&$configs, $key, $value, $prev) {
 		$cfgs = explode ( '.', $key );
 		$k = array_shift ( $cfgs );
-		
+
 		if (count ( $cfgs )) {
 			if (! isset ( $configs [$k] ) || ! is_array ( $configs [$k] )) {
 				$configs [$k] = array ();
@@ -70,7 +70,7 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 			unset($configs[$k]);
 		}
 	}
-	
+
 	public function setConfig($configName, $value = null) {
 		if (is_array ( $configName )) {
 			return $this->Merge ( $configName, true );
@@ -78,14 +78,14 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 		if (strpos ( $configName, "." ) == 0 && ! is_array ( $value )) {
 			$configName = "System.$configName";
 		}
-		
+
 		$cfgs = explode ( '.', $configName );
 		$k = array_shift ( $cfgs );
 		if (count ( $cfgs )) {
 			if (! isset ( $this->_configs [$k] ) || ! is_array ( $this->_configs [$k] )) {
 				$this->_configs [$k] = array ();
 			}
-			
+
 			$this->_setConfig ( $this->_configs [$k], implode ( $cfgs, '.' ), $value, $k );
 		} else {
 			$pr = $this->getConfig ( $configName );
@@ -95,7 +95,7 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 						$value = array_merge ( $this->_configs [$k], $value );
 					}
 				}
-				
+
 				$this->_setConfig ( $this->_configs, $configName, $value, $k );
 			} else {
 				$this->_configs [$k] = $value;
@@ -105,7 +105,7 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 	public function assign($var, $val=null) {
 		if (! is_array ( $var )) {
 			$this->Merge ( array (
-				$var => $val ), true );
+			$var => $val ), true );
 		} else {
 			$this->Merge ( $var, true );
 		}
@@ -118,7 +118,7 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 		if (is_array ( $_configs )) {
 			foreach ( $_configs as $k => $v ) {
 				if (is_array ( $v ) && ! $overwrite) {
-					
+
 					$x = array_keys ( $v );
 					foreach ( $x as $vv ) {
 						$this->setConfig ( $k . ".$vv", $_configs [$k] [$vv] );
@@ -127,15 +127,35 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 					$this->setConfig ( $k, $_configs [$k] );
 				}
 			}
+			$this->_configCache = array();
+			$this->_configs = $this->reparseConfig($this->_configs);
+				
 		}
 	}
-	
+	private function reparseConfig(&$config) {
+		if (is_array ( $config )) {
+			foreach ( $config as $k => $v ) {					
+				$config[$k] = $this->reparseConfig($v);									
+			}
+			return $config;
+		}
+		$matches =array();
+		preg_match_all('|\${(.*)}|U', $config, $matches,PREG_PATTERN_ORDER);
+		if ($matches && isset($matches[0][0])) {			
+			$keys = $matches[0];
+			foreach ($keys as $k=>$v) {
+				$value = $this->getConfig($matches[1][$k]);
+				$config = str_ireplace($v, $value,$config);				
+			} 
+		}
+		return $config;
+	}
 	public function getConfig($configName, $default = null) {
 		if (isset ( $this->_configCache [$configName] )) {
 			return $this->_configCache [$configName];
 		}
 		$retval = Utils::findConfig ( 'System.' . $configName, $this->_configs );
-		
+
 		if ($retval === null) {
 			$retval = Utils::findConfig ( $configName, $this->_configs );
 		}
@@ -152,7 +172,7 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 		if (isset ( $this->_configs [$prefix] )) {
 			return $this->_configs [$prefix];
 		}
-		
+
 		$nprefix = $prefix ? $prefix . "." : $prefix;
 		return Utils::findConfig ( $prefix, $this->_configs );
 	}
@@ -160,7 +180,7 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 		if (is_file ( $f )) {
 			return $f;
 		}
-		
+
 		if (is_file ( $f = Utils::changeFileExt ( $f, 'php' ) )) {
 			return $f;
 		} elseif (is_file ( $f = Utils::changeFileExt ( $f, 'ini' ) )) {
@@ -168,6 +188,8 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 		} elseif (is_file ( $f = Utils::changeFileExt ( $f, 'config' ) )) {
 			return $f;
 		} elseif (is_file ( $f = Utils::changeFileExt ( $f, 'xml' ) )) {
+			return $f;
+		}elseif (is_file ( $f = Utils::changeFileExt ( $f, 'properties' ) )) {
 			return $f;
 		}
 		return null;
@@ -182,16 +204,24 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 			case 'gaf' :
 				$ext = 'xml';
 				break;
+			case 'properties':
+				$ext = 'ini';
+				break;
 		}
+		CGAF::using ( 'System.Configuration.Parsers.base');
 		if (CGAF::using ( 'System.Configuration.Parsers.' . $ext, false )) {
 			$c = CGAF_CLASS_PREFIX . 'ConfigParser' . $ext;
 			$this->_parser [$ext] = new $c ();
+		}else{
+			throw new SystemException("Unhandled configuration $ext");
 		}
 		return $this->_parser [$ext];
 	}
 	public function loadFile($f) {
+
 		$f = $this->findConfigFile ( $f );
 		if (! $f) {
+
 			return false;
 		}
 		$this->_configFile = $f;
@@ -206,8 +236,8 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 		}
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * @param unknown_type $return
 	 */
@@ -230,13 +260,13 @@ class Configuration extends Object implements IConfiguration, IRenderable {
 final class Configurationx {
 	private static $_initialized;
 	private static $_instance;
-	
+
 	public static function Init($configs) {
 		global $_configs;
 		if (self::$_initialized) {
 			return;
 		}
-		
+
 		if ($configs == null) {
 			if ($_configs === null) {
 				include CGAF_PATH . "config.php";
@@ -247,18 +277,18 @@ final class Configurationx {
 		self::$_initialized = true;
 		unset ( $_configs );
 	}
-	
+
 	public static function getInstance() {
 		if (self::$_instance == null) {
 			self::Init ( null );
 		}
 		return self::$_instance;
 	}
-	
+
 	public static function Merge($_configs) {
 		return self::getInstance ()->Merge ( $_configs );
 	}
-	
+
 	public static function getConfig($configName, $default = null) {
 		return self::getInstance ()->getConfig ( $configName, $default );
 	}

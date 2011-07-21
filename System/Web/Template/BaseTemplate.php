@@ -1,6 +1,6 @@
 <?php
 if (! defined ( "CGAF" ))
-	die ( "Restricted Access" );
+die ( "Restricted Access" );
 using ( "System.Template" );
 
 //using ( "System.Web.UI.*" );
@@ -60,7 +60,7 @@ class BaseTemplate extends Template {
 		foreach ( $header as $k => $v ) {
 			$this->parseHeaderElement ( $k, $v );
 		}
-		
+
 		$this->_css = array ();
 	}
 
@@ -74,32 +74,32 @@ class BaseTemplate extends Template {
 				}
 			}
 			$retval = array (
-					'url' => $retval, 
-					'id' => $id, 
+					'url' => $retval,
+					'id' => $id,
 					'group' => $group );
 			return $retval;
 		} else if (is_string ( $arr )) {
 			foreach ( $target as $k => $v ) {
-				
+
 				if ($v ['url'] === $arr) {
 					return null;
 				}
 			}
 			return array (
-					'url' => $arr, 
-					'id' => $id, 
+					'url' => $arr,
+					'id' => $id,
 					'group' => $group );
 		} else {
-			
+
 			if (is_array ( $arr ) && isset ( $arr ['url'] )) {
 				ppd ( $arr );
 			}
 		}
-		
+
 		return array (
-				'url' => $arr, 
+				'url' => $arr,
 				'id' => $id );
-	
+
 	}
 
 	function clear($what = 'all') {
@@ -125,7 +125,7 @@ class BaseTemplate extends Template {
 			}
 			if (! is_array ( $value )) {
 				$value = array (
-						$value );
+				$value );
 			}
 			if ($replace) {
 				$metas [$name] = $value;
@@ -170,7 +170,7 @@ class BaseTemplate extends Template {
 		} elseif ($group !== null) {
 			if (! is_array ( $asset )) {
 				$asset = array (
-						$asset );
+				$asset );
 			}
 			if (isset ( $this->_assets [$group] )) {
 				$asset = array_merge ( $asset, $this->_assets [$group] );
@@ -186,18 +186,18 @@ class BaseTemplate extends Template {
 			echo '<pre>';
 			echo debug_print_backtrace();
 			ppd($js);
-		}
-		pp($js);*/
+			}
+			pp($js);*/
 		$j = $this->toStore ( $js, $this->_jsFile, $id, $target );
 		if ($j) {
 			if ($target) {
 				if (isset ( $this->_jsFile [$target] )) {
 					if (is_string ( $js )) {
 						$old = isset ( $this->_jsFile [$target] ['url'] ) ? array (
-								$this->_jsFile [$target] ) : $this->_jsFile [$target];
+						$this->_jsFile [$target] ) : $this->_jsFile [$target];
 						$j = array (
 								'url' => array_merge ( $old, array (
-										$j ) ), 
+						$j ) ),
 								'id' => $id );
 					} elseif (is_array ( $js )) {
 						$this->_jsFile [$target] = $j ['url'];
@@ -226,6 +226,9 @@ class BaseTemplate extends Template {
 		if ($controllerName) {
 			return $this->getAppOwner ()->getController ( $controllerName );
 		}
+		if (!$this->_controller) {
+			$this->_controller =  $this->getAppOwner ()->getController ();
+		}
 		return $this->_controller;
 	}
 
@@ -243,7 +246,7 @@ class BaseTemplate extends Template {
 		$retval = array ();
 		foreach ( $this->_jsFile as $k => $file ) {
 			if ($file ['url'] == $js)
-				continue;
+			continue;
 			$retval [$k] = $file;
 		}
 		$this->_jsFile = $retval;
@@ -266,16 +269,16 @@ class BaseTemplate extends Template {
 		$c = null;
 		if ($this->getContentCallback ()) {
 			$c = call_user_func_array ( $this->getContentCallback (), array (
-					"rpath" => $css, 
-					"content" => null, 
-					"id" => $id, 
+					"rpath" => $css,
+					"content" => null,
+					"id" => $id,
 					"group" => "css" ) );
 		}
-		
+
 		if (! $c) {
-			
+
 			if (is_array ( $css )) {
-				
+
 				$r = array ();
 				foreach ( $css as $c ) {
 					$tc = $this->getLive ( $c );
@@ -296,7 +299,7 @@ class BaseTemplate extends Template {
 				}
 			}
 		}
-		
+
 		if ($c) {
 			if (is_array ( $c )) {
 				$retval = '';
@@ -328,7 +331,7 @@ class BaseTemplate extends Template {
 
 	protected function _renderHeader() {
 		$retval = '';
-		
+
 		foreach ( $this->_header as $k => $v ) {
 			switch (strtolower ( $k )) {
 				case 'title' :
@@ -347,9 +350,9 @@ class BaseTemplate extends Template {
 						}
 						$retval .= "/>";
 					}
-			
+
 			}
-		
+
 		}
 		return $retval;
 	}
@@ -363,7 +366,7 @@ class BaseTemplate extends Template {
 				$retval .= $this->_renderHeader ();
 				if ($tmp != null) {
 					$retval .= "<link rel=\"shortcut icon\" href=\"$tmp\"/>\n";
-				}			
+				}
 			}
 		}
 		$rendered = true;
@@ -376,7 +379,7 @@ class BaseTemplate extends Template {
 	}
 
 	function renderFooter() {
-	
+
 	}
 
 	function _getLive($rdata, $group) {
@@ -400,9 +403,9 @@ class BaseTemplate extends Template {
 				$r = null;
 				if ($this->getContentCallback ()) {
 					$r = call_user_func_array ( $this->getContentCallback (), array (
-							"rpath" => $js, 
-							"content" => null, 
-							"id" => is_numeric ( $key ) ? $js : $key, 
+							"rpath" => $js,
+							"content" => null,
+							"id" => is_numeric ( $key ) ? $js : $key,
 							"group" => $group ) );
 				}
 				if (! $r) {
@@ -418,7 +421,7 @@ class BaseTemplate extends Template {
 						$tocache = $js;
 					}
 					$live = $cache->get ( $key, $group );
-					
+
 					if (! $live) {
 						$live = $cache->putFile ( $tocache, $key, null, "js" );
 					}
@@ -452,13 +455,13 @@ class BaseTemplate extends Template {
 
 	public function renderClientAssets() {
 		$assets = $this->getAppOwner ()->getClientAssets ();
-		
+
 		if (! count ( $assets ) && ! count ( $assets )) {
 			return null;
 		}
-		
+
 		$assets = array ();
-		
+
 		$retval = $this->_renderLive ( $assets );
 		$this->_assets = array ();
 		return $retval;
@@ -472,7 +475,7 @@ class BaseTemplate extends Template {
 				case 'javascript' :
 					$retval .= $script ? '<script language="javascript" type="text/javascript">' : '';
 					break;
-				
+
 				default :
 					throw new UnimplementedException ( 'unhandle script type ' . $type );
 					break;
@@ -491,11 +494,11 @@ class BaseTemplate extends Template {
 				case 'javascript' :
 					$retval .= $script ? '</script>' : '';
 					break;
-				
+
 				default :
 					break;
 			}
-		
+
 		}
 		$this->_scripts = array ();
 		return $retval;
@@ -505,12 +508,12 @@ class BaseTemplate extends Template {
 		if (! count ( $this->_cssFile ) && ! count ( $this->_css )) {
 			return null;
 		}
-		
+
 		$css = $this->_getLive ( $this->_cssFile, 'css' );
 		$retval = "<!-- BEGIN CSS --->\n";
-		
+
 		$retval .= $this->_renderLive ( $css );
-		
+
 		if (count ( $this->_css )) {
 			$retval .= '<style type="text/css" media="all">';
 			$css = WebUtils::parseCSS ( implode ( "", $this->_css ) );
@@ -535,10 +538,10 @@ class BaseTemplate extends Template {
 		} else {
 			if (CGAF_DEBUG) {
 				$alt = $this->getLive ( $js, $this->_jsEngine, false );
-				
+
 				if ($alt !== null) {
 					$min = $alt;
-				
+
 				}
 			}
 			$js = $min;
@@ -552,9 +555,9 @@ class BaseTemplate extends Template {
 		if (! CGAF_DEBUG && $min) {
 			$js = $min;
 		}
-		
+
 		return $js;
-	
+
 		//return HTMLUtils::getJSAsset ( $js, false, $this->_jsEngine );
 	}
 
@@ -563,7 +566,7 @@ class BaseTemplate extends Template {
 			$r = $this->_assets;
 		}
 		$f = $this->getAppOwner ()->getLiveAsset ( $r );
-		
+
 		if ($r) {
 			if (is_array ( $r )) {
 				$retval = '';
@@ -572,7 +575,7 @@ class BaseTemplate extends Template {
 				}
 				return $retval;
 			}
-			
+
 			$ext = Utils::getFileExt ( $r, false );
 			$r = Utils::LocalToLive ( $r, $ext );
 			switch (strtolower ( $ext )) {
@@ -582,19 +585,19 @@ class BaseTemplate extends Template {
 					return "<link rel=\"stylesheet\" type=\"text/css\" media=\"all\" href=\"" . $r . "\"/>";
 				default :
 					if (stripos ( $ext, 'js' )) {
-						
+
 						return '<script language="javascript" type="text/javascript" ' . ($data ['id'] ? 'id="' . $data ['id'] . '" ' : '') . ' src="' . $r . '"></script>';
 					} else {
 						return "<link rel=\"stylesheet\" type=\"text/css\" media=\"all\" href=\"" . $r . "\"/>";
 					}
 			}
-		
+
 		}
 	}
 
 	private function _renderJS($js, $key) {
 		$r = null;
-		
+
 		if (is_array ( $js )) {
 			$retval = array ();
 			foreach ( $js as $j ) {
@@ -602,13 +605,13 @@ class BaseTemplate extends Template {
 			}
 			return $retval;
 		}
-		
+
 		$cache = $this->getAppOwner ()->getCacheManager ();
 		if ($this->getContentCallback ()) {
 			$r = call_user_func_array ( $this->getContentCallback (), array (
-					"rpath" => $js, 
-					"content" => null, 
-					"id" => is_numeric ( $key ) ? $js : $key, 
+					"rpath" => $js,
+					"content" => null,
+					"id" => is_numeric ( $key ) ? $js : $key,
 					"group" => "js" ) );
 		}
 		if (! $r) {
@@ -620,17 +623,17 @@ class BaseTemplate extends Template {
 						$tocache [] = $v;
 					}
 				}
-			
+
 			} else {
 				$tocache = $js;
 			}
-			
+
 			$live = $cache->get ( $key, "js" );
-			
+
 			if (! $live) {
 				$live = $cache->putFile ( $tocache, $key, null, "js" );
 			}
-			
+
 			$r = $this->getLive ( $live, $this->_jsEngine );
 		}
 		return $r;
@@ -638,19 +641,19 @@ class BaseTemplate extends Template {
 
 	private function renderJS($script = true) {
 		$retval = "";
-		
+
 		if (! Request::get ( '__s' ) && Request::isSupport ( "javascript" ) && (count ( $this->_jsFile ) || count ( $this->_scripts ))) {
 			$retval = count ( $this->_jsFile ) ? "<!-- BEGIN JSFile --->\n" : '';
-			
+
 			foreach ( $this->_jsFile as $key => $data ) {
 				$js = $data ['url'];
 				$r = $this->_renderJS ( $js, $key );
 				if ($r) {
 					$retval .= $this->_renderLive ( $r, $data );
 				}
-			
+
 			}
-			
+
 			$retval .= count ( $this->_jsFile ) ? "<!-- END JSFile --->\n" : '';
 			$retval .= $script ? "<script type=\"text/javascript\">" : '';
 			//$retval .= '$(function() {';
@@ -663,7 +666,7 @@ class BaseTemplate extends Template {
 			$this->_scripts = array ();
 			$this->_jsFile = array ();
 		}
-		
+
 		return $retval;
 	}
 

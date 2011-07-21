@@ -34,6 +34,7 @@ abstract class System {
 		}
 		return strtolower(CGAF_CONTEXT) === 'console';
 	}
+	
 	public static function removeIncludePath($path) {
 		foreach ( func_get_args () as $path ) {
 			$paths = explode ( DS, get_include_path () );
@@ -80,7 +81,6 @@ abstract class System {
 		try {
 			//** Debian or Ubuntu
 			if (@file_exists ( '/etc/debian_version' )) {
-
 				if (is_file ( '/etc/lsb-release' )) {
 					$s = Utils::parseIni ( '/etc/lsb-release' );
 					$s = $s ['Default'];
@@ -205,16 +205,15 @@ abstract class System {
 		}
 		return array ('name' => $distname, 'version' => $distver, 'id' => $distid, 'baseid' => $distbaseid, 'description' => $descr );
 	}
-	public static function LoadClass($classname) {
+	public static function loadClass($classname) {
 		if (String::EndWith("Collection", $classname) ) {
 			if (CGAF::Using("System.Collections.".$classname,false)) {
 				return true;
 			}
 			return CGAF::Using("System.Collections.".String::Replace("Collection", "",$classname),false);
 		}elseif (String::EndWith( $classname,'API')) {			
-			return CGAF::Using("System.API.".strtolower(substr( $classname,0,strlen($classname)-3)));
-			
-		}
+			return CGAF::Using("System.API.".strtolower(substr( $classname,0,strlen($classname)-3)));			
+		} 
 		return false;
 	}
 	public static function Initialize() {
@@ -223,7 +222,7 @@ abstract class System {
 			return;
 		}
 		$initialize= true;
-		CGAF::RegisterAutoLoad(array("System","LoadClass"));
+		CGAF::RegisterAutoLoad(array("System","loadClass"));
 		return ;
 	}
 	public static function loadExtenstion($ext) {

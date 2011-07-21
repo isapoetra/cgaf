@@ -208,6 +208,7 @@ final class CGAF {
 		if (! defined ( "CGAF_PATH" )) {
 			define ( "CGAF_PATH", realpath ( dirname ( __FILE__ ) . "/.." ) . DS );
 		}
+
 		//TODO Configurable
 		//date_default_timezone_set ( 'Asia/Jakarta' );
 		//self::$_benchmark = time () + microtime ();
@@ -228,6 +229,7 @@ final class CGAF {
 		array ('System' => array (
 		CGAF_PATH . 'System' . DS ) );
 		System::Initialize();
+
 		if (! defined ( "CGAF_CONTEXT" )) {
 			if (defined ( 'STDIN' )) {
 				$def = "Console";
@@ -235,8 +237,8 @@ final class CGAF {
 				$def = "Web";
 			}
 			define ( "CGAF_CONTEXT", self::getConfig ( "Context", $def ) );
-
 		}
+
 		if (!defined('BASE_URL')) {
 			$s = null;
 			if (CGAF_CONTEXT == "Web" && isset ( $_SERVER ['HTTP_HOST'] )) {
@@ -255,14 +257,15 @@ final class CGAF {
 		if (! defined ( "CGAF_APP_PATH" )) {
 			define ( "CGAF_APP_PATH", self::getConfig ( 'applicationPath', CGAF_PATH . "Applications" ) );
 		}
+		if (CGAF_APP_PATH == null || realpath ( CGAF_APP_PATH ) == null) {
+			die ( "Application Path Not Found" . CGAF_APP_PATH );
+		}
 
 		if (! defined ( 'CGAF_CORE_PATH' )) {
 			define ( "CGAF_CORE_PATH", self::getConfig ( 'cgaf.core.path', CGAF_PATH . "Core" ) );
 		}
+		self::addNamespaceSearchPath('core', CGAF_CORE_PATH,false);
 
-		if (CGAF_APP_PATH == null || realpath ( CGAF_APP_PATH ) == null) {
-			die ( "Application Path Not Found" . CGAF_APP_PATH );
-		}
 
 		$debugMode = self::getConfig ( 'DEBUGMODE', false );
 		if ($debugMode) {
@@ -289,7 +292,9 @@ final class CGAF {
 		//}
 		if (CGAF_DEBUG) {
 			define('CGAF_DEV_PATH',self::getConfig("cgaf.devpath",realpath(dirname(__FILE__).DS.'../../DevFiles/')).DS);
+			self::addAlowedLiveAssetPath(CGAF_DEV_PATH.self::getConfig("assetpath",'assets'));
 		}
+
 		//ppd( self::getInternalStorage('log',false) . DS . 'cgaf.error.log' );
 		$errors = self::getConfigs('errors'.(CGAF_DEBUG ? '.debug' : ''));
 		foreach ($errors as $k=>$v) {
@@ -319,15 +324,29 @@ final class CGAF {
 		self::Using ( "System.Interface.*" );
 		self::Using ( "System.Interface.DB.*" );
 		self::addStandardSearchPath('Libs', self::getConfig('cgaf.libspath',CGAF_PATH.DS.'Libs'.DS),false);
-		self::addAlowedLiveAssetPath(CGAF_PATH );
+		if (!defined("CGAF_VENDOR_PATH")) {
+			define("CGAF_VENDOR_PATH", self::getConfig('cgaf.vendorpath',CGAF_PATH.'vendor'.DS),false);
+		}
+		self::addStandardSearchPath('Vendor', CGAF_VENDOR_PATH,false);
+
+		if (!defined("CGAF_LIVE_PATH")) {
+			define("CGAF_LIVE_PATH", CGAF_PATH);
+		}
+		self::addAlowedLiveAssetPath(CGAF_LIVE_PATH.self::getConfig("livedatapath","assets") );
+		if (CGAF_DEBUG) {
+			self::addAlowedLiveAssetPath(CGAF_DEV_PATH.self::getConfig("livedatapath","assets") );
+		}
 		//self::Using ( "System.AppModel.MVC.MVCApplication" );
 		//die ( 'hi2' );
 		$cn = self::getConfig ( "AppModel", "MVC" );
+
 		self::Using ( "System.AppModel." . $cn.'.'.$cn.'Helper' );
+
 		$hp = $cn."Helper";
 		if (class_exists($hp)) {
 			call_user_func ( array ( $hp,'Initialize' ) );
 		}
+
 		self::Using ( "System." . CGAF_CONTEXT . ".Context" );
 		self::Using ( 'System.Collections' );
 		$c = CGAF_CONTEXT . "Context";
@@ -403,12 +422,13 @@ final class CGAF {
 	}
 	private static function  handleAssetNotFound() {
 		$f = $_REQUEST["__url"];
-		Logger::Warning("Asset Not Found : ".$f);
+
 		$ext = Utils::getFileExt($f,false);
 		$alt = null;
-			
+
 		$asset = str_ireplace('assets/', '', $f);
 		$ass = AppManager::getInstance()->getAsset($asset);
+
 		if ($ass && self::isAllowAssetToLive($ass)) {
 			return Streamer::render($ass);
 		}
@@ -445,7 +465,7 @@ final class CGAF {
 		}
 		$retval = null;
 		Session::getInstance ()->addEventListener ( '*', array (
-				'CGAF', 
+				'CGAF',
 				'onSessionEvent' ) );
 
 
@@ -750,6 +770,7 @@ final class CGAF {
 				return $fs;
 			}
 		}
+		//pp($devs);
 		/*foreach(self::$_classPath as $k=>$v) {
 			$f = preg_replace("/$k/", $v, $ns);
 			pp("$k $v $f $ns \n");
@@ -862,6 +883,7 @@ final class CGAF {
 		if (!self::isAllowAssetToLive($asset)) {
 			return null;
 		}
+
 		if (Utils::isLive($asset)) {
 			return Utils::PathToLive ($asset);
 		}
@@ -871,20 +893,28 @@ final class CGAF {
 				return $retval;
 			}
 		}
+		return self::pathToLive($asset);
+
+	}
+	protected static function pathToLive($path) {
+		pp($path);
+		ppd(self::$_allowedLivePath);
 		throw new Exception("x");
 	}
 	public static function addAlowedLiveAssetPath($path) {
-		$asset = self::getConfig ( 'livedatapath', 'assets' );
-		self::$_allowedLivePath[] = $path.$asset;
-		if (CGAF_DEBUG) {
-			self::$_allowedLivePath[] = CGAF_DEV_PATH.$asset;
+		if (!in_array($path, self::$_allowedLivePath)) {
+			self::$_allowedLivePath[] = $path;
 		}
+
 	}
 	public static function isAllowAssetToLive($asset) {
 		if (String::BeginWith ( $asset, 'https:' ) || String::BeginWith ( $asset, 'http:' ) || String::BeginWith ( $asset, 'ftp:' )) {
 			return $asset;
 		}
-		return String::BeginWith ( $asset, self::$_allowedLivePath );
+		if (!String::BeginWith ( $asset, self::$_allowedLivePath )) {
+			ppd(self::$_allowedLivePath);
+		}
+		return true;
 	}
 
 	public static function isAllowFile($asset, $access = NULL) {
@@ -917,6 +947,10 @@ final class CGAF {
 	}
 
 	private static function _getClassInstance($className, $suffix, $args, $find = true) {
+		$cname = array();
+		if (class_exists('AppManager',false) && AppManager::isAppStarted()) {
+			$cname[]=AppManager::getInstance()->getAppName().$className.$suffix;
+		}
 		$suffix = strtolower ( $suffix );
 		if (CGAF_CLASS_PREFIX) {
 			$cname[] =

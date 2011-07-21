@@ -670,7 +670,7 @@ abstract class MVCController extends Object implements IController, ISearchProvi
 		$route ["_a"] = strtolower ( $route ["_a"] );
 		$content =  isset($vars ['content']) ? $vars ['content'] : '';
 		if (!$content) {
-			$vars["content"] = $this->getView ( $route ["_c"], $route ["_a"], $vars );
+			$content = $this->getView ( $route ["_c"], $route ["_a"], $vars );
 		}
 		$vars["content"] = (is_object ( $content ) && $content instanceof IRenderable) ? $content->render ( true ) : $content;
 

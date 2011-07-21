@@ -7,7 +7,7 @@ abstract class HTMLUtils {
 		return preg_match ( '/^[^@\s<&>]+@([-a-z0-9]+\.)+[a-z]{2,}$/i', $email );
 	}
 	public static function renderAttr($attr) {
-		
+
 		if (is_string ( $attr ) || $attr === null) {
 			return $attr;
 		}
@@ -20,7 +20,7 @@ abstract class HTMLUtils {
 				default :
 					$r .= "$k=\"$v\" ";
 			}
-		
+
 		}
 		return $r;
 	}
@@ -41,10 +41,10 @@ abstract class HTMLUtils {
 			$attr = '';
 		}
 		/*$attr = "<span class=\"test test test\" id=\"ss1\"/>";*/
-		
+
 		$attr = self::explodeAttr ( $attr );
 		$val = self::explodeAttr ( $val );
-		
+
 		$retval = $attr;
 		foreach ( $val as $k => $v ) {
 			switch (strtolower ( $k )) {
@@ -85,7 +85,7 @@ abstract class HTMLUtils {
 		$retval .= ' <div class="container">' . $content . '</div>';
 		$retval .= '</div>';
 		return $retval;
-	
+
 	}
 	protected static function attrToArray($attr) {
 		$match = array ();
@@ -93,7 +93,7 @@ abstract class HTMLUtils {
 		$rval = array ();
 		foreach ( $match [0] as $v ) {
 			$s = explode ( '=', $v );
-			
+
 			$rval [$s [0]] = $s [1];
 		}
 		return $rval;
@@ -103,11 +103,11 @@ abstract class HTMLUtils {
 		if (! is_array ( $attr )) {
 			$attr = self::attrToArray ( $attr );
 		}
-		
+
 		if (! isset ( $attr ['id'] )) {
 			$attr ['id'] = Utils::generateId ( 'frm' );
 		}
-		
+
 		self::$_lastForm = $attr ['id'];
 		$retval = '<form method="post" action="' . $action . '" ' . ($multipart ? 'enctype="application/x-www-form-urlencoded"' : "") . ' ' . self::renderAttr ( $attr ) . '>';
 		if ($showMessage) {
@@ -127,7 +127,7 @@ abstract class HTMLUtils {
 	}
 	public static function renderFormAction() {
 		$retval = '<div class="formAction">';
-		
+
 		$retval .= self::renderButton ( 'reset', __ ( 'reset', 'Reset' ), __ ( 'reset.descr', 'Reset this form' ), array (
 			'class' => 'reset button' ), true, 'reset.png' );
 		$retval .= self::renderButton ( 'submit', __ ( 'submit', 'Submit' ), __ ( 'submit.descr', 'Submit this form' ), array (
@@ -135,7 +135,7 @@ abstract class HTMLUtils {
 		$retval .= '</div>';
 		return $retval;
 	}
-	
+
 	public static function getJSAsset($js, $live = true, $prefix = null) {
 		$min = AppManager::getInstance ()->getResource ( Utils::changeFileExt ( $js, "min.js" ), $prefix, $live );
 		$js = AppManager::getInstance ()->getResource ( $js, $prefix, $live );
@@ -149,9 +149,9 @@ abstract class HTMLUtils {
 			}
 		}
 		return $js;
-	
+
 	}
-	
+
 	public static function endForm($renderAction = true, $renderToken = false, $ajaxmode = false) {
 		$retval = "";
 		if ($renderAction) {
@@ -161,7 +161,7 @@ abstract class HTMLUtils {
 			$retval .= self::renderHiddenField ( '__token', Session::get ( '__token' ) );
 		}
 		$retval .= "</form>";
-		
+
 		if ($ajaxmode) {
 			$id = self::$_lastForm;
 			$js = <<< JS
@@ -171,14 +171,14 @@ JS;
 		}
 		return $retval;
 	}
-	
+
 	public static function renderScript($script) {
 		$retval = "<script type=\"text/javascript\"  language=\"javascript\">$script</script> ";
 		return $retval;
 	}
-	
+
 	public static function renderCaptcha($captchaId = "__captcha", $attr = null, $showlabel = true) {
-		
+
 		$capt = AppManager::getInstance ()->getController ( 'captcha' );
 		if ($capt) {
 			return $capt->renderContainer ( $captchaId, $attr, $showlabel );
@@ -186,7 +186,7 @@ JS;
 			return null;
 		}
 	}
-	
+
 	public static function beginBox() {
 		static $first;
 		$r = "";
@@ -199,20 +199,20 @@ JS;
 		$first = true;
 		return $r . '<div class="box">';
 	}
-	
+
 	public static function endBox() {
 		return "</div>";
 	}
 	/**
-	 * 
+	 *
 	 * Enter description here ...
 	 * @param unknown_type $css
 	 * @deprecated
 	 */
 	public static function packCSS($css) {
 		return WebUtils::PackCSS($css);
-	} 
-	
+	}
+
 	//	 public static function parseCSS($css, $file = false, $pack = null) {
 	//		$parsed =array();
 	//		if ($pack == null) {
@@ -276,7 +276,7 @@ JS;
 	//		}
 	//		return $retval;
 	//	}
-	
+
 
 	/*public static function cssRegexCallback($matches) {
 		$f = str_replace ( "'", '', $matches [1] );
@@ -285,29 +285,29 @@ JS;
 		$nval = AppManager::getInstance ()->getLiveData ( $f );
 		$retval = '';
 		if ($nval) {
-			$retval = "url('$nval')";
-		
+		$retval = "url('$nval')";
+
 		} else {
-			$fname = self::$_lastCSS . Utils::ToDirectory ( $f );
-			
-			if (is_readable ( $fname )) {
-				$retval = 'url(\'' . Utils::PathToLive ( $fname ) . '\')';
-			} else {
-				$retval = 'url(\'' . Utils::PathToLive ( $fname ) . '\')';
-				Logger::Warning ( 'resource not found ' . $fname . ' for ' . self::$_lastCSS );
-			}
+		$fname = self::$_lastCSS . Utils::ToDirectory ( $f );
+
+		if (is_readable ( $fname )) {
+		$retval = 'url(\'' . Utils::PathToLive ( $fname ) . '\')';
+		} else {
+		$retval = 'url(\'' . Utils::PathToLive ( $fname ) . '\')';
+		Logger::Warning ( 'resource not found ' . $fname . ' for ' . self::$_lastCSS );
+		}
 		}
 		return $retval . ' ' . $matches [2] . $matches [3];
-	}
-	*/
+		}
+		*/
 	public static function renderTextArea($title, $id, $value, $attr = null, $editMode = true) {
 		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "textarea" );
 	}
-	
+
 	public static function renderTextBox($title, $id, $value, $attr = null, $editMode = true) {
 		return self::renderFormField ( $title, $id, $value, $attr, $editMode );
 	}
-	
+
 	public static function renderPassword($title, $id, $value = '', $attr = null, $editMode = true) {
 		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "password" );
 	}
@@ -316,13 +316,13 @@ JS;
 			$attr = self::mergeAttr ( $attr, array (
 				'checked' => 'checked' ) );
 		}
-		
+
 		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "checkbox" );
 	}
 	public static function renderHiddenField($id, $value) {
 		return self::renderFormField ( null, $id, $value, null, true, 'hidden' );
 	}
-	
+
 	public static function renderFormField($title, $id, $value, $attr = null, $editMode = false, $type = "text") {
 		$renderlabel = true;
 		$retval = "";
@@ -345,7 +345,7 @@ JS;
 					return ($title ? '<label for="' . $id . '">' . $title . '</label>' : '') . $editor->Render ( true );
 				}
 			case 'textarea' :
-				
+
 				if ($editMode) {
 					$retval .= "<textarea  id=\"$id\" name=\"$id\" $attr>$value</textarea>";
 				} else {
@@ -353,9 +353,9 @@ JS;
 				}
 				break;
 			case "checkbox" :
-				
+
 				if ($editMode) {
-					
+
 					$retval .= "<input type=\"$type\" value=\"$value\" id=\"$id\" name=\"$id\" $attr/>";
 				} else {
 					$retval .= "<span id=\"$id\" $attr>" . Utils::bool2yesno ( $value ) . "</span>";
@@ -371,7 +371,7 @@ JS;
 				} else {
 					$retval .= "<span id=\"$id-label\" $attr>$value</span>";
 					$retval .= "<input type=\"hidden\" value=\"$value\" id=\"$id\" name=\"$id\" $attr/>";
-				
+
 				}
 				break;
 		}
@@ -380,7 +380,7 @@ JS;
 		}
 		return $retval;
 	}
-	
+
 	public static function renderRadioGroups($title, $id, $items, $selected = null, $nonevalue = '-1', $baseLang = null) {
 		$retval = "";
 		if ($title) {
@@ -397,7 +397,7 @@ JS;
 				$key = $item ['key'];
 				$value = $item ['value'];
 				$tt = $item ['descr'];
-				
+
 				$ttitle = isset ( $item ['title'] ) ? $item ['title'] : (isset ( $item ['descr'] ) ? $item ['descr'] : $item ['key']);
 			}
 			$sel = '';
@@ -411,7 +411,7 @@ JS;
 		}
 		return $retval;
 	}
-	
+
 	public static function renderSelect($title, $id, $items, $selected = null, $nonevalue = '-1', $baseLang = null, $attr = null, $editmode = true, $content = null) {
 		$retval = "";
 		if ($title) {
@@ -444,13 +444,13 @@ JS;
 			$val = self::getSelectValue ( $items, $selected );
 			$retval .= self::renderHiddenField ( $id, $selected );
 			$retval .= '<span>' . $val . '</span>';
-		
+
 		}
 		$retval .= $content;
-		
+
 		return $retval;
 	}
-	
+
 	public static function getSelectValue($items, $val) {
 		foreach ( $items as $item ) {
 			if (is_object ( $item )) {
@@ -468,7 +468,7 @@ JS;
 		}
 		return null;
 	}
-	
+
 	public static function renderPagination($currentPage, $pageCount, $dataUrl, $rowperpage = 10) {
 		$rowperpage = Request::get ( "_rp", $rowperpage );
 		$retval = "<div  class=\"navigation\">";
@@ -491,7 +491,7 @@ JS;
 		$retval .= "</div>";
 		return $retval;
 	}
-	
+
 	public static function renderTable($id, $rows, $dataUrl, $langPrefix = null) {
 		$currentPage = Request::get ( "_page", 0 );
 		$rowperpage = count ( $rows ) - 1;
@@ -512,7 +512,7 @@ JS;
 			$retval .= "</tr>";
 		}
 		$retval .= "</table>";
-		
+
 		$retval .= self::renderPagination ( $currentPage, $rows ["rowCount"], $dataUrl, $rowperpage );
 		$retval .= "</div>";
 		if (Request::isSupport ( "javascript" )) {
@@ -529,19 +529,19 @@ JS;
 		}
 		return $retval;
 	}
-	
+
 	public static function renderError($msg) {
 		return '<div class="error">' . $msg . '</div>';
 	}
-	
+
 	public static function renderLink($link, $title, $attr = null, $icon = null, $descr = null) {
 		$icon = $icon ? $icon : 'cleardot.gif';
 		if (! $attr) {
 			$attr = array ();
 		}
-		
+
 		$icon = AppManager::getInstance ()->getLiveData ( $icon, 'images' );
-		
+
 		if (! $icon) {
 			$icon = AppManager::getInstance ()->getLiveData ( 'cleardot.gif', 'images' );
 		}
@@ -553,12 +553,12 @@ JS;
 			if (! count ( $link )) {
 				return null;
 			}
-			
+
 			$retval = '<ul ' . self::renderAttr ( $attr ) . '>';
 			foreach ( $link as $k => $v ) {
 				$v ['attr'] = isset ( $v ['attr'] ) ? $v ['attr'] : null;
 				$v ['title'] = isset ( $v ['title'] ) ? $v ['title'] : null;
-				
+
 				$retval .= self::renderButtonLink ( $v ['url'], $v ['title'], $v ['attr'], $v ['icon'], $v ['descr'] );
 			}
 			$retval .= '</ul>';
@@ -576,7 +576,7 @@ JS;
 	public static function renderSpanImg($title, $attr) {
 		return '<span ' . $attr . '><img src="/Data/images/cleardot.gif"/>' . $title . '</span>';
 	}
-	
+
 	public static function renderLinks($items, $attr = null) {
 		$retval = '';
 		if (! is_array ( $items )) {
@@ -612,25 +612,25 @@ JS;
 			return $style;
 		}
 		$style .= ';';
-		
+
 		$styles = explode ( ';', $style );
 		$retval = array ();
 		foreach ( $styles as $v ) {
 			if (! $v)
-				continue;
+			continue;
 			$v = explode ( ':', $v );
 			$title = $v [0];
 			array_shift ( $v );
 			$retval [$title] = implode ( '', $v );
 		}
 		return $retval;
-	
+
 	}
 	public static function mergeStyle($old, $new) {
 		if (! $old) {
 			$old = '';
-		
-		//$old = 'border:1px solid green;background:url(http://test.test.com/)';
+
+			//$old = 'border:1px solid green;background:url(http://test.test.com/)';
 		}
 		$old = self::explodeStyle ( $old );
 		$new = self::explodeStyle ( $new );
@@ -640,11 +640,9 @@ JS;
 			$retv .= "$k:$v;";
 		}
 		return $retv;
-	
+
 	}
-	public static function renderExpandable() {
-	
-	}
+
 	public static function renderTRField($row, $field = null, $baselang = null) {
 		$retval = '';
 		$field = $field ? $field : array_keys ( get_object_vars ( $row ) );
@@ -674,15 +672,15 @@ EOT;
 		$retval .= '</tr></table></fieldset>';
 		return $retval;
 	}
-	
+
 	public static function renderMenu($items, $selected = null, $class = null, $repl = null) {
 		if (! $items) {
 			return '';
 		}
 		$retval = "<ul class=\"$class menu\">";
 		foreach ( $items as $k => $item ) {
-			if (! ($item instanceof MenuItem)) {				
-				$item =  new MenuItem (Utils::bindToObject ( new stdClass (), $item, true ));				
+			if (! ($item instanceof MenuItem)) {
+				$item =  new MenuItem (Utils::bindToObject ( new stdClass (), $item, true ));
 			}
 			if ($repl) {
 				$item->setReplacer ( $repl );
@@ -696,6 +694,13 @@ EOT;
 		}
 		$retval .= "</ul>";
 		return $retval;
+	}
+	public static function OptimizeHTML($html) {
+		$tidy = new tidy();
+		$config = array( 'indent' => true, 'output-xhtml' => true, 'wrap' => 200, 'clean' => true, 'show-body-only' => false );
+		$tidy->parseString( $html, $config, 'utf8' );
+		$tidy->cleanRepair(  );
+		return tidy_get_output($tidy);
 	}
 }
 ?>
