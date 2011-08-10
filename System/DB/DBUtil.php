@@ -1,6 +1,5 @@
 <?php
-
-if (! defined("CGAF")) die("Restricted Access");
+namespace System\DB;
 abstract class DBUtil {
   
   public static function toModule ($tableName, $conn) {

@@ -1,6 +1,5 @@
 <?php
-if (! defined("CGAF"))
-	die("Restricted Access");
+namespace System\DB;
 abstract class DBFieldInfo {
 	public $field_name;
 	public $field_type;

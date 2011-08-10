@@ -1,7 +1,6 @@
 <?php
-if (! defined ( "CGAF" ))
-	die ( "Restricted Access" );
-
+namespace System\Web;
+use \Utils;
 class ClientInfo {
 	private $_path;
 	private $_cachepath;

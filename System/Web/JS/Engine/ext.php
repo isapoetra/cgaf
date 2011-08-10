@@ -1,18 +1,20 @@
 <?php
-using ("System.Web.UI.JExt");
-class JSEngineExt extends JSBaseEngine {
+namespace System\Web\JS\Engine;
 
+class Ext extends AbstractJSEngine {
 	function __construct($appOwner) {
-		parent::__construct ( $appOwner, 'ext', '3.3.1' );
+		parent::__construct($appOwner, 'ext', '3.3.1');
 	}
+
 	protected function getJSAsset() {
-		$prefix = strtolower ( $this->_baseConfig );
-		$assets = array (
-		//'js/'.$prefix.'/'.$this->_info['version'].
-		 'resources/css/ext-all.css',
-		 'ext-core-all.js',
-		 'ext-all-no-core.js');
-		if ($this->getConfig('useui',true)) {
+		$prefix = strtolower($this -> _baseConfig);
+		$assets = array('resources/css/ext-all-notheme.css',
+			'resources/css/' . $this -> getConfig('themes', 'xtheme-blue').'.css',
+			'ext-extended.css',
+			'adapter/ext/ext-base.js',
+			'ext-all'.(CGAF_DEBUG  ? '-debug' : '').'.js',
+			'cgaf/cgaf-ext.assets');
+		if($this -> getConfig('useui', true)) {
 			//$assets[] = 'ui/'.$prefix . '-ui.js';
 			//$assets[] ='themes/base/'.$prefix.'-ui.css';
 		}
@@ -28,4 +30,5 @@ class JSEngineExt extends JSBaseEngine {
 				</script>
 EOT;
 	}
+
 }

@@ -1,15 +1,14 @@
 <?php
-if (! defined ( "CGAF" ))
-	die ( "Restricted Access" );
-class JExtGridComponent extends JExtComponent {
-	
+namespace System\Web\UI\Ext;
+class JExtGridComponent extends Component {
+
 	function __construct() {
 		parent::__construct ( array (
 			"xtype" => "grid" ) );
 	}
 }
 
-class JExtGrid extends JExtControl {
+class Grid extends Control {
 	public $mode = "js";
 	protected $_defaultHeight = 250;
 	protected $_data;
@@ -23,36 +22,35 @@ class JExtGrid extends JExtControl {
 	protected $_RenderWhenNoData = false;
 	protected $_reportString;
 	protected $_viewMode = "window";
-	
+
 	protected $_showbutton = array (
-		"add", 
-		"edit", 
-		"delete", 
+		"add",
+		"edit",
+		"delete",
 		"view" );
-	
+
 	function __construct($data = null, $column = null, $fields = null) {
 		if ($this->_class == null)
-			$this->_class = "GExt.grid.GridPanel";
+		$this->_class = "Ext.grid.GridPanel";
 		parent::__construct ( $this->_class );
 		$this->addEventHandler ( "onrenderreport" );
 		$this->_data = $data;
 		$this->_column = $column;
 		$this->_fields = $fields;
-		$this->_controlScript = array (
-			'id' => get_class ( $this ), 
-			'url' => JExt::PluginURL() . 'grid/grid.js' );
+
+
 		//ppd($this->_controlScript);
 		$this->addIgnoreConfigStr ( array (
-			"getRowClass", 
-			"bbarplugins", 
-			"plugins", 
-			"sm", 
-			"renderer", 
-			"ds", 
+			"getRowClass",
+			"bbarplugins",
+			"plugins",
+			"sm",
+			"renderer",
+			"ds",
 			"view" ) );
 		$this->setConfigs ( array (
-			"autoHeight" => true, 
-			"frame" => true, 
+			"autoHeight" => true,
+			"frame" => true,
 			"autoScroll" => true ) );
 		$this->_winCallBack = "{changed:function(){grid=Ext.getCmp('" . $this->_id . "');grid.store.load();}}";
 		// stupid ie
@@ -61,23 +59,23 @@ class JExtGrid extends JExtControl {
 			$this->setConfig ( "height", $this->_defaultHeight, true );
 		}
 	}
-	
+
 	function setViewMode($value) {
 		$this->_viewMode = $value;
 	}
-	
+
 	function setReportString($value) {
 		$this->_reportString = $value;
 	}
-	
+
 	function getStore() {
 		return $this->_config ["store"];
 	}
-	
+
 	function setRenderWhenNoData($value) {
 		$this->_RenderWhenNoData = $value;
 	}
-	
+
 	function addShowButton($btn) {
 		if (is_array ( $btn )) {
 			foreach ( $btn as $b ) {
@@ -89,11 +87,11 @@ class JExtGrid extends JExtControl {
 			$this->_showbutton [] = $btn;
 		}
 	}
-	
+
 	function setAutoFilter($value) {
 		$this->_autoFilter = $value;
 	}
-	
+
 	function setFiltersCols($value) {
 		$arrfilter = array ();
 		foreach ( $value as $v ) {
@@ -105,18 +103,18 @@ class JExtGrid extends JExtControl {
 				//boolean :D
 				if (is_bool ( $f ) && $f) {
 					$arrfilter [] = array (
-						"type" => "string", 
+						"type" => "string",
 						"dataIndex" => $v ["dataIndex"] );
 				} elseif (is_array ( $f )) {
 					$arrfilter [] = $f;
 				}
 			} elseif ($this->_autoFilter && isset ( $v ["dataIndex"] )) {
 				$arrfilter [] = array (
-					"type" => "string", 
+					"type" => "string",
 					"dataIndex" => $v ["dataIndex"] );
 			}
 		}
-		JExt::LoadPlugin ( 'grid/grid-filter-local' );
+		JExt::LoadPlugin ( 'gridfilters/GridFilters.js' );
 		$filters = new JExtCustom ( "Ext.ux.grid.GridFilters", array (
 			"filters" => $arrfilter ), null, false );
 		$this->addClientScript ( "filters=" . $filters->render ( true ), "start" );
@@ -124,35 +122,35 @@ class JExtGrid extends JExtControl {
 			$this->setConfig ( "plugins", "filters" );
 		}
 	}
-	
+
 	function setShowButton($button) {
 		if ($button === null) {
 			$button = array ();
 		}
 		$this->_showbutton = $button;
 	}
-	
+
 	function setViewReport($value) {
 		if ($value && in_array ( "reports", $this->_showbutton )) {
 			//$winc =$this->getWinConfig("reports");
 			$this->addTopBar ( array (
-				array (
-					"id" => "bReports", 
-					"text" => 'Reports', 
-					"tooltip" => 'Render Reports', 
-					"iconCls" => 'x-rpt-print', 
+			array (
+					"id" => "bReports",
+					"text" => 'Reports',
+					"tooltip" => 'Render Reports',
+					"iconCls" => 'x-rpt-print',
 					"handler" => "function(a,b){var grid=Ext.getCmp('" . $this->_id . "');if (grid) {sm=grid.getSelectionModel().getSelected();if(!sm){Ext.MessageBox.alert('Error','No Data Selected');return false} doLoadPageContent('{$this->_reportURL}&{$this->_fieldId}='+sm.data.{$this->_fieldId})}}" ) ) );
 		}
-	
+
 		//"handler" => "function(){doLoadPageContent('{$this->_reportURL}')}")));
 	}
-	
+
 	function assignStandard($m = null, $keyid = null) {
 		if ($keyid) {
 			$this->_fieldId = $keyid;
 		}
-		$m = $m ? $m : CGAF::GetParam ( "_m" );
-		$perms = ACL::getInstance ();
+		$m = $m ? $m : Request::get( "_m" );
+		$perms = ACLHelper::getInstance();
 		if ($perms->checkModule ( $m, "edit" )) {
 			$this->setcanEdit ( true );
 		}
@@ -179,39 +177,39 @@ class JExtGrid extends JExtControl {
 		}
 		$this->setViewReport ( true );
 	}
-	
+
 	function setParent($value) {
 		parent::setParent ( $value );
 		$this->_RenderWhenNoData = true;
 	}
-	
+
 	function setFieldId($value) {
 		$this->_fieldId = $value;
 		$this->_baseURI = Request::getQuery ( array (
-			"_a", 
-			"_task", 
-			"_dc", 
-			$this->_fieldId ), true );
+			"_a",
+			"_task",
+			"_dc",
+		$this->_fieldId ), true );
 	}
-	
+
 	function setSingleSelect($value) {
 		$this->_singleSelect = $value;
 	}
-	
+
 	function setData($value) {
 		$this->_data = $value;
 	}
-	
+
 	function setColumn($value) {
 		$this->_column = $value;
 	}
-	
+
 	function addColumns($arrc) {
 		foreach ( $arrc as $v ) {
 			$this->addColumn ( $v );
 		}
 	}
-	
+
 	function setcanAdd($value) {
 		if (! $value) {
 			Utils::arrayRemoveValue ( $this->_showbutton, "add" );
@@ -220,15 +218,15 @@ class JExtGrid extends JExtControl {
 		if ($value && in_array ( "add", $this->_showbutton )) {
 			$winc = $this->getWinConfig ( "add" );
 			$this->addTopBar ( array (
-				array (
-					"id" => "badd", 
-					"text" => 'Add', 
-					"tooltip" => 'Add a new row', 
-					"iconCls" => 'add', 
+			array (
+					"id" => "badd",
+					"text" => 'Add',
+					"tooltip" => 'Add a new row',
+					"iconCls" => 'add',
 					"handler" => "function(){doCreateRemoteWindow({" . ($winc ? $winc . "," : "") . "modal:true,autoScroll:true,autoLoad:{url:'" . $this->_addEditURL . "'}},null,{$this->_winCallBack});}" ) ) );
 		}
 	}
-	
+
 	function setCanDelete($value, $m = null) {
 		if (! $value) {
 			Utils::arrayRemoveValue ( $this->_showbutton, "delete" );
@@ -237,15 +235,15 @@ class JExtGrid extends JExtControl {
 			$m = ModuleManager::getModuleInfo ( $m );
 			$delaction = "GExt.loadUrl('{$this->_deleteURL}&del='+sm.data.{$this->_fieldId},{success:function(){grid.store.load()}})";
 			$this->addTopBar ( array (
-				array (
-					"id" => "bDelete", 
-					"text" => 'Delete', 
-					"tooltip" => 'Delete row', 
-					"iconCls" => 'delete', 
+			array (
+					"id" => "bDelete",
+					"text" => 'Delete',
+					"tooltip" => 'Delete row',
+					"iconCls" => 'delete',
 					"handler" => "function(a,b){var grid=Ext.getCmp('" . $this->_id . "');if (grid) {sm=grid.getSelectionModel().getSelected();if(!sm){Ext.MessageBox.alert('Error','No Data Selected');return false} Ext.Msg.confirm('Confirm Delete','Delete Selected Data?',function(b) { if (b=='yes'){ $delaction }})}}" ) ) );
 		}
 	}
-	
+
 	function setCanEdit($value) {
 		if (! $value) {
 			Utils::arrayRemoveValue ( $this->_showbutton, "edit" );
@@ -257,15 +255,15 @@ class JExtGrid extends JExtControl {
 		if ($value && in_array ( "edit", $this->_showbutton )) {
 			$winc = $this->getWinConfig ( "edit" );
 			$this->addTopBar ( array (
-				array (
-					"id" => "bEdit", 
-					"text" => 'Edit', 
-					"tooltip" => 'Edit row', 
-					"iconCls" => 'edit', 
+			array (
+					"id" => "bEdit",
+					"text" => 'Edit',
+					"tooltip" => 'Edit row',
+					"iconCls" => 'edit',
 					"handler" => "function(a,b){var grid=Ext.getCmp('" . $this->_id . "');if (grid) {sm=grid.getSelectionModel().getSelected();if(!sm){Ext.MessageBox.alert('Error','No Data Selected');return false} doCreateRemoteWindow({" . ($winc ? $winc . "," : "") . "autoLoad:{url:'{$this->_addEditURL}&{$this->_fieldId}='+sm.data.{$this->_fieldId}}},null,{$this->_winCallBack})}}" ) ) );
 		}
 	}
-	
+
 	protected function getFields() {
 		if (! $this->_fields && $this->_data) {
 			if (is_object ( $this->_data )) {
@@ -290,9 +288,14 @@ class JExtGrid extends JExtControl {
 		}
 		return $this->_fields;
 	}
-	
+
 	function preRender() {
 		parent::preRender ();
+		if (!JExt::isExtAllLoaded()) {
+			$this->_controlScript = array (
+			'id' => get_class ( $this ),
+			'url' => JExt::PluginURL() . 'grid/grid.js' );
+		}
 		$fld = $this->getFields ();
 		$fields = array ();
 		if ($fld) {
@@ -300,6 +303,7 @@ class JExtGrid extends JExtControl {
 				$fields [] = JSON::encode ( $v );
 			}
 		}
+
 		if (! $this->getConfig ( "columns" ) && $this->_column) {
 			foreach ( $this->_column as $k => $c ) {
 				if (is_array ( $c )) {
@@ -336,15 +340,15 @@ class JExtGrid extends JExtControl {
 		//ppd($this->_config);
 		return "";
 	}
-	
+
 	public function addColumn($obj) {
 		$this->_column [] = $obj;
 	}
-	
+
 	function &addItem($obj, $key = null) {
 		return $this->addColumn ( $obj );
 	}
-	
+
 	//TODO:: move to report
 	function getReportData($data, $col) {
 		if (isset ( $data [$col ["dataIndex"]] )) {
@@ -360,8 +364,8 @@ class JExtGrid extends JExtControl {
 						break;
 					default :
 						ppd ( strtolower ( $col ["renderer"] ) );
-						;
-						break;
+					;
+					break;
 				}
 				return $retval;
 			} else {
@@ -371,7 +375,7 @@ class JExtGrid extends JExtControl {
 			return "&nbsp;";
 		}
 	}
-	
+
 	function RenderReport($renderer) {
 		$str = "{\$css}<table class=\"rpt\" width=\"100%\">";
 		$str .= "<tr>";
@@ -392,7 +396,7 @@ class JExtGrid extends JExtControl {
 		}
 		$str .= "</table>";
 		$renderer->assign ( array (
-			"css" => "", 
+			"css" => "",
 			"footer" => "" ) );
 		$this->_reportString = $str;
 		if ($this->raiseEvent ( "onRenderReport", $renderer )) {
@@ -400,7 +404,7 @@ class JExtGrid extends JExtControl {
 		}
 		return false;
 	}
-	
+
 	function Render($return = false, &$handle = false) {
 		if ($this->_renderMode) {
 			$this->preRender ();
@@ -408,13 +412,13 @@ class JExtGrid extends JExtControl {
 				case "report" :
 					$rpt = new WebReport ();
 					$rpt->attachEventHandler ( "onRenderContent", array (
-						$this, 
+					$this,
 						"renderReport" ) );
 					return $rpt->Render ( $return, $handle );
 					break;
 				default :
 					return parent::Render ( $return, $handle );
-					break;
+				break;
 			}
 		} else {
 			return parent::Render ( $return, $handle );
@@ -423,7 +427,7 @@ class JExtGrid extends JExtControl {
 }
 
 class JExtEditorGrid extends JExtGrid {
-	
+
 	function __construct($data = null, $column = null, $fields = null) {
 		$this->_class = "GExt.grid.EditorGridPanel";
 		parent::__construct ( $data, $column, $fields );
@@ -431,12 +435,12 @@ class JExtEditorGrid extends JExtGrid {
 }
 
 class TTableGrid extends JExtControl {
-	
+
 	function __construct($tableid) {
 		parent::__construct ( "GExt.grid.TableGrid" );
 		$this->id = $tableid;
 	}
-	
+
 	function Render($return = false, &$handle = false) {
 		$retval = "var grid = new GExt.grid.TableGrid('$this->id', {stripeRows: true ;});grid.render();";
 		JSUtils::showJSScript ( $retval );
@@ -444,21 +448,21 @@ class TTableGrid extends JExtControl {
 }
 
 class JExtGroupingGrid extends JExtGrid {
-	
+
 	function __construct($dataurl, $field, $column = null) {
 		parent::__construct ( null, $column, null );
 		$this->setConfigs ( array (
 			"view" => new JExtCustom ( "Ext.grid.GroupingView", array (
-				"forceFit" => true, 
-				"showGroupName" => true, 
+				"forceFit" => true,
+				"showGroupName" => true,
 				"hideGroupedColumn" => true ), null, false ) ) );
 		$this->_config ["store"] = new JGroupingStore ( $dataurl, null, $field );
 	}
-	
+
 	function setForceFit($value) {
 		return $this->apply ( "view", "forceFit", $value );
 	}
-	
+
 	function setAutoScroll($value) {
 		$this->applyConfig ( "autoScroll", $value, false );
 		return $this->apply ( "view", "autoScroll", $value );
@@ -466,22 +470,22 @@ class JExtGroupingGrid extends JExtGrid {
 }
 
 class JExtGroupingSummaryGrid extends JExtGroupingGrid {
-	
+
 	function __construct($store, $configs) {
 		parent::__construct ( null, null, null );
 		$this->_config ["store"] = $store;
 		$this->setConfigs ( $configs, false );
 	}
-	
+
 	function PreRender() {
 		$initconfigs = array (
-			"id" => $this->_config ["id"], 
-			"store" => $this->_config ["store"], 
-			"columns" => $this->_config ["columns"], 
+			"id" => $this->_config ["id"],
+			"store" => $this->_config ["store"],
+			"columns" => $this->_config ["columns"],
 			"view" => new JExtCustom ( "Ext.grid.GroupingView", array (
-				"showGroupName" => false, 
+				"showGroupName" => false,
 				"enableNoGroups" => false,  // REQUIRED!
-				"hideGroupedColumn" => true ), null, false ), 
+				"hideGroupedColumn" => true ), null, false ),
 			"plugins" => new JExtJS ( "new Ext.grid.GroupSummary()" ) );
 		$cfg = $this->_config;
 		$this->_config = array ();
@@ -492,7 +496,7 @@ class JExtGroupingSummaryGrid extends JExtGroupingGrid {
 }
 
 class JExtGridCheckboxSelectionModel extends JExtCustom {
-	
+
 	function __construct($config) {
 		parent::__construct ( "Ext.grid.CheckboxSelectionModel", $config, null, false );
 	}

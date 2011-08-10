@@ -1,0 +1,3 @@
+address=Address
+verificationcode=Verification Code
+birthdate=Birth Date

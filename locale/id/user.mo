@@ -1,3 +1,4 @@
-profile.title=Profile
+profile.title=About
 roles.title=Assigned Roles
-user_name=Nama User
+user_name=User Name
+forgetpassword=Forgot your password

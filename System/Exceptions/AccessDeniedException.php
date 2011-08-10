@@ -1,8 +1,10 @@
 <?php
-class AccessDeniedException extends SystemException {
-	function __construct($msg= null) {
+namespace System\Exceptions;
 
-		$msg = $msg!==null?$msg:"access denied";
+class AccessDeniedException extends SystemException {
+	function __construct($msg = null) {
+
+		$msg = $msg !== null ? $msg : "access denied";
 		parent::__construct($msg);
 	}
 

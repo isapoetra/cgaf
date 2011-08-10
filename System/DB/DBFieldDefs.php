@@ -1,4 +1,5 @@
 <?php 
+namespace System\DB;
 class DBFieldDefs  {
 	private $_vars = array();
 	function __construct($arg=null) {

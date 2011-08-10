@@ -1,7 +1,8 @@
 <?php
 if (! defined ( 'CGAF' ))
 	die ( 'Restricted Access' );
-CGAF::loadLibs ( 'PEAR.Date' );
+using("Libs.PEAR");
+Pear::load("Date");
 define ( 'FMT_DATEISO', '%Y%m%dT%H%M%S' );
 define ( 'FMT_DATELDAP', '%Y%m%d%H%M%SZ' );
 define ( 'FMT_DATETIME_MYSQL', '%Y-%m-%d %H:%M:%S' );
@@ -27,7 +28,7 @@ define ( 'SEC_DAY', 86400 );
  * Date package as 'pure' as possible
  */
 class CDate extends Date {
-	
+
 	/**
 	 * Overloaded compare method
 	 *
@@ -36,7 +37,7 @@ class CDate extends Date {
 	 */
 	function compare($d1, $d2, $convertTZ = false) {
 		if ($convertTZ) {
-			
+
 			$d1->convertTZ ( new DateTimeZone ( 'UTC' ) );
 			$d2->convertTZ ( new DateTimeZone ( 'UTC' ) );
 		}
@@ -60,7 +61,7 @@ class CDate extends Date {
 			return 1;
 		return 0;
 	}
-	
+
 	/**
 	 * Adds (+/-) a number of days to the current date.
 	 * @param int Positive or negative number of days
@@ -75,7 +76,7 @@ class CDate extends Date {
 			$this->setDate ( $timeStamp + SEC_DAY * $n, DATE_FORMAT_UNIXTIME );
 		}
 	}
-	
+
 	/**
 	 * Adds (+/-) a number of months to the current date.
 	 * @param int Positive or negative number of months
@@ -101,7 +102,7 @@ class CDate extends Date {
 			}
 		}
 	}
-	
+
 	/**
 	 * New method to get the difference in days the stored date
 	 * @param Date The date to compare to
@@ -110,7 +111,7 @@ class CDate extends Date {
 	function dateDiff($to, $pb_ignoretime = false) {
 		return Date_calc::dateDiff ( $this->getDay (), $this->getMonth (), $this->getYear (), $to->getDay (), $to->getMonth (), $to->getYear () );
 	}
-	
+
 	/**
 	 * New method that sets hour, minute and second in a single call
 	 * @param int hour
@@ -123,23 +124,23 @@ class CDate extends Date {
 		$this->setMinute ( $m );
 		$this->setSecond ( $s );
 	}
-	
+
 	function isWorkingDay() {
 		global $AppUI;
 		$working_days = CGAF::getConfig ( "date.cal_working_days" );
 		if (is_null ( $working_days )) {
 			$working_days = array (
-				'1', 
-				'2', 
-				'3', 
-				'4', 
+				'1',
+				'2',
+				'3',
+				'4',
 				'5' );
 		} else {
 			$working_days = explode ( ",", $working_days );
 		}
 		return in_array ( $this->getDayOfWeek (), $working_days );
 	}
-	
+
 	function getAMPM() {
 		if ($this->getHour () > 11) {
 			return "pm";
@@ -147,7 +148,7 @@ class CDate extends Date {
 			return "am";
 		}
 	}
-	
+
 	/* Return date obj for the end of the next working day
 		** @param	bool	Determine whether to set time to start of day or preserve the time of the given object
 		*/
@@ -164,7 +165,7 @@ class CDate extends Date {
 			$this->setTime ( $do->getHour (), '0', '0' );
 		return $this;
 	}
-	
+
 	/* Return date obj for the end of the previous working day
 	** @param	bool	Determine whether to set time to end of day or preserve the time of the given object
 	*/
@@ -181,7 +182,7 @@ class CDate extends Date {
 			$this->setTime ( $do->getHour (), '0', '0' );
 		return $this;
 	}
-	
+
 	/* Calculating _robustly_ a date from a given date and duration
 	** Works in both directions: forwards/prospective and backwards/retrospective
 	** Respects non-working days
@@ -217,7 +218,7 @@ else if ($durationType == '1') {
 				*/
 			if ($firstDay < 0)
 				$firstDay = 0;
-			
+
 		// Intraday additions are handled easily by just changing the hour value
 			if ($duration <= $firstDay) {
 				($sgn > 0) ? $this->setHour ( $this->hour + $duration ) : $this->setHour ( $this->hour - $duration );
@@ -243,7 +244,7 @@ else if ($durationType == '1') {
 				($sgn > 0) ? $this->setHour ( $cal_day_start + $dwh ) : $this->setHour ( $cal_day_end - $dwh );
 			} else
 				($sgn > 0) ? $this->setHour ( $cal_day_start + $hoursRemaining ) : $this->setHour ( $cal_day_end - $hoursRemaining );
-		
+
 		//end of proceeding the last day
 		}
 		// proceeding the fulldays finally which is easy
@@ -256,7 +257,7 @@ else if ($durationType == '1') {
 		//end of proceeding the fulldays
 		return $this->next_working_day ();
 	}
-	
+
 	/* Calculating _robustly_ the working duration between two dates
 	**
 	** Works in both directions: forwards/prospective and backwards/retrospective
@@ -289,7 +290,7 @@ else if ($durationType == '1') {
 		// if it is an intraday difference one is finished very easily
 		if ($days == 0)
 			return min ( $dwh, abs ( $e->hour - $s->hour ) ) * $sgn;
-		
+
 		// initialize the duration var
 		$duration = 0;
 		// process the first day
@@ -306,7 +307,7 @@ else if ($durationType == '1') {
 		$duration += $s->isWorkingDay () ? min ( $dwh, abs ( $e->hour - $cal_day_start ) ) : 0;
 		return $duration * $sgn;
 	}
-	
+
 	function workingDaysInSpan($e) {
 		global $AppUI;
 		// assume start is before end and set a default signum for the duration
@@ -331,25 +332,25 @@ else if ($durationType == '1') {
 		return $dt->getDate ( $fmt );
 	}
 	public static function getMFileTime($filePath) {
-		
+
 		$time = filemtime ( $filePath );
-		
+
 		$isDST = (date ( 'I', $time ) == 1);
 		$systemDST = (date ( 'I' ) == 1);
-		
+
 		$adjustment = 0;
-		
+
 		if ($isDST == false && $systemDST == true)
 			$adjustment = 3600;
-		
+
 		else if ($isDST == true && $systemDST == false)
 			$adjustment = - 3600;
-		
+
 		else
 			$adjustment = 0;
-		
+
 		return ($time + $adjustment);
-	
+
 	}
 }
 ?>

@@ -1,27 +1,28 @@
 <?php
-using("System.Collections");
-class ControlCollection extends Collection {
+namespace System\Collections;
 
-  function Render (IWriter $writer) {
-    foreach ($this->Items as $v) {
-      $v->Render($writer);
-    }
-  }
+class ControlCollection extends System\Collections\Collection {
 
-  public function add ($item, $multi = false) {
-    $idx = parent::add($item);
-    return $this->itemAt($idx);
-  }
+	function Render(IWriter $writer) {
+		foreach ($this->Items as $v) {
+			$v->Render($writer);
+		}
+	}
 
-  function getControlByTagName ($tagName) {
-    foreach ($this->Items as $v) {
-      if ($v instanceof HTMLControl) {
-        if (strcasecmp($v->tagName, $tagName) == 0) {
-          return $v;
-          break;
-        }
-      }
-    }
-  }
+	public function add($item, $multi = false) {
+		$idx = parent::add($item);
+		return $this->itemAt($idx);
+	}
+
+	function getControlByTagName($tagName) {
+		foreach ($this->Items as $v) {
+			if ($v instanceof HTMLControl) {
+				if (strcasecmp($v->tagName, $tagName) == 0) {
+					return $v;
+					break;
+				}
+			}
+		}
+	}
 }
 ?>

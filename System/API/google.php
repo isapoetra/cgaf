@@ -1,29 +1,39 @@
 <?php
-class googleApi extends PublicAPI {
+namespace System\API;
+//TODO move to System.Web.JS.API
 
-	private $_apijs = array(
-		'plusone'=>'https://apis.google.com/js/plusone.js',
-	);
+class google extends PublicAPI {
 
-	public  function plusOne($size='small') {
-		$size =  $size ? $size : $this->getConfig("plusOne.size");
+	private $_apijs = array('plusone' => 'https://apis.google.com/js/plusone.js',);
 
-		return '<g:plusone size="'.$size.'"></g:plusone>';
+	public function plusOne($size = 'small') {
+		$size = $size ? $size : $this->getConfig("plusOne.size");
+		return '<g:plusone size="' . $size . '"></g:plusone>';
 	}
+
 	public function init($service) {
 		switch (strtolower($service)) {
-			case "analitycs":
-
-				break;
+		case "analitycs":
+			break;
 		}
 	}
+
 	public function initPlusOne() {
 		AppManager::getInstance()->addClientAsset('https://apis.google.com/js/plusone.js');
 	}
+
+	public function initJS() {
+		$key = AppManager::getInstance()->getConfig('google.jsapi.key');
+		if (!$key) {
+			throw new SystemException("invalid google api key");
+		}
+		AppManager::getInstance()->addClientAsset('https://www.google.com/jsapi?key=' . $key);
+	}
+
 	public function analitycs() {
 		$gag = $this->getConfig('analytics.alitycsid');
 		if ($gag) {
-			$script= <<< SC
+			$script = <<< SC
 var _gaq = _gaq || [];
 _gaq.push(['_setAccount', '$gag']);
 _gaq.push(['_trackPageview']);

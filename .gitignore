@@ -1,45 +1,19 @@
+#temporary ignore
+assets/js
+assets/themes
+
 .settings
 .buildpath
 tmp
 .project
 .svn
-sess_*
 thumbs.db
 .cache
 /info.php
-# Compiled source #
-###################
-*.com
-*.class
-*.dll
-*.exe
-*.o
-*.so
 
-# Packages #
-############
-# it's better to unpack these files and commit the raw source
-# git has its own built in compression methods
-*.7z
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
-*.tar
-
-# Logs and databases #
-######################
-*.log
-*.sql
-*.sqlite
-*.log
+#temporary
 log
+sessions
+tmp
 
-# OS generated files #
-######################
-.DS_Store?
-ehthumbs.db
-Icon?
-Thumbs.db
-/test
+/globe

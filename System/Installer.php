@@ -7,9 +7,7 @@ abstract class Installer {
 	 * @return TBaseInstaller
 	 */
 	public static function getInstance($install,$basePath){
-		if (using('System.install.'.$install)) {
-				$c = CGAF_CLASS_PREFIX.$install.'Installer';
-				return new $c($basePath);
-		}
+		$c = '\\System\\Installer\\'.$install;
+		return new $c($basePath);
 	}
 }

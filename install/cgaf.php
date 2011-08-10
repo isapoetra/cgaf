@@ -291,12 +291,10 @@ class TCGAFApplication extends ConsoleApplication {
 				$this->getString('press any key when ready...');
 			}
 		}
-		
+
 	}
 }
-
-$app = new TCGAFApplication();
 //Disable check offline check.. just run application direct
-//CGAF::Run($app);
-$app->Run();
+CGAF::Run(new TCGAFApplication(),true);
+
 ?>

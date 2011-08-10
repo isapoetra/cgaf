@@ -1,18 +1,18 @@
 <?php
-defined ( "CGAF" ) or die ( "Restricted Access" );
+defined("CGAF") or die("Restricted Access");
 $buff = null;
 global $args;
-$args = $args ? $args : func_get_args ();
+$args = $args ? $args : func_get_args();
 
 if (CGAF_DEBUG) {
-	$bt = debug_backtrace ();
-	if (! CGAF_DEBUG) {
-		array_shift ( $bt );
-		array_shift ( $bt );
+	$bt = debug_backtrace();
+	if (!CGAF_DEBUG) {
+		array_shift($bt);
+		array_shift($bt);
 	}
-	if ($bt [0] ["function"] == "exception_handler") {
-		if ($bt [0] ["args"] [0] instanceof Exception) {
-			$bt = $bt [0] ["args"] [0]->getTrace ();
+	if ($bt[0]["function"] == "exception_handler") {
+		if ($bt[0]["args"][0] instanceof Exception) {
+			$bt = $bt[0]["args"][0]->getTrace();
 		}
 	}
 }
@@ -82,7 +82,7 @@ body {
 }
 
 .error .backtrace .row {
-	
+
 }
 
 .error .backtrace .args {
@@ -156,48 +156,51 @@ body {
 <div class="title">
 <div>
     	Uncaught Exception <?php
-    				if (class_exists('AppManager',false)) {
-						echo AppManager::getActiveApp () != null ? AppManager::getInstance ()->getAppName () : "";
-					}
-					?>
+if (class_exists('AppManager', false)) {
+	echo AppManager::isAppStarted() ? AppManager::getInstance()->getAppName() : "";
+}
+?>
 					</div>
 </div>
 <div class="messages">
 
       <?php
-						echo self::format ( $args );
-						?>
+echo self::format($args);
+					  ?>
     </div>
 <div><a href="<?php
-echo BASE_URL?>">Home</a></div>
+echo BASE_URL
+			  ?>">Home</a></div>
 <?php
-if (CGAF_DEBUG) {
-	?>
+			  if (CGAF_DEBUG) {
+								?>
     <div class="backtrace"><span class="title">Back Trace</span>
       <?php
-		echo self::print_backtrace ( $bt, true )?>
+	echo self::print_backtrace($bt, true)
+																?>
     </div>
 <span>Buffer</span>
 <div class="buffer">
       <?php
-		echo pp ( $buff ? $buff : 'Empty Buffer', true )?>
+	echo pp($buff ? $buff : 'Empty Buffer', true)
+					?>
     </div>
 <?php
 }
-?>
+		  ?>
 
   </div>
 <?php
 if (CGAF_DEBUG) {
-	?>
+		?>
   <div id="debugframe" class="debug" title="Debug Console">
     <?php
-	echo Logger::WriteDebug ( Logger::Flush ( true ) );
-	?>
+	echo Logger::WriteDebug(Logger::Flush(true));
+														   ?>
   </div>
 <?php
 }
-?>
+		?>
 </div>
 </body>
 </html>

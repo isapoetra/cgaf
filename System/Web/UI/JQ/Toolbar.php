@@ -1,6 +1,6 @@
 <?php
-
-class JQToolbar extends JQControl {
+namespace System\Web\UI\JQ;
+class Toolbar extends Control {
 	function __construct($id = null) {
 		parent::__construct ( $id );
 		$this->setAttr ( array (

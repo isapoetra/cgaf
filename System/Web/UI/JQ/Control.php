@@ -1,7 +1,10 @@
 <?php
-defined("CGAF") or die("Restricted Access");
+namespace System\Web\UI\JQ;
+use System\Configurations\Configuration;
 
-abstract class JQControl extends WebControl implements IRenderable {
+use System\Web\UI\Controls\WebControl;
+use \Request;
+abstract class Control extends WebControl implements \IRenderable {
 	private $_vars = array ();
 	protected $_jsMode = true;
 	protected $_configs;
@@ -91,7 +94,7 @@ abstract class JQControl extends WebControl implements IRenderable {
 		}
 	}
 	function RenderScript($return = false) {
-		if (_jsClientObj) {			
+		if ($this->_jsClientObj) {
 			$this->AppOwner->addClientScript($this->getScript());
 			$retval = parent::Render(true);
 			if (! $return) {
@@ -106,7 +109,7 @@ abstract class JQControl extends WebControl implements IRenderable {
 
 	}
 
-	function loadJS($js) {		
+	function loadJS($js) {
 		return $this->AppOwner->addClientAsset($js);
 	}
 

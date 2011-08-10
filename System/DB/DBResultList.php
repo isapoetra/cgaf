@@ -1,7 +1,6 @@
 <?php
-if (! defined("CGAF"))
-	die("Restricted Access");
-class DBResultList implements Iterator {
+namespace System\DB;
+class DBResultList implements \Iterator {
 	private $_crow = 0;
 	private $_rows = array();
 	private $_insert_id=null;

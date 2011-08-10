@@ -1,5 +1,6 @@
 <?php
-class JQButton extends JQControl {
+namespace System\Web\UI\JQ;
+class Button extends Control {
 	protected $_methods = array ();
 
 	function __construct($id, $attr = null) {

@@ -86,7 +86,7 @@ abstract class DateUtils {
 		return CGAF::getLocale ()->formatDate ( $date, $long );
 	}
 	public static function DateToUnixTime($time) {
-
+		$unix_time =null;
 		if (preg_match('/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', $time, $pieces) || preg_match('/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', $time, $pieces)) {
 			$unix_time = mktime($pieces [4], $pieces [5], $pieces [6], $pieces [2], $pieces [3], $pieces [1]);
 		} elseif (preg_match('/\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}/', $time) || preg_match('/\d{2}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}/', $time) || preg_match('/\d{4}\-\d{2}\-\d{2}/', $time) || preg_match('/\d{2}\-\d{2}\-\d{2}/', $time)) {
@@ -94,7 +94,6 @@ abstract class DateUtils {
 		} elseif (preg_match('/(\d{4})(\d{2})(\d{2})/', $time, $pieces) || preg_match('/(\d{2})(\d{2})(\d{2})/', $time, $pieces)) {
 			$unix_time = mktime(0, 0, 0, $pieces [2], $pieces [3], $pieces [1]);
 		}
-
 		return $unix_time;
 	}
 	public static function gmFormat($format) {

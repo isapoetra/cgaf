@@ -1,5 +1,6 @@
 <?php
-class  DBReflectionClass extends ReflectionClass {
+namespace System\DB;
+class  DBReflectionClass extends \ReflectionClass {
 	private $_fields =array();
 	private $_pk=array();
 	function __construct($argument) {

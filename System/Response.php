@@ -9,10 +9,10 @@ final class Response {
 
 	public static function getInstance() {
 		if (self::$_instance == null) {
-			using('System.'.CGAF_CONTEXT.".Response");
-			$class = CGAF_CLASS_PREFIX . CGAF_CONTEXT . "Response";
+			//using('System.'.CGAF_CONTEXT.".Response");
+			$class = "System\\" . CGAF_CONTEXT . "\\Response";
 			$instance = new $class();
-			if (!($instance instanceof IResponse)) {
+			if (!($instance instanceof \IResponse)) {
 			    throw new SystemException('class '.$class.'not implement IResponse interface');
 			}
 			self::$_instance=$instance;
@@ -60,7 +60,7 @@ final class Response {
 		return array('code'=>$code,'message'=>__($message),'_redirect'=>$redirect);
 	}
 	public static function redirectToLogin($msg) {
-		self::Redirect(BASE_URL.'?__c=login&'.(Request::isAJAXRequest() ? '__ajax=1' : '').'&redirect='.htmlspecialchars(Request::getOrigin()).'&msg='.$msg);
+		self::Redirect(BASE_URL.'?__c=auth&'.(Request::isAJAXRequest() ? '__ajax=1' : '').'&redirect='.htmlspecialchars(Request::getOrigin()).'&msg='.$msg);
 	}
 
 

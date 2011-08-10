@@ -1,8 +1,8 @@
 <?php
-if (! defined ( "CGAF" ))
-	die ( "Restricted Access" );
-
-class JQTab extends JQControl {
+namespace System\Web\UI\JQ;
+use \String;
+use System\JSON\JSON;
+class Tab extends Control {
 	private $_tabs;
 	public $DisplayHeaderContent = true;
 	function __construct($id, $template = null, $tabs = array()) {
@@ -48,12 +48,7 @@ class JQTab extends JQControl {
 		$retval .= "</div>";
 		$config = JSON::encodeConfig ( $this->_configs, array(
 			'show') );
-		$this->getTemplate ()->addClientScript ( "$(\"#$id-tabs\").tabs($.extend($config,deftaboptions||{}))" );
-		/*$retval .= "<script type=\"text/javascript\" language=\"javascript\">
-					(function($) {
-						$(\"#$id-tabs\").tabs($.extend($config,deftaboptions||{}));
-					})(jQuery);
-			</script>";*/
+		$this->getAppOwner()->addClientScript ( "$(\"#$id-tabs\").tabs($.extend($config,deftaboptions||{}))" );
 		if (! $return) {
 			Response::write ( $retval );
 		}

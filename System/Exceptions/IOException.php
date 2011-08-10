@@ -1,6 +1,5 @@
 <?php
-defined("CGAF") or die("Restricted Access");
-
+namespace System\Exceptions;
 class IOException extends SystemException {
 }
 ?>

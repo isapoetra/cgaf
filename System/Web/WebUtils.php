@@ -1,9 +1,12 @@
 <?php
-#using('System.Web.Utils');
+namespace System\Web;
+use \AppManager;
+use \Utils;
+//using('System.Web.Utils.*');
 abstract class WebUtils {
 	public static $_lastCSS;
 	private static $_cssCompressor;
-	public static function pastHead() {		
+	public static function pastHead() {
 		header ( 'Expires: Mon, 03 Sept 1977 05:00:00 GMT' ); // Date in the past
 		header ( 'Last-Modified: ' . gmdate ( 'D, d M Y H:i:s' ) . ' GMT' ); // always modified
 		header ( 'Cache-Control: no-cache, must-revalidate, no-store, post-check=0, pre-check=0' ); // HTTP/1.1
@@ -23,10 +26,10 @@ abstract class WebUtils {
 			$uri = ($quoteChar === '') ? $m [1] : substr($m [1], 1, strlen($m [1]) - 2);
 		}
 		if ('/' !== $uri [0] && false === strpos($uri, '//') && 0 !== strpos($uri, 'data:')) {
-			$nval = AppManager::getInstance()->getLiveData($uri);
+			$nval = AppManager::getInstance()->getLiveData(self::$_lastCSS.Utils::ToDirectory($uri));
 
 			if (! $nval) {
-				$nval = AppManager::getInstance()->getLiveData(self::$_lastCSS . Utils::ToDirectory($uri));
+				$nval = AppManager::getInstance()->getLiveData($uri);
 			}
 			if ($nval) {
 				$uri = $nval; //str_replace ( BASE_URL, '', $nval );
@@ -39,12 +42,12 @@ abstract class WebUtils {
 		$parsed = array ();
 		// rewrite
 		$content = preg_replace_callback('/@import\\s+([\'"])(.*?)[\'"]/', array (
-				'WebUtils',
+				'\\System\\Web\\WebUtils',
 				'_processCSSUriCB'
 		), $content);
 
 		$content = preg_replace_callback('/url\\(\\s*([^\\)\\s]+)\\s*\\)/', array (
-				'WebUtils',
+				'\\System\\Web\\WebUtils',
 				'_processCSSUriCB'
 		), $content);
 
@@ -67,6 +70,7 @@ abstract class WebUtils {
 			if ($pack) {
 				$retval = self::packCSS($retval);
 			}
+			
 			return $retval;
 		} elseif (is_string($file)) {
 
@@ -90,21 +94,15 @@ abstract class WebUtils {
 		}
 
 		if ($pack) {
-			//die('x');			
+			//die('x');
 			$content = self::PackCSS($content);
 		}
 		return $content;
 	}
 
 	public static function PackCSS($css) {
-		$css = str_replace('@CHARSET "UTF-8";', '', $css);		
-		if (! self::$_cssCompressor) {
-			using('libs.minify');
-			self::$_cssCompressor = new CSSCompresor($css);
-		} else {
-			self::$_cssCompressor ->setContent($css);
-		}
-		return self::$_cssCompressor ->Compress();
+		$css = str_replace('@CHARSET "UTF-8";', '', $css);
+		return \Compressor::compressString($css,'css');
 	}
 
 	/**

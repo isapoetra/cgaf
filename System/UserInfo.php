@@ -3,7 +3,7 @@ class UserInfo {
 	private $_info;
 	private $_owner;
 	private $_friend;
-	function __construct(IApplication $owner,$id) {
+	function __construct(\IApplication $owner,$id) {
 		$this->_id = $id;
 		$this->_info = $owner->getModel('user')
 		->getUserInfo($id);

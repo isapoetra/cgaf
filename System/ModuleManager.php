@@ -1,9 +1,13 @@
 <?php
 if (! defined ( "CGAF" ))
-	die ( "Restricted Access" );
-
+die ( "Restricted Access" );
+use System\Cache\CacheFactory;
+use System\DB\DBQuery;
+use System\Exceptions\AccessDeniedException;
+use System\Exceptions\SystemException;
 class ModuleManager {
 	private static $_moduleList;
+	private static $_instance = array();
 	public static function getActiveModuleId() {
 		$m = self::getModuleInfo ();
 		if ($m) {
@@ -19,16 +23,16 @@ class ModuleManager {
 			$appid = AppManager::getActiveApp ();
 			$all = true;
 		}
-		
+
 		if (! isset ( $list [$appid] )) {
 			$q = new DBQuery (CGAF::getDBConnection());
 			$q->addTable ( "modules" );
 			$q->Where ( "mod_state=1" );
 			$q->Where ( "app_id=" . $q->quote ( $appid ) );
-			
+
 			$rows = $q->loadObjects ();
 			$l = array ();
-			
+
 			$acl = AppManager::getInstance ()->getACL ();
 			foreach ( $rows as $row ) {
 				if (CGAF_DEBUG || $acl->isAllow ( $row->mod_id, 'modules', ACLHelper::ACCESS_READ )) {
@@ -37,20 +41,54 @@ class ModuleManager {
 			}
 			$list [$appid] = $l;
 		}
-		
+
 		return $all ? $list : $list [$appid];
 	}
-
+	private static function loadModuleClass($m) {
+		$m = self::getModuleInfo($m);
+		if (!$m) {
+			return ;
+		}
+		$paths = self::getModulePath($m);
+		foreach($paths as $p) {
+			$f = $p.$m->mod_dir.'.class.php';
+			if (is_file($f)) {
+				cgaf::Using($f);
+			}
+		}
+	}
+	public static function getModuleInstance($m,$app=null) {
+		$info = self::getModuleInfo($m);
+		self::loadModuleClass($m);
+		
+		$app =  $app ? $app : AppManager::getInstance();
+		if ($info) {
+			if (!isset(self::$_instance[$info->mod_id])) {
+				$c = $info->mod_class_name;
+				$c = AppManager::getInstance()->getClassNameFor($info->mod_class_name,'Module','System\\Modules\\');
+				if ($c) {
+					$instance =  new $c($app);
+				}
+				if (!$instance) {
+					throw new SystemException("error.module.classnotfound",$info->mod_class_name);
+				}
+				self::$_instance[$info->mod_id] = $instance;
+			}
+			return self::$_instance[$info->mod_id];
+		}else{
+			throw new SystemException("error.module.notfound",$m);
+		}
+	}
 	public static function getModuleInfo($m = null, $check = true, $app = null) {
 		//static $list;
 		if ($m == null) {
 			$m = Request::get ( "__m" );
 		}
 		if ($m === null)
-			return false;
+		return false;
 		if (is_object ( $m ))
-			return $m;
-		
+		return $m;
+
 		$config = false;
 		$app = AppManager::getInstance ( $app );
 		$appId = $app->getAppId ();
@@ -65,61 +103,44 @@ class ModuleManager {
 					self::$_moduleList = false;
 				}
 			}
-			
+
 			if (! self::$_moduleList) {
 				self::$_moduleList = array ();
-				$q = new DBQuery (CGAF::getDBConnection());
+				$q = new DBQuery(CGAF::getDBConnection());
 				$q->select ( "m.*,'' as mod_path" );
 				$q->addTable ( "modules", "m" );
-				$q->addJoin ( "applications", 'a', 'm.app_id=a.app_id' );
+				$q->join ( "applications", 'a', 'm.app_id=a.app_id' );
 				$q->Where ( "mod_state=1" );
 				$q->Where ( "app_state=1" );
-				
-				$q->where ( 'm.app_id=-1 or m.app_id=' . $q->quote ( $appId ) );				
+
+				$q->where ( 'm.app_id=-1 or m.app_id=' . $q->quote ( $appId ) );
 				$lst = $q->loadObjects ();
-				
+
 				//configure mod app Path
 				$path = CGAF_APP_PATH;
-				
+
 				foreach ( $lst as $k => $v ) {
 					$npath = null;
-					
+
 					if ($v->mod_active && AppManager::isAllowApp ( $v->app_id )) {
 						$path = AppManager::getAppPath ( $v->app_id );
 						if (! $v->mod_dir) {
 							$v->mod_dir = $v->mod_name;
 						}
-						if (( int ) $v->app_id == - 1) {
-							$npath = CGAF_CORE_PATH . DS . "modules" . DS . $v->mod_dir.DS;
-						} elseif ($v->mod_dir) {
-							$npath = $path . DS . ($v->mod_path ? $v->mod_path . DS : "") . 'modules' . DS . $v->mod_dir.DS;
-						}
-						$npath = Utils::ToDirectory ( $npath );
+
 						$f = '';
 						$fmenu = false;
 						if (! $v->mod_class_name) {
 							$appInfo = AppManager::getAppInfo ( $v->app_id );
-							$v->mod_class_name = CGAF_CLASS_PREFIX . ($appInfo && isset ( $appInfo->app_short_name ) ? $appInfo->app_short_name : "") . ucfirst ( $v->mod_name );
+							$v->mod_class_name = ($appInfo && isset ( $appInfo->app_short_name ) ? $appInfo->app_short_name : "") . ucfirst ( $v->mod_name );
 						}
-						if ($v->mod_ui_icon) {
-							$f = $app->getLiveData ( $npath . DS . "images" . DS . $v->mod_ui_icon );
-							$icon = Utils::getFileName ( $v->mod_ui_icon, false ) . '-icon.png';
-							$fmenu = $app->getLiveData ( $npath . DS . "images" . DS . $icon );
-						}
-						if (! $fmenu) {
-							//ppd($npath . DS . "images" . DS . $v->mod_dir . '-icon.png');
-							$fmenu = $app->getLiveData ( $npath . DS . "images" . DS . $v->mod_dir . '-icon.png' );
-						}
-						$v->menu_icon = $fmenu;
-						$v->live_icon = $f;
-						$v->mod_path = $npath;
 						self::$_moduleList [$v->mod_id] = $v;
 					}
 				}
 				$config = true;
 			}
 		}
-		
+
 		if ($config && $check && ! CGAF_DEBUG) {
 			$tmp = array ();
 			foreach ( self::$_moduleList as $k => $v ) {
@@ -165,12 +186,11 @@ class ModuleManager {
 		}
 		$dosql = Request::get ( "_dosql" );
 		$s = Request::get ( "_s" );
-		self::loadModuleClass ( $minfo, $u, $a );
+		//self::loadModuleClass ( $minfo, $u, $a );
 		//$_addpath= false;
 		$f = self::getModuleFile ( $minfo, $u, $a );
 		$app = AppManager::getInstance ();
-		//CGAF::trace(__FILE__,__LINE__,E_NOTICE,$f,"module");
-		if (is_file ( $f ) && (! $dosql && ! $s)) {
+		if ( $f  && (! $dosql && ! $s)) {
 			CGAF::Using ( $f );
 		} else {
 			if ($s) {
@@ -183,7 +203,7 @@ class ModuleManager {
 					include  $alt ;
 				} elseif (is_file ( $alt2 )) {
 					include $alt2 ;
-				} else {					
+				} else {
 					echo $app->HandleModuleNotFound ( $m,$u,$a );
 				}
 				return Response::EndBuffer();
@@ -217,40 +237,44 @@ class ModuleManager {
 		$u = $u ? $u : "";
 		$dosql = Request::get ( "_dosql", "" );
 		$key = $m->mod_id . $u . $a . $dosql;
-		if (isset ( $tmp_path [$key] ))
-			return $tmp_path [$key];
-		$path = Utils::arrayExplode ( $u . "." . $a . "." . $dosql, ".", true, false );
-		
-		$s = Request::get ( "_s" );
-		if ($s) {
-			array_pop ( $path );
-		}
-		$retval = array ();
-		$prev = "";
-		
-		//also check from active app
-		$app_path = $appInstance->getAppPath () . DS . "modules" . DS . strtolower ( $m->mod_name ) . DS;
-		foreach ( $path as $p ) {
-			$prev .= $p . DS;
-			$retval [] = $m->mod_path . $prev . DS . $p;
-			$retval [] = $app_path . $prev . DS . $p;
-		}
-		if (count ( $path ) == 1) {
-			$retval [] = $m->mod_path . $path [0];
-		}
-		$retval = array_reverse ( $retval, false );
-		$retval [] = $app_path;
-		//$retval [] = $m->mod_path . DS . String::FromLastPos ( Utils::ToDirectory ( $m->mod_path, false ), DS, 0 );
-		
+		if (!isset ( $tmp_path [$key] )) {
 
-		$tmp_path [$key] = Utils::ToDirectory($retval);
+			$path = Utils::arrayExplode ( $u . "." . $a . "." . $dosql, ".", true, false );
+
+			$s = Request::get ( "_s" );
+			if ($s) {
+				array_pop ( $path );
+			}
+			$retval = array ();
+			$retval [] = CGAF_CORE_PATH.'Modules/'.$m->mod_dir.DS;
+			$prev = "";
+			//also check from active app
+			$app_path = $appInstance->getAppPath () . DS . "Modules" . DS . strtolower ( $m->mod_name ) . DS;
+			foreach ( $path as $p ) {
+				$prev .= $p . DS;
+				$retval [] = $m->mod_path . $prev . DS . $p;
+				$retval [] = $app_path . $prev . DS . $p;
+				$retval [] =CGAF_CORE_PATH.'modules'.strtolower ( $m->mod_name ) . DS.$prev.DS.$p;
+			}
+			//check from core
+			$prev .= '';
+			
+			if (count ( $path ) == 1) {
+				$retval [] = $m->mod_path . $path [0];
+			}
+			$retval = array_reverse ( $retval, false );
+			$retval [] = $app_path;
+			//$retval [] = $m->mod_path . DS . String::FromLastPos ( Utils::ToDirectory ( $m->mod_path, false ), DS, 0 );
+			$tmp_path [$key] = Utils::ToDirectory($retval);
+		}
 		return $tmp_path [$key];
 	}
 
 	public static function getModuleFile($m, $u, $a, $ext = ".php") {
-		$paths = self::getModulePath ( $m, $u, $a );
+		$paths = self::getModulePath ( $m, $u, $a );	
 		foreach ( $paths as $path ) {
-			$fname = $path . $ext;
+			
+			$fname = $path .strtolower($m->mod_name). $ext;
 			if (is_file ( $fname )) {
 				return $fname;
 			}
@@ -272,67 +296,9 @@ class ModuleManager {
 		return count ( $path ) > 1 ? $path [count ( $path ) - 1] : "";
 	}
 
-	public static function loadModuleClass($m, $u = null, $a = null, $owner = null) {
-		static $loaded;
-		$m = self::getModuleInfo ( $m );
-		if (! $m) {
-			return;
-		}
-		if (! $loaded) {
-			$loaded = array ();
-		}
-		$xowner = $owner;
-		if (! is_string ( $owner ) && ! $owner == null) {
-			$xowner = $owner->AppId;
-		}
-		$key = $m->mod_id . $u . $a . $xowner;
-		if (isset ( $loaded [$key] ))
-			return;
-		$loaded [$key] = true;
-		//$_addpath = null;
-		$u = $u == null ? "" : $u;
-		$a = $a == null ? "" : $a;
-		$app = $owner ? $owner : AppManager::getInstance ();
-		$paths = self::getModulePath ( $m, $u, $a );
-		$fc = $m->mod_path . $m->mod_dir . ".class.php";
-		
-		if (is_file ( $fc )) {
-			CGAF::Using ( $fc );
-		}
-		CGAF::Using ($m->mod_path . $m->mod_dir . ".func.php",false);
-		
-		$appclass = $app->BaseClass;
-		if (class_exists ( $appclass . $m->mod_dir, false ) && is_callable ( array (
-				$appclass . $m->mod_dir, 
-				"Init" ) )) {
-			call_user_func ( array (
-					$appclass . $m->mod_dir, 
-					"Init" ), $app );
-		} elseif (class_exists ( $m->mod_dir, false ) && is_callable ( array (
-				$m->mod_dir, 
-				"Init" ) )) {
-			call_user_func ( array (
-					$m->mod_dir, 
-					"Init" ), $app );
-		}
-		foreach ( $paths as $path ) {
-			
-			$cn = $m->mod_name;
-			$path = Utils::ToDirectory ( $path, false );
-			$xfname = String::FromLastPos ( $path, DS, null, false );
-			$cn .= String::replace ( array (
-					$m->mod_path, 
-					DS ), "", $xfname );
-			$cn = strtolower ( $cn );
-			try {
-				self::loadModuleClass ( $cn );
-			} catch ( Exception $ex ) {
-				
-				ppd ( $ex );
-			}
-		
-		}
-	}
+
+
+
 
 	/**
 	 * Enter description here...
@@ -357,7 +323,7 @@ class ModuleManager {
 
 	public static function UnInstall($mod, $appPath) {
 		if (! ACL::checkPerm ( "system", "manage" ))
-			return false;
+		return false;
 		$appInfo = AppManager::getAppInfo ( $appPath );
 		if (! $appInfo) {
 			return false;

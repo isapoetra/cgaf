@@ -1,4 +1,13 @@
 profile.title=Profile
 roles.title=Assigned Roles
-user_name=Nama User
+user_name=Name
+logon_name=Logon Name
 user_password=Password
+forgetpassword=Forget Password?
+login.openid.title=Login using OpenId
+register=Join
+logon.info=Logon Information
+logon_name.descr=Unique
+register.verifypassword=Verify Password
+passstrength=Must be at least 6 characters long
+register.agree=You <b>ARE</b> agreeing to our %sTerms Of Service%s by submitting this form.

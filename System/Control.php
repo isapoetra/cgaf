@@ -37,7 +37,7 @@ abstract class Control extends Object implements IRenderable {
 			return $this;
 		}
 		$this->_childs [] = $c;
-		return $this;
+		return $c;
 	}
 
 	protected function renderItems() {

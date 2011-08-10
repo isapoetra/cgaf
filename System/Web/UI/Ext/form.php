@@ -1,8 +1,9 @@
 <?php
-if (! defined("CGAF")) die("Restricted Access");
-
-using("System.Web.UI.JExt");
-class JExtForm extends JExtControl {
+namespace System\Web\UI\Ext;
+use \Request;
+use \AppManager;
+using('System.Web.UI.JExt');
+class Form extends Control {
   protected $_dosql;
   protected $_action;
   protected $_winmode;
@@ -204,40 +205,12 @@ class JExtForm extends JExtControl {
     }
   }
 }
-class TExtFormGrid extends JExtForm {
+class TExtFormGrid extends Form {
 
   function Render ($return = false, & $handle = false) {
   }
 }
-class JExtFormField extends JExtComponent {
 
-  function __construct ($xtype, $name, $label, $value, $configs=array()) {
-    $config = (array(
-      "xtype" => $xtype ,
-      "name" => $name ,
-      "value" => $value ,
-      "fieldLabel" => $label));
-    if (! $configs) {
-      $configs = array();
-    }
-    $config = Utils::arrayMerge($config, $configs);
-    $this->removeConfig("id");
-    parent::__construct($config);
-  }
-}
-class JExtFormFieldColor extends JExtFormField {
 
-  function __construct ($id, $title, $value, $configs = null) {
-    parent::__construct("gcolorcombo", $id, $title, $value, $configs);
-  }
-}
-class TExtFormFieldLookup extends JExtFormField {
 
-  function __construct ($name, $label, $value, $configs = null) {
-    parent::__construct('lookupfield', $name, $label, $value, $configs);
-    $this->_controlScript = array(
-      "id" => "lookup_field" ,
-      "url" => CGAF::findLiveFile("Lookup.js", "js"));
-  }
-}
 ?>
