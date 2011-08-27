@@ -1,7 +1,5 @@
 #temporary ignore
-assets/js
-assets/themes
-
+/assets/
 .settings
 .buildpath
 tmp
