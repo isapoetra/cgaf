@@ -1,5 +1,6 @@
 #temporary ignore
 /assets/
+/install/
 .settings
 .buildpath
 tmp
