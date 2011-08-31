@@ -1,7 +1,6 @@
 <?php
 namespace System\DB;
-interface IDBConnection {
-	function Open();
+interface IDBConnection extends \IConnection {
 	/**
 	 *
 	 * @param boolean

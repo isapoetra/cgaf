@@ -246,7 +246,7 @@ class ModuleManager {
 				array_pop ( $path );
 			}
 			$retval = array ();
-			$retval [] = CGAF_CORE_PATH.'Modules/'.$m->mod_dir.DS;
+			$retval [] = CGAF_SHARED_PATH.'Modules/'.$m->mod_dir.DS;
 			$prev = "";
 			//also check from active app
 			$app_path = $appInstance->getAppPath () . DS . "Modules" . DS . strtolower ( $m->mod_name ) . DS;
@@ -254,7 +254,7 @@ class ModuleManager {
 				$prev .= $p . DS;
 				$retval [] = $m->mod_path . $prev . DS . $p;
 				$retval [] = $app_path . $prev . DS . $p;
-				$retval [] =CGAF_CORE_PATH.'modules'.strtolower ( $m->mod_name ) . DS.$prev.DS.$p;
+				$retval [] =CGAF_SHARED_PATH.'modules'.strtolower ( $m->mod_name ) . DS.$prev.DS.$p;
 			}
 			//check from core
 			$prev .= '';

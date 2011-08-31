@@ -1,29 +1,34 @@
 <?php
 namespace System\API;
 //TODO move to System.Web.JS.API
+use System\Exceptions\SystemException;
 
-class google extends PublicAPI {
+use \AppManager;
+class google extends PublicApi {
 
 	private $_apijs = array('plusone' => 'https://apis.google.com/js/plusone.js',);
 
 	public function plusOne($size = 'small') {
+		self::init(__FUNCTION__);
+		if (is_array($size)) {
+			$size = isset($size['size']) ? $size['size'] : 'small';
+		}
 		$size = $size ? $size : $this->getConfig("plusOne.size");
 		return '<g:plusone size="' . $size . '"></g:plusone>';
 	}
 
 	public function init($service) {
-		switch (strtolower($service)) {
-		case "analitycs":
-			break;
-		}
-	}
-
-	public function initPlusOne() {
-		AppManager::getInstance()->addClientAsset('https://apis.google.com/js/plusone.js');
+		$service = strtolower($service);
+		self::initJS();
+		$js = isset( $this->_apijs[$service]) ?   $this->_apijs[$service] :null;
+		AppManager::getInstance()->addClientAsset($js);
 	}
 
 	public function initJS() {
-		$key = AppManager::getInstance()->getConfig('google.jsapi.key');
+		static $init;
+		if ($init) return;
+		$init= true;
+		$key = AppManager::getInstance()->getConfig('service.google.jsapi.key');
 		if (!$key) {
 			throw new SystemException("invalid google api key");
 		}

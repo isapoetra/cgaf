@@ -176,10 +176,7 @@ final class CGAF {
 	public static function isRemoteDebugAllow() {
 		static $debug;
 		if ($debug == null) {
-			$hosts = explode(',',
-					self::getConfig('debug.allowedhost',
-							$_SERVER['HTTP_HOST'] . ','
-									. $_SERVER['SERVER_ADDR']));
+			$hosts = explode(',', self::getConfig('debug.allowedhost', $_SERVER['HTTP_HOST'] . ',' . $_SERVER['SERVER_ADDR']));
 			//pp($hosts);
 			//ppd($_SERVER ['REMOTE_ADDR']);
 			$debug = in_array($_SERVER['REMOTE_ADDR'], $hosts);
@@ -214,7 +211,8 @@ final class CGAF {
 		}
 		define('CGAF_SYS_PATH', CGAF_PATH . 'System' . DS);
 		self::addClassPath('system', CGAF_SYS_PATH);
-		self::$_searchPath['System'] = array(CGAF_SYS_PATH);
+		self::$_searchPath['System'] = array(
+				CGAF_SYS_PATH);
 		System::Initialize();
 		if (!defined("CGAF_CONTEXT")) {
 			if (defined('STDIN')) {
@@ -229,48 +227,35 @@ final class CGAF {
 			if (!$s) {
 				if (CGAF_CONTEXT == "Web" && isset($_SERVER['HTTP_HOST'])) {
 					/*** check for https ***/
-					$protocol = isset($_SERVER['HTTPS'])
-							&& ($_SERVER['HTTPS'] == 'on') ? 'https' : 'http';
+					$protocol = isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on') ? 'https' : 'http';
 					/*** return the full address ***/
-					$s = substr($_SERVER['PHP_SELF'], 0,
-							strripos($_SERVER['PHP_SELF'], "/"));
-					$port = ($_SERVER["SERVER_PORT"] !== "8x" ? ":"
-									. $_SERVER["SERVER_PORT"] : "");
-					if ($protocol === 'https'
-							&& $_SERVER["SERVER_PORT"] === '443') {
+					$s = substr($_SERVER['PHP_SELF'], 0, strripos($_SERVER['PHP_SELF'], "/"));
+					$port = ($_SERVER["SERVER_PORT"] !== "8x" ? ":" . $_SERVER["SERVER_PORT"] : "");
+					if ($protocol === 'https' && $_SERVER["SERVER_PORT"] === '443') {
 						$port = null;
 					}
-					$s = $protocol . '://' . $_SERVER['HTTP_HOST'] . $port . $s
-							. '/';
+					$s = $protocol . '://' . $_SERVER['HTTP_HOST'] . $port . $s . '/';
 				}
 			}
 			define('BASE_URL', $s);
 			//ppd(BASE_URL);
 		}
-		define("ASSET_URL",
-				self::getConfig("asseturl",
-						BASE_URL . self::getConfig('livedatapath', 'assets')
-								. '/'));
-		ini_set("session.save_path",
-				self::getInternalStorage('sessions', false));
+		define("ASSET_URL", self::getConfig("asseturl", BASE_URL . self::getConfig('livedatapath', 'assets') . '/'));
+		ini_set("session.save_path", self::getInternalStorage('sessions', false));
 		register_shutdown_function("CGAF::shutdown_handler");
 		if (!defined("CGAF_APP_PATH")) {
-			define("CGAF_APP_PATH",
-					self::getConfig('applicationPath',
-							CGAF_PATH . "Applications"));
+			define("CGAF_APP_PATH", self::getConfig('applicationPath', CGAF_PATH . "Applications"));
 		}
 		if (CGAF_APP_PATH == null || realpath(CGAF_APP_PATH) == null) {
 			die("Application Path Not Found" . CGAF_APP_PATH);
 		}
-		if (!defined('CGAF_CORE_PATH')) {
-			define("CGAF_CORE_PATH",
-					self::getConfig('cgaf.core.path', CGAF_PATH . "Core") . DS);
+		if (!defined('CGAF_SHARED_PATH')) {
+			define("CGAF_SHARED_PATH", self::getConfig('cgaf.shared.path', CGAF_PATH . "Core") . DS);
 		}
-		self::addAlowedLiveAssetPath(
-				CGAF_CORE_PATH . self::getConfig("assetpath", 'assets'));
+		self::addAlowedLiveAssetPath(CGAF_SHARED_PATH . self::getConfig("assetpath", 'assets'));
 		\System\MVC\MVCHelper::Initialize();
-		self::addClassPath('system', CGAF_CORE_PATH);
-		//self::addNamespaceSearchPath ( 'core', CGAF_CORE_PATH, false );
+		self::addClassPath('system', CGAF_SHARED_PATH);
+		//self::addNamespaceSearchPath ( 'core', CGAF_SHARED_PATH, false );
 		$debugMode = self::getConfig('DEBUGMODE', false);
 		if ($debugMode) {
 			if (!defined('CGAF_DEBUG')) {
@@ -289,18 +274,15 @@ final class CGAF {
 		if (!defined('CGAF_DEBUG')) {
 			define('CGAF_DEBUG', self::isDebugMode());
 		}
-		//if (! CGAF_DEBUG) {
-		set_error_handler("CGAF::error_handler");
-		set_exception_handler("CGAF::exception_handler");
-		//}
+		if (!CGAF_DEBUG) {
+			set_error_handler("CGAF::error_handler");
+			set_exception_handler("CGAF::exception_handler");
+		}else {
+			ini_set('display_errors',1);
+		}
 		if (CGAF_DEBUG) {
-			define('CGAF_DEV_PATH',
-					self::getConfig("cgaf.devpath",
-							realpath(
-									dirname(__FILE__) . DS . '../../DevFiles/'))
-							. DS);
-			self::addAlowedLiveAssetPath(
-					CGAF_DEV_PATH . self::getConfig("assetpath", 'assets'));
+			define('CGAF_DEV_PATH', self::getConfig("cgaf.devpath", realpath(dirname(__FILE__) . DS . '../../DevFiles/')) . DS);
+			self::addAlowedLiveAssetPath(CGAF_DEV_PATH . self::getConfig("assetpath", 'assets'));
 		}
 		//ppd( self::getInternalStorage('log',false) . DS . 'cgaf.error.log' );
 		$errors = self::getConfigs('errors' . (CGAF_DEBUG ? '.debug' : ''));
@@ -315,8 +297,7 @@ final class CGAF {
 				break;
 			case 'error_log':
 				if ($v === null) {
-					$errors[$k] = self::getInternalStorage('log', false) . DS
-							. 'cgaf.error.log';
+					$errors[$k] = self::getInternalStorage('log', false) . DS . 'cgaf.error.log';
 				}
 				break;
 			}
@@ -324,25 +305,19 @@ final class CGAF {
 		if (CGAF_DEBUG) {
 			self::$_configuration->setconfig('errors', $errors);
 		}
-		define('CGAF_LIB_PATH',
-				self::getConfig('cgaf.libspath', CGAF_PATH . DS . 'Libs') . DS);
+		define('CGAF_LIB_PATH', self::getConfig('cgaf.libspath', CGAF_PATH . DS . 'Libs') . DS);
 		self::addClassPath('Libs', CGAF_LIB_PATH, false);
 		self::addClassPath('system', CGAF_LIB_PATH, false);
 		if (!defined("CGAF_VENDOR_PATH")) {
-			define("CGAF_VENDOR_PATH",
-					self::getConfig('cgaf.vendorpath',
-							CGAF_PATH . 'vendor' . DS), false);
+			define("CGAF_VENDOR_PATH", self::getConfig('cgaf.vendorpath', CGAF_PATH . 'vendor' . DS), false);
 		}
 		self::addClassPath('Vendor', CGAF_VENDOR_PATH);
 		if (!defined("CGAF_LIVE_PATH")) {
 			define("CGAF_LIVE_PATH", CGAF_PATH);
 		}
-		self::addAlowedLiveAssetPath(
-				CGAF_LIVE_PATH . self::getConfig("livedatapath", "assets"));
+		self::addAlowedLiveAssetPath(CGAF_LIVE_PATH . self::getConfig("livedatapath", "assets"));
 		if (CGAF_DEBUG) {
-			self::addAlowedLiveAssetPath(
-					CGAF_DEV_PATH
-							. self::getConfig("livedatapath", "assets"));
+			self::addAlowedLiveAssetPath(CGAF_DEV_PATH . self::getConfig("livedatapath", "assets"));
 		}
 		self::$_initialized = true;
 		return true;
@@ -376,10 +351,7 @@ final class CGAF {
 			$uid = self::getACL()->getUserId();
 			if ($event->type == SessionEvent::SESSION_STARTED) {
 				$q->clear();
-				$q
-						->addSQL(
-								'SELECT * from #__session  where session_id='
-										. $q->quote($sid));
+				$q->addSQL('SELECT * from #__session  where session_id=' . $q->quote($sid));
 				$o = $sess->load($sid);
 				if (!$o || !$o->session_id) {
 					$q->clear();
@@ -403,8 +375,7 @@ final class CGAF {
 			$q->delete()->exec();
 			break;
 		case SessionEvent::DESTROY:
-			$q->clear()->addTable('session')
-					->where('session_id=' . $q->quote($sid))->delete();
+			$q->clear()->addTable('session')->where('session_id=' . $q->quote($sid))->delete();
 			$q->exec();
 		}
 	}
@@ -442,13 +413,12 @@ final class CGAF {
 			self::offlineRedirect(1);
 		}
 		AppManager::initialize();
-		if (isset($_REQUEST["__url"])
-				&& String::BeginWith($_REQUEST["__url"], "assets/")) {
+		//TODO moved to application
+		if (isset($_REQUEST["__url"]) && String::BeginWith($_REQUEST["__url"], "assets/")) {
 			return self::handleAssetNotFound();
 		}
 		$retval = null;
-		Session::getInstance()
-				->addEventListener('*', array('CGAF', 'onSessionEvent'));
+		Session::getInstance()->addEventListener('*', array('CGAF', 'onSessionEvent'));
 		if (is_object($appName) && $appName instanceof IApplication) {
 			AppManager::setActiveApp($appName);
 			$instance = $appName;
@@ -460,8 +430,7 @@ final class CGAF {
 					Session::set('__appId', $appId);
 					$appName = $appId;
 				} else {
-					throw new SystemException(
-							'Application ' . $appId . 'not installed');
+					throw new SystemException('Application ' . $appId . 'not installed');
 				}
 			}
 			$cgaf = Request::get('__cgaf', null, true);
@@ -482,9 +451,7 @@ final class CGAF {
 				$id = Request::get('id');
 				//check for security
 				$appId = AppManager::install($id);
-				Response::Redirect(
-						URLHelper::addParam(BASE_URL,
-								array('__appId' => $appId)));
+				Response::Redirect(URLHelper::addParam(BASE_URL, array('__appId' => $appId)));
 				return;
 				break;
 			default:
@@ -509,8 +476,7 @@ final class CGAF {
 		}
 		return true;
 	}
-	public static function addNamespaceSearchPathx($prefix, $path,
-			$normalize = true) {
+	public static function addNamespaceSearchPathx($prefix, $path, $normalize = true) {
 		$path = Utils::ToDirectory($path . DS);
 		$prefix = $prefix ? $prefix : "__common";
 		if (!isset(self::$_searchPath[$prefix])) {
@@ -520,7 +486,8 @@ final class CGAF {
 			if (!is_dir($path)) {
 				return;
 			}
-			$path = array($path);
+			$path = array(
+					$path);
 		}
 		$spath = array();
 		if ($normalize) {
@@ -537,8 +504,7 @@ final class CGAF {
 				$paths[] = $path;
 			}
 		}
-		self::$_searchPath[$prefix] = array_merge($spath,
-				self::$_searchPath[$prefix]);
+		self::$_searchPath[$prefix] = array_merge($spath, self::$_searchPath[$prefix]);
 	}
 	/**
 	 *
@@ -548,8 +514,7 @@ final class CGAF {
 	 * @param unknown_type $normalize
 	 * @deprecated
 	 */
-	public static function addStandardSearchPathx($prefix, $path,
-			$normalize = true) {
+	public static function addStandardSearchPathx($prefix, $path, $normalize = true) {
 		return self::addNamespaceSearchPath($prefix, $path, $normalize);
 	}
 	public static function addClassPath($nsName, $path) {
@@ -561,7 +526,8 @@ final class CGAF {
 		}
 		$old = self::$_classPath[$nsName];
 		if (is_string($path)) {
-			$path = array($path);
+			$path = array(
+					$path);
 		}
 		foreach ($path as $p) {
 			if (!in_array($p, $old)) {
@@ -573,8 +539,7 @@ final class CGAF {
 	public static function getClassPath($nsname = null) {
 		if ($nsname) {
 			$nsname = strtolower($nsname);
-			return isset(self::$_classPath[$nsname]) ? self::$_classPath[$nsname]
-					: null;
+			return isset(self::$_classPath[$nsname]) ? self::$_classPath[$nsname] : null;
 		}
 		return self::$_classPath;
 	}
@@ -633,7 +598,9 @@ final class CGAF {
 		} elseif (is_dir($fname)) {
 			return self::UsingDir($fname);
 		} elseif ($check) {
-			$spath = array(CGAF_PATH . "System", CGAF_PATH);
+			$spath = array(
+					CGAF_PATH . "System",
+					CGAF_PATH);
 			if (class_exists("AppManager", false)) {
 				if (AppManager::isAppStarted()) {
 					$path = AppManager::getInstance()->getClassPath();
@@ -653,11 +620,7 @@ final class CGAF {
 				if (self::checkUsing($nfname, false)) {
 					return true;
 				} elseif (String::BeginWith($namespace, $k, true)) {
-					$tfname = Utils::ToDirectory(
-							$path . DS
-									. substr(
-											str_replace('.', DS, $namespace),
-											strlen($k) + 1)) . CGAF_CLASS_EXT;
+					$tfname = Utils::ToDirectory($path . DS . substr(str_replace('.', DS, $namespace), strlen($k) + 1)) . CGAF_CLASS_EXT;
 					if (self::Using($tfname, false)) {
 						return true;
 					}
@@ -665,8 +628,7 @@ final class CGAF {
 			}
 			if (class_exists("AppManager", false)) {
 				if (AppManager::isAppStarted()) {
-					return AppManager::getInstance()
-							->unhandledNameSpace($namespace);
+					return AppManager::getInstance()->unhandledNameSpace($namespace);
 				}
 			}
 		}
@@ -699,24 +661,16 @@ final class CGAF {
 			foreach ($spath as $path) {
 				$fname = Utils::ToDirectory($path . DS . $fns);
 				if (is_file($fname . CGAF_CLASS_EXT)) {
-					$retval = Utils::arrayMerge($retval, $fname
-									. CGAF_CLASS_EXT, true);
-				} elseif (is_file($path . DS . strtolower($fns)
-						. CGAF_CLASS_EXT)) {
-					$retval = Utils::arrayMerge($retval,
-							$path . DS . strtolower($fns) . CGAF_CLASS_EXT,
-							true);
+					$retval = Utils::arrayMerge($retval, $fname . CGAF_CLASS_EXT, true);
+				} elseif (is_file($path . DS . strtolower($fns) . CGAF_CLASS_EXT)) {
+					$retval = Utils::arrayMerge($retval, $path . DS . strtolower($fns) . CGAF_CLASS_EXT, true);
 				} elseif (is_dir($fname)) {
 					$files = array();
-					$retval = Utils::arrayMerge($retval,
-							\Utils::getDirFiles($fname . DS, $fname . DS,
-									FALSE, "/\\" . CGAF_CLASS_EXT . "/i"),
-							true);
+					$retval = Utils::arrayMerge($retval, \Utils::getDirFiles($fname . DS, $fname . DS, FALSE, "/\\" . CGAF_CLASS_EXT . "/i"), true);
 				}
 			}
 		} else {
-			Logger::Warning('unhandled namespace parent of ' . $first . ' at '
-					. $ns);
+			Logger::Warning('unhandled namespace parent of ' . $first . ' at ' . $ns);
 		}
 		return $retval;
 	}
@@ -791,13 +745,12 @@ final class CGAF {
 	}
 	protected static function pathToLive($path) {
 		if (String::BeginWith($path, self::$_allowedLivePath, true)) {
-			$path = String::Replace(self::$_allowedLivePath, BASE_URL
-							. 'assets', $path);
-			$cpath = CGAF_CORE_PATH . self::getConfig("assetpath", 'assets');
+			$path = String::Replace(self::$_allowedLivePath, BASE_URL . 'assets', $path);
+			$cpath = CGAF_SHARED_PATH . self::getConfig("assetpath", 'assets');
 			return $path;
 		}
 		if (String::BeginWith($path, $cpath)) {
-			ppd(CGAF_CORE_PATH);
+			ppd(CGAF_SHARED_PATH);
 		}
 		pp($path);
 		ppd(self::$_allowedLivePath);
@@ -809,9 +762,7 @@ final class CGAF {
 		}
 	}
 	public static function isAllowAssetToLive($asset) {
-		if (String::BeginWith($asset, 'https:')
-				|| String::BeginWith($asset, 'http:')
-				|| String::BeginWith($asset, 'ftp:')) {
+		if (String::BeginWith($asset, 'https:') || String::BeginWith($asset, 'http:') || String::BeginWith($asset, 'ftp:')) {
 			return $asset;
 		}
 		if (!String::BeginWith($asset, self::$_allowedLivePath)) {
@@ -826,8 +777,7 @@ final class CGAF {
 			$allow[] = AppManager::getInstance()->getLivePath();
 			$allow[] = AppManager::getInstance()->getTemporaryPath();
 		}
-		if (String::EndWith($asset,
-				array('.manifest', '.min.js', '.min.css'), true)) {
+		if (String::EndWith($asset, array('.manifest', '.min.js', '.min.css'), true)) {
 			return true;
 		}
 		$allow[] = self::getTempPath();
@@ -851,12 +801,10 @@ final class CGAF {
 	public static function AddNamespaceClass($prefix, $ns) {
 		self::$_nsClass[$prefix] = $ns;
 	}
-	private static function _getClassInstance($className, $suffix, $args,
-			$find = true) {
+	private static function _getClassInstance($className, $suffix, $args, $find = true) {
 		$cname = array();
 		if (class_exists('AppManager', false) && AppManager::isAppStarted()) {
-			$cname[] = AppManager::getInstance()->getAppName() . $className
-					. $suffix;
+			$cname[] = AppManager::getInstance()->getAppName() . $className . $suffix;
 		}
 		$suffix = strtolower($suffix);
 		if (CGAF_CLASS_PREFIX) {
@@ -869,8 +817,21 @@ final class CGAF {
 			}
 		}
 	}
-	public static function getClassInstance($className, $suffix, $args,
-			$prefix = null) {
+	public static function getClassNameFor($classname, $namespace) {
+		if (AppManager::isAppStarted()) {
+			return AppManager::getInstance()->getClassNameFor($className, $namespace);
+		}
+		$search = array(
+				$namespace . '\\' . $classname,
+				$classname);
+		foreach ($search as $s) {
+			if (class_exists($s, false)) {
+				return $s;
+			}
+		}
+		return null;
+	}
+	public static function getClassInstance($className, $suffix, $args, $prefix = null) {
 		$ci = self::_getClassInstance($className, $suffix, $args);
 		if (!$ci) {
 			//pp($suffix);
@@ -879,16 +840,13 @@ final class CGAF {
 				return false;
 			}
 			foreach ($cpath as $c) {
-				$cf = Utils::ToDirectory(
-						$c . DS . strtolower($className) . '.class'
-								. CGAF_CLASS_EXT);
+				$cf = Utils::ToDirectory($c . DS . strtolower($className) . '.class' . CGAF_CLASS_EXT);
 				self::Using($cf, false);
 				$ci = self::_getClassInstance($className, $suffix, $args);
 				if ($ci) {
 					return $ci;
 				}
-				$cf = Utils::ToDirectory(
-						$c . DS . strtolower($className) . CGAF_CLASS_EXT);
+				$cf = Utils::ToDirectory($c . DS . strtolower($className) . CGAF_CLASS_EXT);
 				self::Using($cf, false);
 				$ci = self::_getClassInstance($className, $suffix, $args);
 				if ($ci) {
@@ -913,12 +871,9 @@ final class CGAF {
 			if ($classpart[0] === 'System') {
 				unset($classpart[0]);
 				unset($namespaces[0]);
-
 				if (count($namespaces)) {
 					$akey = array_keys($namespaces);
-
-					\Utils::arrayMerge($nspath,
-							self::getClassPath($namespaces[$akey[0]]));
+					\Utils::arrayMerge($nspath, self::getClassPath($namespaces[$akey[0]]));
 				}
 			}
 			$oricpath = implode(DS, $classpart);
@@ -931,7 +886,7 @@ final class CGAF {
 			$oricpath = $clname;
 			$clname = strtolower($clname);
 		}
-		$nspath = array_merge($nspath,self::getClassPath($fns));
+		$nspath = array_merge($nspath, self::getClassPath($fns));
 		$current = "";
 		foreach ($nspath as $p) {
 			foreach ($namespaces as $namepart) {
@@ -971,8 +926,7 @@ final class CGAF {
 		}
 		$className = str_replace(array('/', '\\'), "\\", $className);
 		// return true if class is loaded
-		if (class_exists($className, false)
-				|| interface_exists($className, false)) {
+		if (class_exists($className, false) || interface_exists($className, false)) {
 			return false;
 		}
 		pp($className);
@@ -1026,9 +980,7 @@ final class CGAF {
 			return AppManager::getInstance()->getLocale();
 		}
 		if (self::$_locale == null) {
-			self::$_locale = new Locale(
-					self::getConfig("locale.locale.default", "en"),
-					CGAF_PATH . DS . "locale");
+			self::$_locale = new Locale(self::getConfig("locale.locale.default", "en"), CGAF_PATH . DS . "locale");
 		}
 		return self::$_locale;
 	}
@@ -1040,19 +992,14 @@ final class CGAF {
 		}
 		return self::getLocale()->_($msg, $def);
 	}
-	public static function getInternalStorage($path = null, $checkApp = true,
-			$create = false) {
+	public static function getInternalStorage($path = null, $checkApp = true, $create = false) {
 		static $istorage;
 		if (!$istorage) {
-			$istorage = Utils::ToDirectory(
-					CGAF_PATH . DS
-							. self::getConfig('app.internalstorage',
-									'protected') . DS);
+			$istorage = Utils::ToDirectory(CGAF_PATH . DS . self::getConfig('app.internalstorage', 'protected') . DS);
 		}
 		$retval = null;
 		if ($checkApp && AppManager::isAppStarted()) {
-			return AppManager::getInstance()
-					->getInternalStorage($path, $create);
+			return AppManager::getInstance()->getInternalStorage($path, $create);
 		} else {
 			return $istorage . $path;
 		}

@@ -70,7 +70,7 @@ abstract class WebUtils {
 			if ($pack) {
 				$retval = self::packCSS($retval);
 			}
-			
+
 			return $retval;
 		} elseif (is_string($file)) {
 

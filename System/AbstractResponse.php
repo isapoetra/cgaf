@@ -68,8 +68,6 @@ abstract  class AbstractResponse extends \Object implements \IResponse, \IRender
 			return;
 		}
 		$r = @ob_get_clean();
-
-		$r = null;
 		$s = array();
 		foreach ( $this->_buff as $k => $v ) {
 			if ($k !== $this->_idx) {
@@ -99,7 +97,7 @@ abstract  class AbstractResponse extends \Object implements \IResponse, \IRender
 		echo $r;
 		$this->_buffer =null;
 	}
-	
+
 	function Render($return = false) {
 		if (Request::isJSONRequest()) {
 			return JSON::encode($this->_getInternal());

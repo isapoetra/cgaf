@@ -70,6 +70,9 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 	}
 
 	public function addClientAsset($assetName, $group = null) {
+		if (!$assetName) {
+			return;
+		}
 		if (is_array($assetName) || is_object($assetName)) {
 			if (is_object($assetName) && $assetName instanceof AssetItem) {
 				$this->_clientAssets->add($assetName);

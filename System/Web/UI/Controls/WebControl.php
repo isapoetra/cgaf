@@ -1,7 +1,12 @@
 <?php
 namespace System\Web\UI\Controls;
+use System\Web\Utils\HTMLUtils;
+
+use System\Web\WebUtils;
+
 use \Utils;
 use \Request;
+use \Convert;
 class WebControl extends \Control implements \IRenderable {
 	protected $_tag = "";
 	protected $_attr = array ();
@@ -12,6 +17,7 @@ class WebControl extends \Control implements \IRenderable {
 	function __construct($tag, $autoCloseTag = false, $attr = array()) {
 		parent::__construct ();
 		$attr = $attr ? $attr : array ();
+		$attr = HTMLUtils::attributeToArray($attr);
 		$this->_tag = $tag;
 		if (! isset ( $attr ['id'] )) {
 			$attr ['id'] = Utils::generateId ( 'c' );
@@ -87,7 +93,7 @@ class WebControl extends \Control implements \IRenderable {
 			if ($v !== null) {
 				if (substr($k, 0,2)==='on') {
 					$v = \System\Web\JS\JSUtils::addSlash($v);
-				}				
+				}
 				$retval .= ' '.$k.'="'.$v.'"';
 			}
 		}
@@ -104,13 +110,7 @@ class WebControl extends \Control implements \IRenderable {
 	protected function renderItems() {
 		$retval = "";
 		foreach ( $this->getChilds () as $item ) {
-			if (is_object ( $item ) && $item instanceof \IRenderable) {
-				$retval .= $item->render ( true );
-			} elseif (is_string ( $item )) {
-				$retval .= $item;
-			} elseif (CGAF_DEBUG) {
-				$retval .= pp ( $item, true );
-			}
+			$retval .= Convert::toString($item);
 		}
 		return $retval;
 	}

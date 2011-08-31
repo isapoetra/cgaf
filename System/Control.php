@@ -36,6 +36,12 @@ abstract class Control extends Object implements IRenderable {
 		if ($c === null) {
 			return $this;
 		}
+		if (is_array($c)) {
+			foreach ($c as $cc) {
+				$this->addChild($cc);
+			}
+			return $c;
+		}
 		$this->_childs [] = $c;
 		return $c;
 	}

@@ -6,8 +6,8 @@ use \CGAF,\AppManager;
 abstract class MVCHelper {
 
 	public static function Initialize() {
-		CGAF::addClassPath ( 'Models', CGAF_CORE_PATH.'Models'.DS );
-		CGAF::addClassPath ( 'Controller', CGAF_CORE_PATH.'Controllers'.DS, false );
+		CGAF::addClassPath ( 'Models', CGAF_SHARED_PATH.'Models'.DS );
+		CGAF::addClassPath ( 'Controller', CGAF_SHARED_PATH.'Controllers'.DS, false );
 		AppManager::bind('onAppLoaded',array('\\System\\MVC\\MVCHelper','onAppLoaded'));
 	}
 	public static function addSearchPath($basepath) {

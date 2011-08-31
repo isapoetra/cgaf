@@ -130,8 +130,8 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 		}
 		$retval = array_merge ( $retval, array (
 		$last ? dirname ( $last ) . DS . basename ( $templateName . $this->getTemplateFileExt () ) : null,
-		CGAF_CORE_PATH . '/Views' . DS . $templateName . $this->getTemplateFileExt (),
-		CGAF_CORE_PATH . '/Views/shared/' . DS . $templateName . $this->getTemplateFileExt () )
+		CGAF_SHARED_PATH . '/Views' . DS . $templateName . $this->getTemplateFileExt (),
+		CGAF_SHARED_PATH . '/Views/shared/' . DS . $templateName . $this->getTemplateFileExt () )
 		);
 		return $retval;
 	}

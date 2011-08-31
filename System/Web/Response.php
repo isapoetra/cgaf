@@ -1,17 +1,17 @@
 <?php
 namespace System\Web;
 use \Utils;
-class Response extends \System\AbstractResponse {	
+class Response extends \System\AbstractResponse {
 	function __construct() {
 		parent::__construct ( true );
-		
+
 	}
-	
+
 	function Init() {
 		parent::Init ();
 	}
 	function flush() {
-		header ( "filetype:text/html" );
+		@header ( "filetype:text/html" );
 		return parent::flush();
 	}
 	function Write($s, $attr = null) {
@@ -30,7 +30,7 @@ class Response extends \System\AbstractResponse {
 		header ( "Cache-Control: no-cache, must-revalidate" ); // HTTP/1.1
 		header ( "Expires: Mon, 26 Jul 1997 05:00:00 GMT" ); // Date in the past
 	}
-	function Redirect($url = null) {	
+	function Redirect($url = null) {
 		$url = $url ? $url : BASE_URL;
 		$this->forceContentExpires ();
 		$this->clearBuffer ();

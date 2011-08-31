@@ -10,7 +10,7 @@ class String extends stdClass {
 	}
 
 	/**
-	 * 
+	 *
 	 * Enter description here ...
 	 * @param string $str
 	 * @param string $o
@@ -27,7 +27,7 @@ class String extends stdClass {
 		}
 		if (strlen ( $o ) > strlen ( $str ))
 			return false;
-		
+
 		if (! $caseSensitive) {
 			$str = strtolower ( $str );
 			$o = strtolower ( $o );
@@ -45,7 +45,7 @@ class String extends stdClass {
 			}
 			return false;
 		}
-		
+
 		if (strlen ( $o ) > strlen ( $str ))
 			return false;
 		if (! $caseSensitive) {
@@ -75,16 +75,16 @@ class String extends stdClass {
 	}
 
 	public static function Replace($search, $replace, $subject = null, $case = true, $count = null, $prefix = '', $suffix = '') {
+		$retval = $subject;
 		if (is_array ( $search ) || is_object ( $search )) {
 			$retval = $subject;
 			foreach ( $search as $k => $v ) {
-				$retval = self::Replace ( $v, $replace, $retval, $case, $count, $prefix, $suffix );				
-						
+				$retval = self::Replace ( $v, $replace, $retval, $case, $count, $prefix, $suffix );
+
 			}
 		} elseif (is_array ( $replace ) || is_object ( $replace )) {
 			$retval = $search;
 			foreach ( $replace as $k => $v ) {
-			
 				$retval = self::Replace ( $k, $v, $retval, $case, $count, $prefix, $suffix );
 			}
 		} elseif (is_string ( $replace )) {
@@ -95,7 +95,7 @@ class String extends stdClass {
 			}
 		}
 		return $retval;
-	
+
 	}
 
 	public static function RemoveString($str, $search) {
@@ -123,7 +123,7 @@ class String extends stdClass {
 	}
 	public static function isEmpty($s) {
 		return $s === null || trim($s) === '';
-		
-	} 
+
+	}
 }
 ?>

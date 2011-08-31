@@ -51,7 +51,8 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 				$rattr[$k] = $v;
 			}
 		}
-		$metas = array('tag' => $tag);
+		$metas = array(
+				'tag' => $tag);
 		if (is_string($name)) {
 			$metas['name'] = $name;
 		}
@@ -60,23 +61,6 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	}
 	protected function initRun() {
 		parent::initRun();
-		if (!Request::isAJAXRequest()) {
-			PublicApi::Initialize($this);
-			$this
-					->addMetaHeader(
-							array('http-equiv' => 'Content-Type', 'content' => 'text/html'));
-			$this
-					->addMetaHeader('description',
-							$this
-									->getConfig('app.description',
-											CGAF::getConfig(
-													'cgaf.description', 'CGAF')));
-			$this->addMetaHeader('Version', CGAF_VERSION);
-			$this
-					->addMetaHeader('Application Version',
-							$this->getConfig('app.version', CGAF_VERSION));
-			$this->addClientAsset(strtolower($this->getAppName()) . ".css");
-		}
 	}
 	function getAsset($data, $prefix = null) {
 		if (!is_array($data)) {
@@ -85,11 +69,15 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 			switch ($ext) {
 			case 'css':
 			case 'js':
-				$retval = parent::getAsset($data, $prefix);
+				$retval = null;
+				if (!CGAF_DEBUG) {
+					$retval = parent::getAsset(Utils::changeFileExt($data, 'min.' . $ext), $prefix);
+				}
 				if (!$retval) {
-					$retval = parent::getAsset(
-							Utils::changeFileExt($data, 'min.' . $ext),
-							$prefix);
+					$retval = parent::getAsset($data, $prefix);
+					if (!$retval && CGAF_DEBUG) {
+						$retval = parent::getAsset(Utils::changeFileExt($data, 'min.' . $ext), $prefix);
+					}
 				}
 				return $retval;
 			}
@@ -98,83 +86,86 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	}
 	function getAssetPath($data, $prefix = null) {
 		if ($data === null) {
-			return $this->getAppPath(true)
-					. $this->getConfig('livedatapath', 'assets') . DS;
+			return $this->getAppPath(true) . $this->getConfig('livedatapath', 'assets') . DS;
 		}
 		$hasdot = strpos($data, ".") !== false;
 		$type = $hasdot ? substr($data, strrpos($data, ".") + 1) : '';
 		$search = array();
+		$rprefix = $prefix;
 		$prefix = $prefix ? $prefix : Utils::getFileExt($data, false);
 		$tpath = null;
 		if (!isset($this->_assetCache[$type][$prefix])) {
+			if ($rprefix) {
+				$search[] = $rprefix;
+				$search[] = $rprefix . DS . $type;
+			}
+			$search[] = $type;
 			$add = null;
 			$def = "";
 			$add = null;
 			switch (strtolower($type)) {
-			case "css":
-				$def = "css";
-				break;
 			case "js":
 				$def = "js";
 				break;
+			case "css":
 			case "gif":
 			case "jpg":
 			case "png":
 			case "jpeg":
 			case "ico":
+				$def = 'images';
 				if ($type == "ico") {
 					$def = "icon";
 				}
-				$prefix = $prefix ? $prefix : 'images';
-				$type = "images";
-				$tpath = "themes" . DS . $this->getConfig("themes", "default");
+				$ctheme = $this->getConfig("themes", "default");
+				$search[] = "themes" . DS . $ctheme . DS . $rprefix . DS . $def;
+				if ($type != 'css') {
+					$search[] = "themes" . DS . $ctheme . DS . $rprefix . DS . $def;
+				}
+				$search[] = "themes" . DS . $ctheme.DS.$def;
+				$search[] = $def;
 				break;
 			}
-			if ($tpath) {
-				$search = array_merge($search,
-						array($tpath . DS . $type, $tpath));
-			}
-			$search = array_merge($search, array($type));
+			//$search = array_merge($search, array($prefix . DS . $type));
 			if ($prefix !== $type) {
 				$search[] = $type . DS . $prefix;
 			}
+			$search[] = '';
 			$ap = $this->getConfig('livedatapath', 'assets');
 			$retval = array();
 			$assetpath = $this->getLivePath(false);
-			if (CGAF_DEBUG) {
-				foreach ($search as $value) {
-					$retval[] = $this->getDevPath($value);
-				}
-				foreach ($search as $value) {
-					$retval[] = CGAF_DEV_PATH . "$ap/$value/";
-				}
-				$retval[] = CGAF_DEV_PATH . $ap;
-			}
-			$spath = array($this->getAppPath(), CGAF_CORE_PATH, SITE_PATH);
+			/*if (CGAF_DEBUG) {
+			    foreach ($search as $value) {
+			        $retval[] = $this->getDevPath($value);
+			    }
+			    foreach ($search as $value) {
+			        $retval[] = CGAF_DEV_PATH . "$ap/$value/";
+			    }
+			    $retval[] = CGAF_DEV_PATH . $ap;
+			}*/
+			$spath = array(
+					$this->getAppPath(),
+					CGAF_SHARED_PATH,
+					SITE_PATH);
 			foreach ($spath as $v) {
 				foreach ($search as $value) {
-					//if $retval[] = $prefix;
-					$retval[] = $v . $ap . DS . $value . DS;
-					$retval[] = $v . $ap . DS;
+					$retval[] = Utils::ToDirectory($v . $ap . DS . $value . DS);
 				}
 			}
 			$this->_assetCache[$type][$prefix] = $retval;
+			//ppd($retval);
 		}
 		return $this->_assetCache[$type][$prefix];
 	}
 	public function renderClientAsset($mode = null) {
 		$retval = '';
-
 		$retval = $this->getClientAsset()->render(true, $mode);//AssetHelper::renderAsset($assets);
 		return $retval;
 	}
 	function getAppUrl() {
 		static $url;
 		if (!$url) {
-			$url = $this
-					->getConfig('app.url',
-							URLHelper::addParam(BASE_URL,
-									array('__appId' => $this->getAppId())));
+			$url = $this->getConfig('app.url', URLHelper::addParam(BASE_URL, array('__appId' => $this->getAppId())));
 		}
 		return $url;
 	}
@@ -183,15 +174,12 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 			if (!defined('APP_URL')) {
 				define('APP_URL', $this->getAppUrl());
 			}
-			CGAF::addClassPath('System',
-					$this->getAppPath() . DS . 'classes' . DS);
+			CGAF::addClassPath('System', $this->getAppPath() . DS . 'classes' . DS);
 			//CGAF::addNamespaceSearchPath("System", $this->getAppPath ().'/classes/');
 			//CGAF::addNamespaceSearchPath("System", $this->getAppPath ().'/classes/System/');
 			//CGAF::addNamespaceSearchPath($this->getAppName (), $this->getAppPath () );
 			CGAF::addAlowedLiveAssetPath($this->getLivePath());
-			CGAF::addAlowedLiveAssetPath(
-					$this->getAppPath()
-							. $this->getConfig('livedatapath', 'assets'));
+			CGAF::addAlowedLiveAssetPath($this->getAppPath() . $this->getConfig('livedatapath', 'assets'));
 			return true;
 		}
 		return false;
@@ -206,14 +194,12 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	 */
 	public function getAssetAgent($assetName) {
 		$fname = Utils::getFileName($assetName);
-		$assetAgent = Utils::changeFileName($assetName,
-				$fname . $this->getAgentSuffix());
+		$assetAgent = Utils::changeFileName($assetName, $fname . $this->getAgentSuffix());
 		return $this->getAsset($assetAgent);
 	}
 	public function getJSEngine() {
 		if (!$this->_jsEngine) {
-			$c = 'System\\Web\JS\Engine\\'
-					. $this->getConfig('app.jsengine', 'jQuery');
+			$c = 'System\\Web\JS\Engine\\' . $this->getConfig('app.jsengine', 'jQuery');
 			$this->_jsEngine = new $c($this);
 			$this->_jsEngine->initialize($this);
 		}
@@ -260,9 +246,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	}
 	protected function prepareOutputData($s) {
 		if (Request::isJSONRequest()) {
-			header(
-					"Content-Type: application/json, text/javascript;charset=UTF-8",
-					true);
+			header("Content-Type: application/json, text/javascript;charset=UTF-8", true);
 			if (!is_string($s)) {
 				if (is_object($s) && $s instanceof JSONResult) {
 					return $s->Render(true);
@@ -288,8 +272,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		if ($this->getConfig("output.prepare", false)) {
 			//return $stemp;
 			//using('libs.minifier.minify.min.lib.Minify.HTML');
-			return preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "",
-					$stemp);
+			return preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "", $stemp);
 		}
 		return $stemp;
 	}
@@ -298,7 +281,13 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		return true;
 	}
 	protected function initRequest() {
-		return true;
+		if (!Request::isAJAXRequest()) {
+			$this->addMetaHeader(array('http-equiv' => 'Content-Type', 'content' => 'text/html'));
+			$this->addMetaHeader('description', $this->getConfig('app.description', CGAF::getConfig('cgaf.description', 'CGAF')));
+			$this->addMetaHeader('keywords', array('content' => $this->getConfig('app.keywords', CGAF::getConfig('cgaf.keywords', 'CGAF'))));
+			$this->addMetaHeader('Version', $this->getConfig('app.version', CGAF_VERSION));
+			$this->addClientAsset(strtolower($this->getAppName()) . ".css");
+		}
 	}
 	protected function renderHeader() {
 		return "<head>";
@@ -306,9 +295,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	function renderMetaHead() {
 		$retval = '';
 		foreach ($this->_metas as $value) {
-			$retval .= '<' . $value['tag'] . ' '
-					. (isset($value['name']) ? ' name="' . $value['name']
-									. '" ' : ' ');
+			$retval .= '<' . $value['tag'] . ' ' . (isset($value['name']) ? ' name="' . $value['name'] . '" ' : ' ');
 			$retval .= HTMLUtils::renderAttr($value['attr']);
 			$retval .= '/>';
 		}
@@ -319,8 +306,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		$a = explode("/", $a);
 		if ($a[0] == "_appList") {
 			Response::StartBuffer();
-			include Utils::ToDirectory(
-					$this->getSharedPath() . "Views/applist.php");
+			include Utils::ToDirectory($this->getSharedPath() . "Views/applist.php");
 			return Response::EndBuffer(false);
 		}
 		return false;

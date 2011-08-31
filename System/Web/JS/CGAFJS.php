@@ -36,7 +36,7 @@ final class CGAFJS {
 			self::setConfig('appurl', APP_URL);
 		}
 		$assets = array(
-				'Modernizr/modernizr.js',
+				'modernizr.js',
 				'jquery.js',
 				//CGAF_DEBUG ? 'plugins/jquery.lint.js' : '',
 				'cgaf/cgaf.js',
@@ -95,7 +95,13 @@ final class CGAFJS {
 			self::$_jsToLoad[] = $js;
 		}
 	}
-	public static function loadPlugin($plugin) {
+	public static function loadPlugin($plugin,$direct=false) {
+		if ($direct) {
+			$plugin = self::getPluginURL($plugin);
+			self::$_appOwner->addClientAsset($plugin);
+			return;
+
+		}
 		if (!in_array(self::$_plugins, $plugink)) {
 			self::$_plugins[] = $plugin;
 		}
@@ -105,6 +111,9 @@ final class CGAFJS {
 				'id' => $id,
 				'title' => $title,
 				'action' => $action);
+	}
+	public static function getPluginURL($pluginName) {
+		return self::$_jq->getAsset($pluginName.'.js','plugins');
 	}
 	public static function Render($s) {
 		$s = is_array($s) ? implode(';', $s) : $s;

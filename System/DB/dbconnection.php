@@ -93,7 +93,9 @@ abstract class DBConnection implements IDBConnection {
 		}
 		return $this->_connected;
 	}
+	function Close() {
 
+	}
 	function execBatch($sql) {
 		$t = $this->_thows;
 		$this->_thows = true;

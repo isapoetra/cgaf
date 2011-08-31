@@ -34,8 +34,7 @@ if (System::isWebContext()) {
 			}
 		}
 		function getControllerLookup($for) {
-			$path = Utils::getDirFiles(
-					$this->getAppPath() . DS . 'Controllers' . DS);
+			$path = Utils::getDirFiles($this->getAppPath() . DS . 'Controllers' . DS);
 			$retval = array();
 			foreach ($path as $p) {
 				$fname = Utils::getFileName($p, false);
@@ -56,8 +55,7 @@ if (System::isWebContext()) {
 			$this->addSearchPath($mpath);
 			$f = $this->findFile("index", "Views", false);
 			if ($f) {
-				return TemplateHelper::renderFile($f, null,
-						$this->getController());
+				return TemplateHelper::renderFile($f, null, $this->getController());
 			}
 			return parent::handleModuleNotFound($m);
 		}
@@ -65,15 +63,12 @@ if (System::isWebContext()) {
 			$fname = $this->getAsset($f, "js");
 			if (!$fname) {
 				//get from minified version but no source
-				$fname = $this
-						->getAsset(Utils::changeFileExt($f, 'min.js'), "js");
+				$fname = $this->getAsset(Utils::changeFileExt($f, 'min.js'), "js");
 				if ($fname) {
 					$content = file_get_contents($fname);
 					if ($minifymin) {
 						try {
-							$content = CGAF_DEBUG ? file_get_contents($fname)
-									: JSUtils::Pack(
-											file_get_contents($fname));
+							$content = CGAF_DEBUG ? file_get_contents($fname) : JSUtils::Pack(file_get_contents($fname));
 						} catch (Exception $e) {
 							die($e->getMessage() . ' on file ' . $fname);
 						}
@@ -81,17 +76,13 @@ if (System::isWebContext()) {
 				}
 			} else {
 				try {
-					$content = CGAF_DEBUG ? file_get_contents($fname)
-							: JSUtils::Pack(file_get_contents($fname));
+					$content = CGAF_DEBUG ? file_get_contents($fname) : JSUtils::Pack(file_get_contents($fname));
 				} catch (Exception $e) {
 					die($e->getMessage() . ' on file ' . $fname);
 				}
 			}
 			if ($fname) {
-				return $this->getCacheManager()
-						->putString("\n" . $content,
-								CGAF_DEBUG ? basename($fname) : $target, 'js',
-								null, CGAF_DEBUG ? false : true);
+				return $this->getCacheManager()->putString("\n" . $content, CGAF_DEBUG ? basename($fname) : $target, 'js', null, CGAF_DEBUG ? false : true);
 			}
 		}
 		protected function cacheJS($arr, $target, $force = false) {
@@ -111,8 +102,7 @@ if (System::isWebContext()) {
 							if (Utils::isLive($f)) {
 								$jsname[] = $f;
 							} else {
-								$jsname[] = $this
-										->_cacheJS($f, $target, $min);
+								$jsname[] = $this->_cacheJS($f, $target, $min);
 							}
 						}
 					} else {
@@ -127,8 +117,7 @@ if (System::isWebContext()) {
 		protected function cacheCSS($css, $target, $force = false) {
 			if (!$target && is_string($css)) {
 				$fname = Utils::getFileName($css);
-				$target = Utils::changeFileName($css,
-						$fname . $this->getAgentSuffix());
+				$target = Utils::changeFileName($css, $fname . $this->getAgentSuffix());
 			}
 			$fname = $this->getCacheManager()->get($target, 'css');
 			//pp($fname);
@@ -156,10 +145,8 @@ if (System::isWebContext()) {
 					}
 				}
 				if (count($parsed)) {
-					$content = WebUtils::parseCSS($parsed, $fname,
-							CGAF_DEBUG == false);
-					$fname = $this->getCacheManager()
-							->putString($content, $target, 'css');
+					$content = WebUtils::parseCSS($parsed, $fname, CGAF_DEBUG == false);
+					$fname = $this->getCacheManager()->putString($content, $target, 'css');
 				}
 			}
 			if ($fname) {
@@ -171,8 +158,7 @@ if (System::isWebContext()) {
 			$instance = null;
 			if ($controllerName == null) {
 				if (Request::get('__m')) {
-					$instance = \ModuleManager::getModuleInstance(
-							Request::get('__m'));
+					$instance = \ModuleManager::getModuleInstance(Request::get('__m'));
 					if ($instance && $this->_controller === null) {
 						$this->_controller = $instance;
 					}
@@ -193,19 +179,13 @@ if (System::isWebContext()) {
 			try {
 				if (!$instance && $controllerName) {
 					CGAF::Using('Controller.' . $controllerName, true);
-					$cname = $this
-							->getClassNameFor($controllerName, 'Controller',
-									'System\\Controllers');
+					$cname = $this->getClassNameFor($controllerName, 'Controller', 'System\\Controllers');
 					if (!$cname) {
-						throw new SystemException(
-								"Unable to Find controller %s",
-								$controllerName);
+						throw new SystemException("Unable to Find controller %s", $controllerName);
 					}
 					$instance = new $cname($this);
 					if (!$instance) {
-						throw new SystemException(
-								"Unable to Find controller %s",
-								$controllerName);
+						throw new SystemException("Unable to Find controller %s", $controllerName);
 					}
 				}
 				if ($instance) {
@@ -290,11 +270,9 @@ if (System::isWebContext()) {
 		protected function initRequest() {
 			parent::initRequest();
 			CGAFJS::initialize($this);
-			$rname = $this->getController() ? $this->getController()
-							->getControllerName() : 'Home';
+			$rname = $this->getController() ? $this->getController()->getControllerName() : 'Home';
 			if (!Request::isDataRequest() && !$this->getVars('title')) {
-				$title = $this
-						->getConfig($rname . '.title', ucwords($rname));
+				$title = $this->getConfig($rname . '.title', ucwords($rname));
 				$this->Assign('title', $title);
 			}
 			if (!Request::isDataRequest()) {
@@ -324,14 +302,13 @@ if (System::isWebContext()) {
 				$this->_action = $this->_route["_a"];
 				$libs = $this->getConfig('apps.libs');
 				$path = $this->getAppPath();
-				$this->_searchPath = array($path, CGAF_CORE_PATH);
-				CGAF::addClassPath($this->getAppName(), $path . DS . 'classes'
-						. DS);
+				$this->_searchPath = array(
+						$path,
+						CGAF_SHARED_PATH);
+				CGAF::addClassPath($this->getAppName(), $path . DS . 'classes' . DS);
 				CGAF::addClassPath('System', $path . DS, false);
-				CGAF::addClassPath('Controller', $path . DS . 'Controllers'
-								. DS, false);
-				CGAF::addClassPath('Controllers', $path . DS . 'Controllers'
-								. DS, false);
+				CGAF::addClassPath('Controller', $path . DS . 'Controllers' . DS, false);
+				CGAF::addClassPath('Controllers', $path . DS . 'Controllers' . DS, false);
 				CGAF::addClassPath('Models', $path . DS . 'Models' . DS, false);
 				CGAF::addClassPath('Modules', $path . DS . 'Modules' . DS, false);
 				if ($libs) {
@@ -339,9 +316,7 @@ if (System::isWebContext()) {
 				}
 				return true;
 			}
-			$this
-					->dispatchEvent(
-							new SessionEvent($this, SessionEvent::DESTROY));
+			$this->dispatchEvent(new SessionEvent($this, SessionEvent::DESTROY));
 			return false;
 		}
 		function getMessages() {
@@ -367,16 +342,14 @@ if (System::isWebContext()) {
 				return;
 			}
 			if (!in_array($value, $this->_searchPath)) {
-				$this->_searchPath = array_merge(array($value),
-						$this->_searchPath);
+				$this->_searchPath = array_merge(array($value), $this->_searchPath);
 			}
 		}
 		function getSearchPath($fname, $suffix) {
 			$fname = Utils::ToDirectory($fname);
 			$retval = array();
 			foreach ($this->_searchPath as $v) {
-				$retval[] = Utils::ToDirectory(
-						$v . DS . ($suffix ? $suffix . DS : ""));
+				$retval[] = Utils::ToDirectory($v . DS . ($suffix ? $suffix . DS : ""));
 			}
 			foreach ($this->_searchPath as $v) {
 				$retval[] = Utils::ToDirectory($v);
@@ -389,6 +362,7 @@ if (System::isWebContext()) {
 			foreach ($searchs as $f) {
 				$f = $f . $fname . CGAF_CLASS_EXT;
 				if (is_file($f)) {
+					if ($suffix && !\String::Contains($f,$suffix)) continue;
 					return $f;
 				}
 			}
@@ -399,19 +373,15 @@ if (System::isWebContext()) {
 					//pp(debug_backtrace(false));
 					ppd($searchs);
 				}
-				throw new SystemException("error.filenotfound",
-						$fname . ' On Class ' . get_class($this));
+				throw new SystemException("error.filenotfound", $fname . ' On Class ' . get_class($this));
 			}
 			return null;
 		}
 		function getClassPrefix() {
-			return $this
-					->getConfig("class.prefix",
-							Utils::toClassName($this->getAppName()));
+			return $this->getConfig("class.prefix", Utils::toClassName($this->getAppName()));
 		}
 		function getClassInstance($className, $suffix, $args, $find = true) {
-			$c = CGAF::getClassInstance($className, $suffix, $args,
-					$this->getAppName());
+			$c = CGAF::getClassInstance($className, $suffix, $args, $this->getAppName());
 			if (!$c) {
 				$c = CGAF::getClassInstance($className, $suffix, $args);
 			}
@@ -464,8 +434,7 @@ if (System::isWebContext()) {
 			return $this->_models[$model];
 		}
 		public function getInternalData($path, $create = false) {
-			$iPath = Utils::ToDirectory(
-					$this->getConfig("app.internalstorage") . DS . $path);
+			$iPath = Utils::ToDirectory($this->getConfig("app.internalstorage") . DS . $path);
 			if (is_readable($iPath)) {
 				return $iPath;
 			} else {
@@ -479,19 +448,14 @@ if (System::isWebContext()) {
 		function getAuthInfo() {
 			return Session::get("__logonInfo");
 		}
-		public function getMenuItems($position, $parent = 0,
-				$actionPrefix = null, $showIcon = true) {
+		public function getMenuItems($position, $parent = 0, $actionPrefix = null, $showIcon = true) {
 			$model = $this->getModel("menus");
 			$model->clear();
 			$model->where("menu_position=" . $model->quote($position));
 			$model->where("menu_state=1");
-			$model
-					->where(
-							"(menu_parent=" . $parent . ' and menu_id != '
-									. $parent . ')');
+			$model->where("(menu_parent=" . $parent . ' and menu_id != ' . $parent . ')');
 			$model->addOrder("menu_index");
-			$rows = $model
-					->loadObjects("System\\Collections\\Items\\MenuItem");
+			$rows = $model->loadObjects("System\\Collections\\Items\\MenuItem");
 			return $rows;
 		}
 		function getDefaultController() {
@@ -546,8 +510,7 @@ if (System::isWebContext()) {
 			if ($this->getRoute('_c') === 'assets') {
 				$this->_route['_c'] = 'asset';
 			}
-			if ($this->getRoute('_c') === 'asset'
-					&& $this->getRoute('_a') === 'get') {
+			if ($this->getRoute('_c') === 'asset' && $this->getRoute('_a') === 'get') {
 				Request::setDataRequest(true);
 			}
 		}
@@ -582,15 +545,9 @@ if (System::isWebContext()) {
 					$action = $this->_action;
 				} else {
 					if (Request::isDataRequest()) {
-						$r = $this
-								->handleService(
-										$this->getRoute('_c') . '-'
-												. $this->getRoute('_a'));
+						$r = $this->handleService($this->getRoute('_c') . '-' . $this->getRoute('_a'));
 						if (!$r) {
-							throw new Exception(
-									'Unhandled action ' . $this->_action
-											. ' On Controller '
-											. $this->getRoute('_c'));
+							throw new Exception('Unhandled action ' . $this->_action . ' On Controller ' . $this->getRoute('_c'));
 						}
 						return $r;
 					} else {
@@ -603,18 +560,13 @@ if (System::isWebContext()) {
 						$params = array();
 						$controller->assign($this->getVars());
 						$controller->initAction($action, $params);
-						$content = $controller
-								->{$action}($params, null, null, null);
+						$content = $controller->{$action}($params, null, null, null);
 						if (!Request::isDataRequest()) {
 							//convert to String
 							$content = Utils::toString($content);
 						}
-					} elseif (!($content = $controller
-							->handleAccessDenied($action))) {
-						$content = $controller->getLastError() ? $controller
-										->getLastError()
-								: "access to action $action is denied on controller "
-										. get_class($controller);
+					} elseif (!($content = $controller->handleAccessDenied($action))) {
+						$content = $controller->getLastError() ? $controller->getLastError() : "access to action $action is denied on controller " . get_class($controller);
 					}
 				}
 			} catch (Exception $x) {
@@ -633,10 +585,7 @@ if (System::isWebContext()) {
 			return $retval;
 		}
 		function Run() {
-			$this
-					->onSessionEvent(
-							new SessionEvent(Session::getInstance(),
-									SessionEvent::SESSION_STARTED));
+			$this->onSessionEvent(new SessionEvent(Session::getInstance(), SessionEvent::SESSION_STARTED));
 			$this->initRun();
 			try {
 				if (!$retval = $this->handleRun()) {
@@ -660,14 +609,12 @@ if (System::isWebContext()) {
 			} else {
 				$items = $this->getMenuItems($position);
 				$retval = "<div class=\"menu-container\" id='menu-container-$position'>";
-				$retval .= HTMLUtils::renderMenu($items, null,
-						null . " menu-$position", null, 'menu-' . $position);
+				$retval .= HTMLUtils::renderMenu($items, null, null . " menu-$position", null, 'menu-' . $position);
 				$retval .= "</div>";
 			}
 			return $retval;
 		}
-		function renderContent($location, $controller = null,
-				$returnori = false, $return = true) {
+		function renderContent($location, $controller = null, $returnori = false, $return = true) {
 			if ($controller === null) {
 				$controller = $this->getController()->getControllerName();
 			}
@@ -700,47 +647,25 @@ if (System::isWebContext()) {
 				case 2:
 				//direct action to controller
 					try {
-						$ctl = $this
-								->getClassInstance($row->controller,
-										"Controller", $this);
+						$ctl = $this->getClassInstance($row->controller, "Controller", $this);
 						if ($ctl) {
-							$row->actions = $row->actions ? $row->actions
-									: "index";
+							$row->actions = $row->actions ? $row->actions : "index";
 							if ($ctl->isAllow(ACLHelper::ACCESS_MANAGE)) {
-								$haction[] = HTMLUtils::renderLink(
-										URLHelper::addParam(
-												$this->getAppUrl(),
-												array(
-														'__c' => $row
-																->controller,
-														'__a' => 'aed')),
-										__($row->controller . '.add.title', 'Add'),
-										null, 'icons/add.png',
-										__($row->controller . '.add.descr',
-												'Add Data'));
+								$haction[] = HTMLUtils::renderLink(URLHelper::addParam($this->getAppUrl(), array(
+												'__c' => $row->controller,
+												'__a' => 'aed')), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png', __($row->controller . '.add.descr', 'Add Data'));
 							}
-							if (method_exists($ctl, $row->actions)
-									&& $ctl->isAllow($row->actions)) {
-								$hcontent = $ctl
-										->{$row->actions}(true,
-												Utils::DBDataToParam(
-														$row->params));
-							} elseif (!method_exists($ctl, $row->actions)
-									&& CGAF_DEBUG) {
-								$hcontent = HTMLUtils::renderError(
-										'method [' . $row->actions
-												. '] not found in class '
-												. $row->controller);
+							if (method_exists($ctl, $row->actions) && $ctl->isAllow($row->actions)) {
+								$hcontent = $ctl->{$row->actions}(true, Utils::DBDataToParam($row->params));
+							} elseif (!method_exists($ctl, $row->actions) && CGAF_DEBUG) {
+								$hcontent = HTMLUtils::renderError('method [' . $row->actions . '] not found in class ' . $row->controller);
 							}
 						} else {
-							$hcontent = HTMLUtils::renderError(
-									' Controller [' . $row->controller
-											. '] not found ');
+							$hcontent = HTMLUtils::renderError(' Controller [' . $row->controller . '] not found ');
 						}
 					} catch (Exception $e) {
 						if (CGAF_DEBUG) {
-							$hcontent = HTMLUtils::renderError(
-									$e->getMessage());
+							$hcontent = HTMLUtils::renderError($e->getMessage());
 						} else {
 							continue;
 						}
@@ -748,14 +673,9 @@ if (System::isWebContext()) {
 					break;
 				case 3:
 					try {
-						if ($row->controller !== null
-								&& $this
-										->isAllow($row->controller,
-												"controller")) {
+						if ($row->controller !== null && $this->isAllow($row->controller, "controller")) {
 							//make sure user has access to controller
-							$ctl = $this
-									->getClassInstance($row->controller,
-											"Controller", $this);
+							$ctl = $this->getClassInstance($row->controller, "Controller", $this);
 						}
 					} catch (Exception $e) {
 						$ctl = null;
@@ -763,23 +683,16 @@ if (System::isWebContext()) {
 					if ($row->controller !== null) {
 						if ($ctl && $ctl->isAllow($row->actions)) {
 							//cek security by internal controller
-							$menus[] = '<a href="' . BASE_URL . '/'
-									. $row->controller . '/' . $row->actions
-									. '">' . $row->content_title . '</a>';
+							$menus[] = '<a href="' . BASE_URL . '/' . $row->controller . '/' . $row->actions . '">' . $row->content_title . '</a>';
 						}
 					}
 					break;
 				case 4:
 				//renderMenu
 					try {
-						if ($row->controller !== null
-								&& $this
-										->isAllow($row->controller,
-												"controller")) {
+						if ($row->controller !== null && $this->isAllow($row->controller, "controller")) {
 							//make sure user has access to controller
-							$ctl = $this
-									->getClassInstance($row->controller,
-											"Controller", $this);
+							$ctl = $this->getClassInstance($row->controller, "Controller", $this);
 						}
 					} catch (Exception $e) {
 						$ctl = null;
@@ -791,13 +704,8 @@ if (System::isWebContext()) {
 				case 1:
 				default:
 					try {
-						if ($row->controller !== null
-								&& $this
-										->isAllow($row->controller,
-												"controller")) {
-							$ctl = $this
-									->getClassInstance($row->controller,
-											"Controller", $this);
+						if ($row->controller !== null && $this->isAllow($row->controller, "controller")) {
+							$ctl = $this->getClassInstance($row->controller, "Controller", $this);
 						}
 					} catch (Exception $e) {
 						$ctl = null;
@@ -806,46 +714,35 @@ if (System::isWebContext()) {
 						$hcontent = null;
 						$row->__content = "";
 						$action = $row->actions ? $row->actions : "index";
-						$params = $row->params ? unserialize($row->params)
-								: array();
+						$params = $row->params ? unserialize($row->params) : array();
 						$params["_position"] = $location;
 						//if (is_callable(array($ctl,$action))) {
 						//	$hcontent = $ctl->$action($params);
 						//}else
 						if ($ctl->initAction($action, $params)) {
-							$hcontent = $ctl
-									->render(
-											array("_a" => $action), $params,
-											true);
+							$hcontent = $ctl->render(array("_a" => $action), $params, true);
 						}
 					}
 				}
 				if ($hcontent) {
 					$content .= "<div class=\"$location-item {$row->controller} clearfix\">";
-					if ($this
-							->getConfig(
-									'content.' . $controller . '.' . $location
-											. '.header', true)) {
+					if ($this->getConfig('content.' . $controller . '.' . $location . '.header', true)) {
 						$content .= "	<div class=\"ui-widget-header bar\">";
 						if ($row->content_title) {
-							$content .= "	<h4>" . __($row->content_title)
-									. "</h4>";
+							$content .= "	<h4>" . __($row->content_title) . "</h4>";
 						}
 						if ($haction) {
-							$content .= '<div class="action">'
-									. HTMLUtils::render($haction) . '</div>';
+							$content .= '<div class="action">' . HTMLUtils::render($haction) . '</div>';
 						}
 						$content .= "	</div>";
 					}
 					$content .= "<div  class=\"delim\"></div>";
 					$row->__content = $hcontent;
 					$rcontent = $row->__content;
-					if (is_object($rcontent)
-							&& $rcontent instanceof IRenderable) {
+					if (is_object($rcontent) && $rcontent instanceof IRenderable) {
 						$rcontent = $rcontent->render(true);
 					}
-					$content .= "<div class=\"content ui-widget-content\"><div>"
-							. $rcontent . "</div></div>";
+					$content .= "<div class=\"content ui-widget-content\"><div>" . $rcontent . "</div></div>";
 					$content .= "</div>";
 					$retOri[] = $row;
 				}
@@ -871,8 +768,7 @@ if (System::isWebContext()) {
 				return $retOri;
 			}
 			if ($content) {
-				$retval = "<div class=\"content-$location\">" . $content
-						. "</div>";
+				$retval = "<div class=\"content-$location\">" . $content . "</div>";
 			}
 			if (!$return) {
 				Response::write($retval);
@@ -880,22 +776,15 @@ if (System::isWebContext()) {
 			return $retval;
 		}
 		function renderControllerMenu($position = "top") {
-			return $this->getController()
-					->renderMenu(
-							$this->getController()->getRouteName()
-									. "-$position", "menu2ndlevel");
+			return $this->getController()->renderMenu($this->getController()->getRouteName() . "-$position", "menu2ndlevel");
 		}
 		function renderView($view, $a = null, $args = null, $controller = null) {
-			return $this->getController($controller)
-					->getView($view, $a, $args);
+			return $this->getController($controller)->getView($view, $a, $args);
 		}
 		function removeSession($sid) {
 			if ($sid !== session_id()) {
 				Session::getInstance()->destroy($sid);
-				$this
-						->onSessionEvent(
-								new SessionEvent(null, SessionEvent::DESTROY),
-								$sid);
+				$this->onSessionEvent(new SessionEvent(null, SessionEvent::DESTROY), $sid);
 				return __('session.destroyed', 'Killed');
 			} else {
 				return __('user.suicide', 'arrrrrrrrrrrrrrrrghhh....');
