@@ -1,5 +1,7 @@
 <?php
 namespace System\JSON;
+use \Response;
+use \Request;
 class JSONResponse extends \Object implements \IRenderable {
 	public $success = true;
 	public $redirect;

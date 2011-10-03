@@ -1,7 +1,8 @@
 <?php
 namespace System\Collections\Items;
+use System\Assets\AssetHelper;
+
 use \AppManager;
-use \System\Assets\AssetHelper;
 use \Utils;
 class AssetItem extends \Object implements \IRenderable,\IItem {
 	private $_resource;
@@ -19,8 +20,8 @@ class AssetItem extends \Object implements \IRenderable,\IItem {
 	private function isType($type) {
 		$ext =  Utils::getFileExt($this->_resource,false);
 		if ((strpos($ext,'/') !==false)) {
-			return strpos($ext, $type) !== false;			
-		}		
+			return strpos($ext, $type) !== false;
+		}
 		return strtolower($ext) === $type;
 	}
 	private function _getLiveResourceBytype($res,$type) {
@@ -31,7 +32,9 @@ class AssetItem extends \Object implements \IRenderable,\IItem {
 			}
 			return $retval;
 		}elseif (is_string($res)) {
+
 			if (strpos( $res,'.'.$type) !==false || $this->isType($type)) {
+
 				return $res;
 			}
 		}
@@ -68,6 +71,7 @@ class AssetItem extends \Object implements \IRenderable,\IItem {
 		if ($this->_group) {
 			ppd($this->_group);
 		}
+
 		$retval =AssetHelper::renderAsset($this->LiveResource);
 		if (!$return) {
 			Response::write($retval);

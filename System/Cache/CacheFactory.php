@@ -1,13 +1,22 @@
 <?php
 namespace System\Cache;
 use \CGAF;
-
 class CacheFactory {
 	private static $_instance;
-	static function getInstance() {
-		if (self::$_instance == null) {
+	/**
+	 *
+	 * Enter description here ...
+	 * @param boolean $create
+	 * @return System\Cache\Engine\ICacheEngine
+	 */
+	static function getInstance($create = false) {
+		if ($create || self::$_instance == null) {
 			$class = '\\System\\Cache\\Engine\\' . CGAF::getConfig("cache.engine", "Base");
-			self::$_instance = new $class();
+			$c = new $class();
+			if (self::$_instance == null) {
+				self::$_instance = $c;
+			}
+			return $c;
 		}
 		return self::$_instance;
 	}

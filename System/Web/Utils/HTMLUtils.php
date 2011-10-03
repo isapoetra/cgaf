@@ -6,6 +6,9 @@ use \System\Web\UI\Controls\Anchor;
 use \Utils;
 use \System\Session\Session;
 use \Request;
+use System\Template\TemplateHelper;
+use \IRenderable;
+use System\Web\UI\JQ\HTMLEditor;
 abstract class HTMLUtils {
 	private static $_lastCSS;
 	private static $_lastForm;
@@ -312,7 +315,7 @@ JS;
 		return self::renderFormField($title, $id, $value, $attr, $editMode,
 				"textarea");
 	}
-	public static function renderTextBox($title, $id, $value, $attr = null,
+	public static function renderTextBox($title, $id, $value='', $attr = null,
 			$editMode = true) {
 		return self::renderFormField($title, $id, $value, $attr, $editMode);
 	}
@@ -332,6 +335,9 @@ JS;
 	public static function renderHiddenField($id, $value) {
 		return self::renderFormField(null, $id, $value, null, true, 'hidden');
 	}
+	public static function renderHTMLEditor($title,$id,$value=null,$attr=null,$editmode=true) {
+		return self::renderFormField($title, $id, $value,$attr,$editmode,'htmleditor');
+	}
 	public static function renderFormField($title, $id, $value, $attr = null,
 			$editMode = false, $type = "text", $labelPosition = 'left') {
 		$renderlabel = true;
@@ -343,14 +349,15 @@ JS;
 			}
 			break;
 		}
+		$rattr = $attr;
 		$attr = self::renderAttr($attr);
 		//ppd($attr);
 		switch ($type) {
 		case 'htmleditor':
 			if ($editMode) {
-				$editor = new TJQHTMLEditor($id, null);
+				$editor = new HTMLEditor($id, null);
 				$editor->setValue($value);
-				$editor->setConfig($attr);
+				$editor->setConfig($rattr);
 				return ($title ? '<label for="' . $id . '">' . $title
 								. '</label>' : '') . $editor->Render(true);
 			}
@@ -358,7 +365,7 @@ JS;
 			if ($editMode) {
 				$retval .= "<textarea  id=\"$id\" name=\"$id\" $attr>$value</textarea>";
 			} else {
-				$retval .= "<span id=\"$id\" $attr>" . $value . "</span>";
+				$retval .= '<span id="'.$id.'" class="textarea-value-only" '.$attr.'>' . $value . '</span>';
 			}
 			break;
 		case "checkbox":
@@ -567,7 +574,7 @@ JS;
 				: $attr;
 		$icon = $icon ? '<img src="' . $icon . '"/>' : '';
 		return '<a href="' . $link . '" ' . self::renderAttr($attr)
-				. '><span class="tdl">' . $icon . '<span class="title">'
+				. '><span class="tdl"></span>' . $icon . '<span class="title">'
 				. $title . '</span></a>';
 	}
 	public static function renderButtonLink($link, $title = null, $attr = null,
@@ -765,17 +772,14 @@ EOT;
 			}
 			return $retval;
 		}
-		if (is_string($o)) {
-			return $o;
-		} elseif (is_object($o)) {
-			if ($o instanceof IRenderable) {
-				return $o->render(true);
-			} else {
-				throw new SystemException(
-						'unhandled object type ' . get_class($o));
-			}
+		return \Utils::toString($o);
+	}
+	public static function renderConfig($title,$id,$config) {
+		$content = '';
+		foreach($config as $k=>$v) {
+			$content .= self::renderTextBox(__($id.'.'.$k,$k), $id.'_'.$k,$v);
 		}
-		throw new SystemException('unhandled type ' . gettype($o));
+		return HTMLUtils::renderBoxed('Database Configuration',$content);
 	}
 	public static function attributeToArray($attr) {
 		if (is_array($attr)) {

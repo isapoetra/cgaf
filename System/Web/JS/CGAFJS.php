@@ -15,20 +15,29 @@ final class CGAFJS {
 	private static $_toolbars = array();
 	private static $_appOwner;
 	private static $_jq;
-	public static function initialize(Application $appOwner) {
+	private static $_pluginsLoader = array();
+	public static function initialize(Application $appOwner=null) {
 		static $initialized;
 		if ($initialized)
 			return;
+		if (!$appOwner) {
+			$appOwner=\AppManager::getInstance();
+		}
 		if (Request::isAJAXRequest())
-		return;
+			return;
 		$initialized = true;
 		self::$_appOwner = $appOwner;
 		self::$_jq = $jq = new jQuery($appOwner);
-
+		$fv = $appOwner->getConfig('js.fancybox.version', '1.3.4');
+		self::$_pluginsLoader = array(
+				'fancybox' => array(
+						'configs' => $appOwner->getConfig('js.fancybox.configs', array()),
+						'assets' => array(
+								'js/jQuery/plugins/fancybox/' . $fv . '/jquery.fancybox-' . $fv . '.css',
+								'js/jQuery/plugins/fancybox/' . $fv . '/jquery.fancybox-' . $fv . '.js')));
 		if (!Request::isDataRequest()) {
 			$info = $jq->getInfo();
-			self::setConfig('appurl',
-					Utils::PathToLive($appOwner->getLivePath(null)));
+			self::setConfig('appurl', Utils::PathToLive($appOwner->getLivePath(null)));
 			self::setConfig('asseturl', ASSET_URL);
 			self::setConfig('jq.version', $info['version']);
 			self::setConfig('jq.compat', $info['compat']);
@@ -36,13 +45,13 @@ final class CGAFJS {
 			self::setConfig('appurl', APP_URL);
 		}
 		$assets = array(
-				'modernizr.js',
-				'jquery.js',
+				cgaf::getConfig('js.cdn.modernizr', 'modernizr.js'),
+				cgaf::getConfig('js.cdn.jquery', 'jquery.js'),
 				//CGAF_DEBUG ? 'plugins/jquery.lint.js' : '',
 				'cgaf/cgaf.js',
 				'cgaf/cgaf-jq.js',
 				'cgaf/css/cgaf.css');
-
+		Utils::arrayMerge($assets, $jq->loadUI(false));
 		if (CGAF_DEBUG) {
 			$assets[] = 'cgaf/debug.js';
 			$assets[] = 'cgaf/css/debug.css';
@@ -51,15 +60,21 @@ final class CGAFJS {
 		if ($plugins) {
 			Utils::arrayMerge($assets, $jq->getAsset($plugins, 'plugins'));
 		}
-		$plugins = CGAF::getConfigs(
-				'js' . self::$_appOwner->getController()->getControllerName()
-						. '.plugins');
+		$plugins = null;
+		try {
+			$plugins = CGAF::getConfigs('js' . self::$_appOwner->getController()->getControllerName() . '.plugins');
+		} catch (Exception $e) {
+		}
 		if ($plugins) {
 			Utils::arrayMerge($assets, $jq->getAsset($plugins, 'plugins'));
 		}
 		self::$_appOwner->addClientAsset($jq->getAsset($assets));
 		$jq->initialize($appOwner);
 		return true;
+	}
+	public static function addJQAsset($asset) {
+		$asset = self::$_jq->getAsset($asset);
+		return self::$_appOwner->addClientAsset($asset);
 	}
 	public static function loadUI() {
 		self::$_jq->loadUI();
@@ -95,14 +110,21 @@ final class CGAFJS {
 			self::$_jsToLoad[] = $js;
 		}
 	}
-	public static function loadPlugin($plugin,$direct=false) {
+	public static function loadPlugin($plugin, $direct = false) {
+		self::initialize();
+		if (isset(self::$_pluginsLoader[$plugin])) {
+			$assets = self::$_pluginsLoader[$plugin]['assets'];
+			if ($direct) {
+				self::$_appOwner->addClientAsset($assets);
+			}
+			return;//ppd(self::$_pluginsLoader);
+		}
 		if ($direct) {
 			$plugin = self::getPluginURL($plugin);
 			self::$_appOwner->addClientAsset($plugin);
 			return;
-
 		}
-		if (!in_array(self::$_plugins, $plugink)) {
+		if (!in_array(self::$_plugins, $plugin)) {
 			self::$_plugins[] = $plugin;
 		}
 	}
@@ -113,7 +135,10 @@ final class CGAFJS {
 				'action' => $action);
 	}
 	public static function getPluginURL($pluginName) {
-		return self::$_jq->getAsset($pluginName.'.js','plugins');
+		if (!self::$_jq) {
+			return null;
+		}
+		return self::$_jq->getAsset($pluginName . '.js', 'plugins');
 	}
 	public static function Render($s) {
 		$s = is_array($s) ? implode(';', $s) : $s;
@@ -121,19 +146,15 @@ final class CGAFJS {
 		$json = JSON::encode(self::getJSToLoad());
 		$config = null;
 		if (count(self::$_configs)) {
-			$config = self::_JSInstance . '.setConfig('
-					. JSON::encode(self::$_configs) . ');';
+			$config = self::_JSInstance . '.setConfig(' . JSON::encode(self::$_configs) . ');';
 		}
-		$css = count(self::$_css) ? self::_JSInstance . '.loadStyleSheet('
-						. JSON::encode(self::$_css) . ');' : null;
+		$css = count(self::$_css) ? self::_JSInstance . '.loadStyleSheet(' . JSON::encode(self::$_css) . ');' : null;
 		if (count(self::$_plugins)) {
-			$plugin = PHP_EOL . self::_JSInstance . '.loadJQPlugin('
-					. JSON::encode(self::$_plugins) . ',function(){';
+			$plugin = PHP_EOL . self::_JSInstance . '.loadJQPlugin(' . JSON::encode(self::$_plugins) . ',function(){';
 		} else {
 			$plugin = null;
 		}
-		$retval = PHP_EOL
-				. '<script type="text/javascript" language="javascript">(function($) { ';
+		$retval = PHP_EOL . '(function($) { ';
 		$retval .= PHP_EOL . 'if (!$) { $=jQuery;}';
 		$retval .= PHP_EOL . $config;
 		$retval .= PHP_EOL . $css;
@@ -151,7 +172,7 @@ final class CGAFJS {
 		if (count(self::$_jsToLoad)) {
 			$retval .= PHP_EOL . '});';
 		}
-		$retval .= '})();</script>';
-		return $retval;
+		$retval .= '})();';
+		return JSUtils::renderJSTag($retval,false);
 	}
 }

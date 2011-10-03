@@ -5,6 +5,7 @@ use System\Cache\CacheFactory;
 use System\DB\DBQuery;
 use System\Exceptions\AccessDeniedException;
 use System\Exceptions\SystemException;
+use System\ACL\ACLHelper;
 class ModuleManager {
 	private static $_moduleList;
 	private static $_instance = array();
@@ -60,7 +61,7 @@ class ModuleManager {
 	public static function getModuleInstance($m,$app=null) {
 		$info = self::getModuleInfo($m);
 		self::loadModuleClass($m);
-		
+
 		$app =  $app ? $app : AppManager::getInstance();
 		if ($info) {
 			if (!isset(self::$_instance[$info->mod_id])) {
@@ -258,7 +259,7 @@ class ModuleManager {
 			}
 			//check from core
 			$prev .= '';
-			
+
 			if (count ( $path ) == 1) {
 				$retval [] = $m->mod_path . $path [0];
 			}
@@ -271,9 +272,9 @@ class ModuleManager {
 	}
 
 	public static function getModuleFile($m, $u, $a, $ext = ".php") {
-		$paths = self::getModulePath ( $m, $u, $a );	
+		$paths = self::getModulePath ( $m, $u, $a );
 		foreach ( $paths as $path ) {
-			
+
 			$fname = $path .strtolower($m->mod_name). $ext;
 			if (is_file ( $fname )) {
 				return $fname;

@@ -1,35 +1,44 @@
 <?php
-class TJQHTMLEditor extends JQControl {
-
+namespace System\Web\UI\JQ;
+use System\JSON\JSON;
+use \Request;
+class HTMLEditor extends Control {
 	function setValue($value) {
 		$this->setText($value);
 	}
-	function __construct($id,$template) {
-		parent::__construct($id,$template);
+	function __construct($id) {
+		parent::__construct($id);
+		$this
+				->setConfig(
+						array(
+								'customConfig'=>'',
+								'filebrowserImageBrowseUrl' => BASE_URL . '/asset/browse/?type=images',
+								'skin' => 'kama',
+								'uiColor' => '#9AB8F3',
+								'toolbarCanCollapse' => true,
+								'language' => $this->getAppOwner()->getLocale()->getLocale()));
 	}
 	function prepareRender() {
-		$this->setAttr('rows',8)
-		->setAttr('cols',60)
-		->setAttr('name',$this->getId());
+		$this->setAttr('rows', 8)->setAttr('cols', 60)->setAttr('name', $this->getId());
 	}
 	function setToolBar($value) {
-		if ($value=='all') {
+		if ($value == 'all') {
 			$this->removeConfig('toolbar');
 			return $this;
 		}
-		return $this->setConfig('toolbar',$value,true);
+		return $this->setConfig('toolbar', $value, true);
 	}
 	function RenderScript($return = false) {
-		$_tpl = $this->getTemplate();
+		$appOwner = $this->getAppOwner();
+		$configs = JSON::encodeConfig($this->_configs);
 		if (Request::isAJAXRequest()) {
-			$sc1 = HTMLUtils::getJSAsset('ckeditor/ckeditor.js');
-			$sc2 = HTMLUtils::getJSAsset('ckeditor/adapters/jquery.js');
+			$sc1 = $appOwner->getLiveAsset('js/ckeditor/ckeditor.js');
+			$sc2 = $appOwner->getLiveAsset('js/ckeditor/adapters/jquery.js');
 			$id = $this->getId();
-			$configs =JSON::encodeConfig($this->_configs);
-			$retval = '<textarea '.$this->renderAttributes().'>';
+
+			$retval = '<textarea ' . $this->renderAttributes() . '>';
 			$retval .= $this->getText();
 			$retval .= '</textarea>';//$this->getId();
-
 			$retval .= <<<EOT
 <script type="text/javascript">
 	$(function() {
@@ -44,16 +53,14 @@ class TJQHTMLEditor extends JQControl {
 EOT;
 			return $retval;
 		}
-
-		$_tpl->addAsset("ckeditor/ckeditor.js");
-		$_tpl->addAsset("ckeditor/adapters/jquery.js");
-		$retval = '<textarea '.$this->renderAttributes().'>';
+		$appOwner->addClientAsset('js/ckeditor/ckeditor.js');
+		$appOwner->addClientAsset('js/ckeditor/adapters/jquery.js');
+		$retval = '<textarea ' . $this->renderAttributes() . '>';
 		$retval .= $this->getText();
-		$retval .= '</textarea>';//$this->getId();
-		//window.CKEDITOR_BASEPATH=\''. BASE_URL .'/Data/js/ckeditor/\';
-		$_tpl->addClientScript('if (CKEDITOR.instances[\''.$this->getId().'\']) {
-           CKEDITOR.remove(CKEDITOR.instances[\''.$this->getId().'\']);
-         };$(\'#'.$this->getId().'\').ckeditor('.JSON::encodeConfig($this->_configs).')');
+		$retval .= '</textarea>';
+		$appOwner->addClientScript('if (CKEDITOR.instances[\'' . $this->getId() . '\']) {
+           CKEDITOR.remove(CKEDITOR.instances[\'' . $this->getId() . '\']);
+         };$(\'#' . $this->getId() . '\').ckeditor(' . $configs . ')');
 		return $retval;
 	}
 }

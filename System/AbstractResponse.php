@@ -94,7 +94,9 @@ abstract  class AbstractResponse extends \Object implements \IResponse, \IRender
 		while ( $this->_idx > 0 ) {
 			$r .= $this->EndBuffer();
 		}
+
 		echo $r;
+		//@ob_end_clean();
 		$this->_buffer =null;
 	}
 

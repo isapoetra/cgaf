@@ -74,25 +74,29 @@ class String extends stdClass {
 		return $last ? substr ( $str, $pos ) : (self::EndWith ( substr ( $str, 0, $pos ), $needle ) ? substr ( $str, 0, $pos - 1 ) : substr ( $str, 0, $pos ));
 	}
 
-	public static function Replace($search, $replace, $subject = null, $case = true, $count = null, $prefix = '', $suffix = '') {
+	public static function Replace($search, $replace, $subject = null, $case = true, $count = null, $prefix = '', $suffix = '',$encode =false) {
 		$retval = $subject;
 		if (is_array ( $search ) || is_object ( $search )) {
 			$retval = $subject;
 			foreach ( $search as $k => $v ) {
-				$retval = self::Replace ( $v, $replace, $retval, $case, $count, $prefix, $suffix );
+				$retval = self::Replace ( $v, $replace, $retval, $case, $count, $prefix, $suffix ,$encode);
 
 			}
 		} elseif (is_array ( $replace ) || is_object ( $replace )) {
 			$retval = $search;
 			foreach ( $replace as $k => $v ) {
-				$retval = self::Replace ( $k, $v, $retval, $case, $count, $prefix, $suffix );
+				$retval = self::Replace ( $k, $v, $retval, $case, $count, $prefix, $suffix ,$encode);
 			}
 		} elseif (is_string ( $replace )) {
+			if ($encode) {
+				$replace = urlencode($replace);
+			}
 			if ($case) {
 				$retval = str_replace ( $prefix . $search . $suffix, $replace, $subject, $count );
 			} else {
 				$retval = str_ireplace ( $prefix . $search . $suffix, $replace, $subject, $count );
 			}
+
 		}
 		return $retval;
 

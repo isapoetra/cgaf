@@ -1,6 +1,17 @@
 <?php
+namespace System\Web\UI\JQ;
+use System\JSON\JSON;
 
-class JQGrid extends JQControl {
+use System\ACL\ACLHelper;
+
+use System\Web\Utils\HTMLUtils;
+
+use System\MVC\MVCHelper;
+use \AppManager;
+use \Request;
+use \URLHelper;
+use \String;
+class Grid extends Control {
 	private $_rowperpage;
 	private $_currentPage;
 	private $_model;
@@ -400,9 +411,8 @@ class JQGrid extends JQControl {
 		if ($appOwner === null) {
 			$appOwner = AppManager::getInstance();
 		}
-		$tpl = $appOwner->getTemplate();
-		$tpl->addAsset('jqGrid/js/i18n/grid.locale-' . $appOwner->getLocale()->getLocale() . '.js', null, 'grid-locale');
-		$tpl->addAsset('jqGrid/jqGrid.xml', null, 'jqGrid');
+		$appOwner->addClientAsset('jqGrid/js/i18n/grid.locale-' . $appOwner->getLocale()->getLocale() . '.js', null, 'grid-locale');
+		$appOwner->addClientAsset('jqGrid/jqGrid.xml', null, 'jqGrid');
 
 	}
 
@@ -410,7 +420,7 @@ class JQGrid extends JQControl {
 		$id = $this->getId();
 		$cols = array ();
 		if (! Request::isAJAXRequest()) {
-			self::loadScript($this->getTemplate()->getAppOwner());
+			self::loadScript();
 		}
 
 		$configs = JSON::encodeConfig($this->_configs, $this->_directConfig);

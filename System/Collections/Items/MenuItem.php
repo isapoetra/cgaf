@@ -32,7 +32,7 @@ class MenuItem extends \Object implements \IRenderable {
 			} else {
 				$this->_targetLink = isset ( $id->xtarget ) ? $id->xtarget : null;
 				$this->_id = isset ( $id->menu_id ) ? $id->menu_id : Utils::generateId ( 'menu' );
-				$this->_title = isset ( $id->caption ) ? $id->caption : (isset($id->title) ? $id->title : null);
+				$this->Title = isset ( $id->caption ) ? $id->caption : (isset($id->title) ? $id->title : null);
 				$this->_action = isset ( $id->menu_action ) ? $id->menu_action : null;
 				$this->_selected = isset ( $id->selected ) ? $id->selected : false;
 				$this->_icon = isset($id->menu_icon) ? $id->menu_icon :  $this->_icon;
@@ -84,7 +84,7 @@ class MenuItem extends \Object implements \IRenderable {
 		return $this->_action;
 	}
 	function setTitle($value) {
-		$this->_title = $value;
+		$this->_title = __($value);
 		return $this;
 	}
 	function getTitle() {
@@ -137,7 +137,11 @@ class MenuItem extends \Object implements \IRenderable {
 		$this->_replacer = $r;
 	}
 	private function parselink($link) {
-
+		if ($this->_replacer) {
+			foreach ( $this->_replacer as $k => $v ) {
+				$link = str_ireplace ( '#' . $k . '#', $v, $link );
+			}
+		}
 		switch ($this->_actionType) {
 			case "2" :
 				break;
@@ -145,16 +149,11 @@ class MenuItem extends \Object implements \IRenderable {
 			case "1" :
 			default :
 				if (! String::BeginWith ( $link, "http:" ) && ! String::BeginWith ( $link, "https:" )) {
-					$link = BASE_URL . "/$link";
+					$link = BASE_URL . $link;
 				}
 		}
 
-		if ($this->_replacer) {
 
-			foreach ( $this->_replacer as $k => $v ) {
-				$link = str_ireplace ( '#' . $k . '#', $v, $link );
-			}
-		}
 		return $link;
 	}
 	function loadFromFile($f) {
@@ -165,6 +164,9 @@ class MenuItem extends \Object implements \IRenderable {
 		ppd ( $f );
 	}
 	function Render($return = false) {
+		if ($this->_title ==='-') {
+			return '<li class="divider"></li>';
+		}
 		$class = $this->_selected ? "selected" : "";
 		$action = "";
 		$class = $class || $this->_css ? "class=\"{$this->_css} $class\"" : '';
@@ -182,7 +184,7 @@ class MenuItem extends \Object implements \IRenderable {
 		}
 
 		$caption = $icon .'<span class="tdl '.($this->_selected ? "selected" : "").'">'. ($this->_showCaption ? '<span>' . __ ( $this->_title ) . '</span>' : "").'</span>';
-		$act = $this->parseLink ( $this->_action );		
+		$act = $this->parseLink ( $this->_action );
 		$r = new Anchor ( $act, $caption, $this->_targetLink, __ ( $this->_tooltip ) );
 		$r->setClass ( $this->_css . ' ' .  (count ( $this->_childs ) ? ' menuparent' : '') );
 		$retval .= $r->Render ( true );

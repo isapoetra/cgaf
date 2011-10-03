@@ -1,15 +1,11 @@
 <?php
 namespace {
-defined('CGAF_BEGIN_TIME') or define('CGAF_BEGIN_TIME', microtime(true));
-if (!defined("CGAF")) {
-	define("CGAF", true);
-}
-if (!defined('CGAF_CLASS_PREFIX')) {
-	define('CGAF_CLASS_PREFIX', '');
-}
 //Define Cosntant
-define("DS", DIRECTORY_SEPARATOR);
-defined('CGAF_VERSION') or define('CGAF_VERSION', '1.0.1b');
+defined('CGAF_BEGIN_TIME') or define('CGAF_BEGIN_TIME', microtime(true));
+defined("CGAF") or define("CGAF", true);
+defined('CGAF_CLASS_PREFIX') or define('CGAF_CLASS_PREFIX', '');
+defined('DS') or define("DS", DIRECTORY_SEPARATOR);
+defined('CGAF_VERSION') or define('CGAF_VERSION', '1.0');
 use System\Configurations\Configuration as Configuration;
 use AppManager as AppManager;
 use System\Locale\Locale;
@@ -34,6 +30,7 @@ final class CGAF {
 	private static $_dbConnection;
 	private static $_locale;
 	private static $_cacheManager;
+	private static $_internalCache;
 	private static $_benchmark;
 	private static $_nsClass = array();
 	private static $_isDebugMode = false;
@@ -77,6 +74,71 @@ final class CGAF {
 			return false;
 		}
 		return true;
+	}
+	private static function getCacheRequestFile($sessionBase = false) {
+		$path = self::getInternalStorage('.cache/request/' . ($sessionBase ? session_id() . '/' : ''), false, true);
+		$f = $path . DS . md5($_SERVER['REQUEST_URI']);
+		return $f;
+	}
+	private static function exitIfNotModified() {
+		if (CGAF_DEBUG) {
+			return;
+		}
+		$f = self::getCacheRequestFile(true);
+		if (!is_file($f)) {
+			$f = self::getCacheRequestFile(false);
+		}
+		//\Utils::removeFile($path = self::getInternalStorage('.cache/request', false, true), true);
+		if (is_file($f)) {
+			$fc = unserialize(file_get_contents($f));
+			$last_modified = $fc['timeCreated'] >= $fc['lastModified'] ? $fc['timeCreated'] : $fc['lastModified'];
+			$validUntil = $last_modified + (60 * 60 * 24 * $fc['validDay']);
+			if ($last_modified > $validUntil) {
+				pp('removed');
+				\Utils::removeFile($f);
+				return;
+			}
+			//ppd(date('d M Y', $validUntil));
+			if (array_key_exists("HTTP_IF_MODIFIED_SINCE", $_SERVER)) {
+				$if_modified_since = strtotime(preg_replace('/;.*$/', '', $_SERVER["HTTP_IF_MODIFIED_SINCE"]));
+				//ppd($if_modified_since.'-'.$validUntil);
+				if ($if_modified_since <= $validUntil) {
+					header_remove('Cache-Control');
+					header('Cache-Control: public, max-age=' . ($fc['validDay'] * 60 * 60 * 24));
+					header('Last-Modified:' . gmdate("D, d M Y H:i:s", $last_modified) . ' GMT');
+					header("HTTP/1.0 304 Not Modified");
+					CGAF::doExit();
+					exit();
+				}
+			}
+		}
+	}
+	public static function cacheRequest($lastModified, $valid, $sessionBase = false) {
+		if (isset($_SERVER['REQUEST_URI'])) {
+			$f = self::getCacheRequestFile($sessionBase);
+			@file_put_contents($f, serialize(array(
+					'originalURL' => $_SERVER['REQUEST_URI'],
+					'timeCreated' => time(),
+					'lastModified' => $lastModified,
+					'validDay' => $valid)));
+			header_remove('pragma');
+			header_remove('P3P');
+			header_remove('X-Powered-By');
+			header_remove('Set-Cookie');
+			header_remove('Set-Cookie');
+			header_remove('Cache-Control');
+			header_remove('Last-Modified');
+			header('Cache-Control: public, max-age=' . ($valid * 60 * 60 * 24));
+			header('Last-Modified:' . gmdate("D, d M Y H:i:s", $lastModified) . ' GMT');
+			header('Expires:' . gmdate("D, d M Y H:i:s", \DateUtils::dateAdd(time(), $valid . ' day')) . ' GMT');
+		}
+	}
+	private static function removeCacheRequest($uri = null) {
+		$uri = $uri ? $uri : (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null);
+		if ($uri) {
+			\Utils::removeFile(self::getCacheRequestFile(true));
+			\Utils::removeFile(self::getCacheRequestFile(false));
+		}
 	}
 	public static function doExit() {
 		static $exited;
@@ -250,7 +312,7 @@ final class CGAF {
 			die("Application Path Not Found" . CGAF_APP_PATH);
 		}
 		if (!defined('CGAF_SHARED_PATH')) {
-			define("CGAF_SHARED_PATH", self::getConfig('cgaf.shared.path', CGAF_PATH . "Core") . DS);
+			define("CGAF_SHARED_PATH", self::getConfig('cgaf.shared.path', CGAF_PATH . "shared") . DS);
 		}
 		self::addAlowedLiveAssetPath(CGAF_SHARED_PATH . self::getConfig("assetpath", 'assets'));
 		\System\MVC\MVCHelper::Initialize();
@@ -275,10 +337,12 @@ final class CGAF {
 			define('CGAF_DEBUG', self::isDebugMode());
 		}
 		if (!CGAF_DEBUG) {
+			error_reporting(E_ERROR | E_WARNING | E_PARSE);
 			set_error_handler("CGAF::error_handler");
 			set_exception_handler("CGAF::exception_handler");
-		}else {
-			ini_set('display_errors',1);
+		} else {
+			error_reporting(E_ALL);
+			ini_set('display_errors', 1);
 		}
 		if (CGAF_DEBUG) {
 			define('CGAF_DEV_PATH', self::getConfig("cgaf.devpath", realpath(dirname(__FILE__) . DS . '../../DevFiles/')) . DS);
@@ -413,12 +477,15 @@ final class CGAF {
 			self::offlineRedirect(1);
 		}
 		AppManager::initialize();
+		self::exitIfNotModified();
 		//TODO moved to application
 		if (isset($_REQUEST["__url"]) && String::BeginWith($_REQUEST["__url"], "assets/")) {
 			return self::handleAssetNotFound();
 		}
 		$retval = null;
-		Session::getInstance()->addEventListener('*', array('CGAF', 'onSessionEvent'));
+		Session::getInstance()->addEventListener('*', array(
+						'CGAF',
+						'onSessionEvent'));
 		if (is_object($appName) && $appName instanceof IApplication) {
 			AppManager::setActiveApp($appName);
 			$instance = $appName;
@@ -426,11 +493,14 @@ final class CGAF {
 			$appId = Request::get('__appId');
 			$instance = null;
 			if ($appId) {
-				if (AppManager::isAppIdInstalled($appId)) {
-					Session::set('__appId', $appId);
-					$appName = $appId;
-				} else {
-					throw new SystemException('Application ' . $appId . 'not installed');
+				try {
+					if (AppManager::isAppIdInstalled($appId)) {
+						Session::set('__appId', $appId);
+						$appName = $appId;
+					} else {
+						throw new SystemException('Application ' . $appId . 'not installed');
+					}
+				} catch (Exception $e) {
 				}
 			}
 			$cgaf = Request::get('__cgaf', null, true);
@@ -448,26 +518,29 @@ final class CGAF {
 				}
 				break;
 			case '_installapp':
-				$id = Request::get('id');
-				//check for security
-				$appId = AppManager::install($id);
-				Response::Redirect(URLHelper::addParam(BASE_URL, array('__appId' => $appId)));
-				return;
+				if (CGAF_DEBUG || ACLHelper::isInrole(ACLHelper::DEV_GROUP)) {
+					$id = Request::get('id');
+					if ($id) {
+						$appId = AppManager::install($id);
+						Response::Redirect(URLHelper::addParam(BASE_URL, array(
+								'__appId' => $appId)));
+						return;
+					}
+				}
 				break;
 			default:
 				try {
 					$instance = AppManager::getInstance($appName);
 				} catch (Exception $ex) {
-					if (CGAF_DEBUG) {
-						throw $ex;
-					}
-					$instance = AppManager::getInstance('desktop');
+					$instance = AppManager::getInstance('__cgaf');
 				}
+				break;
 			}
 		}
 		if (!$instance) {
 			die("Application Instance not found/Access Denied");
 		}
+		//ppd($instance);
 		Response::StartBuffer();
 		$retval = $instance->Run();
 		if ($retval) {
@@ -604,7 +677,8 @@ final class CGAF {
 			if (class_exists("AppManager", false)) {
 				if (AppManager::isAppStarted()) {
 					$path = AppManager::getInstance()->getClassPath();
-					$spath = array_merge($spath, array($path));
+					$spath = array_merge($spath, array(
+							$path));
 				}
 			}
 			foreach ($spath as $path) {
@@ -709,8 +783,10 @@ final class CGAF {
 			return self::Using($f);
 		}
 		if ($throw) {
-			pp($namespace);
-			ppd(self::getClassPath());
+			if (CGAF_DEBUG) {
+				pp($namespace);
+				ppd(self::getClassPath());
+			}
 			throw new System\Exceptions\SystemException($namespace);
 		}
 		return false;
@@ -725,6 +801,23 @@ final class CGAF {
 		}
 		return self::$_acl;
 	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @return System\Cache\Engine\ICacheEngine
+	 */
+	public static function getInternalCacheManager($app=false) {
+		if (self::$_internalCache == null) {
+			self::$_internalCache = \System\Cache\CacheFactory::getInstance();
+			self::$_internalCache->setCachePath(self::getInternalStorage('.cache', false, true));
+		}
+		return self::$_internalCache;
+	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @return System\Cache\Engine\ICacheEngine
+	 */
 	public static function getCacheManager() {
 		if (self::$_cacheManager == null) {
 			self::$_cacheManager = \System\Cache\CacheFactory::getInstance();
@@ -749,11 +842,12 @@ final class CGAF {
 			$cpath = CGAF_SHARED_PATH . self::getConfig("assetpath", 'assets');
 			return $path;
 		}
-		if (String::BeginWith($path, $cpath)) {
-			ppd(CGAF_SHARED_PATH);
+		/*if (String::BeginWith($path, $cpath)) {
+		    ppd(CGAF_SHARED_PATH);
 		}
+
 		pp($path);
-		ppd(self::$_allowedLivePath);
+		ppd(self::$_allowedLivePath);*/
 		throw new Exception("x");
 	}
 	public static function addAlowedLiveAssetPath($path) {
@@ -766,7 +860,11 @@ final class CGAF {
 			return $asset;
 		}
 		if (!String::BeginWith($asset, self::$_allowedLivePath)) {
-			ppd(self::$_allowedLivePath);
+			if (CGAF_DEBUG) {
+				pp($asset);
+				pp(self::$_allowedLivePath);
+			}
+			return false;
 		}
 		return true;
 	}
@@ -777,7 +875,10 @@ final class CGAF {
 			$allow[] = AppManager::getInstance()->getLivePath();
 			$allow[] = AppManager::getInstance()->getTemporaryPath();
 		}
-		if (String::EndWith($asset, array('.manifest', '.min.js', '.min.css'), true)) {
+		if (String::EndWith($asset, array(
+				'.manifest',
+				'.min.js',
+				'.min.css'), true)) {
 			return true;
 		}
 		$allow[] = self::getTempPath();
@@ -787,8 +888,11 @@ final class CGAF {
 		if (String::BeginWith($asset, $allow)) {
 			return true;
 		}
-		pp($asset);
-		ppd($allow);
+		if (String::Contains($asset, array(
+				'.cache'))) {
+			return true;
+		}
+		return false;
 	}
 	public static function isShutdown() {
 		return self::$_shutdown;
@@ -817,8 +921,8 @@ final class CGAF {
 			}
 		}
 	}
-	public static function getClassNameFor($classname, $namespace) {
-		if (AppManager::isAppStarted()) {
+	public static function getClassNameFor($classname, $namespace, $useApp = true) {
+		if ($useApp && AppManager::isAppStarted()) {
 			return AppManager::getInstance()->getClassNameFor($className, $namespace);
 		}
 		$search = array(
@@ -859,7 +963,9 @@ final class CGAF {
 	private static function _loadNS($ns, $expectedClass) {
 	}
 	public static function LoadClass($className, $throw = true) {
-		$className = str_replace(array('/', '\\'), DS, $className);
+		$className = str_replace(array(
+				'/',
+				'\\'), DS, $className);
 		$namespaces = explode(DIRECTORY_SEPARATOR, $className);
 		unset($namespaces[sizeof($namespaces) - 1]); // the last item is the classname
 		$clname = $className;
@@ -919,16 +1025,20 @@ final class CGAF {
 		}
 		if (!class_exists($className, false)) {
 			foreach (self::$_autoLoadCallBack as $func) {
-				if (call_user_func_array($func, array($className))) {
+				if (call_user_func_array($func, array(
+						$className))) {
 					break;
 				}
 			}
 		}
-		$className = str_replace(array('/', '\\'), "\\", $className);
+		$className = str_replace(array(
+				'/',
+				'\\'), "\\", $className);
 		// return true if class is loaded
 		if (class_exists($className, false) || interface_exists($className, false)) {
 			return false;
 		}
+		\Logger::Warning('Unable to load class '.$className);;
 		pp($className);
 		pp(get_declared_interfaces());
 		pp($fname);
@@ -1001,6 +1111,9 @@ final class CGAF {
 		if ($checkApp && AppManager::isAppStarted()) {
 			return AppManager::getInstance()->getInternalStorage($path, $create);
 		} else {
+			if ($create) {
+				\Utils::makeDir($istorage . $path);
+			}
 			return $istorage . $path;
 		}
 	}

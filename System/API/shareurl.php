@@ -13,15 +13,15 @@ class shareurl extends PublicApi {
 		self::initAsset();
 		$this->_defaultImage = $this->getAppOwner()->getLiveAsset('share/sprite.png');
 	}
-	private function parse($v) {
+	public function parse($v) {
 		$configs = $this->_config->getConfigs('System');
-		$v = \String::Replace($v, $configs, $v, true, null, '{', '}');
+		$v = \String::Replace($v, $configs, $v, true, null, '{', '}', true);
 		return $v;
 	}
-	function url($config, $title = null, $multi = true, $imageIndex = 0) {
+	function url($config, $id = null, $multi = true, $imageIndex = 0) {
 		$this->init(__FUNCTION__);
 		if ($multi) {
-			$retval = '<ul>';
+			$retval = '<ul class="share-url">';
 			$idx = 0;
 			foreach ($config as $k => $v) {
 				$retval .= $this->url($v, $k, false, $idx);
@@ -31,25 +31,23 @@ class shareurl extends PublicApi {
 		} else {
 			$t = array();
 			foreach ($config as $kk => $vv) {
-				$t[$kk] = $this->parse($vv);
+				$val = $this->parse($vv);
+				if ($kk === 'shareurl') {
+					$val = $val;
+				}
+				$t[$kk] = $val;
 			}
-			$imageX = isset($t['imageX']) ? $t['imageX'] : '-94px';
-			$url = $t['shareurl'];
-			$descr = isset($t['descr']) ? $t['descr'] : $title;
-			$image = $this->getAppOwner()->getLiveAsset(isset($t['image']) ? $t['image'] : 'share/' . strtolower($title) . '.png');
-			$style = null;
-			if ($image) {
-				$style .= 'background-image:url(\'' . $image . '\');background-repeat:no-repeat;';
+			$url = BASE_URL . '/share/?service=shareurl&id=' . $id . '&url=' . urlencode($this->getConfig('url')) . '&description=' . urlencode($this->getConfig('description')) . '&title=' . urlencode($this->getConfig('title')) . '&tags='
+					. urlencode($this->getConfig('tags'));// $t['shareurl'];
+			$descr = isset($t['descr']) ? $t['descr'] : ucwords($id);
+			$title = isset($t['title']) ? $t['title'] : ucwords($id);
+			$retval = '<li  class="share-item">';
+			$retval .= '<a href="' . $url . '" alt="' . $descr . '" title="' . $descr . '" class="' . strtolower($id) . '" target="__blank">';
+			$retval .= ' <span class="bg">&nbsp;</span>';
+			if ($this->getConfig('showtitle')) {
+				$retval .= '<span>' . $title . '</span>';
 			}
-			if (isset($t['imageCoord'])) {
-				$style .= 'background-position:' . $t['imageCoord'];
-			} else {
-				$style .= 'background-position:' . $imageX . ' ' . ($imageIndex * 16 * -1) . 'px';
-			}
-			$retval = '<li>';
-			$retval .= '<a href="' . $url . '" alt="' . $descr . '" title="' . $descr . '" ' . ($style ? $style : '') . ' class="share-item">';
-			$retval .= ' <span class="bg" style="' . $style . '">&nbsp;</span>';
-			$retval .= '<span>' . $title . '</span>';
+			//$retval .= $title;
 			$retval .= '</a>';
 			$retval .= '</li>';
 		}

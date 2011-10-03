@@ -15,7 +15,7 @@ class Locale extends \Object {
 	private $_installedLocale = array ();
 	function __construct($locale, $storePath = null) {
 		$this->_debug = CGAF::getConfig ( 'locale.debug', CGAF_DEBUG );
-		$this->_showDefault = CGAF::getConfig ( 'locale.showdefault', true );
+		$this->_showDefault = CGAF::getConfig ( 'locale.showdefault', $this->_debug );
 
 		if ($locale instanceof \IApplication) {
 			$this->_storePath = $storePath ? $storePath : $locale->getAppPath () . DS . "locale" . DS;
@@ -41,7 +41,7 @@ class Locale extends \Object {
 						$f [] = $v;
 					}
 				}
-					
+
 				//$f = array_intersect_assoc($f,$fmain);
 			}
 			foreach ( $f as $v ) {
@@ -87,11 +87,11 @@ class Locale extends \Object {
 	public function _($s, $default = null, $context = null) {
 		$retval = $this->iget ( $s );
 		if (! $retval) {
-				
+
 			if ($default == null) {
 				$default = $s;
 			}
-				
+
 			if (strpos ( $s, "." ) > 0) {
 				$context = substr ( $s, 0, strpos ( $s, "." ) );
 			}
@@ -99,7 +99,7 @@ class Locale extends \Object {
 
 				$this->load ( $context, true, $context );
 			}
-				
+
 			$retval = $this->iget ( $s );
 			if (! $retval && $context) {
 				$ns = substr ( $s, strpos ( $s, "." ) + 1 );
@@ -149,7 +149,7 @@ class Locale extends \Object {
 			if (is_file ( $corelangfile )) {
 				$this->load ( $corelangfile );
 			}
-				
+
 			//if (is_file())
 			$f = $this->findLocaleFile ( $fname, $ctx );
 		}
@@ -167,7 +167,7 @@ class Locale extends \Object {
 				}
 
 				$this->_data [($ctx ? $ctx . "." : "") . $l [0]] = trim ( $l [1] ); //substr($l[1],0,strlen($l[1])-2);
-					
+
 
 			}
 			fclose ( $fp );
@@ -176,23 +176,23 @@ class Locale extends \Object {
 	//TODO:: localize this function as global language
 	public function number_to_text($num) {
 		$stext = array (
-			"Nol", 
-			"Satu", 
-			"Dua", 
-			"Tiga", 
-			"Empat", 
-			"Lima", 
-			"Enam", 
-			"Tujuh", 
-			"Delapan", 
-			"Sembilan", 
-			"Sepuluh", 
+			"Nol",
+			"Satu",
+			"Dua",
+			"Tiga",
+			"Empat",
+			"Lima",
+			"Enam",
+			"Tujuh",
+			"Delapan",
+			"Sembilan",
+			"Sepuluh",
 			"Sebelas" );
 		$say = array (
-			"Ribu", 
-			"Juta", 
-			"Milyar", 
-			"Triliun", 
+			"Ribu",
+			"Juta",
+			"Milyar",
+			"Triliun",
 			"Biliun",  // ingat batasan number_format
 			"--apaan---" ); ///setelah biliun namanya apa?
 		$w = "";
@@ -255,30 +255,30 @@ class Locale extends \Object {
 		}
 		try {
 			$dt = new CDate ();
-		
+
 			$dt->setDate ( $date );
 			$loc = $this->getLocale ();
 			if ($loc == "id") {
 				$days = array (
-					"Senin", 
-					"Selasa", 
-					"Rabu", 
-					"Kamis", 
-					"Jum'at", 
-					"Sabtu", 
+					"Senin",
+					"Selasa",
+					"Rabu",
+					"Kamis",
+					"Jum'at",
+					"Sabtu",
 					"Minggu" );
 				$months = array (
-					"Januari", 
-					"Februari", 
-					"Maret", 
-					"April", 
-					"May", 
-					"Juni", 
-					"Juli", 
-					"Agustus", 
-					"September", 
-					"Oktober", 
-					"November", 
+					"Januari",
+					"Februari",
+					"Maret",
+					"April",
+					"May",
+					"Juni",
+					"Juli",
+					"Agustus",
+					"September",
+					"Oktober",
+					"November",
 					"Desember" );
 				$retval = $days [$dt->getDayOfWeek ()] . ", " . $dt->getDay () . " " . $months [$dt->getMonth () - 1] . " " . $dt->getYear ();
 				if ($long) {

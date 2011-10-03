@@ -38,6 +38,7 @@ abstract class Session {
 		return self::getInstance()->get($name, $default);
 	}
 	public static function set($name, $value) {
+
 		if (CGAF_CONTEXT == "Web" && $name == "__appId" && !self::getInstance()->isStarted()) {
 			setcookie("__appId", $value);
 		}
@@ -68,6 +69,12 @@ abstract class Session {
 	}
 	public static function setState($stateGroup, $stateName, $default = null) {
 		return self::getInstance()->setState($stateGroup, $stateName, $default);
+	}
+	public static function setStates(sessionStateHandler $state) {
+		return self::getInstance()->setStates($state);
+	}
+	public static function getStates() {
+		return self::getInstance()->getStates();
 	}
 	public static function getState($stateGroup, $stateName, $default = null) {
 		return self::getInstance()->getState($stateGroup, $stateName, $default);

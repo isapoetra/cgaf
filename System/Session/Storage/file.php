@@ -69,7 +69,7 @@ class File extends SessionBase {
 		if (is_readable ( $sess_file )) {
 			@unlink ( $sess_file );
 		}
-		if ($sessID === $this->getId ()) {
+		if ($sessID && $sessID === $this->getId ()) {
 			return parent::destroy ( $sessID );
 		}
 		return true;

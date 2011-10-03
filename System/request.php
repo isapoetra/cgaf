@@ -66,7 +66,7 @@ abstract class Request {
 
 	public static function isJSONRequest() {
 		if (self::$_isJSONRequest === null) {
-			self::$_isJSONRequest = $_SERVER ["HTTP_ACCEPT"] == "application/json, text/javascript, */*" || Request::get ( "__json" ) || Request::get ( "__data" ) === 'json' || Request::get ( "__s" ) === 'json';
+			self::$_isJSONRequest = strpos($_SERVER ["HTTP_ACCEPT"],'application/json') !== false || Request::get ( "__json" ) || Request::get ( "__data" ) === 'json' || Request::get ( "__s" ) === 'json';
 		}
 		//ppd($_SERVER);
 		return self::$_isJSONRequest;

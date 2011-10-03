@@ -5,6 +5,7 @@ use System\API\PublicApi;
 use System\Web\Utils\HTMLUtils;
 use System\Exceptions\SystemException;
 use System\JSON\JSON;
+use System\JSON\JSONResult;
 class WebApplication extends AbstractApplication implements \IWebApplication {
 	private $_script = '';
 	private $_scripts = array();
@@ -122,7 +123,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 				if ($type != 'css') {
 					$search[] = "themes" . DS . $ctheme . DS . $rprefix . DS . $def;
 				}
-				$search[] = "themes" . DS . $ctheme.DS.$def;
+				$search[] = "themes" . DS . $ctheme . DS . $def;
 				$search[] = $def;
 				break;
 			}
@@ -159,13 +160,14 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	}
 	public function renderClientAsset($mode = null) {
 		$retval = '';
-		$retval = $this->getClientAsset()->render(true, $mode);//AssetHelper::renderAsset($assets);
+		$retval = $this->getClientAsset()->render(true, $mode);
 		return $retval;
 	}
 	function getAppUrl() {
 		static $url;
 		if (!$url) {
-			$url = $this->getConfig('app.url', URLHelper::addParam(BASE_URL, array('__appId' => $this->getAppId())));
+			$url = $this->getConfig('app.url', URLHelper::addParam(BASE_URL, array(
+							'__appId' => $this->getAppId())));
 		}
 		return $url;
 	}
@@ -260,6 +262,15 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 				ppd($s);
 			}
 			return trim($s);
+		} else {
+			$format = Request::get('__data');
+			switch (strtolower($format)) {
+			case 'html':
+			case 'text':
+			case 'html':
+				return \Utils::toString($s);
+				break;
+			}
 		}
 		throw new SystemException('Unhandled Request Data Format');
 	}
@@ -282,9 +293,12 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	}
 	protected function initRequest() {
 		if (!Request::isAJAXRequest()) {
-			$this->addMetaHeader(array('http-equiv' => 'Content-Type', 'content' => 'text/html'));
+			$this->addMetaHeader(array(
+							'http-equiv' => 'Content-Type',
+							'content' => 'text/html'));
 			$this->addMetaHeader('description', $this->getConfig('app.description', CGAF::getConfig('cgaf.description', 'CGAF')));
-			$this->addMetaHeader('keywords', array('content' => $this->getConfig('app.keywords', CGAF::getConfig('cgaf.keywords', 'CGAF'))));
+			$this->addMetaHeader('keywords', array(
+							'content' => $this->getConfig('app.keywords', CGAF::getConfig('cgaf.keywords', 'CGAF'))));
 			$this->addMetaHeader('Version', $this->getConfig('app.version', CGAF_VERSION));
 			$this->addClientAsset(strtolower($this->getAppName()) . ".css");
 		}

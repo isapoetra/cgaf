@@ -1,10 +1,9 @@
 <?php
 namespace System\Collections;
-use \System\Collections\Items\AssetItem;
 use System\Assets\AssetHelper;
 
+use \System\Collections\Items\AssetItem;
 using('System.Collections.Items.assetitem');
-
 class ClientAssetCollections extends Collection implements \IRenderable {
 	private $_appOwner;
 	function __construct(\IApplication $owner) {
@@ -33,10 +32,8 @@ class ClientAssetCollections extends Collection implements \IRenderable {
 		}
 		return parent::add($item);
 	}
-
 	function Render($return = false, $type = null, $clear = false) {
 		$retval = '';
-
 		foreach ($this->toArray() as $v) {
 			if ($type) {
 				$item = $v->getLiveResourceByType($type);

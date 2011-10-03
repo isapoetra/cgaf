@@ -1,5 +1,6 @@
 <?php
 namespace System\Documents;
+use \Utils;
 class Image extends \Object {
 	private $_file;
 	private $_watermark;

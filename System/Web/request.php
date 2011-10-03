@@ -32,13 +32,13 @@ class Request implements \IRequest {
 						$value = $filter->filterInput ( $value );
 					}
 				}
-				if (strlen ( $var ) < 50 && ! isset ( $this->input [$var] )) {
+				if (strlen ( $var ) < 60 && ! isset ( $this->input [$var] )) {
 					if ($var !== '__url') {
 						$this->_inputbyplace [$current] [$var] = $value;
 					}
 					$this->input [$var] = $value;
 				}elseif (! isset ( $this->input [$var] )) {
-					throw new Exception('Parameter to long '. $current.' > '.$var);
+					throw new \Exception('Parameter to long '. $current.' > '.$var);
 				}
 			}
 		}

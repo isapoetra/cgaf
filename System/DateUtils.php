@@ -11,6 +11,14 @@ abstract class DateUtils {
 		return gmdate ( $format, $timestamp );
 
 	}
+
+	public static function dateAdd($timestamp,$d) {
+		$date = new \DateTime();
+		$date->setTimestamp($timestamp);
+		$date->add( \DateInterval::createFromDateString($d));
+		return $date->getTimeStamp();
+		//$date->addDuration()
+	}
 	public static function DateDiff($date, $date2 = null) {
 		$date2 = $date2 ? $date2 : new CDate ();
 		$date = new CDate ( $date );

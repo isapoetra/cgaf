@@ -13,17 +13,26 @@ class jQuery extends AbstractJSEngine {
 		$loaded = true;
 		$assets = array();
 		$ui = 'jQuery-UI/' . $this->getConfig('ui.version', '1.8.15');
-		$assets[] = $ui . '/jquery-ui.js';
-		$assets[] = $ui . '/themes/base/jquery-ui.css';
+		$assets[] = '/jquery-ui.js';
+		$assets[] =  '/themes/base/jquery-ui.css';
 		if ($theme = $this->_appOwner
 				->getUserConfig('ui.themes',
 						$this->_appOwner->getConfig('ui.themes'))) {
-			$assets[] = $ui . '/themes/' . $theme . '/jquery-ui.css';
+			$assets[] =  '/themes/' . $theme . '/jquery-ui.css';
+		}
+		$retval = array();
+		foreach ($assets as $asset) {
+			$r = $this->getAsset($ui.$asset,null,false);
+			if (!$r) {
+				$r = $this->getAsset($asset,null);
+			}
+			$retval[] = $r;
+			//
 		}
 		if ($direct) {
-			$this->_appOwner->addClientAsset($this->getAsset($assets));
+			$this->_appOwner->addClientAsset($retval);
 		}
-		return $assets;
+		return $retval;
 	}
 	protected function getJSAsset() {
 		$prefix = strtolower($this->_baseConfig);

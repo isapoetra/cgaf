@@ -1,5 +1,6 @@
 <?php
 namespace System\MVC;
+use System\JSON\JSONResult;
 use \System, \CGAF, \Utils;
 use \Request;
 use \Logger;
@@ -14,6 +15,7 @@ use \URLHelper;
 use \ModuleManager;
 use System\Template\TemplateHelper;
 use System\Web\JS\CGAFJS;
+use \Response;
 if (System::isWebContext()) {
 	using('System.Applications.web');
 	//TODO move to context aware location
@@ -167,9 +169,9 @@ if (System::isWebContext()) {
 				}
 			}
 			if ($controllerName) {
-				if (!$this->isAllow($controllerName, 'controller')) {
-					throw new AccessDeniedException();
-				}
+				/*if (!$this->isAllow($controllerName, 'controller')) {
+				    throw new AccessDeniedException("Access denied to Controller " . $controllerName);
+				}*/
 				if ($controllerName === $this->getRoute('_c')) {
 					if ($this->_controller !== null) {
 						$instance = $this->_controller;
@@ -178,14 +180,18 @@ if (System::isWebContext()) {
 			}
 			try {
 				if (!$instance && $controllerName) {
-					CGAF::Using('Controller.' . $controllerName, true);
-					$cname = $this->getClassNameFor($controllerName, 'Controller', 'System\\Controllers');
-					if (!$cname) {
-						throw new SystemException("Unable to Find controller %s", $controllerName);
-					}
-					$instance = new $cname($this);
-					if (!$instance) {
-						throw new SystemException("Unable to Find controller %s", $controllerName);
+					try {
+						CGAF::Using('Controller.' . $controllerName, true);
+						$cname = $this->getClassNameFor($controllerName, 'Controller', 'System\\Controllers');
+						if (!$cname) {
+							throw new SystemException("Unable to Find controller %s", $controllerName);
+						}
+						$instance = new $cname($this);
+						if (!$instance) {
+							throw new SystemException("Unable to Find controller %s", $controllerName);
+						}
+					} catch (\Exception $e) {
+						$this->_lastError = $e->getMessage();
 					}
 				}
 				if ($instance) {
@@ -198,7 +204,7 @@ if (System::isWebContext()) {
 						}
 					}
 				}
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				$this->_lastError = $e->getMessage();
 			}
 			return $instance;
@@ -273,12 +279,12 @@ if (System::isWebContext()) {
 			$rname = $this->getController() ? $this->getController()->getControllerName() : 'Home';
 			if (!Request::isDataRequest() && !$this->getVars('title')) {
 				$title = $this->getConfig($rname . '.title', ucwords($rname));
-				$this->Assign('title', $title);
+				$this->Assign('title', $this->getConfig('app.title', $this->getAppName()) . ' ::: ' . $title);
 			}
 			if (!Request::isDataRequest()) {
+				$this->addClientAsset($this->getAppName() . '.js');
 				$this->addClientAsset($this->getRoute('_c') . '.css');
 			}
-			//ppd($this->getClientAssets());
 			$this->Assign("token", $this->getToken());
 		}
 		function getSharedPath() {
@@ -288,8 +294,22 @@ if (System::isWebContext()) {
 			parent::checkInstall();
 		}
 		function isAllow($id, $group, $access = 'view') {
-			if ($id === 'home' && $group === 'controller' && $access === 'view') {
-				return true;
+			switch ($access) {
+			case 'view':
+			case ACLHelper::ACCESS_VIEW:
+				switch ($group) {
+				case 'controller':
+					switch ($id) {
+					case 'about':
+					case 'auth':
+					case 'home':
+					case 'asset':
+					case 'search':
+						return true;
+						break;
+					}
+				}
+				break;
 			}
 			return parent::isAllow($id, $group, $access);
 		}
@@ -342,7 +362,8 @@ if (System::isWebContext()) {
 				return;
 			}
 			if (!in_array($value, $this->_searchPath)) {
-				$this->_searchPath = array_merge(array($value), $this->_searchPath);
+				$this->_searchPath = array_merge(array(
+						$value), $this->_searchPath);
 			}
 		}
 		function getSearchPath($fname, $suffix) {
@@ -362,7 +383,8 @@ if (System::isWebContext()) {
 			foreach ($searchs as $f) {
 				$f = $f . $fname . CGAF_CLASS_EXT;
 				if (is_file($f)) {
-					if ($suffix && !\String::Contains($f,$suffix)) continue;
+					if ($suffix && !\String::Contains($f, $suffix))
+						continue;
 					return $f;
 				}
 			}
@@ -404,17 +426,15 @@ if (System::isWebContext()) {
 					return $s;
 				}
 			}
-			//pp(get_declared_classes());
-			ppd($nssearch);
 			return null;
 		}
 		/**
 		 *
 		 * @param $model
-		 * @return MVCModel
+		 * @return System\MVC\Model
 		 */
-		function getModel($model) {
-			if (isset($this->_models[$model])) {
+		function getModel($model, $newInstance = false) {
+			if (!$newInstance && isset($this->_models[$model])) {
 				$this->_models[$model]->setAppOwner($this);
 				return $this->_models[$model];
 			}
@@ -430,6 +450,9 @@ if (System::isWebContext()) {
 				throw new SystemException("Unable to construct model " . $model);
 			}
 			$instance->setAppOwner($this);
+			if ($newInstance) {
+				return $instance;
+			}
 			$this->_models[$model] = $instance;
 			return $this->_models[$model];
 		}
@@ -451,10 +474,12 @@ if (System::isWebContext()) {
 		public function getMenuItems($position, $parent = 0, $actionPrefix = null, $showIcon = true) {
 			$model = $this->getModel("menus");
 			$model->clear();
+			$model->setIncludeAppId(false);
 			$model->where("menu_position=" . $model->quote($position));
 			$model->where("menu_state=1");
 			$model->where("(menu_parent=" . $parent . ' and menu_id != ' . $parent . ')');
-			$model->addOrder("menu_index");
+			$model->where("(app_id='__cgaf' or app_id=" . $model->quote($this->getAppId()) . ")");
+			$model->orderBy("menu_index");
 			$rows = $model->loadObjects("System\\Collections\\Items\\MenuItem");
 			return $rows;
 		}
@@ -471,7 +496,8 @@ if (System::isWebContext()) {
 			$c = $this->_route["_c"];
 			switch (strtolower($c)) {
 			case 'asset':
-				return $this->handleAssetRequest();
+			//	return $this->handleAssetRequest();
+				break;
 			case '_loc':
 				$id = Request::get('id');
 				if ($id) {
@@ -555,12 +581,15 @@ if (System::isWebContext()) {
 					}
 				}
 				$content = $this->getVars("content");
+
 				if (!$content) {
+
 					if ($controller->isAllow($action)) {
 						$params = array();
 						$controller->assign($this->getVars());
 						$controller->initAction($action, $params);
 						$content = $controller->{$action}($params, null, null, null);
+
 						if (!Request::isDataRequest()) {
 							//convert to String
 							$content = Utils::toString($content);
@@ -603,28 +632,30 @@ if (System::isWebContext()) {
 			}
 			return $this->prepareOutput($retval);
 		}
-		function renderMenu($position, $controller = true) {
+		function renderMenu($position, $controller = true, $selected = null, $class = null, $renderdiv = true) {
 			if ($controller) {
 				$retval = $this->getController()->renderMenu($position);
 			} else {
 				$items = $this->getMenuItems($position);
-				$retval = "<div class=\"menu-container\" id='menu-container-$position'>";
-				$retval .= HTMLUtils::renderMenu($items, null, null . " menu-$position", null, 'menu-' . $position);
-				$retval .= "</div>";
+				$retval = "";
+				if ($renderdiv)
+					$retval = "<div class=\"menu-container\" id='menu-container-$position'>";
+				$retval .= HTMLUtils::renderMenu($items, $selected, $class . " menu-$position", null, 'menu-' . $position);
+				if ($renderdiv)
+					$retval .= "</div>";
 			}
 			return $retval;
 		}
-		function renderContent($location, $controller = null, $returnori = false, $return = true) {
+		function renderContent($location, $controller = null, $returnori = false, $return = true, $params = null) {
 			if ($controller === null) {
 				$controller = $this->getController()->getControllerName();
 			}
 			$m = $this->getModel("content");
 			$m->clear();
 			$m->where("state=1");
-			$m->where("content_controller=" . $m->quote($controller));
+			$m->where("(content_controller=" . $m->quote($controller) . ' )');
 			$m->where("position=" . $m->quote($location));
 			$m->orderBy('idx');
-			//pp($m->getSQL());
 			$rows = $m->loadAll();
 			if (!count($rows)) {
 				return null;
@@ -633,6 +664,9 @@ if (System::isWebContext()) {
 			$content = null;
 			$menus = array();
 			foreach ($rows as $row) {
+				$class = null;
+				$dbparams = Utils::DBDataToParam($row->params);
+				$rparams = \Utils::arrayMerge($dbparams, $params);
 				$ctl = null;
 				$hcontent = null;
 				$retval = null;
@@ -644,24 +678,31 @@ if (System::isWebContext()) {
 				 * 4	: render menu
 				 */
 				switch ($row->content_type) {
+				case 5:
 				case 2:
 				//direct action to controller
 					try {
-						$ctl = $this->getClassInstance($row->controller, "Controller", $this);
+						$ctl = $this->getController($row->controller);
 						if ($ctl) {
-							$row->actions = $row->actions ? $row->actions : "index";
-							if ($ctl->isAllow(ACLHelper::ACCESS_MANAGE)) {
-								$haction[] = HTMLUtils::renderLink(URLHelper::addParam($this->getAppUrl(), array(
-												'__c' => $row->controller,
-												'__a' => 'aed')), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png', __($row->controller . '.add.descr', 'Add Data'));
+							if ($this->getConfig('content.rendercontentaction')) {
+								$row->actions = $row->actions ? $row->actions : "index";
+								if ($ctl->isAllow(ACLHelper::ACCESS_MANAGE)) {
+									$haction[] = HTMLUtils::renderLink(URLHelper::addParam($this->getAppUrl(), array(
+													'__c' => $row->controller,
+													'__a' => 'aed')), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png', __($row->controller . '.add.descr', 'Add Data'));
+								}
 							}
 							if (method_exists($ctl, $row->actions) && $ctl->isAllow($row->actions)) {
-								$hcontent = $ctl->{$row->actions}(true, Utils::DBDataToParam($row->params));
+								$class = $row->controller . '-' . $row->actions;
+								$hcontent = $ctl->{$row->actions}($rparams);
 							} elseif (!method_exists($ctl, $row->actions) && CGAF_DEBUG) {
 								$hcontent = HTMLUtils::renderError('method [' . $row->actions . '] not found in class ' . $row->controller);
 							}
 						} else {
 							$hcontent = HTMLUtils::renderError(' Controller [' . $row->controller . '] not found ');
+						}
+						if ($row->content_type == 5) {
+							return \Utils::toString($hcontent);
 						}
 					} catch (Exception $e) {
 						if (CGAF_DEBUG) {
@@ -720,12 +761,13 @@ if (System::isWebContext()) {
 						//	$hcontent = $ctl->$action($params);
 						//}else
 						if ($ctl->initAction($action, $params)) {
-							$hcontent = $ctl->render(array("_a" => $action), $params, true);
+							$hcontent = $ctl->render(array(
+											"_a" => $action), $params, true);
 						}
 					}
 				}
 				if ($hcontent) {
-					$content .= "<div class=\"$location-item {$row->controller} clearfix\">";
+					$content .= "<div class=\"$location-item {$row->controller} {$class} clearfix\">";
 					if ($this->getConfig('content.' . $controller . '.' . $location . '.header', true)) {
 						$content .= "	<div class=\"ui-widget-header bar\">";
 						if ($row->content_title) {
@@ -739,7 +781,7 @@ if (System::isWebContext()) {
 					$content .= "<div  class=\"delim\"></div>";
 					$row->__content = $hcontent;
 					$rcontent = $row->__content;
-					if (is_object($rcontent) && $rcontent instanceof IRenderable) {
+					if (is_object($rcontent) && $rcontent instanceof \IRenderable) {
 						$rcontent = $rcontent->render(true);
 					}
 					$content .= "<div class=\"content ui-widget-content\"><div>" . $rcontent . "</div></div>";

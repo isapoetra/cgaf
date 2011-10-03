@@ -1,21 +1,22 @@
 <?php
 namespace System\DB;
+use \String;
 class  DBReflectionClass extends \ReflectionClass {
 	private $_fields =array();
 	private $_pk=array();
 	function __construct($argument) {
-		parent::__construct($argument);	
+		parent::__construct($argument);
 		$props = $this->getProperties ();
 		foreach ( $props as $prop ) {
 			$name = $prop->getName ();
 			if (String::BeginWith ( $name, "_" )) {
 				continue;
 			}
-			$doc =new DBFieldDefs(PHPDocHelper::parse ( $prop->getDocComment () ));
+			$doc =new DBFieldDefs(\PHPDocHelper::parse ( $prop->getDocComment () ));
 			$doc->FieldName = $name;
-			
+
 			$this->_fields[$name] = $doc;
-			
+
 			//$this->select ( $this->getConnection ()->parseFieldCreate ( $name, $type, $fLength, $defaultValue ) );
 		}
 	}
@@ -32,6 +33,6 @@ class  DBReflectionClass extends \ReflectionClass {
 		return $this->_pk;
 	}
 	function getFields() {
-		return $this->_fields;		
+		return $this->_fields;
 	}
 }

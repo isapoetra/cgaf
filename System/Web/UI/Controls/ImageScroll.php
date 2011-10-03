@@ -38,12 +38,11 @@ class ImageScroll extends WebControl {
 		return $retval;
 	}
 	function prepareRender() {
+		CGAFJS::loadPlugin('image-scroll', true);
 		$id = $this->getId();
 		$sc = <<< EOF
-
-new imgscroll('#$id');
+$('#$id').imgscroll({});
 EOF;
-
 		$this->getAppOwner()->addClientScript($sc);
 		$this->getAppOwner()->addClientAsset($this->getAppOwner()->getLiveAsset('image-scroll.css', 'cgaf'));
 		return parent::prepareRender();

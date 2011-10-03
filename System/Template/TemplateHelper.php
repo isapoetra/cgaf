@@ -19,7 +19,7 @@ final class TemplateHelper {
 			}
 		}
 		$class = '\\System\\Template\\'.$templateEngine;
-		$instance=new $class(AppManager::getInstance());		
+		$instance=new $class(AppManager::getInstance());
 		if (!$instance) {
 			throw new SystemException("Unable to get template instance %s",$templateEngine);
 		}
@@ -29,12 +29,12 @@ final class TemplateHelper {
 	public static function getInstanceForFile($file,$args) {
 		$ext = Utils::getFileExt($file,false);
 		switch (strtolower($ext)) {
+			case 'html':
+				return self::getInstance($args,'SmartyTemplate');
 			case 'php':
 				return self::getInstance($args,'BaseTemplate');
 
 		}
-		pp($file);
-		ppd($ext);
 	}
 	public static function renderFile($file,$params=array(),$controller =null) {
 		if (!is_file($file)) {

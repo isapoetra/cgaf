@@ -4,6 +4,7 @@ use \System\DB\DB,
 	\String,
 	\System\DB\DBConnection as DBConnection,
 	\System\DB\DBFieldInfo ;
+use System\DB\DBReflectionClass;
 class MySQL extends DBConnection {
 	private $_affectedRow = 0;
 	private $_engine = "innoDb";
@@ -127,7 +128,7 @@ class MySQL extends DBConnection {
 		return 'CURRENT_TIMESTAMP';
 	}
 	public function DateToDB($date = null) {
-		$dt = new CDate ( $date );
+		$dt = new \CDate ( $date );
 		return $dt->format ( FMT_DATETIME_MYSQL );
 
 	}
@@ -348,6 +349,7 @@ class MySQL extends DBConnection {
 		if ($this->_result == false) {
 			$err = mysql_error ( $this->_resource  );
 			$this->throwError ( new \Exception ( $err ), $sql );
+			return null;
 		}
 
 		return $this->toResultList ();

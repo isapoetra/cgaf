@@ -9,7 +9,7 @@ abstract class DBConnection implements IDBConnection {
 	protected $_resource;
 	protected $_lastError;
 	protected $_lastErrorCode;
-	protected $_thows = true;
+	protected $_thows = CGAF_DEBUG;
 	protected $_db = null;
 	protected $_result;
 	protected $_database;
@@ -30,13 +30,11 @@ abstract class DBConnection implements IDBConnection {
 	 * @return void
 	 */
 	protected function throwError(\Exception $ex) {
-		$this->_lastError = $ex->getMessage();
+		$this->_lastError = $ex->getMessage().' SQL:' . $this->getLastSQL();
 		if (CGAF_DEBUG) {
-			$this->_lastError .= ' SQL:' . $this->getLastSQL();
-
-			Logger::write($this->getLastSQL(), -1, false);
 			$ex = new \Exception($this->_lastError);
 		}
+		Logger::write('SQL Error : '.$this->_lastError , 'sql', false);
 		//Logger::Warning ( 'DB::' . $this->_lastError . $this->_lastSQL );
 		if ($this->_thows) {
 			throw $ex;

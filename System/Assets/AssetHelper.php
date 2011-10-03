@@ -1,5 +1,7 @@
 <?php
 namespace System\Assets;
+use System\Web\JS\JSUtils;
+
 use \CGAF;
 use \Utils;
 use \System\Configurations\Configuration;
@@ -24,12 +26,13 @@ final class AssetHelper {
 			$ext = Utils::getFileExt($assets, false);
 			switch (strtolower($ext)) {
 			case 'js':
-				return '<script language="javascript" type="text/javascript" src="' . $assets . '"></script>';
+				return JSUtils::renderJSTag($assets);
 			case 'css':
 				return '<link rel="stylesheet" type="text/css" media="all" href="' . $assets . '"/>';
 			default:
 				if (stripos($assets, "js") !== false) {
-					return '<script language="javascript" type="text/javascript" src="' . $assets . '"></script>';
+					return JSUtils::renderJSTag($assets);
+					//'<script language="javascript" type="text/javascript" src="' . $assets . '"></script>';
 				} elseif (stripos($assets, "css") !== false) {
 					return '<link rel="stylesheet" type="text/css" media="all" href="' . $assets . '"/>';
 				}

@@ -7,10 +7,11 @@ class AuthResult extends \Object {
 	private $_status;
 	private $_identify;
 	private $_userInfo;
-
-	function __construct($result, $identify) {
+	private $_states;
+	function __construct($result, $identify,$states) {
 		$this->_status = $result;
 		$this->_identify = $identify;
+		$this->_states = $states;
 	}
 
 	function getStatus() {
@@ -20,7 +21,9 @@ class AuthResult extends \Object {
 	function getIdentify() {
 		return $this->_identify;
 	}
-
+	function getStates() {
+		return $this->_states;
+	}
 	function getUserInfo() {
 		if (!$this->_userInfo) {
 			$this->_userInfo = AppManager::getInstance()->getModel('user')->loadByIdentify($this->_identify);

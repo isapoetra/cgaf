@@ -11,3 +11,4 @@ logon_name.descr=Unique
 register.verifypassword=Verify Password
 passstrength=Must be at least 6 characters long
 register.agree=You <b>ARE</b> agreeing to our %sTerms Of Service%s by submitting this form.
+profile=Profile

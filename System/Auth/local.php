@@ -1,13 +1,10 @@
 <?php
 namespace System\Auth;
 use System\Session\Session;
-
 use System\Auth\Adapter\db;
-
 use System\IAuthentificator;
 use \Request;
 use \CGAF, \Utils;
-
 class Local extends BaseAuthentificator implements IAuthentificator {
 	/**
 	 *
@@ -15,7 +12,6 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 	 * @var IAuthentificatorAdapter
 	 */
 	private $_adapter;
-
 	/**
 	 * Enter description here ...
 	 * @param IApplication $appOwner
@@ -23,10 +19,14 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 	function __construct(\IApplication $appOwner) {
 		parent::__construct($appOwner);
 	}
-
 	function getAdapter() {
 		if (!$this->_adapter) {
 			$this->_adapter = new db($this->getAppOwner());
+			if ($this->isAuthentificated()) {
+				$info = $this->getAuthInfo();
+				$this->_adapter->setIdentify($info->getIdentify());
+
+			}
 		}
 		return $this->_adapter;
 	}
@@ -34,18 +34,22 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 	function encryptPassword($p) {
 		return Utils::getCryptedPassword($p, null, $this->getConfig('encryption.method', 'md5-hex'));
 	}
-
 	function Authenticate($args = null) {
 		$this->setLastError(null);
 		if ($args == null) {
 			$args = Request::gets(null, true);
 		}
+		$args = parent::getAuthArgs();
 		$adapter = $this->getAdapter();
-		$adapter->setIdentify($args["username"]);
-		$adapter->setCredential($this->encryptPassword($args["password"]));
+		$adapter->setIdentify($args->username);
+		$adapter->setCredential($this->encryptPassword($args->password));
 		if ($result = $adapter->authenticate()) {
-			Session::set("__logonInfo", $result);
+			$states = $result->getStates();
+			if ($states) {
+				Session::setStates($states);
+			}
 			\Logger::info("Login", $result->idetify, true);
+			parent::setAuthInfo($result);
 			return $result;
 		}
 		$this->setLastError("Invalid Username/password");
@@ -53,8 +57,8 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 	}
 	function Logout() {
 		$adapter = $this->getAdapter();
-		return true;
+		$adapter->logout();
+		return parent::Logout();
 	}
-
 }
 ?>

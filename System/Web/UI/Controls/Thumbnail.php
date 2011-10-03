@@ -6,10 +6,13 @@ class ThumbnailItem extends WebControl {
 	private $_backgroundImage;
 	private $_actions = array();
 	private $_description;
+	public $width;
+	public $height;
 	function __construct($title, $image, $action) {
 		parent::__construct('a', true, array('href' => $action));
 		$this->setTitle($title);
 		$this->_backgroundImage = $image;
+
 	}
 	function setDescription($value) {
 		$this->_description = $value;
@@ -27,7 +30,8 @@ class ThumbnailItem extends WebControl {
 		return $this->getAttr('href');
 	}
 	function Render($return = false) {
-		$retval = '<div class="thumbnail-item"><div>';
+		//CGAFJS::loadPlugin('plugin.scrollbar',true);
+		$retval = '<div class="thumbnail-item" style="width:'.$this->width.'px;height:'.$this->height.'px;position:relative"><div>';
 		$retval .= '<div class="thumbnail-item-wrapper fill-parent" style="background-image:url(' . $this->_backgroundImage . ')">';
 		$retval .= '<div class="thumbnail-content"><div>';
 		foreach ($this->_childs as $c) {
@@ -45,7 +49,7 @@ class ThumbnailItem extends WebControl {
 			$retval .= '</div>';
 		}
 		$retval .= '</div>';
-		$retval .= '<a href="' . $this->action . '" class="title"><span>' . $this->getTitle() . '</span></a>';
+		$retval .= '<a href="' . $this->action . '" class="title" title="'.$this->getTitle().'"><span>' . $this->getTitle() . '</span></a>';
 		$retval .= '</div></div>';
 		return $retval;
 	}
@@ -61,68 +65,10 @@ class Thumbnail extends WebControl {
 		CGAFJS::loadPlugin('thumbnail', true);
 		$thumbcss = $this->getAppOwner()->getLiveAsset('thumbnail.css', 'cgaf');
 		$this->getAppOwner()->addClientAsset($thumbcss);
+
 		$id = $this->getId();
 		//TODO MOVe to imagescroll.js
 		$script = <<< EOT
-function imgscroll(el,config) {
-	var config = $.extend({
-		itemWidth: 240,
-		itemHeight: 150,
-		itemURL : null
-	},config || {});
-	var el =this.el = $(el);
-	var litem=0;
-	var container=el.find('.img-container');
-	el.css({
-		overflow:'hidden'
-	});
-	var cl = container.children().length;
-	container.css({
-		position :'absolute',
-		overflow :'hidden',
-		height : config.itemHeight,
-		width:cl*config.itemWidth
-	});
-	l=0;
-	var lnav = container.parent().find('.left-nav');
-	var rnav = container.parent().find('.right-nav');
-	container.children().each(function(){
-		$(this).css({
-			width:config.itemWidth,
-			height:config.itemHeight,
-			float:'left',
-		});
-		l+=200;
-	});
-	function setActiveItem(item) {
-		var mpx = (item  *config.itemWidth*-1);
-		var cl = container.children().length;
-		var mw = (cl-1) *config.itemWidth;
-		var inleft =false;
-		rnav.show();
-		lnav.show();
-		if (mpx>=0) {
-			lnav.hide();
-		}else if(item >= cl-1) {
-			mpx = mw*-1;
-			item = cl-1;
-			rnav.hide();
-		}
-		container.stop().animate({
-			left:  mpx
-		});
-		litem=item;
-	}
-	el.find('.left-nav').click(function(e) {
-		e.preventDefault();
-		setActiveItem(litem-1);
-	});
-	el.find('.right-nav').click(function(e) {
-		e.preventDefault();
-		setActiveItem(litem+1);
-	});
-	setActiveItem(0);
-}
 $('#{$id}').thumbnail();
 EOT;
 		$ss = <<<EOT

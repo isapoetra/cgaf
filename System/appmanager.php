@@ -72,6 +72,7 @@ abstract class AppManager extends \StaticObject {
 		}
 		if ($appInfo == null) {
 			$appInfo = self::getAppInfo($appId, false);
+
 			if (!$appInfo) {
 				return null;
 			}
@@ -99,16 +100,18 @@ abstract class AppManager extends \StaticObject {
 				$appPath = dirname($alt);
 				require $alt;
 			} else {
-				Logger::Error("Application File Not Found." . Logger::WriteDebug("  @%s | %s"), $appFileName, $alt);
+				Logger::Warning("Application File Not Found." . Logger::WriteDebug("  @%s | %s"), $appFileName, $alt);
 			}
 		}
 
-		$rname = \CGAF::getClassNameFor($cName, '\\System\\Applications');
+		$rname = \CGAF::getClassNameFor($cName, '\\System\\Applications',false);
 		if ($rname) {
 			$cName = $rname;
+		}else{
+			$cName = "\\System\\MVC\\Application";
 		}
 
-		if (!class_exists($cName, false)) {
+		if (!class_exists($cName, true)) {
 			throw new SystemException("Class Application $cName Not Found");
 		}
 		$appPath = (String::isEmpty($appPath) ? CGAF_APP_PATH . DS . $appInfo->app_path . DS : dirname($appPath)) . DS;

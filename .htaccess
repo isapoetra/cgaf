@@ -56,7 +56,7 @@ Options -Indexes
 <IfModule mod_headers.c> 
 	<FilesMatch "\.(ico|jpg|jpeg|png|gif|swf)$"> 
 		header set Cache-Control "public" 
-		header set Expires "Sun, 03 Sept 2011 20:00:00 GMT" 
+		#header set Expires "Sun, 03 Sept 2012 20:00:00 GMT" 
 	</FilesMatch> 
 	Header append Vary User-Agent env=!dont-vary
 </IfModule> 
