@@ -99,7 +99,7 @@ class Image extends \Object {
 		switch (strtolower($ext)) {
 			case 'png' :
 				//imagealphablending($img,FALSE);
-				return imagepng($img, $fout, 8);
+				return imagepng($img, $fout, ($q - 100) / 11.111111);
 			case 'gif' :
 				return imagegif($img, $fout);
 			case 'jpeg' :
@@ -114,6 +114,7 @@ class Image extends \Object {
 		$ori = getimagesize($file);
 		$ws = $ori [0];
 		$hs = $ori [1];
+		\Utils::makeDir(dirname($out));
 		if ($ws > $w && $hs > $h) {
 			$aspect = $ws / $hs;
 			if ($aspect <= 1.333333) {

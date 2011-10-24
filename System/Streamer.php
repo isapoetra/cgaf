@@ -1,18 +1,23 @@
 <?php
 use System\Web\WebUtils;
 use System\Streamer\FLV;
+use \FileInfo;
 final class Streamer {
-	public static function StreamString($string, $fileName = null, $mime = 'text/html') {
+	public static function StreamString($string, $fileName = null, $mime = null) {
 		header_remove('Content-type');
 		if ($fileName) {
 			header("Content-Disposition: attachment; filename=\"" . basename($fileName) . "\";");
+		}
+		if (!$mime) {
+			$finfo = new FileInfo($fileName);
+			$mime = $finfo->Mime;
 		}
 		header('Content-type: ' . $mime);
 		header("Content-Length: " . strlen($string));
 		echo $string;
 		CGAF::doExit();
 	}
-	public static function Stream($file, $mime = null) {
+	public static function Stream($file, $mime = null, $downloadmode = false) {
 		if (!is_readable($file)) {
 			CGAF::doExit();
 		}
@@ -24,8 +29,10 @@ final class Streamer {
 		$content = null;
 		switch ($ext) {
 		case 'css':
-			if (strpos($file, '.min.css') === false) {
-				$content = WebUtils::parseCSS($file, true, FALSE);
+			if (!$downloadmode) {
+				if (strpos($file, '.min.css') === false) {
+					$content = WebUtils::parseCSS($file, true, FALSE);
+				}
 			}
 			break;
 		case 'png':
@@ -39,12 +46,11 @@ final class Streamer {
 			break;
 		}
 		$fsize = filesize($file);
-		header_remove('Content-type');
-		header('Content-type: ' . $mime);
-		//header("Content-Disposition: attachment; filename=\"".basename($file)."\";" );
-		//header("Content-Transfer-Encoding: binary");
+		header('Content-Type: ' . $mime, true);
 		header("Content-Length: " . $fsize);
-		//ppd(headers_list());
+		if ($downloadmode) {
+			header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+		}
 		if ($content) {
 			echo $content;
 		} else {

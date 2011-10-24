@@ -1,11 +1,10 @@
 <?php
 namespace System\Web\UI\JQ;
+use System\Web\JS\CGAFJS;
+use System\Exceptions\SystemException;
 use System\JSON\JSON;
-
 use System\ACL\ACLHelper;
-
 use System\Web\Utils\HTMLUtils;
-
 use System\MVC\MVCHelper;
 use \AppManager;
 use \Request;
@@ -17,182 +16,168 @@ class Grid extends Control {
 	private $_model;
 	private $_baseURL;
 	private $_columns;
-	private $_actions = array ();
+	private $_actions = array();
 	private $_renderDefaultAction = false;
 	private $_autoGenerateColumn = false;
 	private $_baseLang;
-	private $_navOptions = array ();
+	private $_navOptions = array();
 	private $_sortName;
 	private $_callback;
 	private $_openEditInOverlay = true;
-	private $_directConfig = array (
+	private $_directConfig = array(
 			'loadComplete',
-			'loadSuccess'
-	);
+			'loadSuccess');
 	private $_route;
 	function __construct($id, $template, $model, $columns = null, $baseurl = null) {
 		parent::__construct($id, $template);
 		$this->_rowperpage = Request::get("_rp", 10);
-		$this->_currentPage = ( int ) Request::get("_page", 0);
+		$this->_currentPage = (int) Request::get("_page", 0);
 		$this->_model = $model;
 		$this->_route = MVCHelper::getRoute();
 		$this->_columns = $columns;
-		if (! $columns) {
+		if (!$columns) {
 			$this->_autoGenerateColumn = true;
 		}
 		$this->_baseURL = $baseurl ? $baseurl : Request::getOrigin();
 	}
-
 	function setNavigationItem($items) {
 		$this->_navItems = $items;
 	}
-
 	function setopenEditInOverlay($value) {
 		$this->_openEditInOverlay = $value;
 	}
-
 	function setBaseLang($lang) {
 		$this->_baseLang = $lang;
 	}
-
 	function setRenderDefaultAction($value) {
 		$this->_renderDefaultAction = $value;
 	}
-
 	function setAutoGenenerateColumn($value) {
 		$this->_autoGenerateColumn = $value;
 	}
-
 	function addAction($action) {
-		$this->_actions [] = $action;
+		$this->_actions[] = $action;
 	}
-
 	function setCallback($callback) {
 		$this->_callback = $callback;
 		return $this;
 	}
-
 	function parseValue($row, $value, $field) {
 		static $pk;
-		if (! $pk) {
+		if (!$pk) {
 			$pk = $this->_model->getPK();
 		}
-
 		$retval = $value;
-		foreach ( $row as $k => $v ) {
+		foreach ($row as $k => $v) {
 			$retval = str_ireplace("#$k#", htmlentities($v), $retval);
 		}
-
-		$pkval = array ();
-		foreach ( $pk as $k => $p ) {
-			if (! is_numeric($k)) {
+		$pkval = array();
+		foreach ($pk as $k => $p) {
+			if (!is_numeric($k)) {
 				if ($p == $k) {
-					$pkval [] = $row->$p;
+					$pkval[] = $row->$p;
 				}
 			} else {
 				if ($p == $p) {
-					$pkval [] = $row->$p;
+					$pkval[] = $row->$p;
 				}
 			}
 		}
 		$retval = str_ireplace("#PK_VALUE#", implode(",", $pkval), $retval);
 		if ($this->_callback) {
-			$retval = call_user_func_array($this->_callback, array (
+			$retval = call_user_func_array($this->_callback, array(
 					$field,
 					$row,
 					$value,
-					$retval
-			));
+					$retval));
 		}
 		return $retval;
-
 	}
 	function setRoute($c) {
 		$this->_route = $c;
 	}
 	protected function getDefaultAction() {
 		$route = $this->_route;
-		$ctl = AppManager::getInstance()->getController($route ["_c"]);
+		$ctl = AppManager::getInstance()->getController($route["_c"]);
 		if ($ctl) {
 			$field = $this->_model->getPKValue();
-			$baseurl = BASE_URL . "/" . $route ["_c"];
-			$retval = array ();
+			$baseurl = BASE_URL . "/" . $route["_c"];
+			$retval = array();
 			if ($ctl->isAllow('detail')) {
-				$retval [] = HTMLUtils::renderLink($baseurl . '/detail/?id=#PK_VALUE#', 'Detail', null, 'detail-small.png');
+				$retval[] = HTMLUtils::renderLink($baseurl . '/detail/?id=#PK_VALUE#', 'Detail', null, 'detail-small.png');
 			}
-
-			if ($ctl->isAllow('edit',$field)) {
-				$retval [] = HTMLUtils::renderLink($baseurl . '/edit/?id=#PK_VALUE#', 'Edit', null, 'edit-small.png');
+			if ($ctl->isAllow('edit', $field)) {
+				$retval[] = HTMLUtils::renderLink($baseurl . '/aed/?id=#PK_VALUE#', 'Edit', null, 'edit-small.png');
 			}
 			if ($ctl->isAllow(ACLHelper::ACCESS_MANAGE)) {
-				$retval [] = HTMLUtils::renderLink($baseurl . '/del/?id=#PK_VALUE#', 'Delete', array (
+				$retval[] = HTMLUtils::renderLink($baseurl . '/del/?id=#PK_VALUE#', 'Delete', array(
 						'rel' => '#confirm',
-						'title' => __('delete.confirm', 'Delete this data')
-				), 'del-small.png');
+						'title' => __('delete.confirm', 'Delete this data')), 'del-small.png');
 			}
 		}
 		return $retval;
 	}
-
 	protected function renderJSON($return = true) {
 		//$fields = $this->_model->getFields(false);
-		$page = ( int ) Request::get("page", 0);
-		$rpp = ( int ) Request::get("rows", 10);
-		$ob = Request::get("sidx", "date_added", false);
+		$page = (int) Request::get("page", 0);
+		$rpp = (int) Request::get("rows", 10);
+		$ob = Request::get("sidx", null, false);
 		$o = Request::get("sord", "asc");
 		$search = Request::get("_search", 'false') == 'true';
+		$this->_model->resetgrid($this->getId());
 		$alias = $this->_model->getAlias();
-		$this->_model->resetgrid($this->getId())->orderby("$alias.$ob $o");
-
+		if ($ob) {
+			$this->_model->clear('orderby');
+			$this->_model->orderby("$alias.$ob $o");
+		}
 		$where = null;
 		if ($search) {
-			$operator = array (
+			$operator = array(
 					"eq" => "=",
 					'ne' => '<>',
 					'lt' => '<',
 					'gt' => '>',
 					'ge' => '>=',
-					'le' => '<='
-			);
+					'le' => '<=');
 			$ope = Request::get("searchOper", "eq");
 			$ss = Request::get("searchString");
 			$sf = $this->_model->quoteTable(Request::get("searchField", null, false));
 			$prefix = "";
 			if (array_key_exists($ope, $operator)) {
-				$ope = $operator [$ope];
+				$ope = $operator[$ope];
 				$ss = $this->_model->quote($ss);
 			} else {
 				switch ($ope) {
-					case 'bw' :
-						$ope = 'like';
-						$ss = $this->_model->quote($ss . '%');
-						break;
-					case "bn" :
-						$ope = 'like';
-						$ss = $this->_model->quote($ss . '%');
-						$prefix = "not";
-						break;
-					case "en" :
-						$prefix = "not";
-					case 'ew' :
-						$ope = 'like';
-						$ss = $this->_model->quote('%' . $ss);
-						break;
-					case "ni" :
-						$prefix = 'not';
-					case "in" :
-						$ope = "in ";
-						$ss = '(' . $this->_model->quote($ss) . ')';
-						break;
-					case 'nc' :
-						$prefix = 'not';
-					case 'cn' :
-						$ope = 'like';
-						$ss = $this->_model->quote('%' . $ss . '%');
-						break;
-					default :
-						$ss = $this->_model->quote($ss);
-						break;
+				case 'bw':
+					$ope = 'like';
+					$ss = $this->_model->quote($ss . '%');
+					break;
+				case "bn":
+					$ope = 'like';
+					$ss = $this->_model->quote($ss . '%');
+					$prefix = "not";
+					break;
+				case "en":
+					$prefix = "not";
+				case 'ew':
+					$ope = 'like';
+					$ss = $this->_model->quote('%' . $ss);
+					break;
+				case "ni":
+					$prefix = 'not';
+				case "in":
+					$ope = "in ";
+					$ss = '(' . $this->_model->quote($ss) . ')';
+					break;
+				case 'nc':
+					$prefix = 'not';
+				case 'cn':
+					$ope = 'like';
+					$ss = $this->_model->quote('%' . $ss . '%');
+					break;
+				default:
+					$ss = $this->_model->quote($ss);
+					break;
 				}
 			}
 			$where = "$prefix ($sf $ope $ss)";
@@ -200,48 +185,45 @@ class Grid extends Control {
 		}
 		try {
 			$all = $this->_model->loadAll($page - 1, $rpp);
-		} catch ( Exception $e ) {
-			$this->_model->clear('orderby')->orderby("$ob $o");
+		} catch (\Exception $e) {
+			$this->_model->clear('orderby');
 			$all = $this->_model->loadAll($page - 1, $rpp);
 		}
 		//ppd($this->_model->lastSQL());
-		$rows = array ();
+		$rows = array();
 		$idx = 0;
-		foreach ( $all as $x ) {
-			$row = array ();
-
-			foreach ( $this->_columns as $k => $col ) {
+		foreach ($all as $x) {
+			$row = array();
+			foreach ($this->_columns as $k => $col) {
 				$val = null;
 				if ($k === "__action") {
 					$val = $this->parseValue($x, $col, $k);
 				} else {
 					if (is_array($col)) {
-						if (isset($col ['eval'])) {
-							$val = $this->parseValue($x, $col ['eval'], $k);
+						if (isset($col['eval'])) {
+							$val = $this->parseValue($x, $col['eval'], $k);
 							eval("\$val = (" . $val . ');');
 						}
 					}
 					if ($val == null) {
-						$col = is_array($col) ? (isset($col ["value"]) ? $col ["value"] : "#$k#") : $col;
-
-						if (is_numeric($k) && is_string($col) && ! strpos($col, '#')) {
+						$col = is_array($col) ? (isset($col["value"]) ? $col["value"] : "#$k#") : $col;
+						if (is_numeric($k) && is_string($col) && !strpos($col, '#')) {
 							$k = $col;
 							$col = "#$col#";
 						}
 						$val = $this->parseValue($x, $col, $k);
 					}
-
 				}
 				if (is_array($val)) {
-					$row [] = implode('&nbsp;', $val);
+					$row[] = implode('&nbsp;', $val);
 				} else {
-					$row [] = $val;
+					$row[] = $val;
 				}
 			}
 			//$rows [$idx] ['forceFit'] = true;
-			$rows [$idx] ['id'] = $all = $this->_model->getPKValue(false, $x);
-			$rows [$idx] ['cell'] = $row;
-			$idx ++;
+			$rows[$idx]['id'] = $all = $this->_model->getPKValue(false, $x);
+			$rows[$idx]['cell'] = $row;
+			$idx++;
 		}
 		$count = $this->_model->getRowCount();
 		if ($count > 0) {
@@ -249,18 +231,16 @@ class Grid extends Control {
 		} else {
 			$total_pages = 0;
 		}
-
-		$retval = new stdClass();
+		$retval = new \stdClass();
 		$retval->records = $count;
 		$retval->page = $page;
 		$retval->total = $total_pages;
 		$retval->rows = $rows;
 		return json_encode($retval);
 	}
-
 	function getSortName() {
-		if (! $this->getConfig('sortname')) {
-			foreach ( $this->_columns as $k => $col ) {
+		if (!$this->getConfig('sortname')) {
+			foreach ($this->_columns as $k => $col) {
 				if ($k == '__action')
 					continue;
 				$this->setConfig('sortname', $k);
@@ -268,182 +248,160 @@ class Grid extends Control {
 		}
 		return $this->getConfig('sortname');
 	}
-
 	function prepareRender() {
-		if (! $this->_model) {
+		if (!$this->_model) {
 			throw new SystemException('unable to initialize grid,Model not found');
 		}
 		$id = $this->getId();
-
-		$this->_columns = $this->_columns ? $this->_columns : array ();
+		$this->_columns = $this->_columns ? $this->_columns : array();
 		if ($this->_autoGenerateColumn) {
 			$columns = $this->_model->getGridColumns($this->getId());
 			$this->_columns = array_merge($columns, $this->_columns);
 		}
-
 		if ($this->_renderDefaultAction) {
 			$act = $this->getDefaultAction();
-			if (isset($this->_columns ["__action"])) {
-				$this->_columns ["__action"] = array_merge_recursive($act, $this->_columns ["__action"]);
+			if (isset($this->_columns["__action"])) {
+				$this->_columns["__action"] = array_merge_recursive($act, $this->_columns["__action"]);
 			} else {
-				$this->_columns ["__action"] = $act;
+				$this->_columns["__action"] = $act;
 			}
 		}
-
-		$cols = array ();
-		$colmodels = array ();
+		$cols = array();
+		$colmodels = array();
 		$hasaction = false;
-		foreach ( $this->_columns as $k => $col ) {
-			$title = is_array($col) ? (isset($col ["title"]) ? $col ["title"] : $k) : (is_numeric($k) ? $col : $k);
-			$title = __(($this->_baseLang ? $this->_baseLang . '.' :''). $title, $title);
+		foreach ($this->_columns as $k => $col) {
+			$title = is_array($col) ? (isset($col["title"]) ? $col["title"] : $k) : (is_numeric($k) ? $col : $k);
+			$title = __(($this->_baseLang ? $this->_baseLang . '.' : '') . $title, $title);
 			$sort = true;
 			$fit = true;
 			$fixed = false;
 			$editable = true;
-			$width = is_array($col) ? (isset($col ['width']) && $col ['width'] ? $col ['width'] : 50) : 50;
-
+			$width = is_array($col) ? (isset($col['width']) && $col['width'] ? $col['width'] : 50) : 50;
 			if ($k !== "__action") {
-				$cols [] = $title;
-				$models = array (
+				$cols[] = $title;
+				$models = array(
 						'name' => $k,
 						'label' => $k,
 						'index' => $k,
 						'editable' => $editable,
 						'sortable' => $sort,
-						'width' => $width
-				);
-				if (is_array($col) && isset($col ['colmodel'])) {
-					$models = array_merge($models, $col ['colmodel']);
+						'width' => $width);
+				if (is_array($col) && isset($col['colmodel'])) {
+					$models = array_merge($models, $col['colmodel']);
 				}
-				$colmodels [] = $models;
+				$colmodels[] = $models;
 			} else {
-				$hasaction = array (
+				$hasaction = array(
 						'name' => $k,
 						'label' => $k,
 						'index' => $k,
 						'editable' => false,
 						'sortable' => false,
-						'width' => 250
-				);
+						'width' => 250);
 			}
 		}
 		if ($hasaction) {
-			$cols [] = "Actions";
-			$colmodels [] = $hasaction;
-			$old = $this->_columns ['__action'];
-			unset($this->_columns ['__action']);
-			$this->_columns ['__action'] = $old;
+			$cols[] = "Actions";
+			$colmodels[] = $hasaction;
+			$old = $this->_columns['__action'];
+			unset($this->_columns['__action']);
+			$this->_columns['__action'] = $old;
 		}
-		$params = array (
+		$params = array(
 				'_json',
-				'1'
-		);
+				'1');
 		$params = array_merge(Request::gets(), $params);
-
-		$baseurl = URLHelper::addParam($this->_baseURL, array (
-				'_grid' => $id
-		));
-		$editurl = $this->getConfig("editurl", URLHelper::addParam($baseurl, array (
-				'_gridAction' => 'edit'
-		)));
-		$addurl = $this->getConfig("addurl", URLHelper::addParam($baseurl, array (
-				'_gridAction' => 'add'
-		)));
+		$baseurl = URLHelper::addParam($this->_baseURL, array(
+				'_grid' => $id));
+		$editurl = $this->getConfig("editurl", URLHelper::addParam($baseurl, array(
+						'_gridAction' => 'edit')));
+		$addurl = $this->getConfig("addurl", URLHelper::addParam($baseurl, array(
+						'_gridAction' => 'add')));
 		$dataurl = $this->getConfig("dataurl", URLHelper::add($baseurl, null, $params));
-
 		$route = MVCHelper::getRoute();
-		$ctl = AppManager::getInstance()->getController($route ["_c"]);
-
-		$navConfig = array (
+		$ctl = AppManager::getInstance()->getController($route["_c"]);
+		$navConfig = array(
 				'add' => $ctl ? $ctl->isAllow(ACLHelper::ACCESS_WRITE) : true,
 				'edit' => $ctl ? $ctl->isAllow(ACLHelper::ACCESS_UPDATE) : true,
 				'del' => $ctl ? $ctl->isAllow(ACLHelper::ACCESS_MANAGE) : true,
-				'editfunc' => 'function(row) {var gr = jQuery("#' . $id . '").jqGrid(\'getGridParam\',\'selrow\'); ' . ($this->_openEditInOverlay ? '$.openOverlay({url:\'' . $editurl . '&id=\'+gr})' : 'document.location=\'' . $editurl . '&id=\'+gr;') . '}',
-				'addfunc' => 'function(row) { ' . ($this->_openEditInOverlay ? '$.openOverlay({url:\'' . $addurl . '\',onClosed:function(){$(\'#' . $this->getId() . '\').trigger(\'reloadGrid\')}}) ' : 'document.location=\'' . $addurl . '\'') . '}'
-		);
-
+				'editfunc' => 'function(row) {var gr = jQuery("#' . $id . '").jqGrid(\'getGridParam\',\'selrow\'); '
+						. ($this->_openEditInOverlay ? '$.openOverlay({url:\'' . $editurl . '&id=\'+gr})' : 'document.location=\'' . $editurl . '&id=\'+gr;') . '}',
+				'addfunc' => 'function(row) { ' . ($this->_openEditInOverlay ? '$.openOverlay({url:\'' . $addurl . '\',onClosed:function(){$(\'#' . $this->getId() . '\').trigger(\'reloadGrid\')}}) ' : 'document.location=\'' . $addurl . '\'') . '}');
 		$this->setNavConfig($navConfig, null, false);
-		$this->setConfig(array (
-				'forceFit' => False,
-				'shrinkToFit' => False,
-				'sortname' => $this->getSortName(),
-				'sortorder' => 'desc',
-				'rowList' => array (
-						10,
-						20,
-						30,
-						50,
-						100
-				),
-				'url' => $dataurl,
-				'editurl' => $editurl,
-				'datatype' => 'json',
-				'colNames' => $cols,
-				'colModel' => $colmodels,
-				'viewrecords' => true,
-				'rowNum' => $this->_rowperpage,  //$this->_model->getRowCount(),
-				'pager' => "#$id-pager"
-		), null, false);
-		foreach ( $this->_configs as $k => $config ) {
-			if (is_string($config) && $config [0] === '$') {
-				$this->_directConfig [] = $k;
+		$this
+				->setConfig(
+						array(
+								'forceFit' => False,
+								'shrinkToFit' => False,
+								'sortname' => $this->getSortName(),
+								'sortorder' => 'desc',
+								'rowList' => array(
+										10,
+										20,
+										30,
+										50,
+										100),
+								'url' => $dataurl,
+								'editurl' => $editurl,
+								'datatype' => 'json',
+								'colNames' => $cols,
+								'colModel' => $colmodels,
+								'viewrecords' => true,
+								'rowNum' => $this->_rowperpage,
+								//$this->_model->getRowCount(),
+								'pager' => "#$id-pager"), null, false);
+		foreach ($this->_configs as $k => $config) {
+			if (is_string($config) && $config[0] === '$') {
+				$this->_directConfig[] = $k;
 			}
 		}
 	}
-
 	function setNavConfig($configName, $value = null, $overwrite = true) {
 		if (is_array($configName)) {
-			foreach ( $configName as $k => $v ) {
+			foreach ($configName as $k => $v) {
 				$this->setNavConfig($k, $v, $overwrite);
 			}
 		} else {
-			if ($overwrite || ! isset($this->_navOptions [$configName])) {
-				$this->_navOptions [$configName] = $value;
+			if ($overwrite || !isset($this->_navOptions[$configName])) {
+				$this->_navOptions[$configName] = $value;
 			}
 		}
 		return $this;
 	}
-
 	private function getCols() {
 	}
-
 	public static function loadScript($appOwner = null) {
 		if ($appOwner === null) {
 			$appOwner = AppManager::getInstance();
 		}
-		$appOwner->addClientAsset('jqGrid/js/i18n/grid.locale-' . $appOwner->getLocale()->getLocale() . '.js', null, 'grid-locale');
-		$appOwner->addClientAsset('jqGrid/jqGrid.xml', null, 'jqGrid');
-
+		$appOwner->addClientAsset('js/jQuery/plugins/jqGrid/css/ui.jqgrid.css');
+		$appOwner->addClientAsset('js/jQuery/plugins/jqGrid/css/jquery.searchFilter.css');
+		CGAFJS::loadPlugin('jqGrid/i18n/grid.locale-' . $appOwner->getLocale()->getLocale(), true);
+		CGAFJS::loadPlugin('jqGrid/jquery.jqGrid', true);
+		//$appOwner->addClientAsset(, null, 'jqGrid');
 	}
-
 	function RenderScript($return = true) {
 		$id = $this->getId();
-		$cols = array ();
-		if (! Request::isAJAXRequest()) {
+		$appOwner = $this->getAppOwner();
+		$cols = array();
+		if (!Request::isAJAXRequest()) {
 			self::loadScript();
 		}
-
 		$configs = JSON::encodeConfig($this->_configs, $this->_directConfig);
-		$apid = String::replace(array (
-				'-' => ''
-		), $id) . 'api';
-
+		$apid = String::replace(array(
+				'-' => ''), $id) . 'api';
 		$scripts = "var {$apid}=$(\"#$id\").jqGrid($configs);";
-
-		$scripts .= "$(\"#$id\").jqGrid('navGrid','#$id-pager'," . JSON::encodeConfig($this->_navOptions, array (
-				'editfunc',
-				'addfunc'
-		)) . ");";
-		$scripts .= "var w={$apid}.closest('.ui-jqgrid').parent().parent().innerWidth()-50;";
-		$scripts .= "{$apid}.setGridWidth(w,false);";
-		$scripts .= "{$apid}.setGridHeight({$apid}.closest('.ui-jqgrid').parent().parent().innerHeight());";
-
+		$scripts .= "$(\"#$id\").jqGrid('navGrid','#$id-pager'," . JSON::encodeConfig($this->_navOptions, array(
+						'editfunc',
+						'addfunc')) . ");";
+		$scripts .= "var w={$apid}.closest('.ui-jqgrid').parent().innerWidth()-50;";
+		$scripts .= "{$apid}.setGridWidth(w,false);\n";
+		//{$apid}.closest('.ui-jqgrid').parent().innerHeight()-50
+		$scripts .= "{$apid}.setGridHeight('auto');";
+		$appOwner->addClientScript($scripts);
 		$retval = "<table id=\"$id\"></table><div id=\"$id-pager\"></div>";
-		if (! $return) {
-			$this->getTemplate()->addClientScript($scripts);
+		if (!$return) {
 			Response::write($retval);
-		} else {
-			$retval .= HTMLUtils::renderScript($scripts);
 		}
 		return $retval;
 	}

@@ -1,17 +1,18 @@
 <?php
 namespace System\Applications;
+use System\ACL\ACLHelper;
 use System\Events\LoginEvent;
 use \CGAF, \Utils, \String, \Request, \Response, \Logger;
 use \System\Assets\AssetHelper;
 use \System\Session\Session;
 use \System\Configurations\Configuration;
 use \System\Collections\ClientAssetCollections;
-use \System\ACL\ACLHelper;
 use \URLHelper;
 use \System\DB\DB;
 use \System\Exceptions\SystemException;
 use System\Collections\Items\AssetItem;
 use System\Assets\AssetBuilder;
+use \AppManager;
 /**
  * Enter description here ...
  * @author Iwan Sapoetra @ Jun 18, 2011
@@ -77,14 +78,14 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 		}
 		if (is_array($assetName) || is_object($assetName)) {
 			if (is_object($assetName) && $assetName instanceof AssetItem) {
-				$this->_clientAssets->add($assetName);
+				$this->_clientAssets->add($assetName, $group);
 				return $this;
 			}
 			foreach ($assetName as $k => $v) {
 				if (is_numeric($k)) {
 					$this->addClientAsset($v);
 				} else {
-					$this->addClientAsset($assetName);
+					$this->addClientAsset($assetName, $group);
 				}
 			}
 			return $this;
@@ -157,7 +158,7 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 		return $template;
 	}
 	/**
-	 * @return TLocale
+	 * @return System\Locale\Locale
 	 */
 	function getLocale() {
 		if ($this->_locale == null) {
@@ -271,6 +272,10 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 		}
 		return false;
 	}
+	/**
+	 * (non-PHPdoc)
+	 * @see IApplication::getACL()
+	 */
 	public function getACL() {
 		if ($this->_acl === null) {
 			$class = $this->getConfig("acl.handler", "db");
@@ -353,7 +358,7 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 	}
 	function Shutdown() {
 		if ($this->_userConfig) {
-			$istore = $this->getInternalStoragePath() . DS . 'userconfig' . DS . $this->getACL()->getUserId() . '.config';
+			$istore = $this->getInternalStoragePath() . DS . 'userconfig' . DS . ACLHelper::getUserId() . '.config';
 			Utils::makeDir(dirname($istore));
 			file_put_contents($istore, $this->serialize($this->_userConfig));
 		}
@@ -633,16 +638,20 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 			Utils::makeDir(dirname($istore));
 			$cfg = array();
 			if (is_file($istore)) {
-				$cfg = $this->unserialize(file_get_contents($istore));
+				$this->_userConfig = $this->unserialize(file_get_contents($istore));
+			} else {
+				$this->_userConfig = new Configuration($cfg, false);
 			}
-			$this->_userConfig = new Configuration($cfg, false);
 		}
 		return $this->_userConfig;
 	}
 	function setUserConfig($configName, $value, $uid = null) {
-		$uid = ACLHelper::isAllowUID($uid);
 		$instance = $this->_UserConfigInstance($uid);
 		return $instance ? $instance->setConfig($configName, $value) : null;
+	}
+	function getUserConfigs($config, $uid = null) {
+		$instance = $this->_UserConfigInstance($uid);
+		return $instance->getConfigs($config);
 	}
 	function getUserConfig($configName, $def = null, $uid = null) {
 		$instance = $this->_UserConfigInstance($uid);

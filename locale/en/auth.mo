@@ -6,3 +6,4 @@ remember=Stay signed in
 alternative=Signin Using
 logout=Signout
 signout.confirm.title=Signout Confirmation
+signout.confirm.descr=do you want to signout?

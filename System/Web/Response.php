@@ -1,17 +1,31 @@
 <?php
 namespace System\Web;
+use System\Web\JS\JSUtils;
 use \Utils;
 use System\JSON\JSONResult;
 class Response extends \System\AbstractResponse {
+	private $_flush;
 	function __construct() {
 		parent::__construct(true);
 	}
 	function Init() {
 		parent::Init();
 	}
+	private function hasSent($header) {
+		$list = headers_list();
+		foreach ($list as $l) {
+			if (substr(strtolower($l), 0, strlen($header)) === strtolower($header)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	function flush() {
-		if (!headers_sent()) {
-			@header("filetype:text/html");
+		if ($this->_flush)
+			return;
+		$this->_flush = true;
+		if (!$this->hasSent('Content-Type')) {
+			@header("Content-Type:text/html; charset=UTF-8");
 		}
 		return parent::flush();
 	}
@@ -40,7 +54,8 @@ class Response extends \System\AbstractResponse {
 			$this->write($r->render(true));
 			return;
 		} elseif (\Request::isAJAXRequest()) {
-			echo '<div class="redirect"><a href="'.$url.'">click here to continue</a>';
+			echo '<noscript><div class="redirect"><a href="' . $url . '">click here to continue</a></div></noscript>';
+			echo JSUtils::renderJSTag('document.location="' . $url . '";', false);
 		} else {
 			header("Location: $url");
 		}

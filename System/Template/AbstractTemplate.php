@@ -3,7 +3,7 @@ namespace System\Template;
 use System\Web\Utils\HTMLUtils;
 use \URLHelper;
 use \Utils;
-use \System\Configurations\IConfiguration,\System\Configurations\Configuration;
+use \System\Configurations\IConfiguration, \System\Configurations\Configuration;
 use \Response;
 use \AppManager;
 use \Logger;
@@ -13,7 +13,7 @@ use \Logger;
  */
 abstract class AbstractTemplate extends \Object implements \ITemplate, \System\Configurations\IConfiguration {
 	protected $_templateName = null;
-	protected $_vars = array ();
+	protected $_vars = array();
 	protected $_appOwner;
 	protected $_cacheDir;
 	protected $_compileDir;
@@ -31,13 +31,13 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 	 * @param unknown_type $templatePath
 	 */
 	function __construct($appOwner, $templatePath = null) {
-		$this->_configs = new Configuration ();
+		$this->_configs = new Configuration();
 		$this->_appOwner = $appOwner ? : AppManager::getInstance();
-		$this->_commonTemplatePath = Utils::ToDirectory ( CGAF_PATH . "System/template/common" );
+		$this->_commonTemplatePath = Utils::ToDirectory(CGAF_PATH . "System/template/common");
 		if ($templatePath !== null) {
 			$this->_templatePath = $templatePath;
 		}
-		$this->Init ();
+		$this->Init();
 	}
 	function clearParams() {
 		$this->_vars = array();
@@ -46,18 +46,16 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 		$this->_configs = $configs;
 	}
 	public function setConfig($configName, $value = null) {
-		return $this->_configs->setConfig ( $configName, $value );
+		return $this->_configs->setConfig($configName, $value);
 	}
 	public function Save($fileName = null) {
 		//Nothing todo
 	}
 	public function getConfig($configName, $default = null) {
-		return $this->_configs->getConfig ( $configName, $default );
+		return $this->_configs->getConfig($configName, $default);
 	}
-
 	public function Merge($_configs) {
-		return $this->_configs->Merge ( $_configs );
-
+		return $this->_configs->Merge($_configs);
 	}
 	/**
 	 * return app Owner
@@ -71,18 +69,17 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 		$this->_appOwner = $value;
 	}
 	function getLiveData($data) {
-		return $this->_appOwner->getLiveData ( $data );
+		return $this->_appOwner->getLiveData($data);
 	}
 	function __set($name, $value) {
-		return $this->assign ( $name, $value );
+		return $this->assign($name, $value);
 	}
 	function getMainTemplate() {
-		return $this->getAppOwner ()->getTemplate ();
+		return $this->getAppOwner()->getTemplate();
 	}
 	function __get($name) {
-		return isset ( $this->_vars [$name] ) ? $this->_vars [$name] : null;
+		return isset($this->_vars[$name]) ? $this->_vars[$name] : null;
 	}
-
 	protected function Init() {
 	}
 	public function getTemplatePath() {
@@ -96,24 +93,22 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 			return $this;
 		}
 		if ($value == null) {
-			if (is_array ( $varName )) {
-				foreach ( $varName as $k => $v ) {
-					$this->Assign ( $k, $v, $overwrite );
+			if (is_array($varName)) {
+				foreach ($varName as $k => $v) {
+					$this->Assign($k, $v, $overwrite);
 				}
 				return $this;
 			}
 		}
-		if (is_array ( $varName )) {
-			throw new Exception ( "x" );
+		if (is_array($varName)) {
+			throw new Exception("x");
 		}
-		$overwrite = $overwrite || ! array_key_exists ( $varName, $this->_vars ) || (array_key_exists ( $varName, $this->_vars ) && $this->_vars [$varName] === null);
+		$overwrite = $overwrite || !array_key_exists($varName, $this->_vars) || (array_key_exists($varName, $this->_vars) && $this->_vars[$varName] === null);
 		if ($overwrite) {
-			$this->_vars [$varName] = $value;
+			$this->_vars[$varName] = $value;
 		}
-
 		return $this;
 	}
-
 	public function setCompileDir($dir) {
 		$this->_compileDir = $dir;
 	}
@@ -121,81 +116,79 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 		$this->_cacheDir = $dir;
 	}
 	protected function searchTemplateFile($templateName) {
-		$last = count ( $this->_lastRenderFile ) ? end ( $this->_lastRenderFile ) : null;
-		$retval = array (
-		$this->getTemplatePath () . DS . $templateName . $this->getTemplateFileExt (),
-		dirname ( $last ) . DS . $templateName . $this->getTemplateFileExt () );
-		if ($this->getAppOwner () instanceof IApplication) {
-			$retval [] = $this->getAppOwner ()->getAppPath () . DS . 'Views' . DS . $templateName . $this->getTemplateFileExt ();
+		$last = count($this->_lastRenderFile) ? end($this->_lastRenderFile) : null;
+		$retval = array(
+				$this->getTemplatePath() . DS . $templateName . $this->getTemplateFileExt(),
+				dirname($last) . DS . $templateName . $this->getTemplateFileExt());
+		if ($this->getAppOwner() instanceof IApplication) {
+			$retval[] = $this->getAppOwner()->getAppPath() . DS . 'Views' . DS . $templateName . $this->getTemplateFileExt();
 		}
-		$retval = array_merge ( $retval, array (
-		$last ? dirname ( $last ) . DS . basename ( $templateName . $this->getTemplateFileExt () ) : null,
-		CGAF_SHARED_PATH . '/Views' . DS . $templateName . $this->getTemplateFileExt (),
-		CGAF_SHARED_PATH . '/Views/shared/' . DS . $templateName . $this->getTemplateFileExt () )
-		);
+		$retval = array_merge($retval,
+				array(
+						$last ? dirname($last) . DS . basename($templateName . $this->getTemplateFileExt()) : null,
+						CGAF_SHARED_PATH . '/Views' . DS . $templateName . $this->getTemplateFileExt(),
+						CGAF_SHARED_PATH . '/Views/shared/' . DS . $templateName . $this->getTemplateFileExt()));
 		return $retval;
 	}
-
 	function Render($templateName, $return = true, $log = false, $vars = null) {
-		if (is_file ( $templateName )) {
+		if (is_file($templateName)) {
 			$fname = $templateName;
 		} else {
-			$search = $this->searchTemplateFile ( $templateName );
+			$search = $this->searchTemplateFile($templateName);
 			$fname = null;
-			foreach ( $search as $f ) {
-				$f = Utils::ToDirectory ( $f );
-				if ($f && is_file ( $f )) {
+			foreach ($search as $f) {
+				$f = Utils::ToDirectory($f);
+				if ($f && is_file($f)) {
 					$fname = $f;
 					break;
 				}
 			}
 		}
-		if (! $fname) {
+		if (!$fname) {
 			$msg = 'file not found for template ' . $templateName;
-			Logger::Warning ( $msg );
+			Logger::Warning($msg);
 			if (CGAF_DEBUG) {
 				return $msg;
 			}
 			return null;
 		}
-		foreach ( $this->_vars as $k => $v ) {
-			$this->Assign ( $k, $v, true );
+		foreach ($this->_vars as $k => $v) {
+			$this->Assign($k, $v, true);
 		}
 		if ($vars != null) {
-			foreach ( $vars as $k => $v ) {
-				$this->Assign ( $k, $v, true );
+			foreach ($vars as $k => $v) {
+				$this->Assign($k, $v, true);
 			}
 		}
-		return $this->renderFile ( $fname, $return, $log );
+		return $this->renderFile($fname, $return, $log);
 	}
 
 	public function renderFile($fname, $return = true, $log = false) {
-		$oldreturn =$return;
-		if (is_readable ( $fname )) {
-			$fname = realpath ( $fname );
-
+		$oldreturn = $return;
+		if (is_readable($fname)) {
+			$fname = realpath($fname);
 			if ($log) {
-				Logger::write ( "Loading Template From $fname" );
+				Logger::write("Loading Template From $fname");
 			}
-			foreach ( $this->_vars as $var => $val ) {
+			foreach ($this->_vars as $var => $val) {
 				$$var = $val;
 			}
-			$this->_lastRenderFile [] = $fname;
+			$this->_lastRenderFile[] = $fname;
 			$this->isRendered = false;
-			Response::StartBuffer ();
+			Response::StartBuffer();
 			include $fname;
-			$this->_buffer = Response::EndBuffer ();
-			foreach ( $this->_vars as $var => $val ) {
-				unset ( $$var );
+			$this->_buffer = Response::EndBuffer();
+			foreach ($this->_vars as $var => $val) {
+				unset($$var);
 			}
-			array_pop ( $this->_lastRenderFile );
-			if (! $oldreturn) {
-				Response::write ( $this->_buffer );
+			array_pop($this->_lastRenderFile);
+			if (!$oldreturn) {
+				Response::write($this->_buffer);
 			}
 			$this->isRendered = true;
 			return $this->_buffer;
 		} else {
-			throw new Exception ( "Template File not Found " . Logger::WriteDebug ( "@$fname" ) );
+			throw new \Exception("Template File not Found " . Logger::WriteDebug("@$fname"));
 		}
 	}
 	protected function getCommonTemplatePath() {
@@ -205,8 +198,8 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 		return CGAF_CLASS_EXT;
 	}
 	private function includeCommon($tpl) {
-		$fname = $this->getCommonTemplatePath () . DS . $tpl . $this->getTemplateFileExt ();
-		return $this->renderFile ( $fname, true );
+		$fname = $this->getCommonTemplatePath() . DS . $tpl . $this->getTemplateFileExt();
+		return $this->renderFile($fname, true);
 	}
 	/**
 	 * (non-PHPdoc)
@@ -226,7 +219,7 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 		return $this->_vars;
 	}
 	function getVar($varName, $def = null) {
-		return isset ( $this->_vars [$varName] ) ? $this->_vars [$varName] : $def;
+		return isset($this->_vars[$varName]) ? $this->_vars[$varName] : $def;
 	}
 	function setContent($value) {
 		/*$ex = simplexml_load_string($value);
@@ -235,7 +228,7 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 		$this->_content = $value;
 	}
 	function getContent() {
-		return $this->_content ? $this->_content : $this->getVar ( 'content' );
+		return $this->_content ? $this->_content : $this->getVar('content');
 	}
 }
 ?>

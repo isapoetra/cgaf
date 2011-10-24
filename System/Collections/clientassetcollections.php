@@ -1,7 +1,6 @@
 <?php
 namespace System\Collections;
-use System\Assets\AssetHelper;
-
+use \System\Assets\AssetHelper;
 use \System\Collections\Items\AssetItem;
 using('System.Collections.Items.assetitem');
 class ClientAssetCollections extends Collection implements \IRenderable {

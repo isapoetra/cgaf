@@ -30,6 +30,12 @@ abstract class SessionBase extends \Object implements \ISession {
 	protected function getSessionState() {
 		return $this->_sessionState;
 	}
+	public function unregisterState($stateGroup) {
+		$state = $this->get('__state');
+		if (isset($state[$stateGroup])) {
+			unset($state[$stateGroup]);
+		}
+	}
 	public function &registerState($stateGroup) {
 		$state = $this->get('__state');
 		if (!$state) {
@@ -98,25 +104,29 @@ abstract class SessionBase extends \Object implements \ISession {
 		// Send modified header for IE 6.0 Security Policy
 		header('P3P: CP="NOI ADM DEV PSAi COM NAV OUR OTRo STP IND DEM"');
 		$id = null;
+		$restart = false;
 		if ($this->_sessionState == 'restart') {
 			$id = $this->_createId();
+			$restart = true;
 		}
 		session_cache_limiter('nocache');
-		if (isset($_POST["PHPSESSID"])) {
-			$id = $_POST["PHPSESSID"];
-		} else if (isset($_GET["PHPSESSID"])) {
-			$id = $_GET["PHPSESSID"];
-		} else if (isset($_COOKIE["PHPSESSID"])) {
-			$id = $_COOKIE["PHPSESSID"];
-		} else {
-			$id = $this->_createId();
+		if (!$id) {
+			if (isset($_POST["PHPSESSID"])) {
+				$id = $_POST["PHPSESSID"];
+			} else if (isset($_GET["PHPSESSID"])) {
+				$id = $_GET["PHPSESSID"];
+			} else if (isset($_COOKIE["PHPSESSID"])) {
+				$id = $_COOKIE["PHPSESSID"];
+			} else {
+				$id = $this->_createId();
+			}
 		}
 		if ($id) {
 			session_id($id);
 		}
 		$this->_setCookieParams();
 		//sync the session maxlifetime
-		//ini_set ( 'session.gc_maxlifetime', $this->getConfig ( 'gc_maxlifetime' ) );
+		ini_set('session.gc_maxlifetime', $this->getConfig('gc_maxlifetime'));
 		session_start();
 		if (!$id) {
 			session_regenerate_id();
@@ -130,7 +140,9 @@ abstract class SessionBase extends \Object implements \ISession {
 			throw new \Exception('Invalid Session');
 		}
 		$this->_started = true;
-		$this->dispatchEvent(new SessionEvent($this, SessionEvent::SESSION_STARTED));
+		if (!$restart) {
+			$this->dispatchEvent(new SessionEvent($this, SessionEvent::SESSION_STARTED));
+		}
 	}
 	private function _setTimers() {
 		if (!$this->get('session.timer.start')) {
@@ -187,8 +199,9 @@ abstract class SessionBase extends \Object implements \ISession {
 		if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
 			$this->set('session.client.forwarded', $_SERVER['HTTP_X_FORWARDED_FOR']);
 		}
+		$security = $this->getConfig('security', array());
 		// check for client adress
-		if (in_array('fix_adress', $this->getConfig('security', array())) && isset($_SERVER['REMOTE_ADDR'])) {
+		if (isset($security['fix_address']) && $security['fix_address'] && isset($_SERVER['REMOTE_ADDR'])) {
 			$ip = $this->get('client.address');
 			if ($ip === null) {
 				$this->set('client.address', $_SERVER['REMOTE_ADDR']);
@@ -198,12 +211,13 @@ abstract class SessionBase extends \Object implements \ISession {
 			}
 		}
 		// check for clients browser
-		if (in_array('fix_browser', $this->getConfig('security', array())) && isset($_SERVER['HTTP_USER_AGENT'])) {
+		if (isset($security['fix_browser']) && $security['fix_browser'] && isset($_SERVER['HTTP_USER_AGENT'])) {
 			$browser = $this->get('session.client.browser');
 			if ($browser === null) {
 				$this->set('session.client.browser', $_SERVER['HTTP_USER_AGENT']);
 			} else if ($_SERVER['HTTP_USER_AGENT'] !== $browser) {
 				$this->_sessionState = Session::STATE_ERROR;
+				ppd($_SERVER['HTTP_USER_AGENT'] . $browser);
 				return false;
 			}
 		}
@@ -259,7 +273,7 @@ abstract class SessionBase extends \Object implements \ISession {
 		if ($this->_sessionState === Session::STATE_CLOSED) {
 			return false;
 		}
-		$this->_sessionState = 'closed';
+		$this->_sessionState = Session::STATE_CLOSED;
 		session_write_close();
 	}
 	/**
@@ -283,6 +297,7 @@ abstract class SessionBase extends \Object implements \ISession {
 		$this->_sessionState = Session::STATE_DESTROYED;
 		session_unset();
 		@session_destroy();
+		$this->_started = false;
 		return true;
 	}
 	function restart() {

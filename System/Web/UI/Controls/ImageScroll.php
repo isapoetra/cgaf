@@ -1,5 +1,7 @@
 <?php
 namespace System\Web\UI\Controls;
+use System\Web\JS\CGAFJS;
+
 class ImageScroll extends WebControl {
 	private $_itemClass = "img-item";
 	function __construct($items) {

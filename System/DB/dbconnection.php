@@ -2,7 +2,6 @@
 namespace System\DB;
 use \String;
 use \Logger;
-
 abstract class DBConnection implements IDBConnection {
 	protected $_connArgs;
 	private $_connected = false;
@@ -17,7 +16,6 @@ abstract class DBConnection implements IDBConnection {
 	function __construct($connArgs) {
 		$this->_connArgs = $connArgs;
 	}
-
 	function __get($name) {
 		return $this->getArg($name, null);
 	}
@@ -30,11 +28,11 @@ abstract class DBConnection implements IDBConnection {
 	 * @return void
 	 */
 	protected function throwError(\Exception $ex) {
-		$this->_lastError = $ex->getMessage().' SQL:' . $this->getLastSQL();
+		$this->_lastError = $ex->getMessage() . ' SQL:' . $this->getLastSQL();
 		if (CGAF_DEBUG) {
 			$ex = new \Exception($this->_lastError);
 		}
-		Logger::write('SQL Error : '.$this->_lastError , 'sql', false);
+		Logger::write('SQL Error : ' . $this->_lastError, 'sql', false);
 		//Logger::Warning ( 'DB::' . $this->_lastError . $this->_lastSQL );
 		if ($this->_thows) {
 			throw $ex;
@@ -49,7 +47,7 @@ abstract class DBConnection implements IDBConnection {
 	function getArg($name, $default = null) {
 		return isset($this->_connArgs[$name]) ? $this->_connArgs[$name] : $default;
 	}
-	function quoteTable($table) {
+	function quoteTable($table, $includedbname = false) {
 		if (is_array($table)) {
 			$retval = array();
 			foreach ($table as $k => $v) {
@@ -59,7 +57,6 @@ abstract class DBConnection implements IDBConnection {
 		}
 		return $table;
 	}
-
 	function isConnected() {
 		return $this->_connected;
 	}
@@ -78,13 +75,28 @@ abstract class DBConnection implements IDBConnection {
 	function SelectDB($db) {
 		$this->_db = $db;
 	}
+	function getTableInfo($tableName, $infoType) {
+		$info = $this->getObjectInfo($tableName);
+		$retval = array();
+		foreach ($info as $i) {
+			switch (strtolower($infoType)) {
+			case 'fields':
+				$retval[] = array(
+						'name' => $i->field_name);
+				break;
+			default:
+				;
+				break;
+			}
+		}
+		return $retval;
+	}
 	function setConnected($value) {
 		$this->_connected = $value;
 	}
 	function quote($s) {
 		return $s;
 	}
-
 	function Open() {
 		if ($this->_connected) {
 			return true;
@@ -92,13 +104,11 @@ abstract class DBConnection implements IDBConnection {
 		return $this->_connected;
 	}
 	function Close() {
-
 	}
 	function execBatch($sql) {
 		$t = $this->_thows;
 		$this->_thows = true;
 		$r = new DBResultList();
-
 		foreach ($sql as $s) {
 			if (!empty($s)) {
 				$r->Assign($this->exec($s));
@@ -123,7 +133,6 @@ abstract class DBConnection implements IDBConnection {
 	public abstract function createDBObjectFromClass($classInstance, $objecttype, $objectName);
 	protected function toResultList() {
 		$r = null;
-
 		if ($this->_result) {
 			$r = new DBResultList();
 			$r->setLastInsertId($this->getLastInsertId());
@@ -163,7 +172,6 @@ abstract class DBConnection implements IDBConnection {
 	public function DateToDB($date = null) {
 		$dt = new CDate($date);
 		return $dt->format(FMT_DATETIME_MYSQL);
-
 	}
 	public function drop($id, $type = 'table') {
 		if ($this->isObjectExist($id, $type)) {
@@ -171,7 +179,6 @@ abstract class DBConnection implements IDBConnection {
 		}
 	}
 	public function getInstallFile($table) {
-
 		$path = CGAF::getInternalStorage('db//install/' . $this->getArg('type') . '/');
 		if ($path && is_dir($path)) {
 			$path .= $table . '.sql';

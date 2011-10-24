@@ -2,22 +2,21 @@
 namespace System\Web\UI\Ext;
 use \Request;
 use \AppManager;
-using('System.Web.UI.JExt');
 class Form extends Control {
   protected $_dosql;
   protected $_action;
   protected $_winmode;
-  protected $_winid; 
+  protected $_winid;
   protected $_cancelAction;
   protected $_viewMode = false;
   protected $_defaultType = "textfield";
   protected $_submitAction = null;
   protected $_renderStandardBar;
-  function __construct ($action = null, $dosql = null, $method = "POST") { 
+  function __construct ($action = null, $dosql = null, $method = "POST") {
     if (! $action) {
       $action = $this->_getDefaultAction();
     }
-  
+
     $this->_htmlcontrol = "form";
     parent::__construct("Ext.FormPanel");
     $this->_baseURI = $action;
@@ -95,7 +94,7 @@ class Form extends Control {
         break;
     }
     return $val;
-    
+
   }
 
   protected function _getCloseWin () {
@@ -116,7 +115,7 @@ class Form extends Control {
   }
 
   protected function _getSubmitAction ($confirm = true, $param = null) {
-    $this->_submitAction = String::RemoveString($this->_submitAction, array(
+    $this->_submitAction = \String::RemoveString($this->_submitAction, array(
       "\t" ,
       "\n" ,
       "\r"), "");

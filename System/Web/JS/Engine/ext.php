@@ -12,7 +12,8 @@ class Ext extends AbstractJSEngine {
 			'resources/css/' . $this -> getConfig('themes', 'xtheme-blue').'.css',
 			'resources/css/ext-extended.css',
 			'adapter/ext/ext-base.js',
-			'ext-all'.(CGAF_DEBUG  ? '-debug' : '').'.js');
+			'ext-all'.(CGAF_DEBUG  ? '-debug' : '').'.js',
+			'cgaf/ext/cgaf-ext.js');
 		if($this -> getConfig('useui', true)) {
 			//$assets[] = 'ui/'.$prefix . '-ui.js';
 			//$assets[] ='themes/base/'.$prefix.'-ui.css';

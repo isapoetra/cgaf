@@ -2,39 +2,33 @@
 namespace System\API;
 //TODO move to System.Web.JS.API
 use System\Exceptions\SystemException;
-
 use \AppManager;
 class google extends PublicApi {
-
-	private $_apijs = array('plusone' => 'https://apis.google.com/js/plusone.js',);
-
+	function __construct() {
+		parent::__construct();
+		$this->_apijs = array(
+				'plusone' => \URLHelper::getCurrentProtocol() . '://apis.google.com/js/plusone.js');
+	}
 	public function plusOne($size = 'small') {
-		self::init(__FUNCTION__);
+		$size = $size ? $size : 'small';
+		$this->init(__FUNCTION__);
 		if (is_array($size)) {
 			$size = isset($size['size']) ? $size['size'] : 'small';
 		}
 		$size = $size ? $size : $this->getConfig("plusOne.size");
 		return '<g:plusone size="' . $size . '"></g:plusone>';
 	}
-
-	public function init($service) {
-		$service = strtolower($service);
-		self::initJS();
-		$js = isset( $this->_apijs[$service]) ?   $this->_apijs[$service] :null;
-		AppManager::getInstance()->addClientAsset($js);
-	}
-
 	public function initJS() {
 		static $init;
-		if ($init) return;
-		$init= true;
+		if ($init)
+			return;
+		$init = true;
 		$key = AppManager::getInstance()->getConfig('service.google.jsapi.key');
 		if (!$key) {
 			throw new SystemException("invalid google api key");
 		}
 		AppManager::getInstance()->addClientAsset('https://www.google.com/jsapi?key=' . $key);
 	}
-
 	public function analitycs() {
 		$gag = $this->getConfig('analytics.alitycsid');
 		if ($gag) {

@@ -1,5 +1,6 @@
 <?php
 namespace System\Web\UI\Ext;
+use \Request;
 class CustomComponent extends Component {
 
 	function __construct($class, $config = null, $ignore = null, $renderto = true) {

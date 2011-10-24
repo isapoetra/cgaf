@@ -19,6 +19,7 @@ use \System\Exceptions\AssetException;
 use System\Exceptions\SystemException;
 use System\Session\SessionEvent;
 final class CGAF {
+	const APP_ID = '__cgaf';
 	private static $_initialized = false;
 	private static $_namespaces = array();
 	private static $_messages;
@@ -81,7 +82,7 @@ final class CGAF {
 		return $f;
 	}
 	private static function exitIfNotModified() {
-		if (CGAF_DEBUG) {
+		if (self::getConfig('disablecacherequest')) {
 			return;
 		}
 		$f = self::getCacheRequestFile(true);
@@ -89,10 +90,12 @@ final class CGAF {
 			$f = self::getCacheRequestFile(false);
 		}
 		//\Utils::removeFile($path = self::getInternalStorage('.cache/request', false, true), true);
+		$valid = null;
 		if (is_file($f)) {
 			$fc = unserialize(file_get_contents($f));
 			$last_modified = $fc['timeCreated'] >= $fc['lastModified'] ? $fc['timeCreated'] : $fc['lastModified'];
 			$validUntil = $last_modified + (60 * 60 * 24 * $fc['validDay']);
+			$valid = $fc['validDay'];
 			if ($last_modified > $validUntil) {
 				pp('removed');
 				\Utils::removeFile($f);
@@ -104,8 +107,10 @@ final class CGAF {
 				//ppd($if_modified_since.'-'.$validUntil);
 				if ($if_modified_since <= $validUntil) {
 					header_remove('Cache-Control');
-					header('Cache-Control: public, max-age=' . ($fc['validDay'] * 60 * 60 * 24));
-					header('Last-Modified:' . gmdate("D, d M Y H:i:s", $last_modified) . ' GMT');
+					header('Cache-Control: public, max-age=' . ($valid * 30 * 24 * 60 * 60));
+					header('Last-Modified:' . gmdate("D, d M Y H:i:s", $lastModified) . ' GMT');
+					//ppd(gmdate("D, d M Y H:i:s", \DateUtils::dateAdd(time(), $valid . ' day')));
+					header('Expires:' . gmdate("D, d M Y H:i:s", \DateUtils::dateAdd(time(), $valid . ' day')) . ' GMT');
 					header("HTTP/1.0 304 Not Modified");
 					CGAF::doExit();
 					exit();
@@ -113,23 +118,23 @@ final class CGAF {
 			}
 		}
 	}
-	public static function cacheRequest($lastModified, $valid, $sessionBase = false) {
+	public static function cacheRequest($lastModified, $valid, $sessionBase = false, $originalFile = null) {
 		if (isset($_SERVER['REQUEST_URI'])) {
 			$f = self::getCacheRequestFile($sessionBase);
 			@file_put_contents($f, serialize(array(
 					'originalURL' => $_SERVER['REQUEST_URI'],
 					'timeCreated' => time(),
 					'lastModified' => $lastModified,
-					'validDay' => $valid)));
+					'validDay' => $valid,
+					'originalFile' => $originalFile)));
 			header_remove('pragma');
 			header_remove('P3P');
 			header_remove('X-Powered-By');
-			header_remove('Set-Cookie');
-			header_remove('Set-Cookie');
 			header_remove('Cache-Control');
 			header_remove('Last-Modified');
-			header('Cache-Control: public, max-age=' . ($valid * 60 * 60 * 24));
+			header('Cache-Control: public, max-age=' . ($valid * 30 * 24 * 60 * 60));
 			header('Last-Modified:' . gmdate("D, d M Y H:i:s", $lastModified) . ' GMT');
+			//ppd(gmdate("D, d M Y H:i:s", \DateUtils::dateAdd(time(), $valid . ' day')));
 			header('Expires:' . gmdate("D, d M Y H:i:s", \DateUtils::dateAdd(time(), $valid . ' day')) . ' GMT');
 		}
 	}
@@ -300,7 +305,6 @@ final class CGAF {
 				}
 			}
 			define('BASE_URL', $s);
-			//ppd(BASE_URL);
 		}
 		define("ASSET_URL", self::getConfig("asseturl", BASE_URL . self::getConfig('livedatapath', 'assets') . '/'));
 		ini_set("session.save_path", self::getInternalStorage('sessions', false));
@@ -349,7 +353,7 @@ final class CGAF {
 			self::addAlowedLiveAssetPath(CGAF_DEV_PATH . self::getConfig("assetpath", 'assets'));
 		}
 		//ppd( self::getInternalStorage('log',false) . DS . 'cgaf.error.log' );
-		$errors = self::getConfigs('errors' . (CGAF_DEBUG ? '.debug' : ''));
+		$errors = self::getConfigs('errors' . (CGAF_DEBUG ? '.debug' : ''), array());
 		foreach ($errors as $k => $v) {
 			if ($k === 'debug')
 				continue;
@@ -489,10 +493,19 @@ final class CGAF {
 		if (is_object($appName) && $appName instanceof IApplication) {
 			AppManager::setActiveApp($appName);
 			$instance = $appName;
+			if (!$instance->Initialize()) {
+				$instance = null;
+			}
 		} else {
-			$appId = Request::get('__appId');
 			$instance = null;
-			if ($appId) {
+			$path = Request::get('__app');
+			if ($path) {
+				$instance = AppManager::getInstanceByPath($path);
+				AppManager::setActiveApp($appName);
+				$instance = $appName;
+			}
+			$appId = Request::get('__appId');
+			if (!$instance && $appId) {
 				try {
 					if (AppManager::isAppIdInstalled($appId)) {
 						Session::set('__appId', $appId);
@@ -506,10 +519,15 @@ final class CGAF {
 			$cgaf = Request::get('__cgaf', null, true);
 			switch (strtolower($cgaf)) {
 			case 'reset':
-				Session::destroy();
-				Response::Redirect('/?__t=' . time());
-				return;
-			case '_switchapp':
+				if (self::isDebugMode()) {
+					//perform acl to destroy
+					self::getACL();
+					Session::destroy();
+					Response::Redirect('/?__t=' . time());
+					return;
+				}
+				break;
+			case '__switchapp':
 				$appId = Request::get('id');
 				if ($appId && AppManager::isAppIdInstalled($appId)) {
 					Session::set('__appId', $appId);
@@ -726,11 +744,17 @@ final class CGAF {
 		$ns = str_replace(DS, '.', $ns);
 		return $ns;
 	}
-	private static function _getFileOfNS($ns) {
-		$first = substr($ns, 0, strpos($ns, '.'));
-		$spath = self::getClassPath($first);
-		$fns = str_replace('.', DS, substr($ns, strpos($ns, '.') + 1));
-		$retval = array();
+	private static function _getFileOfNS($ns, $debug = false) {
+		$retval = null;
+		if (strpos($ns, '.') !== false) {
+			$first = substr($ns, 0, strpos($ns, '.'));
+			$spath = self::getClassPath($first);
+			$fns = substr($ns, strlen($first) + 1);
+		} else {
+			$fns = $ns;
+			$spath = self::getClassPath('System');
+		}
+		$fns = str_replace('.', DS, $fns);
 		if ($spath) {
 			foreach ($spath as $path) {
 				$fname = Utils::ToDirectory($path . DS . $fns);
@@ -759,8 +783,10 @@ final class CGAF {
 			}
 			return $retval;
 		}
+		$star = false;
 		if (substr($namespace, strlen($namespace) - 1) === '*') {
 			$namespace = substr($namespace, 0, strlen($namespace) - 2);
+			$star = true;
 		}
 		$nsnormal = self::_toNS($namespace);
 		if (is_file($namespace)) {
@@ -773,7 +799,7 @@ final class CGAF {
 			require $namespace;
 			return true;
 		}
-		$f = self::_getFileOfNS($nsnormal);
+		$f = self::_getFileOfNS($nsnormal, $star);
 		if ($f && is_array($f)) {
 			foreach ($f as $v) {
 				self::Using($v);
@@ -783,10 +809,11 @@ final class CGAF {
 			return self::Using($f);
 		}
 		if ($throw) {
-			if (CGAF_DEBUG) {
-				pp($namespace);
-				ppd(self::getClassPath());
-			}
+			/*if (CGAF_DEBUG) {
+			    pp($namespace);
+			    pp($f);
+			    ppd(self::getClassPath());
+			}*/
 			throw new System\Exceptions\SystemException($namespace);
 		}
 		return false;
@@ -806,7 +833,7 @@ final class CGAF {
 	 * Enter description here ...
 	 * @return System\Cache\Engine\ICacheEngine
 	 */
-	public static function getInternalCacheManager($app=false) {
+	public static function getInternalCacheManager($app = false) {
 		if (self::$_internalCache == null) {
 			self::$_internalCache = \System\Cache\CacheFactory::getInstance();
 			self::$_internalCache->setCachePath(self::getInternalStorage('.cache', false, true));
@@ -932,6 +959,10 @@ final class CGAF {
 			if (class_exists($s, false)) {
 				return $s;
 			}
+			$s = '\\' . $s;
+			if (class_exists($s, false)) {
+				return $s;
+			}
 		}
 		return null;
 	}
@@ -966,6 +997,9 @@ final class CGAF {
 		$className = str_replace(array(
 				'/',
 				'\\'), DS, $className);
+		if (substr($className, 0, 1) === DS) {
+			$className = substr($className, 1);
+		}
 		$namespaces = explode(DIRECTORY_SEPARATOR, $className);
 		unset($namespaces[sizeof($namespaces) - 1]); // the last item is the classname
 		$clname = $className;
@@ -982,7 +1016,7 @@ final class CGAF {
 					\Utils::arrayMerge($nspath, self::getClassPath($namespaces[$akey[0]]));
 				}
 			}
-			$oricpath = implode(DS, $classpart);
+			$oricpath = str_replace('//', '', implode(DS, $classpart));
 			$cname = strtolower(array_pop($classpart));
 			//BUG : count and sizeof depend on 0 index ?
 			//$classpart [count ( $classpart )] = strtolower ( $classpart [count ( $classpart )] );
@@ -992,8 +1026,12 @@ final class CGAF {
 			$oricpath = $clname;
 			$clname = strtolower($clname);
 		}
+		if (!$fns) {
+			$fns = 'System';
+		}
 		$nspath = array_merge($nspath, self::getClassPath($fns));
 		$current = "";
+		$fdebug = array();
 		foreach ($nspath as $p) {
 			foreach ($namespaces as $namepart) {
 				$current .= '\\' . $namepart;
@@ -1012,12 +1050,15 @@ final class CGAF {
 				if (file_exists($fnload))
 					require($fnload);
 				$fname = $p . $oricpath . '.php';
+				$fdebug[] = $fname;
 				if (is_file($fname)) {
+					$fdebug[] = $fname;
 					self::Using($fname);
 					break;
 				}
 			}
 			$fname = $p . $clname . '.php';
+			$fdebug[] = $fname;
 			if (is_file($fname)) {
 				self::Using($fname);
 				break;
@@ -1038,12 +1079,14 @@ final class CGAF {
 		if (class_exists($className, false) || interface_exists($className, false)) {
 			return false;
 		}
-		\Logger::Warning('Unable to load class '.$className);;
-		pp($className);
-		pp(get_declared_interfaces());
-		pp($fname);
-		pp(get_declared_classes());
-		ppd($nspath);
+		\Logger::Warning('Unable to load class ' . $className);
+		if (CGAF_DEBUG && $throw) {
+			pp(get_declared_classes());
+			pp(get_declared_interfaces());
+			pp($namespaces);
+			pp($nspath);
+			ppd($fdebug);
+		}
 		return false;
 	}
 	public static function loadLibs($libName) {
@@ -1056,11 +1099,11 @@ final class CGAF {
 	/**
 	 *
 	 * Enter description here ...
-	 * @return DBConnection
+	 * @return System\DB\DBConnection
 	 */
 	public static function getDBConnection() {
 		if (self::$_dbConnection == null) {
-			self::using("System.DB.*");
+			self::using("System.DB");
 			$args = self::getConfigs("cgaf.db");
 			if (!$args) {
 				$args = self::getConfigs('db');
@@ -1094,13 +1137,13 @@ final class CGAF {
 		}
 		return self::$_locale;
 	}
-	public static function _($msg, $def = null) {
+	public static function _($msg, $def = null, $locale = null) {
 		if (class_exists('AppManager', false)) {
 			if (AppManager::getActiveApp() != null) {
-				return AppManager::getInstance()->getLocale()->_($msg, $def);
+				return AppManager::getInstance()->getLocale()->_($msg, $def, null, $locale);
 			}
 		}
-		return self::getLocale()->_($msg, $def);
+		return self::getLocale()->_($msg, $def, null, $locale);
 	}
 	public static function getInternalStorage($path = null, $checkApp = true, $create = false) {
 		static $istorage;

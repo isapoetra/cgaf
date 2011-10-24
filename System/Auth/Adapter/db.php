@@ -9,6 +9,7 @@ use \CGAF;
 class db extends Table implements IAuthentificatorAdapter {
 	private $_identify;
 	private $_credential;
+	private $_logonMethod;
 	function __construct(\IApplication $appOwner) {
 		if ($appOwner->getConfig("app.internalAuthentification", false)) {
 			$connection = $appOwner;
@@ -25,19 +26,22 @@ class db extends Table implements IAuthentificatorAdapter {
 	}
 	function validate(AuthResult $res) {
 	}
+	function SetLogonMethod($value) {
+		$this->_logonMethod = $value;
+	}
 	function logout() {
-		$o = $this->clear()->Where("user_name=" . $this->quote($this->_identify))->Where("user_status>=1")->loadObject();
+		$o = $this->clear()->Where("user_name=" . $this->quote($this->_identify))->Where("user_state>=1")->loadObject();
 		if ($o) {
-			//$this->bind($o);
-			$this->Update('user_state', 0);
+			$this->clear();
+			$this->Update('user_status', 0);
 			$this->Update('states', serialize(Session::getStates()));
 			$this->exec();
 		}
 	}
 	function authenticate() {
-		$o = $this->clear()->Where("user_name=" . $this->quote($this->_identify))->Where("user_password=" . $this->quote($this->_credential))->Where("user_status>=1")->loadObject();
+		$o = $this->clear()->Where("user_name=" . $this->quote($this->_identify))->Where("user_password=" . $this->quote($this->_credential))->Where("user_state>=1")->loadObject();
 		if ($o) {
-			return new AuthResult(AuthResult::SUCCESS, $this->_identify, unserialize($o->states));
+			return new AuthResult(AuthResult::SUCCESS, $this->_identify, unserialize($o->states),$o,$this->_logonMethod);
 		}
 		return false;
 	}

@@ -3,7 +3,7 @@ namespace System\Web\JS\Engine;
 use System\MVC\Application;
 use \Utils, \CGAF, \Request, \System\Web\JS\CGAFJS;
 use System\Exceptions\AssetException;
-abstract class AbstractJSEngine {
+abstract class AbstractJSEngine implements \IJSEngine {
 	protected $_appOwner;
 	protected $_info;
 	protected $_baseConfig;

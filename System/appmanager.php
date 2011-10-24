@@ -31,7 +31,7 @@ abstract class AppManager extends \StaticObject {
 	 * getInstance of application
 	 *
 	 * @param string $appName
-	 * @return IApplication
+	 * @return \IApplication
 	 */
 	public static function getInstance($appId = null) {
 		if ($appId instanceof \IApplication) {
@@ -72,7 +72,6 @@ abstract class AppManager extends \StaticObject {
 		}
 		if ($appInfo == null) {
 			$appInfo = self::getAppInfo($appId, false);
-
 			if (!$appInfo) {
 				return null;
 			}
@@ -81,7 +80,6 @@ abstract class AppManager extends \StaticObject {
 		$appShortName = $appInfo->app_path ? $appInfo->app_path : $appInfo->app_name;
 		$cName = $appInfo->app_class_name ? $appInfo->app_class_name : CGAF_CLASS_PREFIX . ($appInfo->app_path ? $appInfo->app_path : $appInfo->app_name) . "App";
 		$clsfile = Utils::ToDirectory(CGAF_APP_PATH . DS . $appInfo->app_path . DS . "app.class" . CGAF_CLASS_EXT);
-
 		if (is_file($clsfile)) {
 			CGAF::Using($clsfile);
 		}
@@ -103,14 +101,12 @@ abstract class AppManager extends \StaticObject {
 				Logger::Warning("Application File Not Found." . Logger::WriteDebug("  @%s | %s"), $appFileName, $alt);
 			}
 		}
-
-		$rname = \CGAF::getClassNameFor($cName, '\\System\\Applications',false);
+		$rname = \CGAF::getClassNameFor($cName, '\\System\\Applications', false);
 		if ($rname) {
 			$cName = $rname;
-		}else{
+		} else {
 			$cName = "\\System\\MVC\\Application";
 		}
-
 		if (!class_exists($cName, true)) {
 			throw new SystemException("Class Application $cName Not Found");
 		}
@@ -133,10 +129,21 @@ abstract class AppManager extends \StaticObject {
 		}
 		return null;
 	}
+	public static function getInstanceByPath($path, $throw = true) {
+		$model = self::getModel(true);
+		$model->setFilterACL(FALSE);
+		$model->Where('app_path=' . $model->quote($path));
+		$o = $model->loadObject();
+		if ($o) {
+			//check for security
+			return self::getInstance($o->app_id);
+		}
+		return null;
+	}
 	public static function getAppInfo($id, $throw = true) {
 		$id = $id ? $id : self::getDefaultAppId();
 		$direct = false;
-		if ($id instanceof IApplication) {
+		if ($id instanceof \IApplication) {
 			$id = $id->getAppId();
 			$direct = true;
 		}

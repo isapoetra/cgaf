@@ -1,7 +1,7 @@
 <?php
 namespace System\Web\Utils;
+use System\Web\UI\Items\MenuItem;
 use \AppManager;
-use \System\Collections\Items\MenuItem;
 use \System\Web\UI\Controls\Anchor;
 use \Utils;
 use \System\Session\Session;
@@ -40,8 +40,7 @@ abstract class HTMLUtils {
 		}
 		$retval = array();
 		$matches = array();
-		preg_match_all('/\s([A-Za-z][0-9A-Za-z_\:\.-]*)\="([^"]*)"/i',
-				" " . $attr, $matches);
+		preg_match_all('/\s([A-Za-z][0-9A-Za-z_\:\.-]*)\="([^"]*)"/i', " " . $attr, $matches);
 		foreach ($matches[1] as $k => $v) {
 			$retval[$v] = $matches[2][$k];
 		}
@@ -80,18 +79,16 @@ abstract class HTMLUtils {
 		}
 		return $retval;
 	}
-	public static function renderBoxed($title, $content, $attr = null,
-			$allowNullContent = false) {
+	public static function renderBoxed($title, $content, $attr = null, $allowNullContent = false) {
 		if (!$content && !$allowNullContent) {
 			return null;
 		}
 		$retval = '';
-		$attr = self::mergeAttr($attr,
-				array('class' => 'ui-widget-content ui-corner-all ui-widget-box'));
+		$attr = self::mergeAttr($attr, array(
+				'class' => 'ui-widget-content ui-corner-all ui-widget-box'));
 		$retval .= '<div ' . self::renderAttr($attr) . '>';
 		if ($title) {
-			$retval .= ' <div class="ui-widget-header title"><h4>' . $title
-					. '</h4></div>';
+			$retval .= ' <div class="ui-widget-header title"><h4>' . $title . '</h4></div>';
 		}
 		$retval .= ' <div class="container">' . $content . '</div>';
 		$retval .= '</div>';
@@ -107,8 +104,7 @@ abstract class HTMLUtils {
 		}
 		return $rval;
 	}
-	public static function beginForm($action, $multipart = true,
-			$showMessage = true, $msg = null, $attr = null) {
+	public static function beginForm($action, $multipart = true, $showMessage = true, $msg = null, $attr = null) {
 		$attr = $attr ? $attr : array();
 		if (!is_array($attr)) {
 			$attr = self::attrToArray($attr);
@@ -117,18 +113,13 @@ abstract class HTMLUtils {
 			$attr['id'] = Utils::generateId('frm');
 		}
 		self::$_lastForm = $attr['id'];
-		$retval = '<form method="post" action="' . $action . '" '
-				. ($multipart ? 'enctype="application/x-www-form-urlencoded"'
-						: "") . ' ' . self::renderAttr($attr) . '>';
+		$retval = '<form method="post" action="' . $action . '" ' . ($multipart ? 'enctype="application/x-www-form-urlencoded"' : "") . ' ' . self::renderAttr($attr) . '>';
 		if ($showMessage) {
-			$retval .= '<div id="error-message" class="On" style="'
-					. ($msg ? 'display:block' : 'display:none') . '">'
-					. ($msg ? $msg : '&nbsp;') . '</div>';
+			$retval .= '<div id="error-message" class="On" style="' . ($msg ? 'display:block' : 'display:none') . '">' . ($msg ? $msg : '&nbsp;') . '</div>';
 		}
 		return $retval;
 	}
-	public static function renderButton($type = 'submit', $text = '',
-			$title = '', $attr = null, $showLabel = true, $img = '') {
+	public static function renderButton($type = 'submit', $text = '', $title = '', $attr = null, $showLabel = true, $img = '') {
 		$btn = new \System\Web\UI\Controls\Button();
 		$btn->setAttr('type', $type);
 		$btn->setText($text);
@@ -140,21 +131,15 @@ abstract class HTMLUtils {
 	}
 	public static function renderFormAction() {
 		$retval = '<div class="formAction">';
-		$retval .= self::renderButton('reset', __('reset', 'Reset'),
-				__('reset.descr', 'Reset this form'),
-				array(
-						'class' => 'reset button'), true, 'reset.png');
-		$retval .= self::renderButton('submit', __('submit', 'Submit'),
-				__('submit.descr', 'Submit this form'),
-				array(
-						'class' => 'submit button'), true, 'submit.png');
+		$retval .= self::renderButton('reset', __('reset', 'Reset'), __('reset.descr', 'Reset this form'), array(
+				'class' => 'reset button'), true, 'reset.png');
+		$retval .= self::renderButton('submit', __('submit', 'Submit'), __('submit.descr', 'Submit this form'), array(
+				'class' => 'submit button'), true, 'submit.png');
 		$retval .= '</div>';
 		return $retval;
 	}
 	public static function getJSAsset($js, $live = true, $prefix = null) {
-		$min = AppManager::getInstance()
-				->getResource(Utils::changeFileExt($js, "min.js"), $prefix,
-						$live);
+		$min = AppManager::getInstance()->getResource(Utils::changeFileExt($js, "min.js"), $prefix, $live);
 		$js = AppManager::getInstance()->getResource($js, $prefix, $live);
 		if ($min) {
 			if (CGAF_DEBUG) {
@@ -167,15 +152,13 @@ abstract class HTMLUtils {
 		}
 		return $js;
 	}
-	public static function endForm($renderAction = true, $renderToken = false,
-			$ajaxmode = false) {
+	public static function endForm($renderAction = true, $renderToken = false, $ajaxmode = false) {
 		$retval = "";
 		if ($renderAction) {
 			$retval .= self::renderFormAction();
 		}
 		if ($renderToken) {
-			$retval .= self::renderHiddenField('__token',
-					Session::get('__token'));
+			$retval .= self::renderHiddenField('__token', Session::get('__token'));
 		}
 		$retval .= "</form>";
 		if ($ajaxmode) {
@@ -191,8 +174,7 @@ JS;
 		$retval = "<script type=\"text/javascript\"  language=\"javascript\">$script</script> ";
 		return $retval;
 	}
-	public static function renderCaptcha($captchaId = "__captcha", $attr = null,
-			$showlabel = true) {
+	public static function renderCaptcha($captchaId = "__captcha", $attr = null, $showlabel = true) {
 		$capt = AppManager::getInstance()->getController('captcha');
 		if ($capt) {
 			return $capt->renderContainer($captchaId, $attr, $showlabel);
@@ -206,8 +188,7 @@ JS;
 		if (!$first) {
 			$d = AppManager::getInstance()->getAsset("box.css");
 			if ($d !== null) {
-				$r = "<style>" . self::parseCSS(file_get_contents($d))
-						. "</style>";
+				$r = "<style>" . self::parseCSS(file_get_contents($d)) . "</style>";
 			}
 		}
 		$first = true;
@@ -310,70 +291,78 @@ JS;
 	return $retval . ' ' . $matches [2] . $matches [3];
 	}
 	 */
-	public static function renderTextArea($title, $id, $value, $attr = null,
-			$editMode = true) {
-		return self::renderFormField($title, $id, $value, $attr, $editMode,
-				"textarea");
+	public static function renderTextArea($title, $id, $value, $attr = null, $editMode = true) {
+		return self::renderFormField($title, $id, $value, $attr, $editMode, "textarea");
 	}
-	public static function renderTextBox($title, $id, $value='', $attr = null,
-			$editMode = true) {
+	public static function renderTextBox($title, $id, $value = '', $attr = null, $editMode = true) {
 		return self::renderFormField($title, $id, $value, $attr, $editMode);
 	}
-	public static function renderPassword($title, $id, $value = '',
-			$attr = null, $editMode = true) {
-		return self::renderFormField($title, $id, $value, $attr, $editMode,
-				"password");
+	public static function renderPassword($title, $id, $value = '', $attr = null, $editMode = true) {
+		return self::renderFormField($title, $id, $value, $attr, $editMode, "password");
 	}
-	public static function renderCheckbox($title, $id, $value, $attr = null,
-			$editMode = true) {
+	public static function renderCheckbox($title, $id, $value, $attr = null, $editMode = true) {
 		if ($value) {
-			$attr = self::mergeAttr($attr, array('checked' => 'checked'));
+			$attr = self::mergeAttr($attr, array(
+					'checked' => 'checked'));
 		}
-		return self::renderFormField($title, $id, $value, $attr, $editMode,
-				"checkbox", 'right');
+		return self::renderFormField($title, $id, $value, $attr, $editMode, "checkbox", 'right');
 	}
 	public static function renderHiddenField($id, $value) {
 		return self::renderFormField(null, $id, $value, null, true, 'hidden');
 	}
-	public static function renderHTMLEditor($title,$id,$value=null,$attr=null,$editmode=true) {
+	public static function renderHTMLEditor($title, $id, $value = null, $attr = null, $editmode = true) {
+		return self::renderFormField($title, $id, $value, $attr, $editmode, 'htmleditor');
+	}
+	public static function renderEditor($title,$id,$value,$attr=null,$editmode=true) {
 		return self::renderFormField($title, $id, $value,$attr,$editmode,'htmleditor');
 	}
-	public static function renderFormField($title, $id, $value, $attr = null,
-			$editMode = false, $type = "text", $labelPosition = 'left') {
+	public static function renderFormField($title, $id, $value, $attr = null, $editMode = false, $type = "text", $labelPosition = 'left') {
 		$renderlabel = true;
 		$retval = "";
+		$prefix =null;
+		$suffix=null;
 		switch ($type) {
 		case "checkbox":
 			if ($value) {
-				$attr = self::mergeAttr($attr, array('checked' => 'checked'));
+				$attr = self::mergeAttr($attr, array(
+						'checked' => 'checked'));
 			}
 			break;
 		}
 		$rattr = $attr;
+		if (is_array($attr)) {
+			if (isset($attr['__prefix'])) {
+				$prefix = $attr['__prefix'];
+				unset($attr['__prefix']);
+			}
+			if (isset($attr['__suffix'])) {
+				$suffix = $attr['__suffix'];
+				unset($attr['__suffix']);
+			}
+		}
 		$attr = self::renderAttr($attr);
-		//ppd($attr);
+		//pp($attr);
 		switch ($type) {
 		case 'htmleditor':
 			if ($editMode) {
 				$editor = new HTMLEditor($id, null);
 				$editor->setValue($value);
 				$editor->setConfig($rattr);
-				return ($title ? '<label for="' . $id . '">' . $title
-								. '</label>' : '') . $editor->Render(true);
+				return ($title ? '<label for="' . $id . '">' . $title . '</label>' : '') . $editor->Render(true);
 			}
 		case 'textarea':
 			if ($editMode) {
 				$retval .= "<textarea  id=\"$id\" name=\"$id\" $attr>$value</textarea>";
 			} else {
-				$retval .= '<span id="'.$id.'" class="textarea-value-only" '.$attr.'>' . $value . '</span>';
+				$retval .= '<span id="' . $id . '" class="textarea-value-only" ' . $attr . '>' . $value . '</span>';
 			}
+
 			break;
 		case "checkbox":
 			if ($editMode) {
 				$retval .= "<input type=\"$type\" value=\"$value\" id=\"$id\" name=\"$id\" $attr/>";
 			} else {
-				$retval .= "<span id=\"$id\" $attr>"
-						. Utils::bool2yesno($value) . "</span>";
+				$retval .= "<span id=\"$id\" $attr>" . Utils::bool2yesno($value) . "</span>";
 			}
 			break;
 		case 'hidden':
@@ -389,17 +378,14 @@ JS;
 			}
 			break;
 		}
+		$retval .= $suffix;
 		if ($renderlabel) {
-			$lbl = ($title ? "<label for=\"$id\" class=\"field\">$title</label>"
-					: "");
-			$retval = "<div class=\"$id ui-input-container\" id=\"$id-container\">"
-					. ($labelPosition === 'left' ? $lbl : '') . $retval
-					. ($labelPosition === 'right' ? $lbl : '') . '</div>';
+			$lbl = ($title ? "<label for=\"$id\" class=\"field\">$title</label>" : "");
+			$retval = "<div class=\"$id ui-input-container\" id=\"$id-container\">" . ($labelPosition === 'left' ? $lbl : '') . $retval . ($labelPosition === 'right' ? $lbl : '') . '</div>';
 		}
 		return $retval;
 	}
-	public static function renderRadioGroups($title, $id, $items,
-			$selected = null, $nonevalue = '-1', $baseLang = null) {
+	public static function renderRadioGroups($title, $id, $items, $selected = null, $nonevalue = '-1', $baseLang = null) {
 		$retval = "";
 		if ($title) {
 			$retval .= '<label>' . $title;
@@ -409,46 +395,38 @@ JS;
 			if (is_object($item)) {
 				$key = $item->key;
 				$value = $item->value;
-				$tt = $item->descr;
-				$ttitle = $item->title ? $item->title : ($tt ? $tt : $value);
+				$tt = @$item->descr;
+				$ttitle = @$item->title ? @$item->title : ($tt ? $tt : $value);
 			} else {
 				$key = $item['key'];
 				$value = $item['value'];
 				$tt = $item['descr'];
-				$ttitle = isset($item['title']) ? $item['title']
-						: (isset($item['descr']) ? $item['descr'] : $item['key']);
+				$ttitle = isset($item['title']) ? $item['title'] : (isset($item['descr']) ? $item['descr'] : $item['key']);
 			}
 			$sel = '';
 			if ($key == $selected) {
 				$sel = 'checked="checked"';
 			}
-			$retval .= '<label><input title="' . $tt . '" type="radio" id="'
-					. $id . '_' . $key . '" name="' . $id . '" value="' . $key
-					. '" ' . $sel . '/>' . $ttitle . '</label><br/>';
+			$retval .= '<label><input title="' . $tt . '" type="radio" id="' . $id . '_' . $key . '" name="' . $id . '" value="' . $key . '" ' . $sel . '/>' . $ttitle . '</label><br/>';
 		}
 		if ($title) {
 			$retval .= '</label>';
 		}
 		return $retval;
 	}
-	public static function renderSelect($title, $id, $items, $selected = null,
-			$nonevalue = '-1', $baseLang = null, $attr = null, $editmode = true,
-			$content = null) {
+	public static function renderSelect($title, $id, $items, $selected = null, $nonevalue = '-1', $baseLang = null, $attr = null, $editmode = true, $content = null) {
 		$retval = "";
 		if ($title) {
-			$retval .= '<label class="field" for="' . $id . '">' . $title
-					. '</label>';
+			$retval .= '<label class="field" for="' . $id . '">' . $title . '</label>';
 		}
 		if ($editmode) {
-			$retval .= '<select id="' . $id . '" name="' . $id . '" '
-					. self::renderAttr($attr) . '>';
+			$retval .= '<select id="' . $id . '" name="' . $id . '" ' . self::renderAttr($attr) . '>';
 			$baseLang = $baseLang ? $baseLang : $id;
 			foreach ($items as $item) {
 				if (is_object($item)) {
 					$key = isset($item->key) ? $item->key : $item->title;
 					$value = $item->value ? $item->value : $key;
-					$tt = isset($item->descr) && $item->descr ? $item->descr
-							: $value;
+					$tt = isset($item->descr) && $item->descr ? $item->descr : $value;
 				} else {
 					$key = $item['key'];
 					$value = $item['value'];
@@ -458,13 +436,10 @@ JS;
 				if ($key == $selected) {
 					$sel = 'selected="selected"';
 				}
-				$retval .= "<option $sel value=\"$key\" title=\""
-						. htmlentities($tt) . "\">"
-						. __($baseLang . '.' . $value, $value) . "</option>";
+				$retval .= "<option $sel value=\"$key\" title=\"" . htmlentities($tt) . "\">" . __($baseLang . '.' . $value, $value) . "</option>";
 			}
 			if ($nonevalue !== false && $nonevalue !== null) {
-				$retval .= "<option value=\"$nonevalue\" title=\"None\">"
-						. __($baseLang . '.None', 'None') . "</option>";
+				$retval .= "<option value=\"$nonevalue\" title=\"None\">" . __($baseLang . '.None', 'None') . "</option>";
 			}
 			$retval .= '</select>';
 		} else {
@@ -492,14 +467,11 @@ JS;
 		}
 		return null;
 	}
-	public static function renderPagination($currentPage, $pageCount, $dataUrl,
-			$rowperpage = 10) {
+	public static function renderPagination($currentPage, $pageCount, $dataUrl, $rowperpage = 10) {
 		$rowperpage = Request::get("_rp", $rowperpage);
 		$dataUrl = $dataUrl ? $dataUrl : \URLHelper::getOrigin();
 		$retval = "<div  class=\"navigation\">";
-		$retval .= "<span>"
-				. sprintf("Page %s of %s", $currentPage + 1, $pageCount)
-				. "</span>&nbsp;";
+		$retval .= "<span>" . sprintf("Page %s of %s", $currentPage + 1, $pageCount) . "</span>&nbsp;";
 		$retval .= "<div class=\"pagenumber\">";
 		$max = $pageCount >= 10 ? 10 : $pageCount;
 		for ($i = 0; $i < $max; $i++) {
@@ -510,14 +482,11 @@ JS;
 				$title = "[$title]";
 			}
 			$uri = \URLHelper::addParam($dataUrl, "_cp=$i&_rpp=$rowperpage");
-			echo "<a href=\"" . $uri
-					. "\" class=\"$class\" onclick=\"paginate(this,'#profileinfogrid')\">$title</a>";
+			echo "<a href=\"" . $uri . "\" class=\"$class\" onclick=\"paginate(this,'#profileinfogrid')\">$title</a>";
 		}
 		if ($pageCount > 10) {
-			$uri = \URLHelper::addParam($dataUrl,
-					"_page=$pageCount&_rp=$rowperpage");
-			echo "...<a href=\"" . $uri
-					. "\" class=\"$class\" onclick=\"paginate(this,'#profileinfogrid')\">$pageCount<a>";
+			$uri = \URLHelper::addParam($dataUrl, "_page=$pageCount&_rp=$rowperpage");
+			echo "...<a href=\"" . $uri . "\" class=\"$class\" onclick=\"paginate(this,'#profileinfogrid')\">$pageCount<a>";
 		}
 		$retval .= "</div>";
 		$retval .= "</div>";
@@ -543,8 +512,7 @@ JS;
 			$retval .= "</tr>";
 		}
 		$retval .= "</table>";
-		$retval .= self::renderPagination($currentPage, $rows["rowCount"],
-				$dataUrl, $rowperpage);
+		$retval .= self::renderPagination($currentPage, $rows["rowCount"], $dataUrl, $rowperpage);
 		$retval .= "</div>";
 		if (Request::isSupport("javascript")) {
 			$retval .= "<script type=\"text/javascript\">";
@@ -561,24 +529,22 @@ JS;
 		return $retval;
 	}
 	public static function renderError($msg) {
+		if (!$msg) {
+			return '';
+		}
 		return '<div class="error">' . $msg . '</div>';
 	}
-	public static function renderLink($link, $title, $attr = null, $icon = null,
-			$descr = null) {
+	public static function renderLink($link, $title, $attr = null, $icon = null, $descr = null,$showlabel=true) {
 		$icon = $icon ? $icon : 'cleardot.gif';
 		if (!$attr) {
 			$attr = array();
 		}
 		$icon = AppManager::getInstance()->getLiveAsset($icon, 'images');
-		$attr = $descr ? self::mergeAttr('title="' . $descr . '"', $attr)
-				: $attr;
+		$attr = $descr ? self::mergeAttr('title="' . $descr . '"', $attr) : $attr;
 		$icon = $icon ? '<img src="' . $icon . '"/>' : '';
-		return '<a href="' . $link . '" ' . self::renderAttr($attr)
-				. '><span class="tdl"></span>' . $icon . '<span class="title">'
-				. $title . '</span></a>';
+		return '<a href="' . $link . '" ' . self::renderAttr($attr) . '><span class="tdl"></span>' . $icon . ($showlabel ? '<span class="title">' . $title . '</span></a>' : '');
 	}
-	public static function renderButtonLink($link, $title = null, $attr = null,
-			$icon = null, $descr = null) {
+	public static function renderButtonLink($link, $title = null, $attr = null, $icon = null, $descr = null) {
 		if (is_array($link)) {
 			if (!count($link)) {
 				return null;
@@ -587,8 +553,7 @@ JS;
 			foreach ($link as $k => $v) {
 				$v['attr'] = isset($v['attr']) ? $v['attr'] : null;
 				$v['title'] = isset($v['title']) ? $v['title'] : null;
-				$retval .= self::renderButtonLink($v['url'], $v['title'],
-						$v['attr'], $v['icon'], $v['descr']);
+				$retval .= self::renderButtonLink($v['url'], $v['title'], $v['attr'], $v['icon'], $v['descr']);
 			}
 			$retval .= '</ul>';
 			return $retval;
@@ -603,10 +568,9 @@ JS;
 		}
 	}
 	public static function renderSpanImg($title, $attr) {
-		return '<span ' . $attr . '><img src="/Data/images/cleardot.gif"/>'
-				. $title . '</span>';
+		return '<span ' . $attr . '><img src="/Data/images/cleardot.gif"/>' . $title . '</span>';
 	}
-	public static function renderLinks($items, $attr = null) {
+	public static function renderLinks($items, $attr = null, $replacer = null) {
 		$retval = '';
 		if (!is_array($items)) {
 			return null;
@@ -615,18 +579,22 @@ JS;
 			return null;
 		}
 		$retval = '<ul ' . self::renderAttr($attr) . '>';
-		foreach ($items as $item) {
+		foreach ($items as $k => $item) {
 			$ir = '';
-			if ($item instanceof IRenderable) {
+			if ($item instanceof MenuItem) {
+				$item->setReplacer($replacer);
+				$retval .= $item->Render(true);
+			} elseif ($item instanceof IRenderable) {
 				$ir = $item->Render(true);
 			} elseif (is_array($item)) {
-				$item['attr'] = isset($item['attr']) ? $item['attr'] : '';
-				$item['icon'] = isset($item['icon']) ? $item['icon'] : '';
-				$item['descr'] = isset($item['descr']) ? $item['descr'] : '';
-				$item['title'] = isset($item['title']) ? $item['title']
-						: $item['url'];
-				$ir = self::renderLink($item['url'], $item['title'],
-						$item['attr'], $item['icon'], $item['descr']);
+				$nitem = new MenuItem($k, @$item['title'], $item['url'], @$item['selected']);
+				$nitem->setDescr(isset($item['descr']) ? $item['descr'] : '');
+				$nitem->setIcon(isset($item['icon']) ? $item['icon'] : '');
+				$nitem->setReplacer($replacer);
+				if (isset($item['attr'])) {
+					$nitem->setAttrs($item['attr']);
+				}
+				$retval .= $nitem->Render(true);
 			}
 			if ($ir) {
 				$retval .= '<li>' . $ir . '</li>';
@@ -684,30 +652,21 @@ EOT;
 		}
 		return $retval;
 	}
-	public static function renderCoordinate($value, $xfield = 'xcoord',
-			$yfield = 'ycoord', $editmode = true) {
+	public static function renderCoordinate($value, $xfield = 'xcoord', $yfield = 'ycoord', $editmode = true) {
 		$retval = '<fieldset><legend>Coordinate</legend>';
 		$retval .= '<table width="100%" cellspacing="0" cellpadding="0" class="input-coordinate">';
 		$retval .= '<tr>';
-		$retval .= '<td>'
-				. self::renderTextBox(__('longitude', 'Longitude'), $xfield,
-						$value[$xfield], array(
-								'class' => 'required number'), $editmode)
-				. '</td>';
-		$retval .= '<td>'
-				. self::renderTextBox(__('latitude', 'Latitude'), $yfield,
-						$value[$yfield], array(
-								'class' => 'required number'), $editmode)
-				. '</td>';
-		if (AppManager::getInstance()
-				->getConfig('app.enablegooglemap', CGAF_DEBUG)) {
+		$retval .= '<td>' . self::renderTextBox(__('longitude', 'Longitude'), $xfield, $value[$xfield], array(
+						'class' => 'required number'), $editmode) . '</td>';
+		$retval .= '<td>' . self::renderTextBox(__('latitude', 'Latitude'), $yfield, $value[$yfield], array(
+						'class' => 'required number'), $editmode) . '</td>';
+		if (AppManager::getInstance()->getConfig('app.enablegooglemap', CGAF_DEBUG)) {
 			$retval .= '<tr><td colspan="2" align="right"><button>Pick From Map</button></td></tr>';
 		}
 		$retval .= '</tr></table></fieldset>';
 		return $retval;
 	}
-	public static function renderMenu($items, $selected = null, $class = null,
-			$repl = null, $menuid = null) {
+	public static function renderMenu($items, $selected = null, $class = null, $repl = null, $menuid = null) {
 		if (!$items) {
 			return '';
 		}
@@ -715,8 +674,7 @@ EOT;
 		$retval = "<ul class=\"$class menu\" id=\"" . $menuid . "\">";
 		foreach ($items as $k => $item) {
 			if (!($item instanceof MenuItem)) {
-				$item = new MenuItem(
-						Utils::bindToObject(new \stdClass(), $item, true));
+				$item = new MenuItem(Utils::bindToObject(new \stdClass(), $item, true));
 			}
 			if ($repl) {
 				$item->setReplacer($repl);
@@ -737,8 +695,7 @@ EOT;
 
 		$purifier = new HTMLPurifier($config);
 		return $purifier->purify($html);*/
-		$h1count = preg_match_all('/(<script.*>)(.*)(<\/script>)/imxsU', $html,
-				$patterns);
+		$h1count = preg_match_all('/(<script.*>)(.*)(<\/script>)/imxsU', $html, $patterns);
 		$html = preg_replace('/(<script.*>)(.*)(<\/script>)/imxsU', '', $html);
 		$direct = '';
 		echo '<pre>';
@@ -774,12 +731,12 @@ EOT;
 		}
 		return \Utils::toString($o);
 	}
-	public static function renderConfig($title,$id,$config) {
+	public static function renderConfig($title, $id, $config) {
 		$content = '';
-		foreach($config as $k=>$v) {
-			$content .= self::renderTextBox(__($id.'.'.$k,$k), $id.'_'.$k,$v);
+		foreach ($config as $k => $v) {
+			$content .= self::renderTextBox(__($id . '.' . $k, $k), $id . '_' . $k, $v);
 		}
-		return HTMLUtils::renderBoxed('Database Configuration',$content);
+		return HTMLUtils::renderBoxed('Database Configuration', $content);
 	}
 	public static function attributeToArray($attr) {
 		if (is_array($attr)) {

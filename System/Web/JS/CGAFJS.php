@@ -16,12 +16,12 @@ final class CGAFJS {
 	private static $_appOwner;
 	private static $_jq;
 	private static $_pluginsLoader = array();
-	public static function initialize(Application $appOwner=null) {
+	public static function initialize(Application $appOwner = null) {
 		static $initialized;
 		if ($initialized)
 			return;
 		if (!$appOwner) {
-			$appOwner=\AppManager::getInstance();
+			$appOwner = \AppManager::getInstance();
 		}
 		if (Request::isAJAXRequest())
 			return;
@@ -42,11 +42,11 @@ final class CGAFJS {
 			self::setConfig('jq.version', $info['version']);
 			self::setConfig('jq.compat', $info['compat']);
 			self::setConfig('baseurl', BASE_URL);
-			self::setConfig('appurl', APP_URL);
+			self::setConfig('appurl', \AppManager::getInstance()->getAppURL());
 		}
 		$assets = array(
-				cgaf::getConfig('js.cdn.modernizr', 'modernizr.js'),
-				cgaf::getConfig('js.cdn.jquery', 'jquery.js'),
+				//cgaf::getConfig('js.cdn.modernizr', 'modernizr.js'),
+				//cgaf::getConfig('js.cdn.jquery', 'jquery.js'),
 				//CGAF_DEBUG ? 'plugins/jquery.lint.js' : '',
 				'cgaf/cgaf.js',
 				'cgaf/cgaf-jq.js',
@@ -56,28 +56,36 @@ final class CGAFJS {
 			$assets[] = 'cgaf/debug.js';
 			$assets[] = 'cgaf/css/debug.css';
 		}
-		$plugins = CGAF::getConfigs('js.plugins');
-		if ($plugins) {
-			Utils::arrayMerge($assets, $jq->getAsset($plugins, 'plugins'));
-		}
-		$plugins = null;
-		try {
-			$plugins = CGAF::getConfigs('js' . self::$_appOwner->getController()->getControllerName() . '.plugins');
-		} catch (Exception $e) {
-		}
+		$plugins = CGAF::getConfigs('cgaf.js.plugins');
 		if ($plugins) {
 			Utils::arrayMerge($assets, $jq->getAsset($plugins, 'plugins'));
 		}
 		self::$_appOwner->addClientAsset($jq->getAsset($assets));
 		$jq->initialize($appOwner);
+		$plugins = null;
+		try {
+			if (self::$_appOwner->getController()) {
+				$plugins = CGAF::getConfigs('js' . self::$_appOwner->getController()->getControllerName() . '.plugins');
+			}
+		} catch (\Exception $e) {
+		}
+		if ($plugins) {
+			self::$_appOwner->addClientAsset($jq->getAsset($plugins, 'plugins'));
+		}
+
 		return true;
 	}
 	public static function addJQAsset($asset) {
+		if (!self::$_appOwner) {
+			return;
+		}
 		$asset = self::$_jq->getAsset($asset);
 		return self::$_appOwner->addClientAsset($asset);
 	}
 	public static function loadUI() {
-		self::$_jq->loadUI();
+		if (self::$_jq) {
+			self::$_jq->loadUI();
+		}
 	}
 	private static function getAppOwner() {
 		return AppManager::getInstance();
@@ -112,6 +120,9 @@ final class CGAFJS {
 	}
 	public static function loadPlugin($plugin, $direct = false) {
 		self::initialize();
+		if (!self::$_appOwner) {
+			return;
+		}
 		if (isset(self::$_pluginsLoader[$plugin])) {
 			$assets = self::$_pluginsLoader[$plugin]['assets'];
 			if ($direct) {
@@ -124,7 +135,7 @@ final class CGAFJS {
 			self::$_appOwner->addClientAsset($plugin);
 			return;
 		}
-		if (!in_array(self::$_plugins, $plugin)) {
+		if (!in_array($plugin, self::$_plugins)) {
 			self::$_plugins[] = $plugin;
 		}
 	}
@@ -154,25 +165,32 @@ final class CGAFJS {
 		} else {
 			$plugin = null;
 		}
-		$retval = PHP_EOL . '(function($) { ';
-		$retval .= PHP_EOL . 'if (!$) { $=jQuery;}';
-		$retval .= PHP_EOL . $config;
-		$retval .= PHP_EOL . $css;
+		$retval = array();
+		$retval[] = 'if (typeof(jQuery) !== \'undefined\') {';
+		$retval[] = '(function($) { ';
+		$retval[] = 'if (!$) { $=jQuery;}';
+		$retval[] = $config;
+		$retval[] = $css;
 		if (count(self::$_jsToLoad)) {
-			$retval .= PHP_EOL . 'cgaf.require(' . $json . ',function(){';
+			$retval[] = 'cgaf.require(' . $json . ',function(){';
 		}
-		$retval .= $plugin;
+		$retval[] = $plugin;
 		if (!Request::isAJAXRequest()) {
-			$retval .= "cgaf.setReady(true);";
+			$retval[] = "cgaf.setReady(true);";
 		}
-		$retval .= PHP_EOL . $s;
+		$retval[] = $s;
 		if (count(self::$_plugins)) {
-			$retval .= PHP_EOL . '});';
+			$retval[] = '});';
 		}
 		if (count(self::$_jsToLoad)) {
-			$retval .= PHP_EOL . '});';
+			$retval[] = '});';
 		}
-		$retval .= '})();';
-		return JSUtils::renderJSTag($retval,false);
+		$retval[] = '})();';
+		$retval[] = '}';
+		\Utils::arrayRemoveEmptyValue($retval);
+		if (count($retval) <= 3) {
+			return null;
+		}
+		return JSUtils::renderJSTag($retval, false);
 	}
 }

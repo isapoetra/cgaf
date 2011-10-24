@@ -3,12 +3,11 @@ namespace System\DB;
 class DBResultList implements \Iterator {
 	private $_crow = 0;
 	private $_rows = array();
-	private $_insert_id=null;
-	private $_affectedRow=null;
+	private $_insert_id = null;
+	private $_affectedRow = null;
 	function Assign($o) {
-		$this->_crow = - 1;
-		$this->_rows [] = $o;
-
+		$this->_crow = -1;
+		$this->_rows[] = $o;
 	}
 	function getLastInsertId() {
 		return $this->_insert_id;
@@ -20,7 +19,7 @@ class DBResultList implements \Iterator {
 		return $this->_affectedRow;
 	}
 	function setLastInsertId($id) {
-		$this->_insert_id =$id;
+		$this->_insert_id = $id;
 	}
 	function count() {
 		return count($this->_rows);
@@ -31,45 +30,64 @@ class DBResultList implements \Iterator {
 		}
 		return null;
 	}
-
 	function First() {
 		if (count($this->_rows)) {
 			$this->_crow = 0;
-			return $this->_rows [0];
+			return $this->_rows[0];
 		}
 		return null;
 	}
 	function Rows($row) {
 		if ($row >= 0 && $row < count($this->_rows)) {
-			return $this->_rows [$row];
+			return $this->_rows[$row];
 		}
 		return null;
 	}
 	function next() {
-		$this->_crow ++;
-
+		$this->_crow++;
 		return $this->current();
 	}
 	/**
 	 *
 	 */
 	public function key() {
-
 	}
-
 	/**
 	 *
 	 */
 	public function valid() {
 		return $this->_crow >= 0 && $this->_crow < $this->count();
 	}
-
 	/**
 	 *
 	 */
 	public function rewind() {
-		$this->_crow = - 1;
+		$this->_crow = -1;
 	}
-
+	private function rowToHash($row, $fk, $fv, &$retval) {
+		$retval[$row->$fk] = $row->$fv;
+		return $retval;
+	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @param string $fk Field Key
+	 * @param string $fv Field Value
+	 */
+	public function toHashList($fk = null, $fv = null) {
+		$r = $this->First();
+		if (!$r) {
+			return array();
+		}
+		$rk = array_keys(get_object_vars($r));
+		$fk = $fk ? $fk : $rk[0];
+		$fv = $fv ? $fv : (isset($rk[1]) ? $rk[1] : $rk[0]);
+		$retval = array();
+		$this->rowToHash($r, $fk, $fv, $retval);
+		while ($r = $this->next()) {
+			$this->rowToHash($r, $fk, $fv, $retval);
+		}
+		return $retval;
+	}
 }
 ?>

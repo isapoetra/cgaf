@@ -1,3 +1,13 @@
 address=Address
 verificationcode=Verification Code
 birthdate=Birth Date
+locale.en=English
+locale.id=Indonesian
+locale.select=Select Language
+religion.moslem=Moslem
+religion.protestant=Protestant
+religion.catholic=Catholic
+religion.hindu=Hindu
+religion.budhist=Budhist
+client.dateFormat=mm/dd/yy
+data.stored=Data Stored

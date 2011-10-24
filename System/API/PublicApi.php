@@ -1,21 +1,47 @@
 <?php
 namespace System\API;
+use System\Exceptions\SystemException;
+
 use System\Configurations\Configuration;
 use \AppManager;
 use \CGAF;
 abstract class PublicApi {
+	protected $_apijs = array();
 	protected $_config;
 	protected static $_appOwner;
 	private static $_instances = array();
 	function __construct($config = array()) {
 		$this->_config = new Configuration($config, false);
 	}
-	abstract function init($service);
+	public function initJS() {
+	}
+	public function init($service) {
+		$service = strtolower($service);
+		$this->initJS();
+		$js = isset($this->_apijs[$service]) ? $this->_apijs[$service] : null;
+		if ($js) {
+			AppManager::getInstance()->addClientAsset($js);
+		}
+	}
 	function setConfigs($configs) {
 		$this->_config->setConfigs($configs);
 	}
 	public static function getAppOwner() {
 		return self::$_appOwner ? self::$_appOwner : AppManager::getInstance();
+	}
+	public static function share($api, $method, $config = null) {
+		$instance = self::getInstance($api);
+		if (method_exists($instance, $method)) {
+			$instance->init($method);
+			return $instance->$method($config);
+		}
+		if (CGAF_DEBUG) {
+			throw new SystemException('undefined method '.$method.' on class '.get_class($instance));
+		}
+	}
+	public static function getInstance($api) {
+		$c = "\\System\\API\\" . $api;
+		return new $c();
 	}
 	private static function Initialize($appOwner = null) {
 		static $initialized;
@@ -23,7 +49,6 @@ abstract class PublicApi {
 			return;
 		$initialized = true;
 		self::$_appOwner = $appOwner ? $appOwner : AppManager::getInstance();
-
 		$share = self::$_appOwner->getConfig('app.web.share');
 		if ($share) {
 			foreach ($share as $k => $v) {
@@ -45,5 +70,4 @@ abstract class PublicApi {
 	protected function getConfig($configName, $default = null) {
 		return $this->_config->getConfig($configName, $default);
 	}
-
 }

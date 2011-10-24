@@ -55,7 +55,8 @@ class ACLHelper {
 			"MAX" => ACLHelper::ACCESS_MAX);
 	public static function getUserId() {
 		$data = AppManager::getInstance()->getAuthInfo();
-		return $data ? $data->user_id : self::PUBLIC_USER_ID;
+
+		return $data ? $data->getUserInfo()->user_id : self::PUBLIC_USER_ID;
 	}
 	/**
 	 *
@@ -77,12 +78,11 @@ class ACLHelper {
 	}
 	public static function isAllowUID($uid = null, $access = "view", $rnull = false) {
 		$data = AppManager::getInstance()->getAuthInfo();
-		if ($data && $uid === null) {
-			$uid = (int) $data->user_id;
+		$uid = $uid == null ? ACLHelper::getUserId() : $uid;
+		if ((int) $uid !== (int) ACLHelper::getUserId()) {
+			return AppManager::getInstance()->getACL()->isAdmin() ? $uid : ACLHelper::getUserId();
 		}
-		if ($data && (int) $uid !== (int) $data->user_id) {
-			return AppManager::getInstance()->getACL()->isAdmin() ? $uid : $data->user_id;
-		}
+
 		return $rnull ? null : (int) $uid;
 	}
 	public static function getAuthInfo() {
@@ -105,6 +105,13 @@ class ACLHelper {
 			return false;
 		return $acl->isAllow($modid, 'modules', $op);
 	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @param string $type
+	 * @param mixed $app
+	 * @return IACL
+	 */
 	public static function getACLInstance($type, $app) {
 		$cname = '\\System\\ACL\\Provider\\' . $type;
 		return new $cname($app);

@@ -5,7 +5,7 @@ class Model extends Table {
 	function getModel($model) {
 		return $this->getAppOwner ()->getModel ( $model );
 	}
-	function reset($mode = null) {
+	function reset($mode = null,$id=null) {
 		return $this->clear ();
 	}
 	function resetgrid($id = null) {

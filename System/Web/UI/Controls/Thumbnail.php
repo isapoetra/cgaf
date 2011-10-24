@@ -49,7 +49,7 @@ class ThumbnailItem extends WebControl {
 			$retval .= '</div>';
 		}
 		$retval .= '</div>';
-		$retval .= '<a href="' . $this->action . '" class="title" title="'.$this->getTitle().'"><span>' . $this->getTitle() . '</span></a>';
+		$retval .= '<a href="' . $this->action . '" class="item-title" title="'.$this->getTitle().'"><span>' . $this->getTitle() . '</span></a>';
 		$retval .= '</div></div>';
 		return $retval;
 	}

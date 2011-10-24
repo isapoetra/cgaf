@@ -56,6 +56,10 @@ abstract class Session {
 		}
 		return self::getInstance()->Start();
 	}
+	public static function reStart() {
+		$instance = self::getInstance();
+		return self::getInstance()->reStart();
+	}
 	public static function getId() {
 		return self::getInstance()->getId();
 	}
@@ -66,6 +70,9 @@ abstract class Session {
 	}
 	public static function registerState($stateGroup) {
 		return self::getInstance()->registerState($stateGroup);
+	}
+	public static function unregisterState($stateGroup) {
+		return self::getInstance()->unregisterState($stateGroup);
 	}
 	public static function setState($stateGroup, $stateName, $default = null) {
 		return self::getInstance()->setState($stateGroup, $stateName, $default);

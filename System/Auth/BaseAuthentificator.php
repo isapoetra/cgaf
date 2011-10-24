@@ -4,7 +4,6 @@ use System\Events\LoginEvent;
 use System\ACL\ACLHelper;
 use System\Session\Session;
 use System\IAuthentificator;
-
 abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 	private $_appOwner;
 	private $_lastError = null;
@@ -20,6 +19,7 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 	protected function setLastError($value) {
 		$this->_lastError = $value;
 	}
+	abstract function authDirect($username, $password, $method = 'local');
 	/**
 	 * Enter description here ...
 	 * @param unknown_type $configName
@@ -28,11 +28,11 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 	function getConfig($configName, $def) {
 		return $this->_appOwner->getConfig('auth.' . $configName, $def);
 	}
-	protected function getAuthArgs($args =null) {
+	protected function getAuthArgs($args = null) {
 		$req = array(
-						"username" => "",
-						"password" => "",
-						"remember" => "");
+				"username" => "",
+				"password" => "",
+				"remember" => "");
 		if ($args == null) {
 			$args = \Request::gets();
 		}
@@ -43,7 +43,6 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 				$retval->$k = $v;
 			}
 		}
-
 		return $retval;
 	}
 	protected function setAuthInfo(AuthResult $info) {
@@ -57,9 +56,7 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 	 * @see System.IAuthentificator::Logout()
 	 */
 	public function Logout() {
-		Session::remove("__auth");
-		Session::remove("__logonInfo");
-		Session::destroy();
+		Session::restart();
 		$this->getAppOwner()->dispatchEvent(new LoginEvent($this, LoginEvent::LOGOUT));
 		\Response::forceContentExpires();
 	}
@@ -72,6 +69,22 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 			return Session::get("__logonInfo", null);
 		}
 		return null;
+	}
+	function encryptPassword($p) {
+		return $p;
+	}
+	function generateRandomPassword($length = 8, $encrypt = true) {
+		$chars = "abcdefghijkmnopqrstuvwxyz023456789";
+		srand((double) microtime() * 1000000);
+		$i = 0;
+		$pass = '';
+		while ($i <= $length) {
+			$num = rand() % 33;
+			$tmp = substr($chars, $num, 1);
+			$pass = $pass . $tmp;
+			$i++;
+		}
+		return $encrypt ? $this->encryptPassword($pass) : $pass;
 	}
 	/**
 	 * (non-PHPdoc)

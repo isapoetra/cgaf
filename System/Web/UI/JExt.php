@@ -2,6 +2,7 @@
 namespace System\Web\UI;
 use System\Collections\Collection;
 use \CGAF;
+use \AppManager;
 abstract class JExt {
 	const ICON_ADD = "bnew";
 	const ICON_EDIT = "bedit";

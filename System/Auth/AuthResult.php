@@ -8,16 +8,17 @@ class AuthResult extends \Object {
 	private $_identify;
 	private $_userInfo;
 	private $_states;
-	function __construct($result, $identify,$states) {
+	private $_logonMethod;
+	function __construct($result, $identify, $states, $userInfo, $logonMethod = 'local') {
 		$this->_status = $result;
 		$this->_identify = $identify;
 		$this->_states = $states;
+		$this->_userInfo = $userInfo;
+		$this->_logonMethod = $logonMethod;
 	}
-
 	function getStatus() {
 		return $this->_status;
 	}
-
 	function getIdentify() {
 		return $this->_identify;
 	}
@@ -26,11 +27,10 @@ class AuthResult extends \Object {
 	}
 	function getUserInfo() {
 		if (!$this->_userInfo) {
-			$this->_userInfo = AppManager::getInstance()->getModel('user')->loadByIdentify($this->_identify);
+			throw new \Exception('userinfo not set');
 		}
 		return $this->_userInfo;
 	}
-
 	function getUserId() {
 		$ui = $this->getUserInfo();
 		return $ui ? $ui->user_id : -1;

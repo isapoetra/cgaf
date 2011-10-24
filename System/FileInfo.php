@@ -10,8 +10,7 @@ final class FileInfo extends Object {
 		static $mime;
 		if (!isset($mime[$fileext])) {
 			$regex = "/^([\w\+\-\.\/]+)\s+(\w+\s)*($fileext\s)/i";
-			$lines = file(CGAF::getInternalStorage(null, false) . DS
-					. "mime.types");
+			$lines = file(CGAF::getInternalStorage(null, false) . "mime.types");
 			foreach ($lines as $line) {
 				if (substr($line, 0, 1) == '#')
 					continue;

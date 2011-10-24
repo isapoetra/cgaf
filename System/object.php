@@ -1,32 +1,29 @@
 <?php
 interface IEventDispatcher {
-	function addEventListener($type,$callback);
-	function RemoveEventListener($type,$callback);
+	function addEventListener($type, $callback);
+	function RemoveEventListener($type, $callback);
 	function dispatchEvent($event);
 }
 interface IObject {
-
 	/**
 	 * getAllowed properties
 	 * @return array
 	 */
-	function setValue ($value);
-
-	function getValue ();
-
-	function assign ($var, $val=null);
+	function setValue($value);
+	function getValue();
+	function assign($var, $val = null);
 }
 class Object extends \stdClass implements IObject, IEventDispatcher {
 	protected $_value;
 	protected $_name;
-	protected $_e = array ();
-	protected $_internal = array ();
+	protected $_e = array();
+	protected $_internal = array();
 	protected $_strict;
 	protected $_param;
 	protected $_sender;
 	private $_reflection;
 	private $_lastError;
-	protected $_events = array ();
+	protected $_events = array();
 	/**
 	 * TGObject::__construct()
 	 *
@@ -41,67 +38,64 @@ class Object extends \stdClass implements IObject, IEventDispatcher {
 		$this->_param = $param;
 	}
 	function __destruct() {
-		$this->_events = array ();
-		$this->_internal = array ();
+		$this->_events = array();
+		$this->_internal = array();
 	}
 	function addEventListener($type, $callback) {
-		$this->_events [$type] [] = $callback;
-
+		$this->_events[$type][] = $callback;
 	}
 	protected function addEventHandler($name) {
-		if (is_string ( $name )) {
-			$name = strtolower ( $name );
-			if (! isset ( $this->_e [$name] )) {
-				$this->_e [$name] = new TList ();
+		if (is_string($name)) {
+			$name = strtolower($name);
+			if (!isset($this->_e[$name])) {
+				$this->_e[$name] = array();
 			}
-		} elseif (is_array ( $name )) {
-			foreach ( $name as $namex ) {
-				if (is_string ( $name )) {
-					$this->addEvent ( $namex );
+		} elseif (is_array($name)) {
+			foreach ($name as $namex) {
+				if (is_string($name)) {
+					$this->addEvent($namex);
 				} else {
-					throw new SystemException ( "Unkhown Event" );
+					throw new SystemException("Unkhown Event");
 				}
 			}
 		} else {
-			throw new SystemException ( "Unkhown Event" );
+			throw new SystemException("Unkhown Event");
 		}
 	}
 	function RemoveEventListener($type, $callback) {
-		foreach ( $this->_events [$type] as $k => $v ) {
+		foreach ($this->_events[$type] as $k => $v) {
 			if ($v == $callback) {
-				unset ( $this->_events [$type] [$k] );
+				unset($this->_events[$type][$k]);
 			}
 		}
 	}
 	function __call($name, $a) {
-		throw new Exception ( 'Undefined Method ' . $name . ' In Class ' . get_class ( $this ) );
+		throw new Exception('Undefined Method ' . $name . ' In Class ' . get_class($this));
 	}
 	function dispatchEvent($event) {
-		if (! CGAF::isInitialized ()) {
+		if (!CGAF::isInitialized()) {
 			return;
 		}
-		foreach ( $this->_events as $k => $v ) {
+		foreach ($this->_events as $k => $v) {
 			if ($k == '*' || $k == $event->type) {
-				foreach ( $v as $f ) {
-					call_user_func ( $f, $event );
+				foreach ($v as $f) {
+					call_user_func($f, $event);
 				}
 			}
 		}
 	}
-
 	function isInstanceOf($sub, $super) {
-		$sub = is_object ( $sub ) ? get_class ( $sub ) : ( string ) $sub;
-		$super = is_object ( $super ) ? get_class ( $super ) : ( string ) $super;
+		$sub = is_object($sub) ? get_class($sub) : (string) $sub;
+		$super = is_object($super) ? get_class($super) : (string) $super;
 		switch (true) {
-			case $sub === $super : // well ... conformity
-			case is_subclass_of ( $sub, $super ) :
-			case in_array ( $super, class_implements ( $sub ) ) :
-				return true;
-			default :
-				return false;
+		case $sub === $super: // well ... conformity
+		case is_subclass_of($sub, $super):
+		case in_array($super, class_implements($sub)):
+			return true;
+		default:
+			return false;
 		}
 	}
-
 	/**
 	 * TGObject::__get()
 	 *
@@ -110,33 +104,32 @@ class Object extends \stdClass implements IObject, IEventDispatcher {
 	 */
 	function __get($name) {
 		$getter = 'get' . $name;
-		if (method_exists ( $this, $getter )) {
+		if (method_exists($this, $getter)) {
 			// getting a property
-			return $this->$getter ();
+			return $this->$getter();
 		} else {
-			if (strncasecmp ( $name, 'on', 2 ) === 0 && method_exists ( $this, $name )) {
+			if (strncasecmp($name, 'on', 2) === 0 && method_exists($this, $name)) {
 				// getting an event (handler list)
-				$name = strtolower ( $name );
-				if (! isset ( $this->_e [$name] ))
-				$this->_e [$name] = new Collection ();
-				return $this->_e [$name];
+				$name = strtolower($name);
+				if (!isset($this->_e[$name]))
+					$this->_e[$name] = new Collection();
+				return $this->_e[$name];
 			} else {
-				if (! $this->_strict) {
-					$name = strtolower ( $name );
-					$val = $this->_getInternal ( $name );
+				if (!$this->_strict) {
+					$name = strtolower($name);
+					$val = $this->_getInternal($name);
 					return $val;
 				} else {
-					throw new SystemException ( "Invalid property $name for object " . get_class ( $this ) );
+					throw new SystemException("Invalid property $name for object " . get_class($this));
 				}
 			}
 		}
 	}
-
 	protected function _getInternal($name = null) {
 		if ($name == null) {
 			return $this->_internal;
 		}
-		return isset ( $this->_internal [$name] ) ? $this->_internal [$name] : null;
+		return isset($this->_internal[$name]) ? $this->_internal[$name] : null;
 	}
 	protected function setLastError($value) {
 		$this->_lastError = $value;
@@ -153,30 +146,28 @@ class Object extends \stdClass implements IObject, IEventDispatcher {
 	 */
 	function __set($name, $value) {
 		$setter = 'set' . $name;
-		if (method_exists ( $this, $setter )) {
-			return $this->$setter ( $value );
-		} else if (strncasecmp ( $name, 'on', 2 ) === 0 && method_exists ( $this, $name )) {
-			$this->attachEventHandler ( $name, $value );
+		if (method_exists($this, $setter)) {
+			return $this->$setter($value);
+		} else if (strncasecmp($name, 'on', 2) === 0 && method_exists($this, $name)) {
+			$this->attachEventHandler($name, $value);
 		} else {
-			if (method_exists ( $this, 'get' . $name )) {
-				if (isset ( $this->_interna ["$name"] )) {
-					$this->_internal [$name] = $value;
+			if (method_exists($this, 'get' . $name)) {
+				if (isset($this->_interna["$name"])) {
+					$this->_internal[$name] = $value;
 				} else {
-					throw new InvalidOperationException ( 'error.component_property_readonly', $name, get_class ( $this ) );
+					throw new InvalidOperationException('error.component_property_readonly', $name, get_class($this));
 				}
 			} else {
-				if (! $this->_strict) {
-					$name = strtolower ( $name );
-
-					$this->_internal [$name] = $value;
+				if (!$this->_strict) {
+					$name = strtolower($name);
+					$this->_internal[$name] = $value;
 				} else {
-					throw new InvalidOperationException ( 'component_property_undefined', $name, get_class ( $this ) );
+					throw new InvalidOperationException('component_property_undefined', $name, get_class($this));
 				}
 			}
 		}
 		return $value;
 	}
-
 	/**
 	 * TGObject::setValue()
 	 *
@@ -186,7 +177,6 @@ class Object extends \stdClass implements IObject, IEventDispatcher {
 	function setValue($value) {
 		$this->_value = $value;
 	}
-
 	/**
 	 * TGObject::getValue()
 	 *
@@ -195,15 +185,12 @@ class Object extends \stdClass implements IObject, IEventDispatcher {
 	function getValue() {
 		return $this->_value;
 	}
-
 	function getName() {
 		return $this->_name;
 	}
-
 	function setName($value) {
 		$this->_name = $value;
 	}
-
 	//	/**
 	//	 * @return boolean whether an event has been attached one or several handlers
 	//	 */
@@ -389,60 +376,54 @@ class Object extends \stdClass implements IObject, IEventDispatcher {
 	//		}
 	//		return false;
 	//	}
-
-
-	function AssignTo(& $Obj) {
-		$var = get_object_vars ( $this );
-
-		foreach ( $var as $k => $v ) {
-			if (! is_object ( $v )) {
+	function AssignTo(&$Obj) {
+		$var = get_object_vars($this);
+		foreach ($var as $k => $v) {
+			if (!is_object($v)) {
 				$Obj->$k = $v;
-					
 			}
 		}
 	}
-
 	/**
 	 * (non-PHPdoc)
 	 * @see IObject::assign()
 	 */
 	function assign($var, $val = null) {
-		if (is_string ( $var )) {
-			$this->_value = ( string ) $val;
+		if (is_string($var)) {
+			$this->_value = (string) $val;
 		} elseif ($var instanceof Object) {
-			$var->AssignTo ( $this );
+			$var->AssignTo($this);
 		} else {
-			throw new SystemException ( "Cannot assign " . (is_object ( $val ) ? get_class ( $val ) : gettype ( $val )) . " into object " . get_class ( $this ) );
+			throw new SystemException("Cannot assign " . (is_object($val) ? get_class($val) : gettype($val)) . " into object " . get_class($this));
 		}
 	}
-
 	//this function return only public variable of this class
 	public function getObjectVars() {
-		$vars = array_keys ( get_class_vars ( get_class ( $this ) ) );
-		$retval = new stdClass ();
-		foreach ( $vars as $k ) {
+		$vars = array_keys(get_class_vars(get_class($this)));
+		$retval = new stdClass();
+		foreach ($vars as $k) {
 			$retval->$k = $this->$k;
 		}
 		return $retval;
 	}
-
 	public function toString() {
-		return get_class ( $this );
+		return get_class($this);
 	}
 }
-abstract  class StaticObject {
-	private static $_events=array();
-	public static function bind($event,$callback) {
+abstract class StaticObject {
+	private static $_events = array();
+	public static function bind($event, $callback) {
 		$event = strtolower($event);
 		if (!isset(self::$_events[$event])) {
 			self::$_events[$event] = array();
 		}
 		self::$_events[$event][] = $callback;
 	}
-	public static function trigger($eventName,$args=null) {
-		$eventName =strtolower($eventName);
+	public static function trigger($eventName, $args = null) {
+		$eventName = strtolower($eventName);
 		if (!is_array($args)) {
-			$args = array($args);
+			$args = array(
+					$args);
 		}
 		if (isset(self::$_events[$eventName])) {
 			$events = self::$_events[$eventName];

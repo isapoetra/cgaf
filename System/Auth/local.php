@@ -25,12 +25,26 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 			if ($this->isAuthentificated()) {
 				$info = $this->getAuthInfo();
 				$this->_adapter->setIdentify($info->getIdentify());
-
 			}
 		}
 		return $this->_adapter;
 	}
-
+	function authDirect($username, $password, $method = 'local') {
+		$adapter = $this->getAdapter();
+		$adapter->setIdentify($username);
+		$adapter->setCredential($password);
+		$adapter->SetLogonMethod($method);
+		$result = $adapter->authenticate();
+		if ($result) {
+			$states = $result->getStates();
+			if ($states) {
+				Session::setStates($states);
+			}
+			\Logger::info("Login", $result->idetify, true);
+			parent::setAuthInfo($result);
+		}
+		return $result;
+	}
 	function encryptPassword($p) {
 		return Utils::getCryptedPassword($p, null, $this->getConfig('encryption.method', 'md5-hex'));
 	}
@@ -40,19 +54,10 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 			$args = Request::gets(null, true);
 		}
 		$args = parent::getAuthArgs();
-		$adapter = $this->getAdapter();
-		$adapter->setIdentify($args->username);
-		$adapter->setCredential($this->encryptPassword($args->password));
-		if ($result = $adapter->authenticate()) {
-			$states = $result->getStates();
-			if ($states) {
-				Session::setStates($states);
-			}
-			\Logger::info("Login", $result->idetify, true);
-			parent::setAuthInfo($result);
-			return $result;
+		$result = $this->authDirect($args->username, $this->encryptPassword($args->password));
+		if (!$result) {
+			$this->setLastError("Invalid Username/password");
 		}
-		$this->setLastError("Invalid Username/password");
 		return false;
 	}
 	function Logout() {

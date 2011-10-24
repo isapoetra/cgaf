@@ -11,7 +11,7 @@ abstract class WebUtils {
 		header ( 'Last-Modified: ' . gmdate ( 'D, d M Y H:i:s' ) . ' GMT' ); // always modified
 		header ( 'Cache-Control: no-cache, must-revalidate, no-store, post-check=0, pre-check=0' ); // HTTP/1.1
 		header ( 'Pragma: no-cache' ); // HTTP/1.0
-		header ( 'Content-type: text/html' );
+		header ( 'Content-type: text/html; charset=UTF-8' );
 	}
 	private static function _processCSSUriCB($m) {
 

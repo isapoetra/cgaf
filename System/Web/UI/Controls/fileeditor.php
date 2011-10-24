@@ -1,22 +1,25 @@
 <?php
 namespace System\Web\UI\Controls;
+use System\Web\UI\JQ\HTMLEditor;
 use System\Locale\Locale;
 use System\Configurations\Configuration;
 use System\JSON\JSON;
 class FileEditor extends WebControl {
 	private $_configs = array();
 	private $_file;
-	private $_content =null;
+	private $_content = null;
 	function __construct($file, $configs = array()) {
-		parent::__construct('textarea');
-		$this->_file=$file;
+		parent::__construct('div');
+		$this->_file = $file;
 		$this->_configs = new Configuration($configs, false);
-		$this->setEditorConfig(array(
-						'filebrowserImageBrowseUrl'=>BASE_URL.'/asset/browse/?type=images',
-						'skin' => 'kama',
-						'uiColor' => '#9AB8F3',
-						'toolbarCanCollapse'=>true,
-						'language' => $this->getAppOwner()->getLocale()->getLocale()));
+		$this
+				->setEditorConfig(
+						array(
+								'filebrowserImageBrowseUrl' => BASE_URL . '/asset/browse/?type=images',
+								'skin' => 'kama',
+								'uiColor' => '#9AB8F3',
+								'toolbarCanCollapse' => true,
+								'language' => $this->getAppOwner()->getLocale()->getLocale()));
 	}
 	function setEditorConfig($config, $value = null) {
 		$this->_configs->setConfig($config, $value);
@@ -26,21 +29,34 @@ class FileEditor extends WebControl {
 	}
 	function prepareRender() {
 		$appOwner = $this->getAppOwner();
-
-		if ($this->_file && $content=file_get_contents($this->_file)) {
-			$this->setText($content);
-		}else{
-			$this->setText($this->_content);
-		}
-
-		$appOwner->addClientAsset('js/ckeditor/ckeditor.js');
+		$ext = \Utils::getFileExt($this->_file, false);
+		/**
+		 *
+		 * Enter description here ...
+		 * @var \IContentEditor
+		 */
+		$instance = null;
 		$id = $this->getId();
-		$this->setAttr('name',$id);
-		$configs = JSON::encodeConfig($this->_configs->getConfigs('System'));
-		$js = <<<EOT
-		CKEDITOR.replace('$id',$configs);
-EOT;
-		$appOwner->addClientScript($js);
+		$this->setId($id.'-container');
+		switch ($ext) {
+		case 'js':
+		case 'html':
+			$instance = new HTMLEditor($id);
+			break;
+		default:
+			break;
+		}
+		if (!$instance) {
+			throw new \Exception('unhandled file editor for extension ' . $ext . ' Please Contact Vendor');
+		}
+		if ($this->_file) {
+			$content = file_get_contents($this->_file);
+			$instance->setContent($content ? $content : '');
+		} else {
+			$instance->setContent($this->_content);
+		}
+		$instance->setConfig($this->_configs->getConfigs('System'));
+		$this->addChild($instance);
 		return parent::prepareRender();
 	}
 }

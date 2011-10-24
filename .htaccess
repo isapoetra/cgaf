@@ -1,14 +1,13 @@
-Options -Indexes
+Options +Indexes
 
 # Configure ETags
-<FilesMatch "\.(jpg|jpeg|gif|png|mp3|flv|mov|avi|3pg|html|htm|swf)$">
+<FilesMatch "\.(jpg|jpeg|gif|png|mp3|flv|mov|avi|3gp|html|htm|swf|css|js)$">
 	FileETag MTime Size
 </FilesMatch>
 
 <IfModule mod_expires.c>
 	ExpiresActive On
-	#ExpiresDefault "access plus 1 month"
-	ExpiresDefault "access plus 30 days"
+	ExpiresDefault A2419200
 </IfModule>
 
 
@@ -54,8 +53,10 @@ Options -Indexes
 
 # Make sure proxies don't deliver the wrong content
 <IfModule mod_headers.c> 
-	<FilesMatch "\.(ico|jpg|jpeg|png|gif|swf)$"> 
-		header set Cache-Control "public" 
+	<FilesMatch "\.(ico|jpg|jpeg|png|gif|js|css)$"> 
+		header set Cache-Control "max-age=A2419200,public" 
+		
+		
 		#header set Expires "Sun, 03 Sept 2012 20:00:00 GMT" 
 	</FilesMatch> 
 	Header append Vary User-Agent env=!dont-vary
@@ -77,10 +78,9 @@ Options -Indexes
 <IfModule mod_rewrite.c>
 	RewriteEngine On
 	RewriteBase /
-	#RewriteRule \.(jpg|jpeg|png|gif)$ - [NC,F,L]
-	RewriteCond %{REQUEST_URI} !^/Applications
 	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteCond %{REQUEST_FILENAME} !-d
-	RewriteRule ^(.*)$ index.php?__url=$1 [L,QSA] 
+	RewriteCond %{REQUEST_FILENAME} !-d	
+	RewriteRule ^(.*)$ index.php?__url=$1 [L,QSA]
 	
+
 </IfModule>

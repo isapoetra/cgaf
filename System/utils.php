@@ -197,12 +197,13 @@ abstract class Utils {
 		if (!$pathname) {
 			return false;
 		}
-		//$pathname = dirname($pathname);
 		if (!is_dir($pathname)) {
 			if (!@mkdir($pathname, $mode, true)) {
-				echo '<pre>';
-				debug_print_backtrace();
-				die("Error while creating directory $pathname");
+				if (CGAF_DEBUG) {
+					echo '<pre>';
+					debug_print_backtrace();
+					die("Error while creating directory $pathname");
+				}
 			}
 		}
 		if ($securepatern) {
@@ -212,15 +213,21 @@ abstract class Utils {
 	}
 	public static function getDirList($dir) {
 		$dir = self::ToDirectory($dir);
+		$files = array();
+		if (!is_dir($dir)) {
+			Logger::Warning("Directory not exists " . $dir);
+			return $files;
+		}
 		$dh = opendir($dir);
 		if (!$dh) {
 			Logger::Warning("unable to open dir " . $dir);
+			return $files;
 		}
-		$files = array();
 		while (false !== ($filename = readdir($dh))) {
 			if ($filename !== "." && $filename !== ".." && $filename !== ".svn" && is_dir($dir . "/" . $filename))
 				$files[] = $filename;
 		}
+		closedir($dh);
 		return $files;
 	}
 	public static function getDirFiles($dir, $base = null, $recurse = true, $match = null) {
@@ -778,7 +785,7 @@ abstract class Utils {
 		$fname = self::ToDirectory($fname);
 		return escapeshellarg($fname);
 	}
-	public static function securePath($path, $ext = '(flv|swf|mp4|mp3)$', $override = true) {
+	public static function securePath($path, $ext = '(flv|swf|mp4|mp3)$', $override = false) {
 		$f = self::ToDirectory($path . DS . '.htaccess');
 		if (is_dir($path)) {
 			if (is_file($f) && !$override) {
@@ -1124,6 +1131,15 @@ EOT;
 		}
 		$arr = $retval;
 		return $retval;
+	}
+	public static function arrayRemoveEmptyValue(&$arr) {
+		$retval = array();
+		foreach ($arr as $k => $v) {
+			if (empty($v))
+				continue;
+			$retval[$k] = $v;
+		}
+		$arr = $retval;
 	}
 	/**
 	 * Remove Array based on value

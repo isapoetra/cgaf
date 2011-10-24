@@ -43,6 +43,13 @@ class SmartyTemplate extends BaseTemplate implements \ITemplate {
 	function getTemplatePath() {
 		return $this->_templatePath;
 	}
+	private function initSmarty() {
+		$p = $this->getAppOwner()->getInternalCache()->getCachePath('.template', false) . '';
+		$this->_smarty->setCompileDir($p);
+		$this->_smarty->clearAllAssign();
+		$this->_smarty->assign($this->_vars);
+		$this->_smarty->debugging = CGAF_DEBUG;
+	}
 	/* (non-PHPdoc)
 	 * @see ITemplate::Render()
 	 */
@@ -51,13 +58,8 @@ class SmartyTemplate extends BaseTemplate implements \ITemplate {
 		switch ($ext) {
 		case 'html':
 		case 'tpl':
-			$smarty = $this->_smarty;
-			$p=$this->getAppOwner()->getInternalCache()->getCachePath('.template',false).'';
-			$smarty->setCompileDir($p);
-			$smarty->clearAllAssign();
-			$smarty->assign($this->_vars);
-			$smarty->debugging = true;
-			return $smarty->fetch($templateName);
+			$this->initSmarty();
+			return $this->_smarty->fetch($templateName);
 			break;
 		default:
 			return parent::render($templateName, true, false);

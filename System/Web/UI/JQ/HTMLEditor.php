@@ -1,8 +1,9 @@
 <?php
 namespace System\Web\UI\JQ;
+use System\Exceptions\SystemException;
 use System\JSON\JSON;
 use \Request;
-class HTMLEditor extends Control {
+class HTMLEditor extends Control implements \IContentEditor {
 	function setValue($value) {
 		$this->setText($value);
 	}
@@ -11,7 +12,8 @@ class HTMLEditor extends Control {
 		$this
 				->setConfig(
 						array(
-								'customConfig'=>'',
+								'customConfig' => '',
+								'baseHref' => BASE_URL . 'assets/js/ckeditor/',
 								'filebrowserImageBrowseUrl' => BASE_URL . '/asset/browse/?type=images',
 								'skin' => 'kama',
 								'uiColor' => '#9AB8F3',
@@ -28,6 +30,13 @@ class HTMLEditor extends Control {
 		}
 		return $this->setConfig('toolbar', $value, true);
 	}
+	function setContent($value) {
+		if (is_string($value)) {
+			$this->setText($value);
+			return $this;
+		}
+		throw new SystemException('invalid content' . $value);
+	}
 	function RenderScript($return = false) {
 		$appOwner = $this->getAppOwner();
 		$configs = JSON::encodeConfig($this->_configs);
@@ -35,7 +44,6 @@ class HTMLEditor extends Control {
 			$sc1 = $appOwner->getLiveAsset('js/ckeditor/ckeditor.js');
 			$sc2 = $appOwner->getLiveAsset('js/ckeditor/adapters/jquery.js');
 			$id = $this->getId();
-
 			$retval = '<textarea ' . $this->renderAttributes() . '>';
 			$retval .= $this->getText();
 			$retval .= '</textarea>';//$this->getId();

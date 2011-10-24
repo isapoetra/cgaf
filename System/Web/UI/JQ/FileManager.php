@@ -1,5 +1,8 @@
 <?php
 namespace System\Web\UI\JQ;
+use System\Exceptions\SystemException;
+use System\Web\UI\Controls\Form;
+use System\Web\UI\Controls\FileEditor;
 use System\Web\JS\CGAFJS;
 use System\JSON\JSON;
 use \Request;
@@ -18,13 +21,15 @@ class FileManager extends Control {
 		parent::__construct($id);
 		$this->_jsClientObj = 'fileManager';
 		$this->_baseScript = BASE_URL . '/assets/js/jQuery/plugins/';
-		//$this->setConfig('ckreturnfield','returnpath');
 		$this->setConfig('baseUrl', Request::getOrigin());
 		$this->SetConfig('fmasset', ASSET_URL . 'js/jQuery/plugins/filemanager/');
 	}
 	function setBasePath($value) {
 		$this->_basePath = $value;
 		return $this;
+	}
+	function setCanEdit($value) {
+		$this->setConfig('toolbar.buttonEdit', $value);
 	}
 	function addClientScript($js) {
 		$this->_js[] = $js;
@@ -34,22 +39,21 @@ class FileManager extends Control {
 		$app = $this->getAppOwner();
 		$baseurl = ASSET_URL . 'js/jQuery/plugins/';
 		//TODO merge as 1
-		$app
-				->addClientAsset(
-						array(
-								$this->_baseScript . 'tablesorter/jquery.metadata.js',
-								$this->_baseScript . 'tablesorter/jquery.tablesorter.js',
-								//$this->_baseScript . 'tablesorter/themes/blue/style.css',
-								$this->_baseScript . 'jQuery-Impromptu/jquery-impromptu.js	',
-								$this->_baseScript . 'jQuery-Impromptu/default.css',
-								$this->_baseScript . 'jquery.contextmenu/jquery.contextMenu.js',
-								$this->_baseScript . 'jquery.contextmenu/jquery.contextMenu.css',
-								$this->_baseScript . 'jquery.filetree/jqueryFileTree.js',
-								$this->_baseScript . 'jquery.filetree/jqueryFileTree.css',
-								$this->_baseScript . 'jquery.splitter/jquery.splitter.js',
-								$this->_baseScript . 'jquery.splitter/jquery.splitter.css',
-								$this->_baseScript . 'filemanager/jquery.filemanager.js',
-								$this->_baseScript . 'filemanager/styles/filemanager.css'));
+		$scripts = array(
+				$this->_baseScript . 'tablesorter/jquery.metadata.js',
+				$this->_baseScript . 'tablesorter/jquery.tablesorter.js',
+				//$this->_baseScript . 'tablesorter/themes/blue/style.css',
+				$this->_baseScript . 'jQuery-Impromptu/jquery-impromptu.js	',
+				$this->_baseScript . 'jQuery-Impromptu/default.css',
+				$this->_baseScript . 'jquery.contextmenu/jquery.contextMenu.js',
+				$this->_baseScript . 'jquery.contextmenu/jquery.contextMenu.css',
+				$this->_baseScript . 'jquery.filetree/jqueryFileTree.js',
+				$this->_baseScript . 'jquery.filetree/jqueryFileTree.css',
+				$this->_baseScript . 'jquery.splitter/jquery.splitter.js',
+				$this->_baseScript . 'jquery.splitter/jquery.splitter.css',
+				$this->_baseScript . 'filemanager/jquery.filemanager.js',
+				$this->_baseScript . 'filemanager/styles/filemanager.css');
+		$app->addClientAsset($scripts);
 		return parent::RenderScript($return);
 	}
 	private function getRoot($root = null, $request = 'dir') {
@@ -200,15 +204,13 @@ class FileManager extends Control {
 		} else if (Utils::isImage($retval['filetype'])) {
 			//TODO recheck for security
 			$retval['preview'] = $app->getLiveData($path);
-			$retval['returnpath'] =$retval['preview'];
-
+			$retval['returnpath'] = $retval['preview'];
 			list($width, $height, $type, $attr) = getimagesize($path);
 			$retval['properties']['Height'] = $height;
 			$retval['properties']['Width'] = $width;
 			$retval['properties']['Size'] = filesize($path);
 		}
 		$retval['properties']['Date Modified'] = $app->getLocale()->formatDate($retval['filemtime'], true); //;date($this->config['date'], $retval['filemtime']);
-
 		return $retval;
 	}
 	function setReturnPath($f) {
@@ -217,12 +219,38 @@ class FileManager extends Control {
 	function getReturnPath($f) {
 		return ($this->_returnPath ? $this->_returnPath : $this->_baseRoot) . $f;
 	}
+	private function edit() {
+		$reqInfo = $this->getRequestInfo('path');
+		if (is_file($reqInfo->realPath)) {
+			if ($this->getAppOwner()->isValidToken()) {
+				file_put_contents($_REQUEST['__fcontent']);
+				\Response::Redirect($this->getConfig('baseUrl'));
+			} else {
+				$retval = new Form();
+				$feditor = new FileEditor($reqInfo->realPath);
+				$feditor->setId('__fcontent');
+				$retval->addChild($feditor);
+				$retval->setRenderToken(true);
+				return $retval->Render(true);
+			}
+		}
+		throw new SystemException('not found');
+	}
 	function render($return = false) {
 		if (Request::get('tree')) {
 			return $this->renderTree();
 		}
 		$mode = Request::get('mode');
 		switch (strtolower($mode)) {
+		case 'edit':
+			if ($this->getConfig('toolbar.buttonEdit')) {
+				return $this->edit();
+			}
+		case 'download':
+			if ($this->getConfig('toolbar.buttonDownload')) {
+				$path = $this->getRequestInfo('path');
+				return \Streamer::Stream($path->realPath,null,true);
+			}
 		case 'getfolder':
 			return $this->getFolder();
 		case 'getinfo':

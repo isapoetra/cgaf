@@ -51,7 +51,7 @@ interface IApplication extends System\DB\IDBAware {
 	function getCacheManager();
 
 	/**
-	 * @return IACL
+	 * @return System\ACL\IACL
 	 */
 	function getACL();
 
@@ -69,4 +69,11 @@ interface IApplication extends System\DB\IDBAware {
 	function getUserConfig($configName, $def=null);
 	function setUserConfig($configName, $value);
 	function getAppId();
+
+	/**
+	 *
+	 * Enter description here ...
+	 * @return \\System\\Locale\\Locale
+	 */
+	function getLocale();
 }

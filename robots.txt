@@ -4,6 +4,5 @@ Disallow: /tmp/
 Disallow: /System/
 Disallow: /Libs/
 Disallow: /locale/
-Disallow: /log/
-Disallow: /Data/
+Disallow: /protected/
 Disallow: /Core/

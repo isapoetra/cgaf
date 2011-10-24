@@ -1,5 +1,6 @@
 <?php
 namespace System\Applications;
+use System\Web\UI\Items\BreadCrumbItem;
 use \CGAF, \Utils, \URLHelper, \Request;
 use System\API\PublicApi;
 use System\Web\Utils\HTMLUtils;
@@ -12,20 +13,44 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	private $_directSript = '';
 	private $_jsEngine;
 	private $_clientScripts = array();
+	private $_clientDirectScripts = array();
 	private $_metas = array();
 	private $_styleSheet = array();
+	private $_crumbs = array();
+	/**
+	 *
+	 * Constructor
+	 * @param string $appPath
+	 * @param string $appName
+	 */
 	function __construct($appPath, $appName) {
 		parent::__construct($appPath, $appName);
 	}
+	/**
+	 *
+	 * Clear Client Asset And Client Script
+	 */
 	protected function clearClient() {
 		$this->_clientAssets->clear();
 		$this->_clientScripts = array();
+		$this->_clientDirectScripts = array();
 	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @param mixed $script
+	 */
 	function addClientScript($script) {
 		if (!$script) {
 			return;
 		}
 		$this->_clientScripts[] = $script;
+	}
+	function addClientDirectScript($script) {
+		if (!$script) {
+			return;
+		}
+		$this->_clientDirectScripts[] = $script;
 	}
 	function getStyleSheet() {
 		return $this->_styleSheet;
@@ -35,17 +60,23 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 			$this->_styleSheet[] = $s;
 		}
 	}
+	function getClientDirectScript() {
+		return $this->_clientDirectScripts;
+	}
 	function getClientScript() {
 		return $this->_clientScripts;
 	}
 	public function getMetaHeader() {
 		return $this->_metas;
 	}
-	public function addMetaHeader($name, $attr = null, $tag = "meta") {
+	public function addMetaHeader($name, $attr = null, $tag = "meta", $overwrite = false) {
 		$rattr = array();
 		if (is_array($name)) {
 			$rattr = $name;
 		} elseif (is_string($attr)) {
+			if (!$attr) {
+				return;
+			}
 			$rattr["content"] = $attr;
 		} elseif (is_array($attr) || is_object($attr)) {
 			foreach ($attr as $k => $v) {
@@ -56,6 +87,16 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 				'tag' => $tag);
 		if (is_string($name)) {
 			$metas['name'] = $name;
+		}
+		if ($overwrite) {
+			$nmetas = array();
+			$name = isset($metas['name']) ? $metas['name'] : (isset($attr['name']) ? $attr['name'] : null);
+			foreach ($this->_metas as $k => $meta) {
+				if ($metas['tag'] !== $meta['tag'] || @$meta['name'] !== $name) {
+					$nmetas[] = $meta;
+				}
+			}
+			$this->_metas = $nmetas;
 		}
 		$metas['attr'] = $rattr;
 		$this->_metas[] = $metas;
@@ -134,17 +175,8 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 			$search[] = '';
 			$ap = $this->getConfig('livedatapath', 'assets');
 			$retval = array();
-			$assetpath = $this->getLivePath(false);
-			/*if (CGAF_DEBUG) {
-			    foreach ($search as $value) {
-			        $retval[] = $this->getDevPath($value);
-			    }
-			    foreach ($search as $value) {
-			        $retval[] = CGAF_DEV_PATH . "$ap/$value/";
-			    }
-			    $retval[] = CGAF_DEV_PATH . $ap;
-			}*/
 			$spath = array(
+					$this->getLivePath(false),
 					$this->getAppPath(),
 					CGAF_SHARED_PATH,
 					SITE_PATH);
@@ -166,8 +198,9 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	function getAppUrl() {
 		static $url;
 		if (!$url) {
-			$url = $this->getConfig('app.url', URLHelper::addParam(BASE_URL, array(
-							'__appId' => $this->getAppId())));
+			$def = CGAF::getConfig('defaultAppId') === $this->getAppId() ? BASE_URL : URLHelper::addParam(BASE_URL, array(
+					'__appId' => $this->getAppId()));
+			$url = $this->getConfig('app.url', $def);
 		}
 		return $url;
 	}
@@ -177,9 +210,6 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 				define('APP_URL', $this->getAppUrl());
 			}
 			CGAF::addClassPath('System', $this->getAppPath() . DS . 'classes' . DS);
-			//CGAF::addNamespaceSearchPath("System", $this->getAppPath ().'/classes/');
-			//CGAF::addNamespaceSearchPath("System", $this->getAppPath ().'/classes/System/');
-			//CGAF::addNamespaceSearchPath($this->getAppName (), $this->getAppPath () );
 			CGAF::addAlowedLiveAssetPath($this->getLivePath());
 			CGAF::addAlowedLiveAssetPath($this->getAppPath() . $this->getConfig('livedatapath', 'assets'));
 			return true;
@@ -199,6 +229,11 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		$assetAgent = Utils::changeFileName($assetName, $fname . $this->getAgentSuffix());
 		return $this->getAsset($assetAgent);
 	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @return /System/Web/JS/Engine/IJSEngine
+	 */
 	public function getJSEngine() {
 		if (!$this->_jsEngine) {
 			$c = 'System\\Web\JS\Engine\\' . $this->getConfig('app.jsengine', 'jQuery');
@@ -247,13 +282,16 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	protected function checkInstall() {
 	}
 	protected function prepareOutputData($s) {
+		//ppd($s);
 		if (Request::isJSONRequest()) {
 			header("Content-Type: application/json, text/javascript;charset=UTF-8", true);
 			if (!is_string($s)) {
-				if (is_object($s) && $s instanceof JSONResult) {
-					return $s->Render(true);
+				if (is_object($s) && $s instanceof \IRenderable) {
+					$s = $s->Render(true);
 				}
-				return JSON::encode($s);
+				if (!is_string($s)) {
+					return JSON::encode($s);
+				}
 			}
 			return $s;
 		} elseif (Request::isXMLRequest()) {
@@ -287,19 +325,65 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		}
 		return $stemp;
 	}
+	public function getCrumbs() {
+		return $this->_crumbs;
+	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @param array $arrCrumbs
+	 */
+	public function addCrumbs($arrCrumbs) {
+		foreach ($arrCrumbs as $c) {
+			$this->addCrumb($c);
+		}
+	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @param mixed $crumb
+	 */
+	public function addCrumb($crumb) {
+		$item = new BreadCrumbItem();
+		$item->bind($crumb);
+		$this->_crumbs[] = $item;
+	}
+	public function clearCrumbs() {
+		$this->_crumbs = array();
+	}
 	public function handleCommetRequest() {
 		Response::write("halooo");
 		return true;
 	}
 	protected function initRequest() {
+		if (!CGAF_DEBUG && !\Request::isAJAXRequest() && !\Request::isDataRequest()) {
+			if ($this->getConfig('google.analytics.enable', true) && $gaid = $this->getConfig('google.analytics.acount', 'UA-7679167-5')) {
+				$script = <<<EOT
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '$gaid']);
+_gaq.push(['_trackPageview']);
+(function() {
+	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+EOT;
+				$this->addClientDirectScript($script);
+			}
+		}
 		if (!Request::isAJAXRequest()) {
+			header_remove('X-Powered-By');
+			header_remove('Server');
 			$this->addMetaHeader(array(
 							'http-equiv' => 'Content-Type',
-							'content' => 'text/html'));
-			$this->addMetaHeader('description', $this->getConfig('app.description', CGAF::getConfig('cgaf.description', 'CGAF')));
+							'content' => 'text/html; charset=UTF-8'));
+			$info = $this->getAppInfo();
+			$this->addMetaHeader('author', 'Iwan Sapoetra');
+			$this->addMetaHeader('copyright', date('M Y'));
+			$this->addMetaHeader('description', $info->app_descr ? $info->app_descr : CGAF::getConfig('cgaf.description', 'CGAF'));
 			$this->addMetaHeader('keywords', array(
 							'content' => $this->getConfig('app.keywords', CGAF::getConfig('cgaf.keywords', 'CGAF'))));
-			$this->addMetaHeader('Version', $this->getConfig('app.version', CGAF_VERSION));
+			$this->addMetaHeader('Version', $info->app_version);
 			$this->addClientAsset(strtolower($this->getAppName()) . ".css");
 		}
 	}
@@ -311,7 +395,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		foreach ($this->_metas as $value) {
 			$retval .= '<' . $value['tag'] . ' ' . (isset($value['name']) ? ' name="' . $value['name'] . '" ' : ' ');
 			$retval .= HTMLUtils::renderAttr($value['attr']);
-			$retval .= '/>';
+			$retval .= '>';
 		}
 		return $retval;
 	}

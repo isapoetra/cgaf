@@ -2,6 +2,7 @@
 namespace System\Template;
 use System\Web\JS\JSUtils;
 use \System\Web\JS\CGAFJS;
+//TODO Cleanup
 class BaseTemplate extends AbstractTemplate {
 	private $_cssFile = array();
 	private $_css = array();
@@ -89,21 +90,7 @@ class BaseTemplate extends AbstractTemplate {
 	function setController($value) {
 		$this->_controller = $value;
 	}
-	function removeJSFile($js) {
-		if (is_array($js)) {
-			foreach ($js as $j) {
-				$this->removeJSFile($j);
-			}
-			return;
-		}
-		$retval = array();
-		foreach ($this->_jsFile as $k => $file) {
-			if ($file['url'] == $js)
-				continue;
-			$retval[$k] = $file;
-		}
-		$this->_jsFile = $retval;
-	}
+
 	/**
 	 *
 	 * Enter description here ...
@@ -112,9 +99,7 @@ class BaseTemplate extends AbstractTemplate {
 	public function addClientScript($script, $type = 'javascript') {
 		$this->getAppOwner()->addClientScript($script);
 	}
-	function getJS() {
-		return $this->_scripts;
-	}
+
 	function getCSSLink($css, $id = null) {
 		$c = null;
 		if ($this->getContentCallback()) {

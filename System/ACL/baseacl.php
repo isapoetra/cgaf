@@ -4,8 +4,11 @@
  *
  */
 namespace System\ACL;
-use \CGAF, \System\Session\Session;
+use System\Session\SessionEvent;
+use System\Session\Session;
+use \CGAF;
 abstract class BaseACL extends \Object implements IACL {
+	private $_cachePath='acl';
 	protected $_appId;
 	/**
 	 *
@@ -27,6 +30,7 @@ abstract class BaseACL extends \Object implements IACL {
 		if ($appOwner === null) {
 			$this->_appId = "__cgaf";
 		}
+		$this->_cachePath='acl/'.session_id();
 		if ($appOwner instanceof IApplication) {
 			$appOwner->addEventListener(LoginEvent::LOGIN, array(
 							$this,
@@ -36,12 +40,15 @@ abstract class BaseACL extends \Object implements IACL {
 							"onAuth"));
 			$this->setAppOwner($appOwner);
 		}
+		Session::getInstance()->addEventListener(SessionEvent::DESTROY, array(
+						$this,
+						'onSessionDestroy'));
+	}
+	public function onSessionDestroy($event) {
+		$this->clearCache();
 	}
 	protected function onAuth($event) {
-		//if ($event->type == LoginEvent::LOGIN) {
 		$this->clearCache();
-		//}
-		//ppd($event);
 	}
 	function checkModule($moduleId, $access = "view", $userId = NULL) {
 		$userId = $userId === null ? $this->getUserId() : $userId;
@@ -76,7 +83,6 @@ abstract class BaseACL extends \Object implements IACL {
 	}
 	function getUserId() {
 		$info = Session::get("__logonInfo", null);
-
 		if ($info == null) {
 			//guest ?
 			$userid = -1;
@@ -152,7 +158,7 @@ abstract class BaseACL extends \Object implements IACL {
 		$this->_cacheUserPrivs[$userid] = $value;
 		$cm = $this->getCacheManager();
 		$id = "acl-{$this->_appId}-$userid";
-		return $cm->put($id, serialize($value), "acl");
+		return $cm->put($id, serialize($value), $this->_cachePath);
 	}
 	protected function removeCacheForUser($userId) {
 		if (isset($this->_cacheUserPrivs[$userId])) {
@@ -171,7 +177,7 @@ abstract class BaseACL extends \Object implements IACL {
 		}
 		$cm = $this->getCacheManager();
 		$id = "acl-{$this->_appId}-$userid";
-		$this->_cacheUserPrivs[$userid] = unserialize($cm->getContent($id, "acl"));
+		$this->_cacheUserPrivs[$userid] = unserialize($cm->getContent($id, $this->_cachePath));
 		return $this->_cacheUserPrivs[$userid];
 	}
 	protected function clearCache() {
@@ -237,7 +243,6 @@ abstract class BaseACL extends \Object implements IACL {
 			}
 		}
 		$cache = $this->getCache($userid);
-
 		if ($cache) {
 			$cache = is_string($cache) ? unserialize($cache) : $cache;
 			if (isset($cache[$group])) {
@@ -310,6 +315,10 @@ abstract class BaseACL extends \Object implements IACL {
 		return true;
 	}
 	function isInrole($roleName, $uid = null) {
+		$owner = $this->getAppOwer();
+		if ($owner && $owner->getConfig('disableacl', false)) {
+			return true;
+		}
 		$roles = $this->getUserRoles($uid);
 		if ($roles) {
 			foreach ($roles as $role) {

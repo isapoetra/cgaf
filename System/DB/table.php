@@ -326,7 +326,7 @@ class Table extends DBQuery {
 	}
 	protected function getCheckMode($mode = null) {
 		if (!$mode) {
-			$mode = $this->getPKValue() !== null ? 'insert' : 'update';
+			$mode = $this->getPKValue() !== null ? self::MODE_INSERT : self::MODE_UPDATE;
 		}
 		return $mode;
 	}
@@ -334,19 +334,19 @@ class Table extends DBQuery {
 		$retval = false;
 		$mode = $this->getCheckMode($mode);
 		switch (strtolower($mode)) {
-		case "insert":
+		case self::MODE_INSERT:
 			$fields = $this->getFields();
 			foreach ($fields as $f) {
 				if ($this->isAllowNull($f))
 					continue;
 				if (($this->$f === null || trim($this->$f) === '')) {
-					$this->addError(sprintf(__("nulledvalue", "Invalid Value for field %s"), __($this->_tableName . '.' . $f)));
+					$this->addError(sprintf(__("nulledvalue", "Invalid Value for field %s"), __($this->_tableName . '.' . $f, $f)));
 					return false;
 				}
 			}
 			$retval = true;
 			break;
-		case "update":
+		case self::MODE_UPDATE:
 			$fields = $this->getFields();
 			foreach ($fields as $f) {
 				if (!in_array($f, $this->_pk) && $this->$f === null && !$this->isAllowNull($f)) {
@@ -355,6 +355,8 @@ class Table extends DBQuery {
 				}
 			}
 			$retval = true;
+			break;
+		case self::MODE_DELETE;
 			break;
 		default:
 			ppd($mode);
@@ -368,7 +370,7 @@ class Table extends DBQuery {
 		$retval = array();
 		$o = $o ? $o : $this;
 		foreach ($this->_pk as $pk) {
-			if ($o->$pk !== null) {
+			if (@$o->$pk !== null) {
 				$retval[$pk] = $o->$pk;
 			}
 		}
@@ -390,7 +392,7 @@ class Table extends DBQuery {
 	}
 	function store($throw = true) {
 		$this->_errors = array();
-		$mode = "insert";
+		$mode = self::MODE_INSERT;
 		$pks = $this->getPKValue();
 		$this->_oldData = null;
 		if ($pks !== null && $pks !== '') {
@@ -414,9 +416,13 @@ class Table extends DBQuery {
 						}
 					}
 				} else {
-					throw new DBException(__("store.nothingchanged", 'Unable to store unchanged data'));
+					if ($throw) {
+						throw new DBException(__("store.nothingchanged", 'Unable to store unchanged data'));
+					} else {
+						return true;
+					}
 				}
-				$mode = "update";
+				$mode = self::MODE_UPDATE;
 			}
 		}
 		if (!$this->check($mode)) {
@@ -426,7 +432,7 @@ class Table extends DBQuery {
 				return false;
 			}
 		}
-		if ($mode == 'insert') {
+		if ($mode == self::MODE_INSERT) {
 			$pk = $this->getPK();
 			foreach ($pk as $p) {
 				if ($this->$p === null || $this->$p === '') {
@@ -436,13 +442,13 @@ class Table extends DBQuery {
 		}
 		$fields = $this->getFields(true, true);
 		if ($fields != null) {
-			if ($mode == 'insert') {
+			if ($mode == self::MODE_INSERT) {
 				$this->clear();
 			} else {
 				$this->clear('table');
 			}
 			foreach ($fields as $k => $v) {
-				if ($mode == "insert") {
+				if ($mode == self::MODE_INSERT) {
 					if ($v !== null) {
 						$this->addInsert($k, $v, true);
 					}
@@ -455,7 +461,7 @@ class Table extends DBQuery {
 				}
 			}
 		}
-		if ($mode == "update") {
+		if ($mode == self::MODE_UPDATE) {
 			$pk = $this->getPKValue(true);
 			$this->setAlias($this->_tableName);
 			foreach ($pk as $k => $v) {
@@ -463,7 +469,7 @@ class Table extends DBQuery {
 			}
 		}
 		$retval = $this->exec();
-		if ($mode == 'insert') {
+		if ($mode == self::MODE_INSERT) {
 			$id = $retval->getLastInsertId();
 			if ($id) {
 				$this->load($id, true);
@@ -480,6 +486,7 @@ class Table extends DBQuery {
 	}
 	public function delete() {
 		$q = new DBQuery($this->getConnection());
+
 		$q->addTable($this->_tableName, null, $this->_isExpr);
 		$q->setMode('delete');
 		$pk = $this->getPKValue(true);

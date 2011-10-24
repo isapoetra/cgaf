@@ -1,5 +1,6 @@
 <?php
 namespace System\Web\JS;
+use System\Web\Utils\HTMLUtils;
 use System\Web\JS\Packer\IScriptPacker;
 use System\Exceptions\SystemException;
 use \Utils;
@@ -104,10 +105,13 @@ class JSUtils {
 		}
 		return $retval;
 	}
-	public static function renderJSTag($f, $file = true) {
+	public static function renderJSTag($f, $file = true, $attr = null) {
 		if ($file) {
-			return '<script type="text/javascript" src="' . $f . '"></script>';
+			return '<script type="text/javascript" src="' . $f . '" ' . HTMLUtils::renderAttr($attr) . '></script>';
 		} else {
+			if (is_array($f)) {
+				$f = implode(';', $f);
+			}
 			return '<script type="text/javascript">' . $f . '</script>';
 		}
 	}

@@ -1,38 +1,34 @@
 <?php
 namespace System\Auth;
+use System\Exceptions\SystemException;
+use System\API\PublicApi;
 use System\Web\Utils\HTMLUtils;
 use \URLHelper;
 use \AppManager;
-
 class Auth {
-
-	public static function getProviders() {
-		$providers = array(
-				'google-oauth' => array('popup' => true,
-						'title' => __('auth.google.title'),
-						'login-url' => BASE_URL . 'auth/google'),
-				'facebook' => array('title' => __('auth.facebook.title'),
-						'login-url' => BASE_URL . 'auth/facebook'),
-				'oauth' => array('title' => __('auth.oauth.title'),
-						'login-url' => BASE_URL . 'auth/openid'));
-		return $providers;
-	}
-
-	public static function renderProviders() {
-		$providers = self::getProviders();
-		foreach ($providers as $id => $p) {
-			if (isset($p['jsfile'])) {
-				AppManager::getInstance()->addClientAsset($p['jsfile']);
+	const FACEBOOK = 'facebook';
+	const NEED_RETRY_STATE = 'state_need_retry';
+	const NEED_REMOTEAUTH_STATE = 'state_need_remoteauth';
+	const NEED_CONFIRM_LOCAL_STATE='state_need_confirm_local_auth';
+	private static $_providerInstance = array();
+	/**
+	 *
+	 * get Authentificator instance
+	 * @param string $id
+	 * @param bool $newInstance
+	 * @throws SystemException
+	 * @return System\Auth\IAuthProvider
+	 */
+	public static function getProviderInstance($id, $newInstance = false) {
+		$cname = '\\System\\Auth\\Providers\\' . $id;
+		$instance = null;
+		\CGAF::LoadClass($cname, false);
+		if (class_exists($cname, false)) {
+			$instance = new $cname(\AppManager::getInstance());
+			if (!$instance instanceof IAuthProvider) {
+				throw new SystemException('Invalid Authentification method');
 			}
-			if (isset($p['jscript'])) {
-				AppManager::getInstance()->addClientScript($p['jscript']);
-			}
-			$img = isset($p['image']) ? $p['image'] : 'auth/' . $id . '.png';
-			$url = isset($p['login-url']) ? $p['login-url']
-					: BASE_URL . 'auth/external/?id=' . $id;
-			echo HTMLUtils::renderLink($url, $p['title'],
-					array('id' => 'auth-' . $id,'role'=>'button'), $img);
 		}
-		/**/
+		return $instance;
 	}
 }

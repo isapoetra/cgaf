@@ -32,7 +32,7 @@ class DBQuery extends \Object implements IQuery {
 			$this->_conn = $connection->getDBConnection();
 		} else {
 			if ($connection == null) {
-				$connection = AppManager::getInstance()->getDBConnection();
+				$connection = \AppManager::getInstance()->getDBConnection();
 			}
 			$this->_conn = $connection;
 		}
@@ -203,6 +203,7 @@ class DBQuery extends \Object implements IQuery {
 					self::MODE_UPDATE,
 					self::MODE_DROP,
 					self::MODE_INSERT,
+					self::MODE_DELETE,
 					self::MODE_DIRECT,
 					self::MODE_CREATE_TABLE);
 		}
@@ -402,7 +403,7 @@ class DBQuery extends \Object implements IQuery {
 		}
 		$sql .= ' from ';
 		foreach ($this->_table as $tbl) {
-			$sql .= ($tbl["expr"] ? '' : $prefix) . $tbl["_table"] . ($tbl["alias"] ? ' as ' . $tbl["alias"] : '') . ",";
+			$sql .= ($tbl["expr"] ? '' : $prefix) . ($tbl["expr"] ? $tbl["_table"] : $this->quoteTable($tbl["_table"], false)) . ($tbl["alias"] ? ' as ' . ($tbl["expr"] ? $this->quoteTable($tbl["alias"], false) : $tbl["alias"]) : '') . ",";
 		}
 		$sql = substr($sql, 0, strlen($sql) - 1);
 		if (count($this->_join)) {
@@ -439,7 +440,6 @@ class DBQuery extends \Object implements IQuery {
 		if (count($this->_orderby) > 0) {
 			$ob = array();
 			foreach ($this->_orderby as $v) {
-
 				$field = $v['field'];
 				$by = $v['order'];
 				$func = false;
@@ -450,12 +450,11 @@ class DBQuery extends \Object implements IQuery {
 					}
 				}
 				if ($func) {
-					$ob[] = $field.' '.$by;
+					$ob[] = $field . ' ' . $by;
 				} else {
-					$ob[] = $this->quoteField($field).' '.$by;
+					$ob[] = $this->quoteField($field) . ' ' . $by;
 				}
 			}
-
 			$retval = " order by " . implode(",", $ob);
 			return $retval;
 		}
@@ -490,11 +489,11 @@ class DBQuery extends \Object implements IQuery {
 			throw new Exception("Table Not Found");
 		}
 		if (count($this->_update) == 0) {
-			throw new Exception("No Field Definition for Update");
+			throw new \Exception("No Field Definition for Update");
 		}
 		$tbl = $this->getFirstTable();
 		//pp($tbl);
-		$sql = "update " . $this->quoteTable($this->getConnection()->table_prefix . $tbl['_table']) . (isset($tbl['alias']) ? ' as ' . $tbl['alias'] : '') . " set ";
+		$sql = "update " . $this->quoteTable($this->getConnection()->table_prefix . $tbl['_table']) . (isset($tbl['alias']) ? ' as ' . $this->quoteTable($tbl['alias'], false) : '') . " set ";
 		foreach ($this->_update as $k => $v) {
 			$sql .= $this->quotetable($k) . $v[0] . ($v[2] ? $v[1] : $this->quote($v[1])) . ",";
 		}
@@ -600,6 +599,9 @@ class DBQuery extends \Object implements IQuery {
 		return (int) Utils::getObjectProperty($this->loadObject(), 0);
 	}
 	function loadObject($o = null) {
+		if ($o === 'this') {
+			$o = $this;
+		}
 		$sql = $this->getSQL(0, 1);
 		if (is_array($sql)) {
 			$sql = $sql[0];
@@ -643,14 +645,13 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return null;
 	}
-	public static function execute($sql,$connection) {
+	public static function execute($sql, $connection) {
 		return $connection->exec($sql);
 	}
 	function exec($sql = null) {
 		if ($sql == null) {
 			$sql = $this->getSQL();
 		}
-
 		if (empty($sql)) {
 			throw new Exception("Empty SQL");
 		}

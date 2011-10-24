@@ -7,7 +7,7 @@ interface ISession {
 	function Start();
 	function isStarted();
 
-	function get($name, $default = null);
+	function &get($name, $default = null);
 	function set($name, $value);
 	function remove($varname);
 

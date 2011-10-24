@@ -40,7 +40,7 @@ function pp($o, $return = false) {
 function ppd($o, $clear = false) {
 	if (class_exists('System', false)) {
 		if (!System::isConsole()) {
-			header('Content-Type: text/html');
+			header('Content-Type: text/html; charset=UTF-8');
 		}
 	}
 	if (class_exists("Response", false) && !CGAF::isShutdown()) {
@@ -54,7 +54,6 @@ function ppd($o, $clear = false) {
 	var_dump($o);
 	debug_print_backtrace();
 	echo "</pre>";
-
 	CGAF::doExit();
 }
 function ppbt() {
@@ -66,13 +65,31 @@ function ppbt() {
  *
  * @param String $s
  */
-function __($s, $def = null) {
-	return CGAF::_($s, $def);
+function __($s, $def = null, $locale = null) {
+	return CGAF::_($s, $def, $locale);
+}
+function __clang($translate = true, $locale = null) {
+	$c = $locale ? $locale : AppManager::getInstance()->getLocale()->getLocale();
+	if ($translate) {
+		return __('locale.' . $c);
+	}
+	return $c;
 }
 function ___($title, $args) {
 	$args = func_get_args();
 	array_shift($args);
 	return vsprintf(__($title), $args);
+}
+function __fromObject($field, $o, $locale = null, $def = null) {
+	if (!is_object($o)) {
+		return null;
+	}
+	$locale = $locale ? $locale : AppManager::getInstance()->getLocale()->getLocale();
+	$lf = $field . '_' . $locale;
+	if (isset($o->{$lf}) && $o->{$lf}) {
+		return $o->{$lf};
+	}
+	return $o->{$field} ? $o->{$field} : $def;
 }
 function CGAFDebugOnly() {
 	if (!CGAF_DEBUG) {
