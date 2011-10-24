@@ -84,6 +84,9 @@ class Locale extends \Object {
 	}
 	public function _($s, $default = null, $context = null, $locale = null) {
 		$locale = $locale ? $locale : $this->_locale;
+		if ($locale !== $this->_locale) {
+			$this->load($locale, true, null, $locale);
+		}
 		$retval = $this->iget($s, $locale);
 		if (!$retval) {
 			if ($default == null) {
@@ -129,16 +132,16 @@ class Locale extends \Object {
 	function load($fname, $merge = true, $ctx = null, $locale = null) {
 		$locale = $locale ? $locale : $this->getLocale();
 		if (!$merge) {
-			$this->_data = array();
+			$this->_data[$locale] = array();
 		}
 		$f = $fname;
 		if (is_array($f)) {
 			ppd($f);
 		}
 		if (!is_file($f)) {
-			$corelangfile = CGAF_PATH . DS . 'locale' . DS . $this->_locale . DS . $fname . '.' . $this->_localeExt;
+			$corelangfile = CGAF_PATH . DS . 'locale' . DS . $locale . DS . $fname . '.' . $this->_localeExt;
 			if (is_file($corelangfile)) {
-				$this->load($corelangfile);
+				$this->load($corelangfile, true, null, $locale);
 			}
 			//if (is_file())
 			$f = $this->findLocaleFile($fname, $ctx, $locale);
@@ -237,44 +240,89 @@ class Locale extends \Object {
 		}
 		return trim($w);
 	}
-	function formatDate($date, $long = true) {
+	private function _parse($date, $format, $days, $months, $paramDelim = '%') {
+		$dk = array_keys($days);
+		$mk = array_keys($months);
+		$retval = '';
+		for ($strpos = 0; $strpos < strlen($format); $strpos++) {
+			$char = substr($format, $strpos, 1);
+			if ($char == $paramDelim) {
+				$nextchar = substr($format, $strpos + 1, 1);
+				switch ($nextchar) {
+				case 'D':
+					$retval .= \Utils::addChar($days[$dk[$date->format('w')]], '\\');
+					break;
+				case 'M': //short month
+					$retval .= \Utils::addChar($months[$mk[$date->format('n')]], '\\');
+					break;
+				default:
+					$retval .= $nextchar;
+					break;
+				}
+				$strpos++;
+			} else {
+				$retval .= $char;
+			}
+		}
+		return $date->format($retval);
+	}
+	function formatDate($date, $long = true, $oriFormat = 'Y-m-d H:i:s', $loc = null) {
 		if (!$date) {
 			return '';
 		}
+		$loc = $loc ? $loc : $this->getLocale();
 		try {
-			$dt = new CDate();
+			$format = $long ? $this->_('date.format.long', '%D,  %M %d %Y %h:%i:%s', null, $loc) : $this->_('date.format.short', '%M %d %Y', null, $loc);
+			$days = array(
+					$this->_('day.sunday.short', null, null, $loc) => $this->_('day.sunday.long', null, null, $loc),
+					$this->_('day.monday.short', null, null, $loc) => $this->_('day.monday.long', null, null, $loc),
+					$this->_('day.tuesday.short', null, null, $loc) => $this->_('day.tuesday.long', null, null, $loc),
+					$this->_('day.wednesday.short', null, null, $loc) => $this->_('day.wednesday.long', null, null, $loc),
+					$this->_('day.thursday.short', null, null, $loc) => $this->_('day.thursday.long', null, null, $loc),
+					$this->_('day.friday.short', null, null, $loc) => $this->_('day.friday.long', null, null, $loc),
+					$this->_('day.saturday.short', null, null, $loc) => $this->_('day.saturday.long', null, null, $loc));
+			$months = array(
+					$this->_('month.january.short', null, null, $loc) => $this->_('month.january.long', null, null, $loc),
+					$this->_('month.february.short', null, null, $loc) => $this->_('month.february.long', null, null, $loc),
+					$this->_('month.march.short', null, null, $loc) => $this->_('month.march.long', null, null, $loc),
+					$this->_('month.april.short', null, null, $loc) => $this->_('month.april.long', null, null, $loc),
+					$this->_('month.may.short', null, null, $loc) => $this->_('month.may.long', null, null, $loc),
+					$this->_('month.june.short', null, null, $loc) => $this->_('month.june.long', null, null, $loc),
+					$this->_('month.july.short', null, null, $loc) => $this->_('month.july.long', null, null, $loc),
+					$this->_('month.august.short', null, null, $loc) => $this->_('month.august.long', null, null, $loc),
+					$this->_('month.september.short', null, null, $loc) => $this->_('month.september.long', null, null, $loc),
+					$this->_('month.october.short', null, null, $loc) => $this->_('month.october.long', null, null, $loc),
+					$this->_('month.november.short', null, null, $loc) => $this->_('month.november.long', null, null, $loc),
+					$this->_('month.december.short', null, null, $loc) => $this->_('month.december.long', null, null, $loc));
+			return $this->_parse(\DateTime::createFromFormat($oriFormat, $date), $format, $days, $months);
+			/*$dt = new CDate();
 			$dt->setDate($date);
-			$loc = $this->getLocale();
-			if ($loc == "id") {
-				$days = array(
-						"Senin",
-						"Selasa",
-						"Rabu",
-						"Kamis",
-						"Jum'at",
-						"Sabtu",
-						"Minggu");
-				$months = array(
-						"Januari",
-						"Februari",
-						"Maret",
-						"April",
-						"May",
-						"Juni",
-						"Juli",
-						"Agustus",
-						"September",
-						"Oktober",
-						"November",
-						"Desember");
-				$retval = $days[$dt->getDayOfWeek()] . ", " . $dt->getDay() . " " . $months[$dt->getMonth() - 1] . " " . $dt->getYear();
-				if ($long) {
-					$retval .= " " . $dt->getHour() . ":" . $dt->getMinute() . ":" . $dt->getSecond();
-				}
-			} else {
-				$format = __("date.format." . ($long ? "long" : "short"));
-				$retval = $dt->format($date, $format);
-			}
+			$retval = $this->_parse($dt, $days, $months);
+			switch ($loc) {
+			case 'id':
+			    $months = array(
+			            "Januari",
+			            "Februari",
+			            "Maret",
+			            "April",
+			            "May",
+			            "Juni",
+			            "Juli",
+			            "Agustus",
+			            "September",
+			            "Oktober",
+			            "November",
+			            "Desember");
+			    $retval = $days[$dt->getDayOfWeek()] . ", " . $dt->getDay() . " " . $months[$dt->getMonth() - 1] . " " . $dt->getYear();
+			    if ($long) {
+			        $retval .= " " . $dt->getHour() . ":" . $dt->getMinute() . ":" . $dt->getSecond();
+			    }
+			    break;
+			default:
+			    $format = __("date.format." . ($long ? "long" : "short"));
+			    $retval = $dt->format($date, $format);
+			    break;
+			}*/
 		} catch (Exception $e) {
 			$retval = $this->_('error.invaliddate', 'Date Value not Valid');
 		}

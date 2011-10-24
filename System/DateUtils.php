@@ -96,7 +96,7 @@ abstract class DateUtils {
 		if ($difference == 0) {
 			$difference = 'a';
 		}
-		$text = "$difference " . ucfirst($periods[$j]) . " ago";
+		$text = "$difference " . __($periods[$j], ucfirst($periods[$j])) . ' ' . __('ago', "ago");
 		return $text;
 	}
 	public static function formatDate($date, $long = true) {

@@ -1202,5 +1202,13 @@ EOT;
 		}
 		return substr($o, strrpos($o, '\\') + 1);
 	}
+	public static function addChar($string, $char, $includePrefix = true) {
+		$retval = $includePrefix ? $char : '';
+		for ($i = 0; $i <= strlen($string)-1; $i++) {
+			$retval .= $string[$i] . $char;
+		}
+		$retval =substr($retval,0,strlen($retval)-1);
+		return $retval;
+	}
 }
 ?>

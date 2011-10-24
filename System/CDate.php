@@ -27,6 +27,7 @@ define('SEC_DAY', 86400);
  * This provides customised extensions to the Date class to leave the
  * Date package as 'pure' as possible
  */
+//TODO Moved to DateTime object
 class CDate extends Date {
 	function __construct($date = null, $pb_countleapseconds = DATE_COUNT_LEAP_SECONDS,$format = DATE_FORMAT_ISO) {
 		//php5 support
