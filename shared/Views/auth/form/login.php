@@ -4,20 +4,21 @@ use \System\Auth\Auth;
 $redirect = isset($redirect) ? $redirect : URLHelper::addParam(BASE_URL, array(
 		'redirect' => Request::get("redirect"),
 		'__t' => time()));
+$msg = isset($msg) ? $msg : Request::get('msg');
 ?>
 <table width="100%" cellspacing="0" cellpadding="0" border="0"
 	class="login-form">
 	<tr>
-		<td width="75%">&nbsp;<?php echo $this->getController()->renderContent('left')?></td>
+		<td width="75%">&nbsp;<?php echo $this->getController()->renderContent('left') ?></td>
 		<td class="login-container">
 <?php
 $cssClass = isset($cssClass) ? $cssClass : 'login';
 $renderNext = isset($renderNext) ? $renderNext : false;
 $json = isset($json) ? $json : false;
-echo HTMLUtils::beginForm(BASE_URL . 'auth/?' . ($json ? '_json=1' : ''), false, true, Request::get('msg'), array(
+echo HTMLUtils::beginForm(\URLHelper::add(APP_URL, 'auth?__t=' . time(), ($json ? '_json=1' : '')), false, true, $msg, array(
 		'class' => $cssClass,
 		'id' => 'login'));
-echo '<input type="hidden" name="redirect" value="' . $redirect . '">';
+//echo '<input type="hidden" name="redirect" value="' . $redirect . '">';
 echo HTMLUtils::renderTextBox(__('user.user_name'), 'username', null, 'class="required"', true) . '<br/>';
 echo HTMLUtils::renderPassword(__('user.user_password'), 'password', null, 'class="required"', true);
 echo HTMLUtils::renderCheckbox(__('auth.remember'), 'remember', false);

@@ -1,5 +1,6 @@
 <?php
 namespace System\Web\Utils;
+use System\JSON\JSON;
 use System\Web\UI\Items\MenuItem;
 use \AppManager;
 use \System\Web\UI\Controls\Anchor;
@@ -113,7 +114,8 @@ abstract class HTMLUtils {
 			$attr['id'] = Utils::generateId('frm');
 		}
 		self::$_lastForm = $attr['id'];
-		$retval = '<form method="post" action="' . $action . '" ' . ($multipart ? 'enctype="application/x-www-form-urlencoded"' : "") . ' ' . self::renderAttr($attr) . '>';
+		//application/x-www-form-urlencoded
+		$retval = '<form method="post" action="' . $action . '" ' . ($multipart ? 'enctype="multipart/form-data"' : "") . ' ' . self::renderAttr($attr) . '>';
 		if ($showMessage) {
 			$retval .= '<div id="error-message" class="On" style="' . ($msg ? 'display:block' : 'display:none') . '">' . ($msg ? $msg : '&nbsp;') . '</div>';
 		}
@@ -152,7 +154,7 @@ abstract class HTMLUtils {
 		}
 		return $js;
 	}
-	public static function endForm($renderAction = true, $renderToken = false, $ajaxmode = false) {
+	public static function endForm($renderAction = true, $renderToken = false, $ajaxmode = false, $ajaxConfig = null) {
 		$retval = "";
 		if ($renderAction) {
 			$retval .= self::renderFormAction();
@@ -163,8 +165,15 @@ abstract class HTMLUtils {
 		$retval .= "</form>";
 		if ($ajaxmode) {
 			$id = self::$_lastForm;
+			$ajaxConfig = JSON::encodeConfig($ajaxConfig, array(
+					'beforeSend',
+					'complete',
+					'error',
+					'success'));
+			$ajaxConfig = str_replace('\n', "\n", $ajaxConfig);
+			$ajaxConfig = str_replace('\t', "\t", $ajaxConfig);
 			$js = <<< JS
-$('#$id').gform();
+$('#$id').gform($ajaxConfig);
 JS;
 			AppManager::getInstance()->addClientScript($js);
 		}
@@ -307,20 +316,20 @@ JS;
 		}
 		return self::renderFormField($title, $id, $value, $attr, $editMode, "checkbox", 'right');
 	}
-	public static function renderHiddenField($id, $value) {
-		return self::renderFormField(null, $id, $value, null, true, 'hidden');
+	public static function renderHiddenField($id, $value, $attr = null) {
+		return self::renderFormField(null, $id, $value, $attr, true, 'hidden');
 	}
 	public static function renderHTMLEditor($title, $id, $value = null, $attr = null, $editmode = true) {
 		return self::renderFormField($title, $id, $value, $attr, $editmode, 'htmleditor');
 	}
-	public static function renderEditor($title,$id,$value,$attr=null,$editmode=true) {
-		return self::renderFormField($title, $id, $value,$attr,$editmode,'htmleditor');
+	public static function renderEditor($title, $id, $value, $attr = null, $editmode = true) {
+		return self::renderFormField($title, $id, $value, $attr, $editmode, 'htmleditor');
 	}
 	public static function renderFormField($title, $id, $value, $attr = null, $editMode = false, $type = "text", $labelPosition = 'left') {
 		$renderlabel = true;
 		$retval = "";
-		$prefix =null;
-		$suffix=null;
+		$prefix = null;
+		$suffix = null;
 		switch ($type) {
 		case "checkbox":
 			if ($value) {
@@ -356,7 +365,6 @@ JS;
 			} else {
 				$retval .= '<span id="' . $id . '" class="textarea-value-only" ' . $attr . '>' . $value . '</span>';
 			}
-
 			break;
 		case "checkbox":
 			if ($editMode) {
@@ -399,8 +407,8 @@ JS;
 				$ttitle = @$item->title ? @$item->title : ($tt ? $tt : $value);
 			} else {
 				$key = $item['key'];
-				$value = $item['value'];
-				$tt = $item['descr'];
+				$value = isset($item['value']) ? $item['value'] : $key;
+				$tt = isset($item['descr']) ? $item['descr'] : (isset($item['title']) ? $item['title'] : $key);
 				$ttitle = isset($item['title']) ? $item['title'] : (isset($item['descr']) ? $item['descr'] : $item['key']);
 			}
 			$sel = '';
@@ -430,7 +438,7 @@ JS;
 				} else {
 					$key = $item['key'];
 					$value = $item['value'];
-					$tt = $item['descr'];
+					$tt = isset($item['descr']) ? $item['descr'] : $item['value'];
 				}
 				$sel = '';
 				if ($key == $selected) {
@@ -534,7 +542,7 @@ JS;
 		}
 		return '<div class="error">' . $msg . '</div>';
 	}
-	public static function renderLink($link, $title, $attr = null, $icon = null, $descr = null,$showlabel=true) {
+	public static function renderLink($link, $title, $attr = null, $icon = null, $descr = null, $showlabel = true) {
 		$icon = $icon ? $icon : 'cleardot.gif';
 		if (!$attr) {
 			$attr = array();
@@ -587,7 +595,7 @@ JS;
 			} elseif ($item instanceof IRenderable) {
 				$ir = $item->Render(true);
 			} elseif (is_array($item)) {
-				$nitem = new MenuItem($k, @$item['title'], $item['url'], @$item['selected']);
+				$nitem = new MenuItem($k, @$item['title'], $item['url'], isset($item['selected']) ? $item['selected'] : false);
 				$nitem->setDescr(isset($item['descr']) ? $item['descr'] : '');
 				$nitem->setIcon(isset($item['icon']) ? $item['icon'] : '');
 				$nitem->setReplacer($replacer);
@@ -670,8 +678,13 @@ EOT;
 		if (!$items) {
 			return '';
 		}
+		//ppd($items);
 		$menuid = $menuid ? $menuid : Utils::generateId('menu');
-		$retval = "<ul class=\"$class menu\" id=\"" . $menuid . "\">";
+		$retval = '';
+		if (\Request::isMobile()) {
+			$retval = '<div data-role="navbar">';
+		}
+		$retval .= "<ul class=\"$class menu\" id=\"" . $menuid . "\">";
 		foreach ($items as $k => $item) {
 			if (!($item instanceof MenuItem)) {
 				$item = new MenuItem(Utils::bindToObject(new \stdClass(), $item, true));
@@ -687,6 +700,9 @@ EOT;
 			$retval .= $item->render(true);
 		}
 		$retval .= "</ul>";
+		if (\Request::isMobile()) {
+			$retval .= '</div>';
+		}
 		return $retval;
 	}
 	private static function _optimizeHTML($html) {

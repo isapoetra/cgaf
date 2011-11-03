@@ -265,7 +265,7 @@ class ModuleManager {
 			}
 			$retval = array_reverse ( $retval, false );
 			$retval [] = $app_path;
-			//$retval [] = $m->mod_path . DS . String::FromLastPos ( Utils::ToDirectory ( $m->mod_path, false ), DS, 0 );
+			//$retval [] = $m->mod_path . DS . Strings::FromLastPos ( Utils::ToDirectory ( $m->mod_path, false ), DS, 0 );
 			$tmp_path [$key] = Utils::ToDirectory($retval);
 		}
 		return $tmp_path [$key];

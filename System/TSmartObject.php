@@ -5,7 +5,7 @@ class TSmartObject {
 		$props = $reference->getProperties();
 
 		foreach ( $props as $v ) {
-			if (String::BeginWith($v->name,"_")) {
+			if (Strings::BeginWith($v->name,"_")) {
 				continue;
 			}
 			$this->{$v->name} = null;

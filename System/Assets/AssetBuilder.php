@@ -4,7 +4,7 @@
  *
  */
 namespace System\Assets;
-use \CGAF, \Utils, \String, \System\Configurations\Configuration, \AppManager, \CDate;
+use \CGAF, \Utils, \Strings, \System\Configurations\Configuration, \AppManager, \CDate;
 
 class AssetManifest extends Configuration {
 	private $_manifestFile = null;
@@ -64,7 +64,7 @@ class AssetProjectFile {
 			return $f;
 		}
 
-		$file = Utils::ToDirectory(String::replace($f, $this->_vars));
+		$file = Utils::ToDirectory(Strings::replace($f, $this->_vars));
 
 		$ap = array_merge(array(Utils::ToDirectory($srcPath)), $this->_appOwner->getAssetPath(''));
 
@@ -98,9 +98,9 @@ class AssetProjectFile {
 
 		$file = trim($file);
 
-		if (String::contains($file, '@')) {
+		if (Strings::contains($file, '@')) {
 
-			$file = String::FromPos($file, '@');
+			$file = Strings::FromPos($file, '@');
 			$fs = $this->_config->getConfig('assets.' . $file);
 			if (!$fs) {
 				throw new SystemException('Unknown Variable ' . $file);
@@ -119,7 +119,7 @@ class AssetProjectFile {
 			return $retval;
 		}
 		if (stripos($file, '*') !== false) {
-			$x = String::replace(String::FromLastPos($file, DS), array('*' => '', '.' => '\\.'));
+			$x = Strings::replace(Strings::FromLastPos($file, DS), array('*' => '', '.' => '\\.'));
 			$m = '/' . $x . '$/D';
 			$file = Utils::ToDirectory($srcPath . DS . $file);
 
@@ -160,7 +160,7 @@ class AssetProjectFile {
 
 	private function _loadManifestFile($force = false) {
 		if ($force || $this->_manifest === null) {
-			$this->_targetPath = Utils::ToDirectory(String::replace($this->getConfig('assets.configs.TargetPath'), $this->_vars));
+			$this->_targetPath = Utils::ToDirectory(Strings::replace($this->getConfig('assets.configs.TargetPath'), $this->_vars));
 			$manifestpath = $this->_appOwner->getInternalStoragePath() . 'asset-manifest' . DS;
 			$this->_manifestFile = $manifestpath . md5($this->_source) . '.manifest';
 			Utils::removeFile($this->_manifestFile);

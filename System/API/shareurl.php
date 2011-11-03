@@ -15,7 +15,7 @@ class shareurl extends PublicApi {
 	}
 	public function parse($v) {
 		$configs = $this->_config->getConfigs('System');
-		$v = \String::Replace($v, $configs, $v, true, null, '{', '}', true);
+		$v = \Strings::Replace($v, $configs, $v, true, null, '{', '}', true);
 		return $v;
 	}
 	function url($config, $id = null, $multi = true, $imageIndex = 0) {

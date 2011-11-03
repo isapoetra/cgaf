@@ -124,7 +124,7 @@ abstract class MVCHelper {
 		throw new SystemException('Application Not Started');
 	}
 	public static function loadMVCClass($class) {
-		if (String::EndWith($class, 'Model')) {
+		if (Strings::EndWith($class, 'Model')) {
 			if (!CGAF::Using('Models.' . substr($class, 0, strlen($class) - 5), false)) {
 				return CGAF::Using('Models.' . strtolower(substr($class, 0, strlen($class) - 5)), false);
 			}

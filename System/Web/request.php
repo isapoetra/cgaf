@@ -75,9 +75,24 @@ class Request implements \IRequest {
 			unset($this->input[$varname]);
 		}
 	}
-	function get($varName, $default = null, $secure = true) {
+	function get($varName, $default = null, $secure = true, $place = null) {
 		if (!is_array($varName)) {
-			$r = $secure ? $this->getSec($varName, $default) : $this->$varName;
+			$r = null;
+			if ($place) {
+				if (isset($this->_inputbyplace[$place])) {
+					$p = $this->_inputbyplace[$place];
+					$r = null;
+					if (isset($p[$varName])) {
+						$r = $p[$varName];
+						if ($secure) {
+							$r = $r ? htmlentities(Utils::filterXSS($r)) : null;
+						}
+					}
+					return $r === null || $r == "" ? $default : $r;
+				}
+			} else {
+				$r = $secure ? $this->getSec($varName, $default) : $this->$varName;
+			}
 			return $r === null || $r == "" ? $default : $r;
 		} else {
 			$r = array();
@@ -92,7 +107,7 @@ class Request implements \IRequest {
 			return $this->_secure[$varName];
 		}
 		$retval = $this->$varName;
-		$this->_secure[$varName] = htmlentities(Utils::filterXSS($retval));
+		$this->_secure[$varName] = is_string($retval) ? htmlentities(Utils::filterXSS($retval)) : $retval;
 		return $this->_secure[$varName] !== null ? $this->_secure[$varName] : $default;
 	}
 	function getSecure($varName, $default = null) {

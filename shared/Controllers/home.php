@@ -13,7 +13,7 @@ class HomeController extends \System\MVC\Controller {
 		}
 		return parent::isAllow($view);
 	}
-	function getAction($o) {
+	function getAction($o, $id = null, $route = null) {
 		return null;
 	}
 }

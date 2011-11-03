@@ -1,6 +1,6 @@
 <?php
 namespace System\DB;
-use \String;
+use \Strings;
 use \Logger;
 abstract class DBConnection implements IDBConnection {
 	protected $_connArgs;
@@ -151,17 +151,17 @@ abstract class DBConnection implements IDBConnection {
 	}
 	protected function toTableName($tbl) {
 		$sql = str_ireplace("[table_prefix]", $this->getArg("table_prefix"), $tbl);
-		if (String::BeginWith($tbl, $this->getArg("table_prefix"))) {
+		if (Strings::BeginWith($tbl, $this->getArg("table_prefix"))) {
 			return $tbl;
 		}
-		if (!String::BeginWith($tbl, '#__')) {
+		if (!Strings::BeginWith($tbl, '#__')) {
 			$tbl = '#__' . $tbl;
 		}
 		$tbl = str_ireplace("#__", $this->getArg("table_prefix"), $tbl);
 		return $tbl;
 	}
 	protected function prepareQuery($sql) {
-		if (String::BeginWith($sql, 'drop', false) || String::BeginWith($sql, 'create', false)) {
+		if (Strings::BeginWith($sql, 'drop', false) || Strings::BeginWith($sql, 'create', false)) {
 			$this->_objects = array();
 		}
 		$sql = str_ireplace("[table_prefix]", $this->getArg("table_prefix"), $sql);

@@ -9,7 +9,7 @@ abstract class MenuItem extends \Object implements \IRenderable {
 	protected $_title;
 	protected $_action;
 	protected $_selected = false;
-	private $_icon = null;
+	protected $_icon = null;
 	protected $_actionType = 1;
 	protected $_showCaption = true;
 	protected $_showIcon = true;

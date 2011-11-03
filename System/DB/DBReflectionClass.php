@@ -1,6 +1,6 @@
 <?php
 namespace System\DB;
-use \String;
+use \Strings;
 class  DBReflectionClass extends \ReflectionClass {
 	private $_fields =array();
 	private $_pk=array();
@@ -9,7 +9,7 @@ class  DBReflectionClass extends \ReflectionClass {
 		$props = $this->getProperties ();
 		foreach ( $props as $prop ) {
 			$name = $prop->getName ();
-			if (String::BeginWith ( $name, "_" )) {
+			if (Strings::BeginWith ( $name, "_" )) {
 				continue;
 			}
 			$doc =new DBFieldDefs(\PHPDocHelper::parse ( $prop->getDocComment () ));

@@ -2,7 +2,7 @@
 namespace System\MVC;
 use System\ACL\ACLHelper;
 use System\Exceptions\AccessDeniedException;
-use \String;
+use \Strings;
 use \Request;
 use \Logger;
 use System\Session\Session;
@@ -34,11 +34,11 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 			throw new SystemException('unable to initialize controller %s', $this->getControllerName());
 		}
 	}
-	protected function getController($controller) {
+	protected function getController($controller, $throw = true) {
 		if ($controller === $this->getControllerName()) {
 			return $this;
 		}
-		return $this->getAppOwner()->getController($controller);
+		return $this->getAppOwner()->getController($controller, $throw);
 	}
 	protected function redirect($a, $param = null) {
 		\Response::Redirect(\URLHelper::add(APP_URL, $this->getControllerName() . '/' . $a, $param));
@@ -86,9 +86,13 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		//ppd($retval);
 		return $retval;
 	}
-	function getState($stateName) {
+	function setState($stateName, $value) {
 		$stid = $this->getAppOwner()->getAppId() . '-' . $this->getControllerName();
-		return Session::getState($stid, $stateName);
+		return Session::setState($stid, $stateName, $value);
+	}
+	function getState($stateName, $default = null) {
+		$stid = $this->getAppOwner()->getAppId() . '-' . $this->getControllerName();
+		return Session::getState($stid, $stateName, $default);
 	}
 	function name() {
 		return $this->_routeName;
@@ -412,7 +416,7 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 	function getControllerName() {
 		if ($this->_routeName == null) {
 			$cl = Utils::removeNameSpace(get_class($this));
-			if (String::BeginWith($cl, CGAF_CLASS_PREFIX)) {
+			if (Strings::BeginWith($cl, CGAF_CLASS_PREFIX)) {
 				$r = str_ireplace("Controller", "", substr($cl, strlen(CGAF_CLASS_PREFIX)));
 			} else {
 				$r = str_ireplace("Controller", "", $cl);
@@ -489,9 +493,11 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		} else {
 			$filtered = $this->geMenuItems($position, 0, null, $showIcon);
 		}
-		if ($position == 'menu-bar') {
+		if ($position == 'menu-bar' && !\Request::isMobile()) {
 			$r = $this->getAppOwner()->getRoute();
 			$home = new MenuItem('home', 'Home', BASE_URL, $r['_c'] === $this->getAppOwner()->getDefaultController(), 'home.descr');
+			$home->setShowIcon(true);
+			$home->setIcon('appicon.png');
 			$home->setCss('home');
 			$filtered = array_merge(array(
 					$home), $filtered);
@@ -518,6 +524,10 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		if (!Request::isDataRequest()) {
 			$this->getAppOwner()->addClientAsset($this->getControllerName() . '.css');
 			$this->getAppOwner()->addClientAsset($this->getControllerName() . '.js');
+		}
+		try {
+			$this->setModel($this->getControllerName());
+		} catch (\Exception $e) {
 		}
 		$this->Assign("baseurl", BASE_URL);
 		$this->Assign("content", null);

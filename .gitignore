@@ -1,6 +1,8 @@
 #temporary ignore
 /assets/
 /install/
+manifest/
+ogp
 .settings
 .buildpath
 tmp
@@ -18,3 +20,5 @@ tmp
 vendor
 /globe
 config.php
+upload.php
+.upload

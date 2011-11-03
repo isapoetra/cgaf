@@ -31,6 +31,7 @@ class AssetController extends System\MVC\Controller {
 		case 'ico':
 		case 'gif':
 		case 'js':
+		//case 'ttf':
 			\CGAF::cacheRequest(time(), 30, false, $file);
 			break;
 		default:

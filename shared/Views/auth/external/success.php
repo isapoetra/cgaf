@@ -1,5 +1,6 @@
 <?php
 use System\Web\JS\JSUtils;
+ppd('Success');
 echo '<noscript>authentification success please close this window</noscript>';
 $script = <<< EOT
 if (window.opener) {

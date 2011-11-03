@@ -185,13 +185,6 @@ class BaseTemplate extends AbstractTemplate {
 		static $rendered;
 		if (!$rendered) {
 			$retval = "";
-			if (!Request::isAJAXRequest() && !Request::isDataRequest()) {
-				$tmp = $this->getLive('favicon.ico');
-				$retval .= $this->_renderHeader();
-				if ($tmp != null) {
-					$retval .= "<link rel=\"shortcut icon\" href=\"$tmp\"/>\n";
-				}
-			}
 		}
 		$rendered = true;
 		$retval = $this->renderClientAssets();

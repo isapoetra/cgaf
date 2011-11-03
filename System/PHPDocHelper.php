@@ -8,7 +8,7 @@ class SimplePHPDoc {
 		$this->_doc = explode("\n", $s);
 		foreach ( $this->_doc as $l ) {
 			$l = trim($l);
-			if (String::BeginWith($l,'/*') || String::EndWith($l,'*/') || $l=="*")
+			if (Strings::BeginWith($l,'/*') || Strings::EndWith($l,'*/') || $l=="*")
 			{
 				continue;
 			}
@@ -33,12 +33,12 @@ class SimplePHPDoc {
 	}
 	function getVars() {
 		return $this->_vars;
-		
+
 	}
 }
 class PHPDocHelper {
 	/**
-	 * 
+	 *
 	 * Enter description here ...
 	 * @param string $s
 	 * @return SimplePHPDoc

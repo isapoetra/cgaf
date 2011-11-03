@@ -1,5 +1,6 @@
-Options +Indexes
-
+Options -Indexes
+AddType application/opensearchdescription+xml osd
+AddType text/cache-manifest manifest
 # Configure ETags
 <FilesMatch "\.(jpg|jpeg|gif|png|mp3|flv|mov|avi|3gp|html|htm|swf|css|js)$">
 	FileETag MTime Size
@@ -10,9 +11,8 @@ Options +Indexes
 	ExpiresDefault A2419200
 </IfModule>
 
-
-
 <IfModule mod_deflate.c>
+	SetOutputFilter DEFLATE
 	AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript
 	BrowserMatch ^Mozilla/4 gzip-only-text/html
 	# Netscape 4.x has some problems...
@@ -80,6 +80,8 @@ Options +Indexes
 	RewriteBase /
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d	
+	RewriteCond %{REQUEST_FILENAME}   !robots\.txt
+	RewriteCond %{REQUEST_FILENAME}   !sitemap\.xml
 	RewriteRule ^(.*)$ index.php?__url=$1 [L,QSA]
 	
 

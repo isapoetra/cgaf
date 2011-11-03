@@ -30,7 +30,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	 *
 	 * Clear Client Asset And Client Script
 	 */
-	protected function clearClient() {
+	public function clearClient() {
 		$this->_clientAssets->clear();
 		$this->_clientScripts = array();
 		$this->_clientDirectScripts = array();
@@ -45,6 +45,30 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 			return;
 		}
 		$this->_clientScripts[] = $script;
+	}
+	function getAppManifest($force = false) {
+		$f = CGAF_PATH . 'manifest/' . $this->getAppId() . '.manifest';
+		//unlink($f);
+		if ($force || !is_file($f)) {
+			$manifest = CGAF::getConfig('app.manifest');
+			$man = $this->getConfig('app.manifest');
+			\Utils::arrayMerge($manifest, $man, false, true);
+			$s = 'CACHE MANIFEST' . PHP_EOL;
+			$s .= '#generated : ' . time() . PHP_EOL;
+			foreach ($manifest as $k => $v) {
+				if (!$v)
+					continue;
+				$s .= PHP_EOL . strtoupper($k) . ':' . PHP_EOL;
+				if (is_array($v)) {
+					$s .= implode(PHP_EOL, $v) . PHP_EOL;
+				} elseif (is_string($v)) {
+					$s .= $v . PHP_EOL;
+				}
+			}
+			$s .= '#---EOF---' . PHP_EOL;
+			file_put_contents($f, $s);
+		}
+		return BASE_URL . 'manifest/' . basename($f);
 	}
 	function addClientDirectScript($script) {
 		if (!$script) {
@@ -85,7 +109,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		}
 		$metas = array(
 				'tag' => $tag);
-		if (is_string($name)) {
+		if ($name && is_string($name)) {
 			$metas['name'] = $name;
 		}
 		if ($overwrite) {
@@ -112,12 +136,12 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 			case 'css':
 			case 'js':
 				$retval = null;
-				if (!CGAF_DEBUG) {
+				if (!$this->isDebugMode()) {
 					$retval = parent::getAsset(Utils::changeFileExt($data, 'min.' . $ext), $prefix);
 				}
 				if (!$retval) {
 					$retval = parent::getAsset($data, $prefix);
-					if (!$retval && CGAF_DEBUG) {
+					if (!$retval && $this->isDebugMode()) {
 						$retval = parent::getAsset(Utils::changeFileExt($data, 'min.' . $ext), $prefix);
 					}
 				}
@@ -157,6 +181,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 			case "ico":
 				$def = 'images';
 				if ($type == "ico") {
+					$search[] = 'images';
 					$def = "icon";
 				}
 				$ctheme = $this->getConfig("themes", "default");
@@ -198,8 +223,12 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 	function getAppUrl() {
 		static $url;
 		if (!$url) {
-			$def = CGAF::getConfig('defaultAppId') === $this->getAppId() ? BASE_URL : URLHelper::addParam(BASE_URL, array(
-					'__appId' => $this->getAppId()));
+			$params = array(
+					'__appId' => $this->getAppId());
+			if (\Request::isMobile()) {
+				$params['__mobile'] = 1;
+			}
+			$def = CGAF::getConfig('defaultAppId') === $this->getAppId() ? BASE_URL : URLHelper::addParam(BASE_URL, $params);
 			$url = $this->getConfig('app.url', $def);
 		}
 		return $url;
@@ -356,8 +385,9 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		return true;
 	}
 	protected function initRequest() {
-		if (!CGAF_DEBUG && !\Request::isAJAXRequest() && !\Request::isDataRequest()) {
-			if ($this->getConfig('google.analytics.enable', true) && $gaid = $this->getConfig('google.analytics.acount', 'UA-7679167-5')) {
+		if (!$this->isDebugMode() && !\Request::isAJAXRequest() && !\Request::isDataRequest()) {
+			$gaid = $this->getConfig('google.analytics.account');
+			if ($gaid) {
 				$script = <<<EOT
 var _gaq = _gaq || [];
 _gaq.push(['_setAccount', '$gaid']);
@@ -371,21 +401,32 @@ EOT;
 				$this->addClientDirectScript($script);
 			}
 		}
-		if (!Request::isAJAXRequest()) {
-			header_remove('X-Powered-By');
-			header_remove('Server');
-			$this->addMetaHeader(array(
-							'http-equiv' => 'Content-Type',
-							'content' => 'text/html; charset=UTF-8'));
-			$info = $this->getAppInfo();
-			$this->addMetaHeader('author', 'Iwan Sapoetra');
-			$this->addMetaHeader('copyright', date('M Y'));
-			$this->addMetaHeader('description', $info->app_descr ? $info->app_descr : CGAF::getConfig('cgaf.description', 'CGAF'));
-			$this->addMetaHeader('keywords', array(
-							'content' => $this->getConfig('app.keywords', CGAF::getConfig('cgaf.keywords', 'CGAF'))));
-			$this->addMetaHeader('Version', $info->app_version);
-			$this->addClientAsset(strtolower($this->getAppName()) . ".css");
+		header_remove('X-Powered-By');
+		header_remove('Server');
+		//$script = 'window.external.AddSearchProvider("'.BASE_URL.'search/osd/?r=def");';
+		//$this->addClientDirectScript($script);
+		$this->addMetaHeader('charset', 'utf-8');
+		$this->addMetaHeader(array(
+						'http-equiv' => 'Content-Type',
+						'content' => 'text/html; charset=UTF-8'));
+		$info = $this->getAppInfo();
+		if ($fav = $this->getLiveAsset("favicon.png")) {
+			$this->addMetaHeader(null, array(
+							'rel' => "shortcut icon",
+							'href' => $fav), 'link');
 		}
+		$this->addMetaHeader(null, array(
+						'rel' => "search",
+						'type' => "application/opensearchdescription+xml",
+						'title' => 'CGAF Search',
+						'href' => BASE_URL . 'search/opensearch/?r=def'), 'link');
+		$this->addMetaHeader('author', 'Iwan Sapoetra');
+		$this->addMetaHeader('copyright', date('M Y'));
+		$this->addMetaHeader('description', $info->app_descr ? $info->app_descr : CGAF::getConfig('cgaf.description', 'CGAF'));
+		$this->addMetaHeader('keywords', array(
+						'content' => $this->getConfig('app.keywords', CGAF::getConfig('cgaf.keywords', 'CGAF'))));
+		$this->addMetaHeader('Version', $info->app_version);
+		$this->addClientAsset(strtolower($this->getAppName()) . ".css");
 	}
 	protected function renderHeader() {
 		return "<head>";
@@ -398,6 +439,24 @@ EOT;
 			$retval .= '>';
 		}
 		return $retval;
+	}
+	function isDebugMode() {
+		static $d;
+		if ($d === null) {
+			$d = $this->getConfig('app.debugmode', \CGAF::isDebugMode());
+			if ($d === true) {
+				if (!CGAF::isDebugMode()) {
+					$r = $this->getConfig('app.allowedebughost');
+					if ($r) {
+						$r = explode(',', $r);
+						$d = in_array($_SERVER['REMOTE_ADDR'], $r);
+					} else {
+						$d = false;
+					}
+				}
+			}
+		}
+		return $d;
 	}
 	public function Run() {
 		$a = Request::get("__url");

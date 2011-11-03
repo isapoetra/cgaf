@@ -17,11 +17,11 @@ class ConsoleRequest implements IRequest {
 		return isset ( $this->_input [$varname] ) ? $this->_input [$varname] : $default;
 	}
 	private function tovar($v) {
-		$s = String::FromLastPos ( $v, '-' );
+		$s = Strings::FromLastPos ( $v, '-' );
 		return $s;
 	}
 	private function parse($args) {
-		
+
 		/*foreach ( $args as $v ) {
 			if (strpos ( $v, "=" ) > 0) {
 				$x = explode ( "=", $this->toVar ( $v ) );

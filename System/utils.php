@@ -190,7 +190,7 @@ abstract class Utils {
 			}
 			return $retval;
 		}
-		return String::BeginWith("./", $f) || String::BeginWith($f, "http://") || String::BeginWith($f, "https://") || (is_file($f) && substr($f, 0, strlen(SITE_PATH)) === SITE_PATH);
+		return Strings::BeginWith("./", $f) || Strings::BeginWith($f, "http://") || Strings::BeginWith($f, "https://") || (is_file($f) && substr($f, 0, strlen(SITE_PATH)) === SITE_PATH);
 	}
 	public static function makeDir($pathname, $mode = 0750, $securepatern = null) {
 		$pathname = self::ToDirectory($pathname);
@@ -230,6 +230,14 @@ abstract class Utils {
 		closedir($dh);
 		return $files;
 	}
+	/**
+	 *
+	 * Enter description here ...
+	 * @param unknown_type $dir
+	 * @param unknown_type $base
+	 * @param unknown_type $recurse
+	 * @param regex string $match ex /\.png$/i
+	 */
 	public static function getDirFiles($dir, $base = null, $recurse = true, $match = null) {
 		$dir = self::ToDirectory($dir);
 		$files = array();
@@ -395,13 +403,15 @@ abstract class Utils {
 		return $tmp;
 	}
 	public static function PathToLive($path) {
-		if (String::BeginWith($path, 'https:') || String::BeginWith($path, 'http:') || String::BeginWith($path, 'ftp:')) {
+		if (Strings::BeginWith($path, 'https:') || Strings::BeginWith($path, 'http:') || Strings::BeginWith($path, 'ftp:')) {
 			return $path;
 		}
-		if (!String::BeginWith($path, SITE_PATH)) {
+		if (!Strings::BeginWith($path, ASSET_PATH)) {
 			ppd($path);
 		}
-		return str_ireplace(DS, '/', str_ireplace(SITE_PATH, BASE_URL, self::ToDirectory($path)));
+		$retval = str_ireplace(DS, '/', str_ireplace(ASSET_PATH, ASSET_URL, self::ToDirectory($path)));
+		//pp($path.$retval);
+		return $retval;
 	}
 	public static function getLiveFile($f, $base) {
 		return self::ToDirectory(CGAF::getConfig("System.LiveTempPath", SITE_PATH . DS . "tmp" . DS . $base . DS . basename($f)));
@@ -431,7 +441,7 @@ abstract class Utils {
 		if (!$fname) {
 			return null;
 		}
-		$ext = String::FromLastPos($fname, ".");
+		$ext = Strings::FromLastPos($fname, ".");
 		if (strpos($ext, '?')) {
 			$ext = substr($ext, 0, strpos($ext, '?'));
 		}
@@ -490,7 +500,7 @@ abstract class Utils {
 		return realpath($f);
 	}
 	public static function changeFileExt($fname, $ext) {
-		return self::toDirectory(String::EndWith($fname, $ext) ? $fname : (strrpos($fname, ".") ? substr($fname, 0, strrpos($fname, ".")) : $fname) . ($ext ? '.' : '') . "$ext");
+		return self::toDirectory(Strings::EndWith($fname, $ext) ? $fname : (strrpos($fname, ".") ? substr($fname, 0, strrpos($fname, ".")) : $fname) . ($ext ? '.' : '') . "$ext");
 	}
 	public static function changeFileName($fname, $newname) {
 		$dname = dirname($fname);
@@ -885,7 +895,7 @@ EOT;
 		if (!is_string($o)) {
 			return $o;
 		}
-		if (String::BeginWith('#', $o)) {
+		if (Strings::BeginWith('#', $o)) {
 			$o = explode("\n", substr($o, 1));
 			$r = array();
 			foreach ($o as $v) {
@@ -1063,7 +1073,7 @@ EOT;
 		}
 		return implode($seperator, $tmp);
 	}
-	public static function arrayMerge(&$a1, $a2, $uniqueValue = false) {
+	public static function arrayMerge(&$a1, $a2, $uniqueValue = false, $key2lower = false) {
 		if (!$a2) {
 			return $a1;
 		}
@@ -1073,6 +1083,18 @@ EOT;
 		}
 		if (!is_array($a1)) {
 			$a1 = array();
+		}
+		if ($key2lower) {
+			$ar = array();
+			foreach ($a1 as $k => $v) {
+				$ar[strtolower($k)] = $v;
+			}
+			$a1 = $ar;
+			$ar = array();
+			foreach ($a2 as $k => $v) {
+				$ar[strtolower($k)] = $v;
+			}
+			$a2 = $ar;
 		}
 		if ($uniqueValue) {
 			foreach ($a2 as $k => $v) {
@@ -1088,6 +1110,8 @@ EOT;
 			foreach ($a2 as $k => $v) {
 				if (is_numeric($k)) {
 					$a1[] = $v;
+				} elseif (is_array($v)) {
+					self::arrayMerge($a1[$k], $v, $uniqueValue, $key2lower);
 				} else {
 					$a1[$k] = $v;
 				}
@@ -1204,10 +1228,10 @@ EOT;
 	}
 	public static function addChar($string, $char, $includePrefix = true) {
 		$retval = $includePrefix ? $char : '';
-		for ($i = 0; $i <= strlen($string)-1; $i++) {
+		for ($i = 0; $i <= strlen($string) - 1; $i++) {
 			$retval .= $string[$i] . $char;
 		}
-		$retval =substr($retval,0,strlen($retval)-1);
+		$retval = substr($retval, 0, strlen($retval) - 1);
 		return $retval;
 	}
 }

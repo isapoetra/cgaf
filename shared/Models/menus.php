@@ -87,62 +87,51 @@ class Menus extends Model {
 	 * @var String
 	 */
 	public $menu_tag;
-
 	function __construct($appOwner) {
 		parent::__construct(CGAF::getDBConnection(), "menus", "menu_id,app_id", true);
-
 		$this->setAppOwner($appOwner);
 	}
-
 	function filterACL($o) {
 		if (is_object($o)) {
 			$acl = $this->getAppOwner()->getACL();
-
 			$type = null;
 			$action = explode("/", $o->menu_action);
-			switch (( int ) $o->menu_action_type) {
-				case 4: // javascript
-				case 0:
-					return $o;
-				case 2 :
-					$action [1] = 'view';
-				case 1 :
-				default :
-					$type = "controller";
-					if (isset($action [1])) {
-						$url = parse_url($action [1]);
-
-					}
-					$access = count($action) > 1 ? $url ['path'] : "view";
-					if ($acl->isAllow(trim($action [0]), $type, $access)) {
+			switch ((int) $o->menu_action_type) {
+			case 4: // javascript
+			case 0:
+				return $o;
+			case 2:
+				$action[1] = 'view';
+			case 1:
+			default:
+				$type = "controller";
+				if (isset($action[1])) {
+					$url = parse_url($action[1]);
+				}
+				$access = count($action) > 1 ? $url['path'] : "view";
+				try {
+					$ctl = $this->getAppOwner()->getController(trim($action[0]));
+					if ($ctl && $ctl->isAllow($access)) {
 						return $o;
-					} else {
-						//test from controller
-						try {
-							$ctl = $this->getAppOwner()->getController($action [0]);
-							if ($ctl && $ctl->isAllow($access)) {
-								return $o;
-							}
-						} catch (\Exception $e ) {
-
-						}
 					}
+				} catch (\Exception $e) {
+					//ppd($this->getAppOwner());
+					//pp($e->getMessage());
+				}
 			}
 			return null;
-		} else
-		if (is_array($o)) {
-			$retval = array ();
-			foreach ( $o as $v ) {
+		} else if (is_array($o)) {
+			$retval = array();
+			foreach ($o as $v) {
 				$v = $this->filterACL($v);
 				if ($v) {
-					$retval [] = $v;
+					$retval[] = $v;
 				}
 			}
 			return $retval;
 		}
 		return parent::filterACL($o);
 	}
-
 	function resetgrid($id = null) {
 		$this->setAlias('m')->reset()->clear('field')->select('m.*,st.value status_name')->join('vw_cms_defaultstatus', 'st', 'st.key=m.menu_state', 'inner', true)->orderby('m.menu_state');
 		return $this;

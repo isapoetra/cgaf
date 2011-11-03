@@ -16,6 +16,9 @@ class Db extends BaseACL {
 	function isPartner() {
 		return $this->isInrole(ACLHelper::PARTNERS_GROUP);
 	}
+	function isDevelover() {
+		return $this->isInrole(ACLHelper::DEV_GROUP);
+	}
 	function isAdmin() {
 		return $this->isInrole(ACLHelper::ADMINS_GROUP);
 	}
@@ -69,7 +72,6 @@ class Db extends BaseACL {
 		if ($userid === null) {
 			$userid = $this->getUserId();
 		}
-
 		if (!isset($this->_rolesCache[$this->_appId][$userid])) {
 			$retval = array();
 			$ur = new UserRoles();
@@ -79,14 +81,13 @@ class Db extends BaseACL {
 				$app = AppManager::getInstance();
 				if ($app->getAppId() !== $this->_appId) {
 					$ur->where("(ur.app_id=" . $ur->quote($this->_appId) . ' or ur.app_id=' . $ur->quote($app->getAppId()) . ')');
-				} else {
+				} elseif ($this->_appId !== \CGAF::APP_ID) {
 					$ur->where("ur.app_id=" . $ur->quote($this->_appId));
 				}
-			} elseif ($this->_appId) {
+			} elseif ($this->_appId !== \CGAF::APP_ID) {
 				$ur->where("ur.app_id=" . $ur->quote($this->_appId));
 			}
 			$ur->where("ur.active=1");
-
 			$roles = $ur->loadObjects();
 			if ($roles) {
 				foreach ($roles as $role) {
@@ -102,9 +103,7 @@ class Db extends BaseACL {
 			} else {
 				$this->_rolesCache[$this->_appId][$userid] = array();
 			}
-			//ppd($_roles);
 		}
-
 		return $this->_rolesCache[$this->_appId][$userid];
 	}
 	function getUserInRole($rolename, $byName = true) {
@@ -139,7 +138,6 @@ class Db extends BaseACL {
 		if ($userid == null) {
 			$userid = $this->getUserId();
 		}
-
 		//$this->removeCacheForUser($userid);
 		$cache = $this->getCache($userid);
 		if ($cache) {
@@ -162,7 +160,7 @@ class Db extends BaseACL {
 		//get from public roles
 		$q->clear();
 		$q->addTable("role_privs");
-		if ($this->_appId && $this->_appId !=='__cgaf') {
+		if ($this->_appId && $this->_appId !== '__cgaf') {
 			$q->Where("(role_id=0");
 			$q->Where("app_id=" . $q->Quote($this->_appId) . ')', 'or');
 		} else {
@@ -171,21 +169,18 @@ class Db extends BaseACL {
 		if ($this->_appId !== "__cgaf") {
 			$q->Where("role_id=0 and app_id=" . $q->Quote("__cgaf"));
 		}
-
 		$rprivs = $q->loadObjects();
 		if ($rprivs) {
 			foreach ($rprivs as $r) {
 				$privs[$r->object_type][$r->object_id][] = $r->privs;
 			}
 		}
-
 		if (count($userRole)) {
 			$q->clear();
 			$q->addTable('role_privs');
 			$q->Where('role_id in (' . implode($userRole, ',') . ')');
 			$q->where("app_id=" . $q->Quote($this->_appId));
 			$rprivs = $q->loadObjects();
-
 			$this->mergePrivs($privs, $rprivs);
 		}
 		$q->clear();
@@ -195,7 +190,6 @@ class Db extends BaseACL {
 		$uprivs = $q->loadObjects();
 		$this->mergePrivs($privs, $uprivs);
 		$this->putCache($userid, $privs);
-
 		return parent::isAllow($id, $group, $access, $userid);
 	}
 }

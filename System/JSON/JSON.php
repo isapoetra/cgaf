@@ -64,93 +64,87 @@ namespace System\JSON;
  * @copyright  2005 Michal Migurski
  * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
  */
-
-
-
 abstract class JSON {
 	/**
 	 * Marker constant for JSON::decode(), used to flag stack state
 	 */
-	const JSON_SLICE= 1;
+	const JSON_SLICE = 1;
 	/**
 	 * Marker constant for JSON::decode(), used to flag stack state
 	 */
-	const JSON_IN_STR= 2;
+	const JSON_IN_STR = 2;
 	/**
 	 * Marker constant for JSON::decode(), used to flag stack state
 	 */
-	const JSON_IN_ARR= 4;
+	const JSON_IN_ARR = 4;
 	/**
 	 * Marker constant for JSON::decode(), used to flag stack state
 	 */
-	const JSON_IN_OBJ= 8;
+	const JSON_IN_OBJ = 8;
 	/**
 	 * Marker constant for JSON::decode(), used to flag stack state
 	 */
-	const JSON_IN_CMT= 16;
+	const JSON_IN_CMT = 16;
 	/**
 	 * Behavior switch for JSON::decode()
 	 */
-	const JSON_LOOSE_TYPE= 10;
+	const JSON_LOOSE_TYPE = 10;
 	/**
 	 * Behavior switch for JSON::decode()
 	 */
-	const JSON_STRICT_TYPE= 11;
-
-	public static function encode($var, $single= false, $ignorestr= null) {
-		$json= new Service(self :: JSON_STRICT_TYPE);
-		$json->quoteKey= true;
-		$json->ignoreStr= $ignorestr;
-		$json->quoteSingle= $single;
+	const JSON_STRICT_TYPE = 11;
+	public static function encode($var, $single = false, $ignorestr = null) {
+		$json = new Service(self::JSON_STRICT_TYPE);
+		$json->quoteKey = true;
+		$json->ignoreStr = $ignorestr;
+		$json->quoteSingle = $single;
 		return $json->encode($var);
 	}
 	public static function decode($txt) {
-		$json= new Service(self :: JSON_STRICT_TYPE);
+		$json = new Service(self::JSON_STRICT_TYPE);
 		return $json->decode($txt);
 	}
-	public static function encodeConfig($var, $ignorestr= null, $classMap= null) {
-		$json= new Service();
-		$json->classMap= $classMap;
-		$json->quoteKey= false;
-		$json->ignoreStr= $ignorestr;
-		$json->quoteSingle= true;
+	public static function encodeConfig($var, $ignorestr = null, $classMap = null) {
+		$json = new Service();
+		$json->classMap = $classMap;
+		$json->quoteKey = false;
+		$json->ignoreStr = $ignorestr;
+		$json->quoteSingle = true;
 		if (is_array($ignorestr)) {
-			$quote= true;
+			$quote = true;
+		} else {
+			$quote = $ignorestr;
 		}
-		else {
-			$quote= $ignorestr;
-		}
-		$retval= $json->encode($var, $quote);
+		$retval = $json->encode($var, $quote);
 		//$retval = substr($retval,1,strlen($retval)-2);
 		return $retval;
 	}
-	public static function encodeSimple($data, $quote= "'") {
-		$retval= array ();
+	public static function encodeSimple($data, $quote = "'") {
+		$retval = array();
 		foreach ($data as $k => $v) {
 			if (is_array($v) || is_object($v)) {
-				$ret= "";
+				$ret = "";
 				foreach ($v as $val) {
-					$ret[]= "$quote{$val}$quote";
+					$ret[] = "$quote{$val}$quote";
 				}
-				$retval[]= "[" . join($ret, ",") . "]";
-			}
-			else {
-				$retval[]= "[$quote{$k}$quote,$quote{$v}$quote]";
+				$retval[] = "[" . join($ret, ",") . "]";
+			} else {
+				$retval[] = "[$quote{$k}$quote,$quote{$v}$quote]";
 			}
 		}
 		return "[" . join($retval, ",") . "]";
 	}
-	public static function getJSONData($data,$rescount=null){
-		$json= new JSONSimpleData();
-		$json->results= $rescount ? $rescount : count($data);
+	public static function getJSONData($data, $rescount = null) {
+		$json = new JSONSimpleData();
+		$json->results = $rescount ? $rescount : count($data);
 		if (!is_array($data)) {
-			$data=array();
+			$data = array();
 		}
-		$json->rows= $data;
+		$json->rows = $data;
 		return $json;
 	}
-	public static function toJSONData($data, $key= "id", $rescount= null,$includeField =false) {
-		$json = self::getJSONData($data,$key,$rescount,$includeField);
+	public static function toJSONData($data, $key = "id", $rescount = null, $includeField = false) {
+		$json = self::getJSONData($data, $key, $rescount, $includeField);
 		return $json->render();
 	}
 	public static function json_pp($json) {
@@ -158,61 +152,55 @@ abstract class JSON {
 		$new_json = '';
 		$indent_level = 0;
 		$in_string = false;
-
 		$json_obj = json_decode($json);
-
-		if(!$json_obj) {
+		if (!$json_obj) {
 			return $new_json;
 		}
-
 		$json = json_encode($json_obj);
 		$len = strlen($json);
-
-		for($c = 0; $c < $len; $c++) {
+		for ($c = 0; $c < $len; $c++) {
 			$char = $json[$c];
-			switch($char) {
-				case '{':
-				case '[':
-					if(!$in_string) {
-						$new_json .= $char . "\n" . str_repeat($tab, $indent_level + 1);
-						$indent_level++;
-					} else {
-						$new_json .= $char;
-					}
-					break;
-				case '}':
-				case ']':
-					if(!$in_string) {
-						$indent_level--;
-						$new_json .= "\n" . str_repeat($tab, $indent_level) . $char;
-					} else {
-						$new_json .= $char;
-					}
-					break;
-				case ',':
-					if(!$in_string) {
-						$new_json .= ",\n" . str_repeat($tab, $indent_level);
-					} else {
-						$new_json .= $char;
-					}
-					break;
-				case ':':
-					if(!$in_string) {
-						$new_json .= ': ';
-					} else {
-						$new_json .= $char;
-					}
-					break;
-				case '"':
-					$in_string = !$in_string;
-				default:
+			switch ($char) {
+			case '{':
+			case '[':
+				if (!$in_string) {
+					$new_json .= $char . "\n" . str_repeat($tab, $indent_level + 1);
+					$indent_level++;
+				} else {
 					$new_json .= $char;
+				}
+				break;
+			case '}':
+			case ']':
+				if (!$in_string) {
+					$indent_level--;
+					$new_json .= "\n" . str_repeat($tab, $indent_level) . $char;
+				} else {
+					$new_json .= $char;
+				}
+				break;
+			case ',':
+				if (!$in_string) {
+					$new_json .= ",\n" . str_repeat($tab, $indent_level);
+				} else {
+					$new_json .= $char;
+				}
+				break;
+			case ':':
+				if (!$in_string) {
+					$new_json .= ': ';
+				} else {
+					$new_json .= $char;
+				}
+				break;
+			case '"':
+				$in_string = !$in_string;
+			default:
+				$new_json .= $char;
 				break;
 			}
 		}
 		return $new_json;
 	}
 }
-
-
 ?>

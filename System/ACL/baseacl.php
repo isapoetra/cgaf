@@ -4,11 +4,12 @@
  *
  */
 namespace System\ACL;
+use System\Events\LoginEvent;
 use System\Session\SessionEvent;
 use System\Session\Session;
 use \CGAF;
 abstract class BaseACL extends \Object implements IACL {
-	private $_cachePath='acl';
+	private $_cachePath = 'acl';
 	protected $_appId;
 	/**
 	 *
@@ -30,8 +31,8 @@ abstract class BaseACL extends \Object implements IACL {
 		if ($appOwner === null) {
 			$this->_appId = "__cgaf";
 		}
-		$this->_cachePath='acl/'.session_id();
-		if ($appOwner instanceof IApplication) {
+		$this->_cachePath = 'acl/' . session_id();
+		if ($appOwner instanceof \IApplication) {
 			$appOwner->addEventListener(LoginEvent::LOGIN, array(
 							$this,
 							"onAuth"));
@@ -172,6 +173,7 @@ abstract class BaseACL extends \Object implements IACL {
 		if ($userid == null) {
 			$userid = $this->getUserId();
 		}
+
 		if (isset($this->_cacheUserPrivs[$userid])) {
 			return $this->_cacheUserPrivs[$userid];
 		}
@@ -235,6 +237,9 @@ abstract class BaseACL extends \Object implements IACL {
 		if ($userid == null) {
 			$userid = $this->getUserId();
 		}
+		if ($this->isInrole(ACLHelper::DEV_GROUP)) {
+			return true;
+		}
 		$retval = true;
 		$access = $this->getAccessValue($access);
 		if (is_string($access)) {
@@ -246,7 +251,6 @@ abstract class BaseACL extends \Object implements IACL {
 		if ($cache) {
 			$cache = is_string($cache) ? unserialize($cache) : $cache;
 			if (isset($cache[$group])) {
-				//ppd($cache);
 				return $this->isAllowPrivs($cache, $id, $group, $access);
 			}
 		}
@@ -320,6 +324,7 @@ abstract class BaseACL extends \Object implements IACL {
 			return true;
 		}
 		$roles = $this->getUserRoles($uid);
+		//ppd($roles);
 		if ($roles) {
 			foreach ($roles as $role) {
 				if (is_numeric($roleName) && (int) $role->role_id === (int) $roleName) {

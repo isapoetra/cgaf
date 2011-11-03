@@ -18,7 +18,7 @@ final class Logger {
 		if (is_array($args) && count($args) > 1) {
 			$s = array_shift($args);
 			if ($s === '' || $s == null) {
-				$s = String::repeat('%s', count($args));
+				$s = Strings::repeat('%s', count($args));
 			}
 			return vsprintf($s, $args);
 		} elseif (is_array($args) && count($args) == 1) {
@@ -198,9 +198,9 @@ final class Logger {
 	public static function write($s, $level = E_NOTICE, $die = null) {
 		static $logPath;
 		if (!$logPath) {
-			$logPath = CGAF::getConfig('errors.error_log', \CGAF::getInternalStorage('log', false, true) . DS);
+			$logPath = CGAF::getConfig('errors.error_log', \CGAF::getInternalStorage('log', false, true, 0770) . DS);
 		}
-		$logFile = $logPath . self::error2string($level).'.log';
+		$logFile = $logPath . strtolower(self::error2string($level)) . '.log';
 		$levels = array(
 				E_NOTICE => 'Notice',
 				E_USER_WARNING => 'Warning',
@@ -216,13 +216,11 @@ final class Logger {
 		}
 		if (CGAF::isDebugMode()) {
 			self::trigger('onLog', $s, $level);
-			self::$_logdata[] = array(
-					"level" => $level,
-					"message" => $s);
+			/*self::$_logdata[] = array(
+			        "level" => $level,
+			        "message" => $s);*/
 		}
-		//ppd(self::error2string(E_WARNING));
-		//ppd($_SERVER);
-		$msg = time(). '#'.\System::getRemoteAddress() .'#' . $s.'#'.(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :'');
+		$msg = time() . '#' . \System::getRemoteAddress() . '#' . $s . '#' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
 		$replevel = error_reporting();
 		if (($level & $replevel) != $level) {
 			return;
@@ -274,8 +272,8 @@ final class Logger {
 		if (!count(self::$_logdata)) {
 			return;
 		}
-		Utils::makeDir(CGAF_PATH . "/log/");
-		$f = @fopen(CGAF_PATH . "/log/cgaf.log", 'a');
+		Utils::makeDir(CGAF_PATH . "/protected/log/");
+		$f = @fopen(CGAF_PATH . "/protected/cgaf.log", 'a');
 		if ($f === false) {
 			return 0;
 		}

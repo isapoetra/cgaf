@@ -2,7 +2,7 @@
 namespace System\Locale;
 use System\Applications\IApplication;
 use \CGAF;
-use \String;
+use \Strings;
 use System\Session\Session;
 use \CDate;
 use \Utils;
@@ -68,7 +68,7 @@ class Locale extends \Object {
 		if (!is_string($s) || strlen($s) > 150) {
 			return $s;
 		}
-		if (String::BeginWith($s, 'http:') || String::BeginWith($s, 'https:')) {
+		if (Strings::BeginWith($s, 'http:') || Strings::BeginWith($s, 'https:')) {
 			return $s;
 		}
 		if (!$this->_data) {

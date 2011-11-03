@@ -88,5 +88,9 @@ abstract class Convert {
 		}
 		return $o;
 	}
+	public static function toNumber($o) {
+		settype($o,'float');
+		return $o;
+	}
 }
 ?>

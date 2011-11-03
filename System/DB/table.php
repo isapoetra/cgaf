@@ -124,7 +124,6 @@ class Table extends DBQuery {
 			return;
 		}
 		return $this->getConnection()->createDBObjectFromClass($this, 'table', $this->_tableName);
-		die('x');
 		$this->clear();
 		$this->setMode("create.table");
 		$r = new ReflectionClass($this);
@@ -133,7 +132,7 @@ class Table extends DBQuery {
 		$this->_fields = array();
 		foreach ($props as $prop) {
 			$name = $prop->getName();
-			if (String::BeginWith($name, "_")) {
+			if (Strings::BeginWith($name, "_")) {
 				continue;
 			}
 			$hasField = true;

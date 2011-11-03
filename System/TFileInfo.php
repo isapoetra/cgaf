@@ -109,12 +109,12 @@ class TFileInfo {
 			case 'owner_group':
 			case 'owner_user_posix':
 			case 'owner_group_posix':
-				$sub = String::FromPos($var,'_');
+				$sub = Strings::FromPos($var,'_');
 				return isset($infos['owner'][$sub]) ? $infos['owner'][$sub] :null;
 			case 'owner_usergroup':
 				return ($this->owner_user_posix ? $this->owner_user_posix['name'] : 'nobody') .':'.($this->owner_group_posix ? $this->owner_group_posix['name'] : 'nobody');
 			case 'perm_human':
-				$sub = String::FromPos($var,'_');
+				$sub = Strings::FromPos($var,'_');
 				return isset($infos['perms'][$sub]) ?$infos['perms'][$sub] :null;
 
 		}

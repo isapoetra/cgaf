@@ -289,15 +289,22 @@ abstract class DBUtil {
 		return $asString ? implode(',', $retval) : $retval;
 	}
 	public static function execScript($file, $conn, $replacer = array()) {
-		$sql = file_get_contents($file);
-		if ($sql) {
-			$count=0;
-			$sql = \String::Replace($sql, $replacer,null,true,$count,'#','#');
-			$q=new DBQuery($conn);
-			return $q->exec($sql);
-
+		if (is_file($file)) {
+			$q = new DBQuery($conn);
+			$q->loadSQLFile($file);
+			return $q->exec();
 		}
 		return false;
+	}
+	public static function getPK($table,$row,DBConnection $conn) {
+		$info = self::getPKFromTable($table, $conn);
+		$retval = '';
+		foreach ($row as $k=>$v) {
+			if (in_array($k,$info)) {
+				$retval .= $v;
+			}
+		}
+		return $retval;
 	}
 }
 ?>

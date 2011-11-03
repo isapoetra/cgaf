@@ -10,6 +10,9 @@ class sessionStateHandler extends \ArrayObject {
 		}
 		return isset($this[$name]) ? $this[$name] : $def;
 	}
+	function setState($name,$value) {
+		$this[$name] = $value;
+	}
 }
 abstract class SessionBase extends \Object implements \ISession {
 	private $_started = false;
@@ -59,6 +62,11 @@ abstract class SessionBase extends \Object implements \ISession {
 		}
 		return $state;
 	}
+	public function setState($stateGroup, $stateName, $value) {
+		//$this->set ( '__state', null );
+		$state = $this->registerState($stateGroup);
+		return $state->setState($stateName, $value);
+	}
 	public function getState($stateGroup, $stateName, $default = null) {
 		//$this->set ( '__state', null );
 		$state = $this->registerState($stateGroup);
@@ -89,7 +97,7 @@ abstract class SessionBase extends \Object implements \ISession {
 		$this->close();
 	}
 	private function _setCounter() {
-		$counter = $this->get('counter', 0);
+		$counter = $this->get('session.counter', 0);
 		++$counter;
 		$this->set('session.counter', $counter);
 		return true;
@@ -109,35 +117,36 @@ abstract class SessionBase extends \Object implements \ISession {
 			$id = $this->_createId();
 			$restart = true;
 		}
+		session_name('CGAFSESS');
+		$sess = session_name();
 		session_cache_limiter('nocache');
+		$new = false;
 		if (!$id) {
-			if (isset($_POST["PHPSESSID"])) {
-				$id = $_POST["PHPSESSID"];
-			} else if (isset($_GET["PHPSESSID"])) {
-				$id = $_GET["PHPSESSID"];
-			} else if (isset($_COOKIE["PHPSESSID"])) {
-				$id = $_COOKIE["PHPSESSID"];
+			if (isset($_POST[$sess])) {
+				$id = $_POST[$sess];
+			} else if (isset($_GET[$sess])) {
+				$id = $_GET[$sess];
+			} else if (isset($_COOKIE[$sess])) {
+				$id = $_COOKIE[$sess];
 			} else {
+				$new = true;
 				$id = $this->_createId();
 			}
 		}
 		if ($id) {
 			session_id($id);
 		}
-		$this->_setCookieParams();
 		//sync the session maxlifetime
-		ini_set('session.gc_maxlifetime', $this->getConfig('gc_maxlifetime'));
+		$this->_setCookieParams();
 		session_start();
-		if (!$id) {
-			session_regenerate_id();
-		}
 		$this->_sessionState = Session::STATE_ACTIVE;
 		//initialise the session
 		$this->_setCounter();
 		$this->_setTimers();
 		// perform security checks
-		if (!$this->_validate()) {
-			throw new \Exception('Invalid Session');
+		if (!$this->_validate($restart, $new)) {
+			throw new \Exception('Security Violation');
+			return $this->restart();
 		}
 		$this->_started = true;
 		if (!$restart) {
@@ -147,6 +156,7 @@ abstract class SessionBase extends \Object implements \ISession {
 	private function _setTimers() {
 		if (!$this->get('session.timer.start')) {
 			$start = time();
+			$this->set('session.oriurl', $_SERVER['REQUEST_URI']);
 			$this->set('session.timer.start', $start);
 			$this->set('session.timer.last', $start);
 			$this->set('session.timer.now', $start);
@@ -156,6 +166,7 @@ abstract class SessionBase extends \Object implements \ISession {
 		return true;
 	}
 	private function _setCookieParams() {
+		ini_set('session.gc_maxlifetime', $this->getConfig('gc_maxlifetime'));
 		$cookie = session_get_cookie_params();
 		if ($this->_force_ssl) {
 			$cookie['secure'] = true;
@@ -166,16 +177,16 @@ abstract class SessionBase extends \Object implements \ISession {
 		if ($this->getConfig('cookie.path', '') != '') {
 			$cookie['path'] = $this->getConfig('cookie.path');
 		}
-		$expire = ($this->getConfig('gc_maxlifetime'));
-		$cookie['lifetime'] = $expire;
-		$expire = gmdate("D, d M Y H:i:s", time() + date("Z") + $expire) . ' GMT';
+		//$expire = ($this->getConfig('gc_maxlifetime'));
+		//$expire = gmdate("D, d M Y H:i:s", time() + date("Z") + $expire) . ' GMT';
+		//problem with timezone
+		$expire = time() + (date("Z") + $this->getConfig('gc_maxlifetime'));
+		$cookie['lifetime'] = 0;
 		$ses = session_name();
-		if (isset($_COOKIE[$ses]))
-			setcookie($ses, $_COOKIE[$ses]);
-		if (isset($_COOKIE[session_id()])) {
-			setcookie(session_id(), $_COOKIE[session_id()]);
-		}
-		session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure']);
+		setcookie($ses, "", time() - 3600);
+		setcookie($ses, $this->getId(), $cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure']);
+		//session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure']);
+		//ppd(date('D, d M Y H:i:s', $expire));
 	}
 	protected function _validate($restart = false) {
 		// allow to restart a session
@@ -192,7 +203,7 @@ abstract class SessionBase extends \Object implements \ISession {
 			$maxTime = $this->get('session.timer.last', 0) + ($this->getConfig('gc_maxlifetime'));
 			// empty session variables
 			if ($maxTime < $curTime) {
-				self::restart();
+				$this->restart();
 			}
 		}
 		// record proxy forwarded for in the session in case we need it later
@@ -201,10 +212,11 @@ abstract class SessionBase extends \Object implements \ISession {
 		}
 		$security = $this->getConfig('security', array());
 		// check for client adress
+		//$this->set('session.remoteaddress','225232.');
 		if (isset($security['fix_address']) && $security['fix_address'] && isset($_SERVER['REMOTE_ADDR'])) {
-			$ip = $this->get('client.address');
+			$ip = $this->get('session.remoteaddress');
 			if ($ip === null) {
-				$this->set('client.address', $_SERVER['REMOTE_ADDR']);
+				$this->set('session.remoteaddress', $_SERVER['REMOTE_ADDR']);
 			} else if ($_SERVER['REMOTE_ADDR'] !== $ip) {
 				$this->_sessionState = Session::STATE_ERROR;
 				return false;

@@ -1,6 +1,6 @@
 <?php
 namespace System\Web\UI\JQ;
-use \String;
+use \Strings;
 use System\JSON\JSON;
 class Tab extends Control {
 	private $_tabs;
@@ -20,7 +20,7 @@ class Tab extends Control {
 		$i = 1;
 		foreach ( $this->_tabs as $step ) {
 			$link = "#$id-tab-$i";
-			if (String::BeginWith ( $step ["content"], "http" )) {
+			if (Strings::BeginWith ( $step ["content"], "http" )) {
 				$link = $step ["content"];
 				$link = URLHelper::addParam ( $link, array(
 					'_ajax'=>1) );
@@ -32,7 +32,7 @@ class Tab extends Control {
 
 		$i = 1;
 		foreach ( $this->_tabs as $step ) {
-			if (String::BeginWith ( $step ["content"], "http" )) {
+			if (Strings::BeginWith ( $step ["content"], "http" )) {
 				continue;
 			}
 

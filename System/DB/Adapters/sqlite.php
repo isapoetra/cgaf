@@ -69,8 +69,8 @@ class DBSQLiteAdapter extends DBConnection {
 
 	function Exec($sql) {
 		$sql = $this->prepareQuery($sql);
-		
-		if (String::BeginWith($sql,'drop',false) || String::BeginWith($sql,'create',false)) {
+
+		if (Strings::BeginWith($sql,'drop',false) || Strings::BeginWith($sql,'create',false)) {
 			$this->_objects = array();
 		}
 		$this->Log ( $sql );
@@ -85,11 +85,11 @@ class DBSQLiteAdapter extends DBConnection {
 		if ($this->isConnected ()) {
 			return true;
 		}
-		
+
 		$host = Utils::ToDirectory($this->getArg ( "host" ));
-		
+
 		if (!$host) {
-			$host = CGAF::getInternalStorage('db',false);			
+			$host = CGAF::getInternalStorage('db',false);
 		}
 		$host = realpath(Utils::ToDirectory($host));
 		if (!$host) {
@@ -101,14 +101,14 @@ class DBSQLiteAdapter extends DBConnection {
 		if (!is_file($file) && $this->getArg('autocreate',CGAF_DEBUG)) {
 			$this->_resource = sqlite_popen ( $file ,0666,$this->_lastError);
 		}else{
-			
+
 			$this->_resource = sqlite_open ( $file,0666,$this->_lastError );
 		}
-		
+
 		if ($this->_resource === false) {
 			$lerror = CGAF::getLastError ();
 			throw new Exception ( $lerror );
-		}				
+		}
 		$this->SelectDB ( $file);
 		$this->setConnected ( $this->_resource != false );
 		return $this->isConnected ();
@@ -153,7 +153,7 @@ class DBSQLiteAdapter extends DBConnection {
 				break;
 		}
 		$type =  $this->phpToDBType($type);
-		
+
 		return "$retval $type" . ($width !== null ? " ($width)" : "") . " " . $args;
 	}
 	public function createDBObjectFromClass($classInstance,$objecttype,$objectName) {
@@ -172,7 +172,7 @@ class DBSQLiteAdapter extends DBConnection {
 			$length = $fieldDefs->fieldlength;
 			$default = $fieldDefs->FieldDefaultValue;
 			switch (($ftype)) {
-				case 'datetime':			
+				case 'datetime':
 					if (strtolower($default)=='current_timestamp') {
 						$default = "(strftime('%Y-%m-%dT%H:%M','now', 'localtime'))";
 					}
@@ -183,35 +183,35 @@ class DBSQLiteAdapter extends DBConnection {
 				case 'integer':
 				case 'date':
 					$length = null;
-				break;	
+				break;
 				case 'varchar':
-				case 'text':	
-					
-					break;	
+				case 'text':
+
+					break;
 				case '':
 					$type='varchar';
 					break;
-				default:					
+				default:
 					ppd($fieldDefs->FieldType);
 				break;
 			}
 			$s .= $ftype;
 			if ($length!==null) {
 				$s.=' ('.$fieldDefs->fieldlength.')';
-			}	
-			
+			}
+
 			if ($fieldDefs->FieldIsPrimaryKey) {
 				$s.=' primary key';
 			}
 			if ($default) {
-				$s .= ' default '.$default;				
-			} 
+				$s .= ' default '.$default;
+			}
 			$fdefs[] = $s;
 		}
-		
+
 		$sql.= implode(',', $fdefs);
 		$sql.=')';
-		
+
 		return $this->Exec($sql);
 	}
 /**
@@ -227,7 +227,7 @@ class DBSQLiteAdapter extends DBConnection {
 	public function getAffectedRow() {
 
 	}
-	
+
 	private  function phpToDBType($type) {
 		switch (strtolower ( $type )) {
 			case "smallint" :
@@ -235,21 +235,21 @@ class DBSQLiteAdapter extends DBConnection {
 			case "boolean" :
 				break;
 			case 'int' :
-			case 'double' :			
+			case 'double' :
 			case "tinyint" :
 			case "integer" :
-				$type = 'numeric'; 				
+				$type = 'numeric';
 				break;
 			case "string" :
 			case "varchar" :
 				$type = "varchar";
 				break;
-			case 'timestamp' :								
+			case 'timestamp' :
 			case "datetime" :
 				$type = 'integer';
 				break;
 			case 'text' :
-				break;			
+				break;
 			default :
 				throw new SystemException ( "unknown type $type for database mysql" );
 		}
@@ -265,14 +265,14 @@ class DBSQLiteAdapter extends DBConnection {
 		if ($fieldType === null) {
 			return $retval;
 		}
-		return isset($retval[$fieldType]) ? $retval[$fieldType] : $def;				
+		return isset($retval[$fieldType]) ? $retval[$fieldType] : $def;
 	}
 	function getSQLCreateTable($q) {
-		
+
 		$retval = "create table " . $this->table_prefix . $q->getFirstTableName () . " ";
 		$retval .= "(" . implode ( $q->getFields (), "," );
 		$pk = $q->getPK ();
-		if ($pk) {			
+		if ($pk) {
 			$retval .= ',PRIMARY KEY (' . $this->quoteTable($pk ) . ')';
 		}
 		$retval .= ")";

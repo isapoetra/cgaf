@@ -9,7 +9,7 @@ use System\MVC\MVCHelper;
 use \AppManager;
 use \Request;
 use \URLHelper;
-use \String;
+use \Strings;
 class Grid extends Control {
 	private $_rowperpage;
 	private $_currentPage;
@@ -388,7 +388,7 @@ class Grid extends Control {
 			self::loadScript();
 		}
 		$configs = JSON::encodeConfig($this->_configs, $this->_directConfig);
-		$apid = String::replace(array(
+		$apid = Strings::replace(array(
 				'-' => ''), $id) . 'api';
 		$scripts = "var {$apid}=$(\"#$id\").jqGrid($configs);";
 		$scripts .= "$(\"#$id\").jqGrid('navGrid','#$id-pager'," . JSON::encodeConfig($this->_navOptions, array(

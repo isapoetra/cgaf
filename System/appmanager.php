@@ -1,6 +1,7 @@
 <?php
 use \System\Session\Session, \System\ACL\ACLHelper;
 use System\Exceptions\SystemException;
+use System\DB\DBQuery;
 abstract class AppManager extends \StaticObject {
 	private static $_instances = array();
 	private static $_initialized = false;
@@ -84,7 +85,7 @@ abstract class AppManager extends \StaticObject {
 			CGAF::Using($clsfile);
 		}
 		$appPath = CGAF_APP_PATH . DS . $appInfo->app_path . DS . "index" . CGAF_CLASS_EXT;
-		if ($appInfo->app_id === '__cgaf' && String::isEmpty($appInfo->app_path)) {
+		if ($appInfo->app_id === '__cgaf' && Strings::isEmpty($appInfo->app_path)) {
 			$appPath = CGAF_APP_PATH . DS . 'desktop' . DS . CGAF_CONTEXT . DS . "index" . CGAF_CLASS_EXT;
 			$cName = "cgafdesktopapp";
 		}
@@ -110,7 +111,7 @@ abstract class AppManager extends \StaticObject {
 		if (!class_exists($cName, true)) {
 			throw new SystemException("Class Application $cName Not Found");
 		}
-		$appPath = (String::isEmpty($appPath) ? CGAF_APP_PATH . DS . $appInfo->app_path . DS : dirname($appPath)) . DS;
+		$appPath = (Strings::isEmpty($appPath) ? CGAF_APP_PATH . DS . $appInfo->app_path . DS : dirname($appPath)) . DS;
 		//CGAF::addStandardSearchPath(null, $appPath .DS. 'classes' ,false);
 		CGAF::addClassPath('apps', $appPath . 'classes' . DS);
 		$instance = new $cName($appPath, $appInfo->app_name);
@@ -240,6 +241,29 @@ abstract class AppManager extends \StaticObject {
 		unset($_configs);
 		$config->setConfigFile($cf);
 		return $config;
+	}
+	public static function uninstall($id) {
+		if (!CGAF_DEBUG) {
+			throw new SystemException('only for debug');
+		}
+		$q = new DBQuery(CGAF::getDBConnection());
+		$qid = $q->quote($id);
+		$q->exec('delete from #__sysvals where sysval_key_id in (select syskey_id from #__syskeys where app_id=' . $q->quote($id) . ')');
+		$q->exec('delete from #__syskeys where app_id=' . $qid);
+		//content related
+		$q->exec('delete from #__comment where app_id=' . $qid);
+		$q->exec('delete from #__lookup where app_id=' . $qid);
+		$q->exec('delete from #__contents where app_id=' . $qid);
+		$q->exec('delete from #__modules where app_id=' . $qid);
+		$q->exec('delete from #__recentlog where app_id=' . $qid);
+		$q->exec('delete from #__menus where app_id=' . $qid);
+		//Privs
+		$q->exec('delete from #__role_privs where app_id=' . $q->quote('__cgaf') . ' and object_id=' . $qid);
+		$q->exec('delete from #__role_privs where app_id=' . $qid);
+		$q->exec('delete from #__user_privs where app_id=' . $qid);
+		$q->exec('delete from #__user_roles where app_id=' . $qid);
+		$q->exec('delete from #__roles where app_id=' . $qid);
+		$q->exec('delete from #__applications where app_id=' . $qid);
 	}
 	/**
 	 *

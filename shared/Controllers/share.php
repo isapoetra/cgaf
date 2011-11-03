@@ -74,12 +74,12 @@ class Share extends Controller {
 				throw new SystemException("Invalid Configuration, empty value for %s", $k);
 			}
 		}
-		if (!\String::BeginWith(BASE_URL, $configs['url'])) {
+		if (!\Strings::BeginWith(BASE_URL, $configs['url'])) {
 			throw new SystemException('sharing external url not allowed');
 		}
 		$configs['tags'] = Request::get('tags', CGAF::getConfig('cgaf.tags'));
 		$s = $this->_providers[Request::get('service')]['url'][$id]['shareurl'];
-		$url = $v = \String::Replace($s, $configs, $s, true, null, '{', '}', true);
+		$url = $v = \Strings::Replace($s, $configs, $s, true, null, '{', '}', true);
 		//TODO Tracking
 		\Response::Redirect($url);
 	}

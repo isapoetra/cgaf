@@ -42,7 +42,11 @@ class Object extends \stdClass implements IObject, IEventDispatcher {
 		$this->_internal = array();
 	}
 	function addEventListener($type, $callback) {
-		$this->_events[$type][] = $callback;
+		if (is_callable($callback)) {
+			$this->_events[$type][] = $callback;
+		}else{
+			throw new SystemException('invalid callback handler');
+		}
 	}
 	protected function addEventHandler($name) {
 		if (is_string($name)) {

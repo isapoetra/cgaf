@@ -2,6 +2,7 @@
 if (!defined("CGAF"))
 	die("Restricted Access");
 use System\Session\Session;
+use System\Web\ClientInfo;
 abstract class Request {
 	private static $_instance;
 	private static $_ajax;
@@ -9,6 +10,7 @@ abstract class Request {
 	private static $_isXMLRequest;
 	private static $_isDataRequest;
 	private static $_clientInfo;
+	private static $_isMobile;
 	/**
 	 * Enter description here...
 	 *
@@ -18,6 +20,12 @@ abstract class Request {
 		if (!self::$_instance) {
 			$class = '\\System\\' . CGAF_CONTEXT . "\\Request";
 			self::$_instance = new $class();
+			if (self::get('__mobile')) {
+				self::isMobile(true);
+				if (CGAF_DEBUG) {
+					\Request::getClientInfo()->setPlatform('android');
+				}
+			}
 		}
 		return self::$_instance;
 	}
@@ -38,8 +46,19 @@ abstract class Request {
 		}
 		return $retval;
 	}
-	public static function isMobile() {
-		return false;
+	public static function isMobile($value = null) {
+		if ($value !== null) {
+			self::$_isMobile = $value;
+		} else {
+			if (self::$_isMobile === null) {
+				self::$_isMobile = self::getClientInfo()->isMobile();
+			}
+		}
+		return self::$_isMobile;
+	}
+	public static function getClientPlatform() {
+		$c = self::getClientInfo();
+		return $c->getPlatform();
 	}
 	public static function isAJAXRequest($value = null) {
 		if ($value !== null) {
@@ -50,10 +69,13 @@ abstract class Request {
 		}
 		return self::$_ajax;
 	}
-	public static function get($varName, $default = null, $secure = true) {
-		return self::getInstance()->get($varName, $default, $secure);
+	public static function get($varName, $default = null, $secure = true, $place = null) {
+		return self::getInstance()->get($varName, $default, $secure, $place);
 	}
 	public static function set($varName, $value) {
+		if ($varName === '__data') {
+			self::isDataRequest(true);
+		}
 		return self::getInstance()->set($varName, $value);
 	}
 	public static function getOrigin() {
@@ -65,7 +87,8 @@ abstract class Request {
 			self::$_isDataRequest = true;
 		}
 		if (self::$_isJSONRequest === null) {
-			self::$_isJSONRequest = strpos($_SERVER["HTTP_ACCEPT"], 'application/json') !== false || Request::get("__json") || Request::get("__data") === 'json' || Request::get("__s") === 'json';
+			$accept = isset($_SERVER["HTTP_ACCEPT"]) ? $_SERVER["HTTP_ACCEPT"] : null;
+			self::$_isJSONRequest = strpos($accept, 'application/json') !== false || Request::get("__json") || Request::get("__data") === 'json' || Request::get("__s") === 'json';
 		}
 		//ppd($_SERVER);
 		return self::$_isJSONRequest;
@@ -79,17 +102,25 @@ abstract class Request {
 	public static function setDataRequest($value) {
 		self::$_isDataRequest = $value;
 	}
-	public static function isDataRequest() {
-		if (self::$_isDataRequest === null) {
+	public static function isDataRequest($value = null) {
+		if ($value !== null) {
+			self::isAJAXRequest(true);
+			self::$_isDataRequest = true;
+		} elseif (self::$_isDataRequest === null) {
 			self::$_isDataRequest = self::isJSONRequest() || self::isXMLRequest() || self::get('__data') || self::get('__s');
 		}
 		return self::$_isDataRequest;
 	}
-	public static function getClientInfo() {
+	/**
+	 *
+	 * Enter description here ...
+	 * @return System\Web\ClientInfo
+	 */
+	public static function &getClientInfo() {
 		$ci = Session::get('__clientInfo');
 		if (!$ci) {
-			$ci = new System\Web\ClientInfo(Utils::makeDir(CGAF::getInternalStorage('browsecap', false), 0700, '*'));
-			Session::get('__clientInfo', $ci);
+			$ci = new ClientInfo(Utils::makeDir(CGAF::getInternalStorage('browsecap', false), 0700, '*'));
+			Session::set('__clientInfo', $ci);
 		}
 		return $ci;
 	}

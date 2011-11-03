@@ -8,9 +8,9 @@ abstract class BaseAuthProvider implements IAuthProvider {
 	private $_state = Auth::NEED_RETRY_STATE;
 	function __construct(\IApplication $appOwner) {
 		$this->_appOwner = $appOwner;
-		$this->Initialize();
+
 	}
-	abstract protected function Initialize();
+	abstract  function Initialize();
 	protected function getAppOwner() {
 		return $this->_appOwner;
 	}

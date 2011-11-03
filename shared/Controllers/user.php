@@ -27,6 +27,7 @@ class UserController extends Controller {
 		case 'selectopenid':
 		case 'fbRegister':
 		case "index":
+		case 'contacts':
 			return true;
 			break;
 		case "register":
@@ -34,7 +35,7 @@ class UserController extends Controller {
 			break;
 		case 'dashboard':
 		case "profile":
-			return $isAuth && CGAF_DEBUG;
+			return true;
 		case "updateprofile":
 		case 'dashboard':
 		case "action":
@@ -153,6 +154,21 @@ class UserController extends Controller {
 			}
 			break;
 		}
+	}
+	public function contacts($args = null) {
+		$person = null;
+		if (is_array($args) && $args) {
+			$uid = $args['uid'];
+			$person = $args['person'];
+		} else {
+			$uid = $args === null ? ACLHelper::getUserId() : $uid;
+		}
+		$rows = $this->getModel('persondetail')->loadByPerson($person->person_id);
+		$retval = '';
+		foreach ($rows as $row) {
+			$retval .= \UserInfo::parseCallback($row->callback, $row->descr);
+		}
+		return $retval;
 	}
 	public function register() {
 		$app = $this->getAppOwner();
@@ -344,34 +360,17 @@ class UserController extends Controller {
 		$current = null;
 		$userinfo = null;
 		$personInfo = null;
+		$uid = $uid !== null && !is_array($uid) ? $uid : Request::get('id', ACLHelper::getUserId());
+		$m = $this->getModel("user");
 		if ($this->getAppOwner()->isAuthentificated()) {
-			$data = $this->getAppOwner()->getAuthInfo();
-			$identify = $data->getIdentify();
-			$m = $this->getModel("user");
-			$current = $m->loadByIdentify($identify);
-			$uid = $uid !== null && !is_array($uid) ? $uid : Request::get('id', $current ? $current->user_id : -1);
 			$userinfo = $m->clear()->where("user_id=" . $uid)->loadObject();
-			$acl = $this->getAppOwner()->getACL();
-			$person = $this->getAppOwner()->getModel("person");
-			$personInfo = $person->getPersonByUser($uid);
-			if (!$personInfo) {
-				$personInfo = $this->getModel('person');
-			}
-			$views = array(
-					'profile' => 'user.profile.title',
-					'roles' => 'user.roles.title');
-		} else {
-			$uid = -1;
-			$person = null;
 		}
 		/*if ($acl->isPartner()) {
 		 $views ["product"] = "Product";
 		}*/
 		$vars = array_merge($vars, array(
 				'user_id' => $uid,
-				"data" => $userinfo,
-				"personInfo" => $personInfo,
-				"person" => $person));
+				"userInfo" => $this->getAppOwner()->getUserInfo($uid)));
 		return parent::render(array(
 				"_a" => "profile"), $vars);
 	}

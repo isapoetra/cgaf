@@ -16,16 +16,17 @@ final class CGAFJS {
 	private static $_appOwner;
 	private static $_jq;
 	private static $_pluginsLoader = array();
-	public static function initialize(Application $appOwner = null) {
+	public static function initialize(Application $appOwner = null, $force = false) {
 		static $initialized;
-		if ($initialized)
-			return;
+		if (!$force) {
+			if ($initialized || Request::isAJAXRequest())
+				return;
+		}
 		if (!$appOwner) {
 			$appOwner = \AppManager::getInstance();
 		}
-		if (Request::isAJAXRequest())
-			return;
 		$initialized = true;
+		$appOwner->clearClient();
 		self::$_appOwner = $appOwner;
 		self::$_jq = $jq = new jQuery($appOwner);
 		$fv = $appOwner->getConfig('js.fancybox.version', '1.3.4');
@@ -44,21 +45,34 @@ final class CGAFJS {
 			self::setConfig('baseurl', BASE_URL);
 			self::setConfig('appurl', \AppManager::getInstance()->getAppURL());
 		}
-		$assets = array(
-				//cgaf::getConfig('js.cdn.modernizr', 'modernizr.js'),
-				//cgaf::getConfig('js.cdn.jquery', 'jquery.js'),
-				//CGAF_DEBUG ? 'plugins/jquery.lint.js' : '',
-				'cgaf/cgaf.js',
-				'cgaf/cgaf-jq.js',
-				'cgaf/css/cgaf.css');
-		Utils::arrayMerge($assets, $jq->loadUI(false));
-		if (CGAF_DEBUG) {
-			$assets[] = 'cgaf/debug.js';
-			$assets[] = 'cgaf/css/debug.css';
-		}
-		$plugins = CGAF::getConfigs('cgaf.js.plugins');
-		if ($plugins) {
-			Utils::arrayMerge($assets, $jq->getAsset($plugins, 'plugins'));
+		$assets = array();
+		if (!\Request::isMobile()) {
+			$assets = array(
+					//cgaf::getConfig('js.cdn.modernizr', 'modernizr.js'),
+					//cgaf::getConfig('js.cdn.jquery', 'jquery.js'),
+					//CGAF_DEBUG ? 'plugins/jquery.lint.js' : '',
+					'cgaf/cgaf.js',
+					'cgaf/cgaf-jq.js',
+					'cgaf/css/cgaf.css');
+			Utils::arrayMerge($assets, $jq->loadUI(false));
+			if (CGAF_DEBUG) {
+				$assets[] = 'cgaf/debug.js';
+				$assets[] = 'cgaf/css/debug.css';
+			}
+			$plugins = CGAF::getConfigs('cgaf.js.plugins');
+			if ($plugins) {
+				Utils::arrayMerge($assets, $jq->getAsset($plugins, 'plugins'));
+			}
+		} else {
+			$assets = array(
+					'cgaf/mobile/cgaf.js',
+					//'jQuery/jQuery-Mobile/jquery.mobile.splitview.js',
+					'jQuery/jQuery-Mobile/jquery.mobile.structure-1.0rc2.css',
+					'jQuery/jQuery-Mobile/themes/default/jquery.mobile.theme.css',
+					//'jQuery/jQuery-Mobile/jquery.easing.1.3.js',
+					//'/jQuery/jQuery-Mobile/jquery.mobile.scrollview.js',
+					//'cgaf/mobile/cgaf-' . strtolower(\Request::getClientPlatform()) . '.js',
+					'cgaf/css/cgaf-mobile.css');
 		}
 		self::$_appOwner->addClientAsset($jq->getAsset($assets));
 		$jq->initialize($appOwner);
@@ -72,7 +86,6 @@ final class CGAFJS {
 		if ($plugins) {
 			self::$_appOwner->addClientAsset($jq->getAsset($plugins, 'plugins'));
 		}
-
 		return true;
 	}
 	public static function addJQAsset($asset) {

@@ -225,4 +225,41 @@ abstract class System {
 			throw new SystemException('Unable to load extension ' . $ext . ',dynamic loading extension not allowed by system');
 		}
 	}
+	private static function tryGetTempDir() {
+		// Try to get from environment variable
+		if (!empty($_ENV['TMP'])) {
+			$path = realpath($_ENV['TMP']);
+		} else if (!empty($_ENV['TMPDIR'])) {
+			$path = realpath($_ENV['TMPDIR']);
+		} else if (!empty($_ENV['TEMP'])) {
+			$path = realpath($_ENV['TEMP']);
+		} else {
+			// Detect by creating a temporary file
+			// Try to use system's temporary directory
+			// as random name shouldn't exist
+			$temp_file = tempnam(md5(uniqid(rand(), TRUE)), '');
+			if ($temp_file) {
+				$temp_dir = realpath(dirname($temp_file));
+				unlink($temp_file);
+				$path = $temp_dir;
+			} else {
+				return "/tmp";
+			}
+		}
+		return $path;
+	}
+	public static function getTempDir() {
+		$path = '';
+		if (!function_exists('sys_get_temp_dir')) {
+			$path = self::tryGetTempDir();
+		} else {
+			$path = sys_get_temp_dir();
+			if (is_dir($path)) {
+				return $path;
+			} else {
+				$path = self::tryGetTempDir();
+			}
+		}
+		return $path;
+	}
 }

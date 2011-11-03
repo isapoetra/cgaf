@@ -26,6 +26,7 @@ final class Streamer {
 			$finfo = new FileInfo($file);
 			$mime = $finfo->Mime;
 		}
+		//ppd($mime);
 		$content = null;
 		switch ($ext) {
 		case 'css':

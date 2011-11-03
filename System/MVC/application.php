@@ -84,7 +84,7 @@ if (System::isWebContext()) {
 					$content = file_get_contents($fname);
 					if ($minifymin) {
 						try {
-							$content = CGAF_DEBUG ? file_get_contents($fname) : JSUtils::Pack(file_get_contents($fname));
+							$content = $this->isDebugMode() ? file_get_contents($fname) : JSUtils::Pack(file_get_contents($fname));
 						} catch (Exception $e) {
 							die($e->getMessage() . ' on file ' . $fname);
 						}
@@ -92,17 +92,17 @@ if (System::isWebContext()) {
 				}
 			} else {
 				try {
-					$content = CGAF_DEBUG ? file_get_contents($fname) : JSUtils::Pack(file_get_contents($fname));
+					$content = $this->isDebugMode() ? file_get_contents($fname) : JSUtils::Pack(file_get_contents($fname));
 				} catch (Exception $e) {
 					die($e->getMessage() . ' on file ' . $fname);
 				}
 			}
 			if ($fname) {
-				return $this->getCacheManager()->putString("\n" . $content, CGAF_DEBUG ? basename($fname) : $target, 'js', null, CGAF_DEBUG ? false : true);
+				return $this->getCacheManager()->putString("\n" . $content, $this->isDebugMode() ? basename($fname) : $target, 'js', null, $this->isDebugMode() ? false : true);
 			}
 		}
 		protected function cacheJS($arr, $target, $force = false) {
-			if (CGAF_DEBUG) {
+			if ($this->isDebugMode()) {
 				$target = str_ireplace('min.js', 'js', $target);
 			} else {
 				$target = Utils::changeFileExt($target, 'min.js');
@@ -161,7 +161,7 @@ if (System::isWebContext()) {
 					}
 				}
 				if (count($parsed)) {
-					$content = WebUtils::parseCSS($parsed, $fname, CGAF_DEBUG == false);
+					$content = WebUtils::parseCSS($parsed, $fname, $this->isDebugMode() == false);
 					$fname = $this->getCacheManager()->putString($content, $target, 'css');
 				}
 			}
@@ -197,7 +197,7 @@ if (System::isWebContext()) {
 			}
 			return $this->_controller;
 		}
-		function getController($controllerName = null) {
+		function getController($controllerName = null, $throw = true) {
 			$instance = null;
 			$controllerName = $controllerName ? $controllerName : Request::get('__m');
 			$controllerName = $controllerName ? $controllerName : $this->getRoute('_c');
@@ -207,7 +207,11 @@ if (System::isWebContext()) {
 			try {
 				$instance = $this->getControllerInstance($controllerName);
 			} catch (\Exception $e) {
-				throw $e;
+				if ($throw) {
+					throw $e;
+				}
+				\Logger::Warning($e->getMessage());
+				return null;
 			}
 			return $instance;
 		}
@@ -304,8 +308,9 @@ if (System::isWebContext()) {
 			}
 			$rname = $controller ? $controller->getControllerName() : 'Home';
 			if (!Request::isDataRequest() && !$this->getVars('title')) {
-				$title = $this->getConfig($rname . '.title', ucwords(__($rname)));
-				$this->Assign('title', $this->getConfig('app.title', $this->getAppName()) . ' ::: ' . $title);
+				$title = $this->getConfig($rname . '.title', ucwords(__($rname . '.site.title', $rname)));
+				$deftitle = $this->getAppId() === \CGAF::APP_ID ? \CGAF::getConfig('cgaf.title') : $this->getConfig('app.title', $this->getAppName());
+				$this->Assign('title', $this->getConfig('app.title', $deftitle) . ' ::: ' . $title);
 			}
 			if (!Request::isDataRequest()) {
 				$this->addClientAsset($this->getAppName() . '.js');
@@ -418,13 +423,13 @@ if (System::isWebContext()) {
 			foreach ($searchs as $f) {
 				$f = $f . $fname . CGAF_CLASS_EXT;
 				if (is_file($f)) {
-					if ($suffix && !\String::Contains($f, $suffix))
+					if ($suffix && !\Strings::Contains($f, $suffix))
 						continue;
 					return $f;
 				}
 			}
 			if ($throw) {
-				if (CGAF_DEBUG) {
+				if ($this->isDebugMode()) {
 					pp($fname);
 					pp($suffix);
 					//pp(debug_backtrace(false));
@@ -509,14 +514,19 @@ if (System::isWebContext()) {
 		function getAuthInfo() {
 			return Session::get("__logonInfo");
 		}
-		public function getMenuItems($position, $parent = 0, $actionPrefix = null, $showIcon = true, $loadChild = false) {
+		public function getMenuItems($position, $parent = 0, $actionPrefix = null, $showIcon = true, $loadChild = false, $includecgaf = null) {
 			$model = $this->getModel("menus");
 			$model->clear();
 			$model->setIncludeAppId(false);
 			$model->where("menu_position=" . $model->quote($position));
 			$model->where("menu_state=1");
 			$model->where("(menu_parent=" . $parent . ' and menu_id != ' . $parent . ')');
-			$model->where("(app_id='__cgaf' or app_id=" . $model->quote($this->getAppId()) . ")");
+			$includecgaf = $includecgaf === null ? $this->getConfig('app.ui.menu.' . $position . '.includecgafui', $this->getConfig('app.ui.menu.includecgafui', true)) : $includecgaf;
+			if ($includecgaf) {
+				$model->where("(app_id='__cgaf' or app_id=" . $model->quote($this->getAppId()) . ")");
+			} else {
+				$model->where("app_id=" . $model->quote($this->getAppId()));
+			}
 			$model->orderBy("menu_index");
 			$rows = $model->loadObjects("System\\Web\\UI\\Items\MenuItem");
 			if ($rows && $loadChild) {
@@ -570,14 +580,21 @@ if (System::isWebContext()) {
 				$mode = Request::get("__js") == "true" ? true : false;
 				Session::set("__jsmode", $mode);
 			}
+			if (Request::get('__generateManifest') == '1') {
+				$this->getAppManifest(true);
+			}
 			Session::remove("__route");
 			if (Request::isAJAXRequest()) {
 				Session::set("__route", $this->getRoute());
 			}
 			$m = Request::get("__m");
 			if ($m) {
-				$m = ModuleManager::getModuleInstance($m, $this);
-				$this->addSearchPath($m->getModulePath());
+				try {
+					$m = ModuleManager::getModuleInstance($m, $this);
+					$this->addSearchPath($m->getModulePath());
+				} catch (AccessDeniedException $e) {
+					\Logger::Warning($e->getMessage());
+				}
 			}
 			//prevent to re add client asset
 			if ($this->getRoute('_c') === 'assets') {
@@ -591,7 +608,7 @@ if (System::isWebContext()) {
 			return $this->getRoute("_a");
 		}
 		protected function renderHeader() {
-			if (!Request::isAJAXRequest()) {
+			if (\Request::isMobile() || !Request::isAJAXRequest()) {
 				$controller = $this->getMainController();
 				if ($controller) {
 					return $controller->getView('header');
@@ -667,14 +684,16 @@ if (System::isWebContext()) {
 				}
 			}
 			$retval = '';
-			if (!Request::isDataRequest()) {
+			if (!Request::isDataRequest() || \Request::isMobile()) {
 				$retval = $this->renderHeader();
 				$retval .= $content;
 			} else {
 				$retval = $content;
 			}
-			if (!Request::isAJAXRequest() && !Request::isDataRequest()) {
-				$retval .= $controller->getView('footer');
+			if (\Request::isMobile() || (!Request::isAJAXRequest() && !Request::isDataRequest())) {
+				if ($controller) {
+					$retval .= $controller->getView('footer');
+				}
 			} elseif (!Request::isDataRequest()) {
 				$retval .= CGAFJS::Render($this->getClientScript());
 			}
@@ -712,24 +731,13 @@ if (System::isWebContext()) {
 			}
 			return $retval;
 		}
-		function renderContent($location, $controller = null, $returnori = false, $return = true, $params = null) {
-			if ($controller === null) {
-				$controller = $this->getController()->getControllerName();
-			}
-			$m = $this->getModel("content");
-			$m->clear();
-			$m->where("state=1");
-			$m->where("(content_controller=" . $m->quote($controller) . ' or content_controller=\'__all\')');
-			$m->where("position=" . $m->quote($location));
-			$m->orderBy('idx');
-			$rows = $m->loadAll();
+		function renderContents($rows, $location, $params = null, $tabmode = false) {
 			if (!count($rows)) {
 				return null;
 			}
-			$retOri = array();
 			$content = null;
-			$menus = array();
-			foreach ($rows as $row) {
+			$controller = $this->getController()->getControllerName();
+			foreach ($rows as $midx => $row) {
 				$class = null;
 				$dbparams = Utils::DBDataToParam($row->params);
 				$rparams = \Utils::arrayMerge($dbparams, $params);
@@ -759,6 +767,7 @@ if (System::isWebContext()) {
 													'__a' => 'aed')), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png', __($row->controller . '.add.descr', 'Add Data'));
 								}
 							}
+							$row->actions = $ctl->getActionAlias($row->actions);
 							if (method_exists($ctl, $row->actions) && $ctl->isAllow($row->actions)) {
 								$class = $row->controller . '-' . $row->actions;
 								$cparams = $rparams;
@@ -766,14 +775,14 @@ if (System::isWebContext()) {
 									$cparams = $rparams[$row->controller];
 								}
 								$hcontent = $ctl->{$row->actions}($cparams);
-							} elseif (!method_exists($ctl, $row->actions) && CGAF_DEBUG) {
+							} elseif (!method_exists($ctl, $row->actions) && $this->isDebugMode()) {
 								$hcontent = HTMLUtils::renderError('method [' . $row->actions . '] not found in class ' . $row->controller);
 							}
 						} else {
 							$hcontent = HTMLUtils::renderError(' Controller [' . $row->controller . '] not found ');
 						}
 					} catch (\Exception $e) {
-						if (CGAF_DEBUG) {
+						if ($this->isDebugMode()) {
 							$hcontent = HTMLUtils::renderError($e->getMessage());
 						} else {
 							continue;
@@ -827,6 +836,9 @@ if (System::isWebContext()) {
 					}
 				}
 				if ($hcontent) {
+					if ($tabmode) {
+						$content .= '<div id="tab-' . $midx . '">';
+					}
 					$content .= "<div class=\"$location-item {$row->controller} {$class} clearfix\">";
 					if ((int) $row->content_type !== 5 && $this->getConfig('content.' . $controller . '.' . $location . '.header', true)) {
 						$content .= "	<div class=\"ui-widget-header bar\">";
@@ -846,10 +858,29 @@ if (System::isWebContext()) {
 					}
 					$content .= "<div class=\"content ui-widget-content\"><div>" . $rcontent . "</div></div>";
 					$content .= "</div>";
+					if ($tabmode) {
+						$content .= '</div>';
+					}
 					$retOri[] = $row;
 				}
 				unset($ctl);
 			}
+			return $content;
+		}
+		function renderContent($location, $controller = null, $returnori = false, $return = true, $params = null) {
+			if ($controller === null) {
+				$controller = $this->getController()->getControllerName();
+			}
+			$m = $this->getModel("content");
+			$m->clear();
+			$m->where("state=1");
+			$m->where("(content_controller=" . $m->quote($controller) . ' or content_controller=\'__all\')');
+			$m->where("position=" . $m->quote($location));
+			$m->orderBy('idx');
+			$rows = $m->loadAll();
+			$retOri = array();
+			$content = $this->renderContents($rows, $location, $params);
+			$menus = array();
 			if (count($menus)) {
 				$c = "<div class=\"$location-item  clearfix menus\">";
 				$c .= "	<div class=\"ui-widget-header bar\">";
@@ -867,6 +898,7 @@ if (System::isWebContext()) {
 				$c .= '</div></div>';
 				$content = $c . $content;
 			}
+			$retval = null;
 			if ($returnori) {
 				return $retOri;
 			}
@@ -916,7 +948,8 @@ if (System::isWebContext()) {
 				Logger::Error("[%s] %s", get_class($ex), $ex->getMessage());
 			}
 		}
-		function onSessionEvent($event, $sid = null) {
+		function onSessionEvent(SessionEvent $event, $sid = null) {
+			//ppd($_SESSION);
 		}
 	}
 } else {

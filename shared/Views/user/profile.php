@@ -3,14 +3,15 @@ use System\Web\Utils\HTMLUtils;
 $acl = $this->getAppOwner()->getACL();
 $_detail = isset($_detail) ? $_detail : false;
 $edit = false;
-if ($data) {
-	$edit = ($acl->isAdmin() || $data->user_id == $this->getAppOwner()->getAuthInfo()->getUserId()) && !$_detail;
+if ($userInfo) {
+	$edit = $acl->isAdmin() || $userInfo->isCurrentUser() && !$_detail;
 }
 $msg = isset($message) ? $message : null;
 $ov = Request::get('__overlay');
+$personInfo = $userInfo->getPerson();
 $tplVars = array(
 		"edit" => $edit,
-		"person" => $person,
+		"person" => $personInfo,
 		"acl" => $acl,
 		'_detail' => $_detail);
 //pp($personInfo);
@@ -25,17 +26,17 @@ if ($view = Request::get("view")) {
 	throw new AccessDeniedException();
 }
 ?>
-<div class="profile-header">
-	<div></div>
-	<form action="<?php echo BASE_URL . 'person/search/' ?>">
-		<input autocomplete="off" type="text" maxlength="256" name="q"
-			label="Find People" placeholder="Find People">
-	</form>
-</div>
-<div id="user-profile" class="user profile"
+<div>
+	<div class="profile-header">
+		<div></div>
+		<form action="<?php echo BASE_URL . 'person/search/' ?>">
+			<input autocomplete="off" type="text" maxlength="256" name="q"
+				label="Find People" placeholder="Find People">
+		</form>
+	</div>
+	<div id="user-profile" class="user profile"
 
-
-<?php echo $ov ? ' style="width:750px;height:450px;margin:10px;overflow:hidden"' : '' ?>>
+		 <?php echo $ov ? ' style="width:750px;height:450px;margin:10px;overflow:hidden"' : '' ?>>
 
 
 <?php
@@ -45,16 +46,14 @@ if ($msg) {
 }
 echo '<div class="profile-detail">';
 if ($edit) {
-	echo  '<div role="button" class="btn-edit">' . __('user.profile.edit', 'Edit Profile') . '</div>';
+	echo '<div role="button" class="btn-edit">' . __('user.profile.edit', 'Edit Profile') . '</div>';
 }
 if ($personInfo) {
-?>
-	<div>
-		<span class="uinfo"><?php echo sprintf('%s %s %s', $personInfo->first_name, $personInfo->middle_name, $personInfo->last_name); ?>
-		</span>
+	echo $this->render('profile/person', true, false, array(
+					'userInfo' => $userInfo,
+					'personInfo' => $personInfo));
+}
+																								  ?>
 	</div>
-
-	<?php } ?>
-	</div>
-<div></div>
+	<div></div>
 </div>

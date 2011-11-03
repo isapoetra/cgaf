@@ -6,3 +6,5 @@ Disallow: /Libs/
 Disallow: /locale/
 Disallow: /protected/
 Disallow: /Core/
+Disallow: /vendor/
+Disallow: /cgaf/

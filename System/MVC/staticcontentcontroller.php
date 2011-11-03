@@ -1,5 +1,6 @@
 <?php
 namespace System\MVC;
+use System\ACL\ACLHelper;
 use System\Exceptions\SystemException;
 use System\Web\Utils\HTMLUtils;
 use System\Template\TemplateHelper;
@@ -9,6 +10,8 @@ abstract class StaticContentController extends Controller {
 	protected function getParamForAction($a, $mode = null) {
 		$params = $this->getAppOwner()->getConfigs('controllers.' . $this->getControllerName() . '.' . $a, array());
 		$params['asseturl'] = BASE_URL . 'asset/get/?appId=' . $this->getAppOwner()->getAppId() . '&q=';
+		$params['baseurl'] = BASE_URL;
+		$params['appurl'] = APP_URL;
 		return $params;
 	}
 	public function getContentPath() {
@@ -19,6 +22,7 @@ abstract class StaticContentController extends Controller {
 				$this->getContentPath(),
 				\CGAF::getInternalStorage('data/' . $this->getControllerName() . '/', false));
 		$lc = $this->getAppOwner()->getLocale()->getLocale();
+		$dc = $this->getAppOwner()->getLocale()->getDefaultLocale();
 		foreach ($spath as $p) {
 			$def = $p . $a . '.html';
 			if ($this->_useLocale) {
@@ -52,7 +56,7 @@ abstract class StaticContentController extends Controller {
 		if (is_file($f)) {
 			$params['content'] = TemplateHelper::renderString(file_get_contents($f), $params, $this, \Utils::getFileExt($f, false));
 		} else {
-			$params['content'] = 'content file not found ' . (CGAF_DEBUG ? $f : '');
+			$params['content'] = 'content file not found ' . ($this->getAppOwner()->isDebugMode() ? $f : '');
 		}
 		$tpl = $this->_template ? $this->getFile($this->getControllerName(), $this->_template, 'Views') : null;
 		$retval .= $tpl ? TemplateHelper::renderFile($tpl, $params, $this) : $params['content'];
@@ -67,7 +71,11 @@ abstract class StaticContentController extends Controller {
 		case 'index':
 			return parent::Index();
 		default:
-			$f = $this->getContentFile($a, true);
+			$id = ACLHelper::secureFile(\Request::get('id'), false);
+			if ($id) {
+				$a = $a . DS . $id;
+			}
+			$f = $this->getContentFile($a, false);
 			return $this->renderFile($a, $f);
 			if (is_file($f)) {
 			} else {

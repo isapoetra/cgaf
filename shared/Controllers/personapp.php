@@ -23,29 +23,7 @@ class personappController extends Controller {
 		}
 		return false;
 	}
-	function parseCallback($callback, $descr) {
-		if (!$callback) {
-			return $callback;
-		}
-		//TODO parse by application
-		switch ($callback) {
-		case 'email':
-			$retval = '<a href="mailto:' . $descr . '">send email</a>';
-			break;
-		case 'skype':
-			$retval = PublicApi::share('skype', 'onlinestatus', $descr);
-			break;
-		case 'ymsgrstatus':
-			$retval = PublicApi::share('yahoo', 'onlinestatus', $descr);
-			break;
-		default:
-			$retval = null;
-			if (CGAF_DEBUG) {
-				throw new SystemException('unhandled contact callback ' . $callback);
-			}
-		}
-		return $retval;
-	}
+
 	function prepareRender() {
 		parent::prepareRender();
 		$appOwner->clearCrumbs();
@@ -61,12 +39,12 @@ class personappController extends Controller {
 		if ($asArray)
 			return $rows;
 		foreach ($rows as $row) {
-			$row->callback = $this->parseCallback($row->callback, $row->descr);
+			$row->callback = \UserInfo::parseCallback($row->callback, $row->descr);
 		}
 		return parent::render(__FUNCTION__, array(
 				'rows' => $rows));
 	}
-	function detail() {
+	function detail($args = null, $return = null) {
 		$id = \Request::get('id') . ',' . \Request::get('app_id', $this->getAppOwner()->getAppId());
 		\Request::set('id', $id);
 		return parent::detail();

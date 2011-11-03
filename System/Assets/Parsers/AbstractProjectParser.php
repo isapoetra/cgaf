@@ -37,7 +37,7 @@ abstract class AbstractProjectParser {
 				'$tmppath' => CGAF::getTempPath (),
 				'$cachepath' => $cp );
 
-		$this->_destPath = Utils::ToDirectory ( String::replace ( $this->getConfig ( 'TargetPath', '$cachepath' ), $replacer ) );
+		$this->_destPath = Utils::ToDirectory ( \Strings::replace ( $this->getConfig ( 'TargetPath', '$cachepath' ), $replacer ) );
 
 	}
 

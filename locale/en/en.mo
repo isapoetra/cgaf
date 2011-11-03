@@ -51,3 +51,4 @@ month.november.short=Nov
 month.november.long=November
 month.december.short=Dec
 month.december.long=December
+home.descr=Application Frontpage

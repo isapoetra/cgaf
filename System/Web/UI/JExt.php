@@ -35,7 +35,7 @@ abstract class JExt {
 		return CGAFJS::loadScript(self::PluginURL().$plugin);
 	}
 	public static function loadClass($className) {
-		if (String::BeginWith ( $className, 'JExt' )) {
+		if (Strings::BeginWith ( $className, 'JExt' )) {
 			$c = strtolower ( substr ( $className, 4 ) );
 			return CGAF::Using ( 'System.Web.UI.Ext.' . $c );
 		}

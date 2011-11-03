@@ -1,7 +1,13 @@
 <?php
 defined("CGAF") or die("Restricted Access");
-
-class TAttribute implements IRenderable {
+/**
+ *
+ * Enter description here ...
+ * @author e1
+ * @deprecated
+ *
+ */
+class Attribute implements IRenderable {
 	protected $_ignore = array();
 	private $_a = array();
 

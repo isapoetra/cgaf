@@ -7,9 +7,10 @@ use \URLHelper;
 use \AppManager;
 class Auth {
 	const FACEBOOK = 'facebook';
+	const ERROR_STATE = 'state_error';
 	const NEED_RETRY_STATE = 'state_need_retry';
 	const NEED_REMOTEAUTH_STATE = 'state_need_remoteauth';
-	const NEED_CONFIRM_LOCAL_STATE='state_need_confirm_local_auth';
+	const NEED_CONFIRM_LOCAL_STATE = 'state_need_confirm_local_auth';
 	private static $_providerInstance = array();
 	/**
 	 *
@@ -27,6 +28,10 @@ class Auth {
 			$instance = new $cname(\AppManager::getInstance());
 			if (!$instance instanceof IAuthProvider) {
 				throw new SystemException('Invalid Authentification method');
+			}
+			if (!$instance->initialize()) {
+				throw new SystemException('unable to initialize '.$cname.' '.$instance->getLastError());
+				return null;
 			}
 		}
 		return $instance;

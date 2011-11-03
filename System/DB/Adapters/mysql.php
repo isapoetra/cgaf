@@ -36,7 +36,6 @@ class MySQL extends DBConnection {
 		switch (strtolower($objecttype)) {
 		case 'table':
 			$retval = "create table " . $this->quoteTable('#__' . $objectName) . " ";
-			pp($fields);
 			$retval .= '(';
 			foreach ($fields as $field) {
 				$type = $this->phptofieldtype($field->fieldtype);
@@ -229,7 +228,7 @@ class MySQL extends DBConnection {
 		$retval = array();
 		switch ($objectType) {
 		case "table":
-			$sql = "desc ".$this->quoteTable($objectId,true);
+			$sql = "desc " . $this->quoteTable($objectId, true);
 			$old = $this->_thows;
 			$this->_thows = $throw;
 			$r = $this->Query($sql);

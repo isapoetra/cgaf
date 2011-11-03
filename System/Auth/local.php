@@ -57,8 +57,9 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 		$result = $this->authDirect($args->username, $this->encryptPassword($args->password));
 		if (!$result) {
 			$this->setLastError("Invalid Username/password");
+			return false;
 		}
-		return false;
+		return true;
 	}
 	function Logout() {
 		$adapter = $this->getAdapter();

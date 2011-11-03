@@ -11,6 +11,7 @@ class JSONResult implements \IRenderable {
 		$this->_msg = $msg;
 		$this->_redirect = $redirect;
 		$this->_vars = $vars;
+
 	}
 	function getCode() {
 		return $this->_code;
@@ -31,7 +32,7 @@ class JSONResult implements \IRenderable {
 			if (is_array($this->_vars) && count($this->_vars)) {
 				$retval = array_merge_recursive($retval, $this->_vars);
 			}
-			$retval = JSON::encodeConfig($retval);
+			$retval =json_encode($retval);// JSON::encodeConfig($retval,true);
 		} else {
 			if ($this->_redirect) {
 				return Response::Redirect($this->_redirect);

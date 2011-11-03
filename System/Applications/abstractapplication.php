@@ -2,7 +2,7 @@
 namespace System\Applications;
 use System\ACL\ACLHelper;
 use System\Events\LoginEvent;
-use \CGAF, \Utils, \String, \Request, \Response, \Logger;
+use \CGAF, \Utils, \Request, \Response, \Logger;
 use \System\Assets\AssetHelper;
 use \System\Session\Session;
 use \System\Configurations\Configuration;
@@ -227,7 +227,7 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 	}
 	function isValidToken($req = "__token") {
 		$st = Session::get('__token');
-		$rt = Request::get('__token');
+		$rt = Request::get($req, null, true, 'p');
 		return $rt !== null && $st === $rt;
 	}
 	function Authenticate() {
@@ -263,6 +263,9 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 	}
 	public function isAllow($id, $group, $access = 'view') {
 		return $this->getACL()->isAllow($id, $group, $access);
+	}
+	function isDebugMode() {
+		return $this->getConfig('app.debugmode', \CGAF::isDebugMode());
 	}
 	public function isAllowFile($file, $access = 'view') {
 		$ext = Utils::getFileExt($file, false);
@@ -349,7 +352,7 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 		if (CGAF::isDebugMode() || Session::get("installmode")) {
 			$this->checkInstall();
 		}
-		if (CGAF_DEBUG) {
+		if ($this->isDebugMode()) {
 			CGAF::addAlowedLiveAssetPath($this->getDevPath());
 		}
 		$this->_initialized = true;
@@ -367,7 +370,7 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 		if ($full) {
 			return $this->_appPath;
 		} else {
-			return String::FromLastPos($this->_appPath, DS);
+			return \Strings::FromLastPos($this->_appPath, DS);
 		}
 	}
 	function getContent($position = null) {
@@ -458,7 +461,6 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 				return $fname;
 			}
 		}
-		//pp($s);
 		return null;
 	}
 	function getTemporaryPath() {
@@ -533,11 +535,13 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 		$file = realpath($file);
 		$allow = array(
 				$this->getAppPath() . 'assets');
-		if (String::BeginWith($file, $allow)) {
+		if (\Strings::BeginWith($file, $allow)) {
 			return true;
 		}
 		$ext = Utils::getFileExt($file, FALSE);
 		return in_array($ext, array(
+				'ico',
+				'ttf',
 				'js',
 				'gif',
 				'png',
@@ -563,7 +567,7 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 					if (!in_array($file, $retval)) {
 						$retval[] = $file;
 					}
-				} elseif (CGAF_DEBUG) {
+				} elseif ($this->isDebugMode()) {
 					Logger::Warning($ff);
 				}
 			}
@@ -589,8 +593,8 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 			break;
 		}
 		$apath = $this->getAppPath() . $this->getConfig('livedatapath', 'assets') . '/';
-		if (String::BeginWith($asset, $apath)) {
-			$asset = String::Replace($apath, '', $asset);
+		if (\Strings::BeginWith($asset, $apath)) {
+			$asset = \Strings::Replace($apath, '', $asset);
 			return URLHelper::add($this->getAppUrl(), 'asset/get', array(
 					'q' => $asset));
 		}
@@ -631,11 +635,12 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 				$cfg = $this->unserialize(file_get_contents($istore));
 			} else {
 				$cfg = new Configuration();
+				ppd($instance);
 			}
 			return $cfg;
 		} elseif ($this->_userConfig === null) {
 			$istore = $this->getInternalStoragePath() . DS . 'userconfig' . DS . $cid . '.config';
-			Utils::makeDir(dirname($istore));
+			Utils::makeDir(dirname($istore),0770);
 			$cfg = array();
 			if (is_file($istore)) {
 				$this->_userConfig = $this->unserialize(file_get_contents($istore));
@@ -666,7 +671,8 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 			if ($create) {
 				return Utils::makeDir($iPath);
 			}
-			Logger::Warning("Unable to find Internal Data $iPath");
+			//Logger::Warning("Unable to find Internal Data $iPath");
+			return $iPath;
 		}
 		return null;
 	}

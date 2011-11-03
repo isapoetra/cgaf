@@ -5,7 +5,7 @@ abstract class DB {
 	/**
 	 *
 	 * @param Array
-	 * @return IDBConnection
+	 * @return \IDBConnection
 	 */
 	public static function Connect($connArgs) {
 		if (!$connArgs) {

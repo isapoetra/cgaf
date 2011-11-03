@@ -115,7 +115,7 @@ class Form extends Control {
   }
 
   protected function _getSubmitAction ($confirm = true, $param = null) {
-    $this->_submitAction = \String::RemoveString($this->_submitAction, array(
+    $this->_submitAction = \Strings::RemoveString($this->_submitAction, array(
       "\t" ,
       "\n" ,
       "\r"), "");

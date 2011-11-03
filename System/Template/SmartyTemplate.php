@@ -2,13 +2,13 @@
 namespace System\Template;
 use \CGAF;
 use \System\Template\BaseTemplate;
-use \String;
+use \Strings;
 function smarty_loader($class) {
 	$class = strtolower($class);
-	if (String::BeginWith($class, 'smarty_internal_')) {
+	if (Strings::BeginWith($class, 'smarty_internal_')) {
 		return CGAF::Using(CGAF_VENDOR_PATH . '/Smarty/distribution/libs/sysplugins/' . $class . '.php');
 	}
-	if (String::BeginWith($class, 'smarty_')) {
+	if (Strings::BeginWith($class, 'smarty_')) {
 		return CGAF::Using(CGAF_VENDOR_PATH . '/Smarty/distribution/libs/plugins/' . $class . '.php');
 	}
 }
@@ -45,6 +45,7 @@ class SmartyTemplate extends BaseTemplate implements \ITemplate {
 	}
 	private function initSmarty() {
 		$p = $this->getAppOwner()->getInternalCache()->getCachePath('.template', false) . '';
+
 		$this->_smarty->setCompileDir($p);
 		$this->_smarty->clearAllAssign();
 		$this->_smarty->assign($this->_vars);

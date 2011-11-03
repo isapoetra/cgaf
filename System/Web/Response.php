@@ -1,9 +1,10 @@
 <?php
 namespace System\Web;
+use System\AbstractResponse;
 use System\Web\JS\JSUtils;
 use \Utils;
 use System\JSON\JSONResult;
-class Response extends \System\AbstractResponse {
+class Response extends AbstractResponse {
 	private $_flush;
 	function __construct() {
 		parent::__construct(true);

@@ -11,6 +11,7 @@ class HelpController extends Controller {
 			return $this->getAppOwner()->isAuthentificated();
 			break;
 		case 'get':
+		case 'view':
 		case 'html':
 			return true;
 		}

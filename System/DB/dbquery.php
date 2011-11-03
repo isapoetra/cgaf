@@ -231,6 +231,7 @@ class DBQuery extends \Object implements IQuery {
 	}
 	function loadSQLFile($f) {
 		if (is_readable($f)) {
+			$this->clear();
 			$query = file_get_contents($f, FILE_TEXT) . "\n";
 			$sql = "";
 			$multiSQL = "/('[^']*'|\"[^\"]*\"|[^;'\"])*;/";
@@ -242,18 +243,9 @@ class DBQuery extends \Object implements IQuery {
 					$aSQL[$i] = "$trim;";
 				}
 			}
-			foreach ($aSQL as $i => $sql) {
+			foreach ($aSQL as $sql) {
 				$this->addSQL($sql);
 			}
-			/*for($index = 0; $index < strlen($content); $index ++) {
-
-			if ($content [$index] === ";" && ord($content [$index + 1]) == 13) {
-			$index ++;
-			$this->addSQL($sql);
-			$sql = "";
-			}
-			$sql .= $content [$index];
-			}*/
 		} else {
 			throw new Exception("File Not Found" . Logger::WriteDebug($f));
 		}
@@ -565,12 +557,12 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return null;
 	}
-	protected function prepare() {
+	protected function prepare($type = null) {
 		$this->_prepared = true;
 	}
 	function getSQL($page = -1, $rowPerPage = -1) {
 		if (!$this->_prepared) {
-			$this->prepare();
+			$this->prepare($this->_type);
 		}
 		switch (strtolower($this->_type)) {
 		case self::MODE_UPDATE:

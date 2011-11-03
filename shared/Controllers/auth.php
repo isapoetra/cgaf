@@ -22,6 +22,8 @@ class AuthController extends Controller {
 		$isAuth = $this->getAppOwner()->isAuthentificated();
 		switch (strtolower($access)) {
 		case 'external':
+		//damn recursive on facebook
+			return CGAF_DEBUG;
 		case 'index':
 		case 'view':
 			return true;
@@ -38,6 +40,7 @@ class AuthController extends Controller {
 			\Request::isAJAXRequest(true);
 			\Response::clearBuffer();
 		}
+
 		$ajax = Request::isAJAXRequest() ? '__ajax=1&' : '';
 		if ($this->getAppOwner()->isAuthentificated()) {
 			if ($ajax) {
@@ -46,7 +49,9 @@ class AuthController extends Controller {
 				\Response::Redirect(\URLHelper::add(APP_URL, 'auth/logout/'));
 			}
 		}
+
 		$provider = Auth::getProviderInstance($p);
+
 		if (!$provider) {
 			throw new SystemException("unhandled authentification method");
 		}
@@ -58,9 +63,11 @@ class AuthController extends Controller {
 				'provider' => $provider,
 				'localuser' => $provider->getRealUser(),
 				'remoteuser' => $provider->getRemoteUser());
+
 		if ($params['localuser'] && !$this->getAppOwner()->isAuthentificated() && \Request::get('__confirm')) {
 			$ruser = $params['localuser'];
 			$auth = $this->getAppOwner()->getAuthentificator();
+			ppd($auth);
 			if ($auth->authDirect($ruser->user_name, $ruser->user_password, Auth::FACEBOOK)) {
 				$script = <<< EOT
 if (window.opener) {
@@ -74,6 +81,8 @@ EOT;
 			}
 		}
 		switch ($state) {
+		case AUTH::ERROR_STATE:
+			return $this->renderView('external/error', $params);
 		case Auth::NEED_RETRY_STATE:
 			return $this->renderView('external/retry', $params);
 			break;
@@ -226,7 +235,6 @@ EOT;
 						'debugmsg' => $debugmsg,
 						'data' => $data));
 	}
-
 	function logout() {
 		$confirm = Request::get('__confirm');
 		if (!$confirm) {
@@ -256,7 +264,7 @@ EOT;
 				if (!$msg && !$retval) {
 					$msg = $this->getAppOwner()->getAuthentificator()->getLastError();
 				}
-				$redir = Request::get('original_url', Request::get("redirect", BASE_URL . '/auth'));
+				$redir = Request::get('original_url', Request::get("redirect", URLHelper::add(APP_URL, 'auth')));
 				if ($retval) {
 					$redir = URLHelper::addParam($redir, array(
 							'__t' => time()));
@@ -279,18 +287,25 @@ EOT;
 					Response::Redirect($redir);
 				}
 			} elseif (Request::get('__token')) {
-				throw new SystemException("invalid Token");
+				$msg = __('error.invalidtoken', 'Invalid Token');
+				if (Request::isAJAXRequest()) {
+					throw new SystemException($msg);
+				}
 			}
 		}
 		if ($appOwner->isAuthentificated()) {
 			\Response::Redirect(BASE_URL . 'user/dashboard/');
 		} else {
-			if ($this->getAppOwner()->getConfig('auth.External.enabled', true)) {
+			$providers = array();
+			if ($this->getAppOwner()->getConfig('auth.External.enabled', CGAF_DEBUG)) {
 				$providers = $this->getAppOwner()->getConfig('auth.External.providers', array(
 								'google',
 								'facebook',
 								'oauth'));
 			}
+		}
+		if (Request::get('__token', null, true, 'p')) {
+			$this->getAppOwner()->resetToken();
 		}
 		$retval = parent::render('form/login', array(
 				'providers' => $providers,

@@ -222,7 +222,7 @@ class URLHelper {
 		}
 		return $retval;
 	}
-	public static function add($url, $path = null, $param = null) {
+	public static function add($url, $path = null, $param = null, $replacer = null) {
 		if (!$url) {
 			$url = BASE_URL;
 		}
@@ -244,7 +244,14 @@ class URLHelper {
 		if ($param) {
 			$url['query_params'] = self::merge($url, 'query_params', $param);
 		}
-		return self::implode($url);
+		$retval = self::implode($url);
+		if ($replacer) {
+			$retval =urldecode($retval);
+			foreach ($replacer as $k => $v) {
+				$retval = str_replace('#' . $k . '#', $v, $retval);
+			}
+		}
+		return $retval;
 	}
 	private static function getURLShortenerInstance() {
 		static $us;

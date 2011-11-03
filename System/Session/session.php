@@ -29,16 +29,26 @@ abstract class Session {
 				$handler = 'System\\Session\\Storage\\' . $handler;
 			}
 			self::$_instance = new $handler();
-			session_set_save_handler(array(&self::$_instance, 'open'), array(&self::$_instance, 'close'), array(&self::$_instance, 'read'), array(&self::$_instance, 'write'), array(&self::$_instance, 'destroy'),
-					array(&self::$_instance, 'gc'));
+			session_set_save_handler(array(
+							&self::$_instance,
+							'open'), array(
+							&self::$_instance,
+							'close'), array(
+							&self::$_instance,
+							'read'), array(
+							&self::$_instance,
+							'write'), array(
+							&self::$_instance,
+							'destroy'), array(
+							&self::$_instance,
+							'gc'));
 		}
 		return self::$_instance;
 	}
-	public static function get($name, $default = null) {
+	public static function &get($name, $default = null) {
 		return self::getInstance()->get($name, $default);
 	}
 	public static function set($name, $value) {
-
 		if (CGAF_CONTEXT == "Web" && $name == "__appId" && !self::getInstance()->isStarted()) {
 			setcookie("__appId", $value);
 		}

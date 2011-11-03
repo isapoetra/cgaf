@@ -38,7 +38,7 @@ class Collection extends \Object implements \IteratorAggregate, \ArrayAccess, \C
 			$this->_iClass = null;
 			return;
 		}
-		if (!class_exists($value, false))
+		if (!class_exists($value))
 			throw new SystemException("Class $value not Found");
 		$this->_iClass = $value;
 	}

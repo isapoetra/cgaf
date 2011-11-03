@@ -21,18 +21,24 @@ class AboutController extends StaticContentController {
 		}
 		return parent::isAllow($access);
 	}
-	protected function getParamForAction($a) {
-		$retval = parent::getParamForAction($a);
+	protected function getParamForAction($a, $mode = null) {
+		$retval = parent::getParamForAction($a, $mode);
+
 		switch (strtolower($a)) {
-			case 'auth':
-				$retval['joinurl'] =\URLHelper::add(APP_URL,'user/register');
+		case 'auth':
+			$retval['joinurl'] = \URLHelper::add(APP_URL, 'user/register');
 		}
 		return $retval;
 	}
 	function app() {
 		$instance = \AppManager::getInstance(\Request::get('id'));
 		$fidx = \Utils::getFileName(ACLHelper::secureFile(\Request::get('f', 'index'), false), false);
-		$f = \CGAF::getInternalStorage('contents/about/app/' . $instance->getAppId() . '/', false, false) . $fidx;
+		$f = $instance->getInternalStorage('about/app/');
+		if (!is_dir($f)) {
+			$f = \CGAF::getInternalStorage('contents/about/app/' . $instance->getAppId() . '/', false, false) . $fidx;
+		} else {
+			$f .= $fidx;
+		}
 		$lc = $this->getAppOwner()->getLocale()->getLocale();
 		$alt = $f . '-' . $lc . '.html';
 		if (is_file($alt)) {
@@ -43,10 +49,10 @@ class AboutController extends StaticContentController {
 		return $this->renderFile(__FUNCTION__, $f);
 	}
 	function auth() {
-		$this->_template =null;
+		$this->_template = null;
 		return parent::Index(__FUNCTION__);
 	}
-	function edit() {
+	function edit($row = null) {
 		$a = ACLHelper::secureFile(\Request::get('id'), false);
 		$f = $this->getContentFile($a, false);
 		if (!is_file($f)) {
@@ -73,11 +79,9 @@ class AboutController extends StaticContentController {
 	}
 	function renderAbout($what, $sub) {
 		$abpath = $this->getInternalPath($what);
-		return parent::render(null, array(
-				'file',
-				$abpath . $sub));
+		return parent::renderFile($what, $abpath . $sub);
 	}
-	function Index() {
+	function Index($a = null) {
 		$route = MVCHelper::getRoute();
 		$a = $route['_a'];
 		switch ($a) {

@@ -1,9 +1,12 @@
 <?php
 defined("CGAF") or die("Restricted Access");
-$controller = $this->getController();
 $content = $this->getContent();
-
-if (!$content && $controller) {
+if ($content) {
+	echo $content;
+	return;
+}
+$controller = $this->getController();
+if ($controller) {
 	$content = $controller->renderContent('center');
 }
 echo $content;

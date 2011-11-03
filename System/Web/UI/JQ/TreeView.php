@@ -6,7 +6,7 @@ use \Request;
 use \Response;
 use System\JSON\JSON;
 use System\Exceptions\SystemException;
-use \String;
+use \Strings;
 class TreeView extends Control {
 	private $_url;
 	private $_asyncMode = true;
@@ -51,7 +51,7 @@ class TreeView extends Control {
 		if ($this->_textParser) {
 			return call_user_func($this->_textParser, $s, $o, $this);
 		}
-		return String::replace($s, $o, $s, false, 0, '#', '#');
+		return Strings::replace($s, $o, $s, false, 0, '#', '#');
 	}
 	public function setNodeText($value) {
 		$this->_nodeText = $value;
