@@ -33,7 +33,7 @@ final class CGAF {
 	private static $_cacheManager;
 	private static $_internalCache;
 	private static $_benchmark;
-	private static $_nsClass = array();
+	//private static $_nsClass = array();
 	private static $_isDebugMode = false;
 	private static $_installMode = false;
 	private static $_shutdown = false;
@@ -41,6 +41,7 @@ final class CGAF {
 	private static $_searchPath = array();
 	private static $_allowedLivePath = array();
 	private static $loadedNamespaces = array();
+	private static $_blockedClientId = null;
 	/**
 	 *
 	 * @var IConfiguration
@@ -338,7 +339,6 @@ final class CGAF {
 					self::$_isDebugMode = self::isRemoteDebugAllow();
 					//workaround for dydnamic remote ip
 					$dt = isset($_COOKIE['__devtoken']) ? $_COOKIE['__devtoken'] : null;
-					//ppd($_COOKIE);
 					if ($dt === md5(self::getConfig('app.devtoken'))) {
 						self::$_isDebugMode = true;
 					}
@@ -347,7 +347,6 @@ final class CGAF {
 				}
 			}
 		}
-
 		/**
 		 *
 		 * @var boolean
@@ -412,11 +411,33 @@ final class CGAF {
 	private static function offlineRedirect($code) {
 		//TODO move to response
 		if (!System::isConsole()) {
-			Response::redirect(BASE_URL . 'offline.php?code=1');
+			Response::redirect(BASE_URL . 'offline.php?r=1');
 		} else {
 			Response::writeln(__('offline.' . $code, 'Offline : ' . $code));
 			CGAF::doExit();
 		}
+	}
+	private static function recordStats() {
+		$f = self::getInternalStorage('.cache/stats/byos/' . date('Y') . '/' . date('m') . '/', false, true) . date('d') . '.stats';
+		$ci = Request::getClientInfo();
+		$stats = new \stdClass();
+		if (is_file($f)) {
+			$stats = json_decode(file_get_contents($f));
+		}
+		$stats->{$ci->platform} = isset($stats->{$ci->platform}) ? $stats->{$ci->platform} + 1 : 1;
+		file_put_contents($f, json_encode($stats));
+		$f = self::getInternalStorage('.cache/stats/bybrowser/' . date('Y') . '/' . date('m') . '/', false, true) . date('d') . '.stats';
+		#by browser
+		$stats = new \stdClass();
+		if (is_file($f)) {
+			$stats = json_decode(file_get_contents($f));
+		}
+		$b = strtolower($ci->Browser[0]);
+		if (!isset($stats->$b)) {
+			$stats->$b = 0;
+		}
+		$stats->$b = $b + 1;
+		file_put_contents($f, json_encode($stats));
 	}
 	public static function onSessionEvent($event, $sid = null) {
 		if (!($event instanceof SessionEvent)) {
@@ -434,6 +455,10 @@ final class CGAF {
 			$past = time() - $lifetime;
 			$uid = self::getACL()->getUserId();
 			if ($event->type == SessionEvent::SESSION_STARTED) {
+				if (Session::get('firstrun', true)) {
+					self::recordStats();
+				}
+				Session::set('firstrun', false);
 				$q->clear();
 				$q->addSQL('SELECT * from #__session  where session_id=' . $q->quote($sid));
 				$o = $sess->load($sid);
@@ -485,6 +510,43 @@ final class CGAF {
 		}
 		throw new AssetException("asset not found %s", $f);
 	}
+	private static function _loadBlocked() {
+		if (self::$_blockedClientId === null) {
+			$f = self::getInternalStorage('securities/', false, true) . 'blockedid.sc';
+			if (is_file($f)) {
+				self::$_blockedClientId = json_decode(file_get_contents($f));
+			} else {
+				self::$_blockedClientId = array();
+			}
+		}
+	}
+	private static function checkSecurity() {
+		self::_loadBlocked();
+		$id = \Request::getClientId();
+		if (in_array($id, self::$_blockedClientId)) {
+			self::offlineRedirect('1001');
+		}
+	}
+	private static function _storeBlocked() {
+		if (self::$_blockedClientId === null)
+			return;
+		$f = self::getInternalStorage('securities/', false, true) . 'blockedid.sc';
+		file_put_contents($f, json_encode(self::$_blockedClientId));
+	}
+	public static function unBandClient($id) {
+		self::_loadBlocked();
+		\Utils::arrayRemoveValue(self::$_blockedClientId, $id);
+		self::_storeBlocked();
+	}
+	public static function BandClient() {
+		self::_loadBlocked();
+		$id = $_SERVER['REMOTE_ADDR'];
+		if (in_array($id, self::$_blockedClientId)) {
+			return;
+		}
+		self::$_blockedClientId[] = $id;
+		self::_storeBlocked();
+	}
 	static function Run($appName = null, $installMode = false) {
 		//ppd($_FILES);
 		if (!self::Initialize()) {
@@ -497,9 +559,10 @@ final class CGAF {
 		if (self::getConfig('offline')) {
 			self::offlineRedirect(1);
 		}
-		if (\Request::isMobile()) {
-			ppd('mobile');
-		}
+		self::checkSecurity();
+		Session::getInstance()->addEventListener('*', array(
+						'CGAF',
+						'onSessionEvent'));
 		AppManager::initialize();
 		self::exitIfNotModified();
 		//TODO moved to application
@@ -507,9 +570,6 @@ final class CGAF {
 			return self::handleAssetNotFound();
 		}
 		$retval = null;
-		Session::getInstance()->addEventListener('*', array(
-						'CGAF',
-						'onSessionEvent'));
 		if (is_object($appName) && $appName instanceof IApplication) {
 			AppManager::setActiveApp($appName);
 			$instance = $appName;
@@ -809,11 +869,6 @@ final class CGAF {
 			return self::Using($f);
 		}
 		if ($throw) {
-			/*if (CGAF_DEBUG) {
-			    pp($namespace);
-			    pp($f);
-			    ppd(self::getClassPath());
-			}*/
 			throw new System\Exceptions\SystemException($namespace);
 		}
 		return false;
@@ -947,9 +1002,9 @@ final class CGAF {
 			self::$_autoLoadCallBack[] = $func;
 		}
 	}
-	public static function AddNamespaceClass($prefix, $ns) {
-		self::$_nsClass[$prefix] = $ns;
-	}
+	/*public static function AddNamespaceClass($prefix, $ns) {
+	    self::$_nsClass[$prefix] = $ns;
+	}*/
 	private static function _getClassInstance($className, $suffix, $args, $find = true) {
 		$cname = array();
 		if (class_exists('AppManager', false) && AppManager::isAppStarted()) {
@@ -1099,11 +1154,11 @@ final class CGAF {
 		}
 		\Logger::Warning('Unable to load class ' . $className);
 		if (CGAF_DEBUG && $throw) {
-			pp(get_declared_classes());
+			/*pp(get_declared_classes());
 			pp(get_declared_interfaces());
 			pp($namespaces);
-			pp($nspath);
-			ppd($fdebug);
+			pp($nspath);*/
+			ppd($className);
 		}
 		return false;
 	}

@@ -888,25 +888,28 @@ EOT;
 		}
 		return $returnoutput ? $out : $r;
 	}
-	public static function DBDataToParam($o) {
+	public static function DBDataToParam($o, $params = null) {
 		if (!$o) {
 			return $o;
 		}
 		if (!is_string($o)) {
 			return $o;
 		}
-		if (Strings::BeginWith('#', $o)) {
+		if (substr($o, 0, 1) === '#') {
 			$o = explode("\n", substr($o, 1));
 			$r = array();
 			foreach ($o as $v) {
 				if (!$v)
 					continue;
 				$v = explode('=', $v);
+				if ($params) {
+					$v[1] = \Strings::Replace($v[1], $params, null, false, null, '#', '#');
+				}
 				$r[$v[0]] = $v[1];
 			}
 			return $r;
 		}
-		return unserialize($o);
+		return @unserialize($o);
 	}
 	public static function parseIni($f) {
 		// if cannot open file, return false

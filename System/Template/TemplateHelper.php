@@ -28,7 +28,7 @@ final class TemplateHelper {
 	public static function getInstanceForExt($ext, $args) {
 		switch (strtolower($ext)) {
 			case 'html':
-				return self::getInstance($args, 'SmartyTemplate');
+				return self::getInstance($args, 'SimpleTemplate');
 			case 'php':
 				return self::getInstance($args, 'BaseTemplate');
 		}

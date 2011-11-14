@@ -20,5 +20,4 @@ if ($appOwner->isAuthentificated()) {
 	$replacer['FullName'] = '';
 }
 echo HTMLUtils::renderLinks($items, $attr, $replacer);
-return;
 ?>

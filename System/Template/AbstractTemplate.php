@@ -176,6 +176,9 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 			$this->_lastRenderFile[] = $fname;
 			$this->isRendered = false;
 			Response::StartBuffer();
+			/**
+			 *
+			 */
 			include $fname;
 			$this->_buffer = Response::EndBuffer();
 			foreach ($this->_vars as $var => $val) {

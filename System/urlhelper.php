@@ -247,8 +247,10 @@ class URLHelper {
 		$retval = self::implode($url);
 		if ($replacer) {
 			$retval =urldecode($retval);
-			foreach ($replacer as $k => $v) {
-				$retval = str_replace('#' . $k . '#', $v, $retval);
+			if ($replacer) {
+				foreach ($replacer as $k => $v) {
+					$retval = str_replace('#' . $k . '#', $v, $retval);
+				}
 			}
 		}
 		return $retval;

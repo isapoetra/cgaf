@@ -53,7 +53,7 @@ abstract class StaticContentController extends Controller {
 			$retval = HTMLUtils::renderLinks($action, array(
 					'class' => 'actions ' . $a . '-actions'));
 		}
-		if (is_file($f)) {
+		if (is_file($f) && is_readable($f)) {
 			$params['content'] = TemplateHelper::renderString(file_get_contents($f), $params, $this, \Utils::getFileExt($f, false));
 		} else {
 			$params['content'] = 'content file not found ' . ($this->getAppOwner()->isDebugMode() ? $f : '');

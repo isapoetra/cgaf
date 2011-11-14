@@ -1,6 +1,9 @@
 Options -Indexes
+
 AddType application/opensearchdescription+xml osd
 AddType text/cache-manifest manifest
+
+
 # Configure ETags
 <FilesMatch "\.(jpg|jpeg|gif|png|mp3|flv|mov|avi|3gp|html|htm|swf|css|js)$">
 	FileETag MTime Size

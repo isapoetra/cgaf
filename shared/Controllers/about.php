@@ -31,7 +31,7 @@ class AboutController extends StaticContentController {
 		return $retval;
 	}
 	function app() {
-		$instance = \AppManager::getInstance(\Request::get('id'));
+		$instance = \AppManager::getInstance(\Request::get('appid'));
 		$fidx = \Utils::getFileName(ACLHelper::secureFile(\Request::get('f', 'index'), false), false);
 		$f = $instance->getInternalStorage('about/app/');
 		if (!is_dir($f)) {

@@ -13,11 +13,15 @@ $title = isset($title) ? $title : $appOwner->getConfig("site.title", CGAF::getCo
 $hcontent = $appOwner->renderContent('header');
 $umenu = $this->render("shared/usermenu", true, false);
 $crumb = $this->render('shared/crumb', true, false);
-$manifest = $appOwner->getAppManifest();
+$manifest = '';
+if ($appOwner->getConfig('allowoffline')) {
+	$manifest = $appOwner->getAppManifest();
+	$manifest = 'manifest="' . $manifest . '"';
+}
 //
 echo <<< EOT
 <!DOCTYPE html>
-<html manifest="$manifest">
+<html $manifest>
 <head profile="http://a9.com/-/spec/opensearch/1.1/">
 <title>$title</title>
 EOT;

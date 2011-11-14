@@ -28,6 +28,11 @@ echo '</script>';
 if (!\Request::isMobile()) {
 	echo '<div id="wrapper-footer" class="ui-helper-reset ui-helper-clearfix footer" style="clear: both;">';
 	echo $this->render('shared/footer-common', true);
+	if (\Cgaf::getConfig('sfmode', true)) {
+		echo '<div class="sf-logo">';
+		echo '<img src="' . BASE_URL . 'assets/images/sflogo.png" alt="Sourceforge hosting"/>';
+		echo '</div>';
+	}
 	echo '<span class="cgaf-powered"><a href="' . BASE_URL . 'about/cgaf">Powered by CGAF ' . CGAF_VERSION . (CGAF_DEBUG ? '&nbsp;<span class="error">DEBUG MODE</span>' : '') . '</a></span>';
 	echo '<span class="r-address"> Your IP' . $_SERVER['REMOTE_ADDR'] . '</span>';
 	echo '</div>';

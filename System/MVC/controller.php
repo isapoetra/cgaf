@@ -34,6 +34,9 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 			throw new SystemException('unable to initialize controller %s', $this->getControllerName());
 		}
 	}
+	protected function isFromHome() {
+		return $this->getAppOwner()->isFromHome();
+	}
 	protected function getController($controller, $throw = true) {
 		if ($controller === $this->getControllerName()) {
 			return $this;
@@ -372,12 +375,13 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 	public function isAllow($access = "view") {
 		switch (strtolower($access)) {
 		case ACLHelper::ACCESS_VIEW:
+		case 'view':
 		case 'applist':
-		case "index":
-		case "menu":
+		case 'index':
+		case 'menu':
 		case 'search':
 		case 'detail':
-			$access = "view";
+			$access = 'view';
 			break;
 		case 'store':
 			$access = ACLHelper::ACCESS_WRITE | ACLHelper::ACCESS_UPDATE;
@@ -388,7 +392,11 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		default:
 			break;
 		}
-		return $this->getAppOwner()->isAllow($this->getControllerName(), "controller", $access);
+		$retval = $this->getAppOwner()->isAllow($this->getControllerName(), "controller", $access);
+		if ($access !== 'view') {
+			$retval = $retval && (Session::get('fromhome') || $this->getAppOwner()->isAuthentificated());
+		}
+		return $retval;
 	}
 	function applist() {
 		$this->getTemplate()->clear('js');

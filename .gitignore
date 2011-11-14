@@ -8,6 +8,8 @@ ogp
 tmp
 tmpl
 .project
+.sc
+.stats
 .svn
 thumbs.db
 .cache

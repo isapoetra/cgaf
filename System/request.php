@@ -51,7 +51,7 @@ abstract class Request {
 			self::$_isMobile = $value;
 		} else {
 			if (self::$_isMobile === null) {
-				self::$_isMobile = self::getClientInfo()->isMobile();
+				self::$_isMobile = \Utils::toBool(self::getClientInfo()->isMobile());
 			}
 		}
 		return self::$_isMobile;
@@ -117,9 +117,11 @@ abstract class Request {
 	 * @return System\Web\ClientInfo
 	 */
 	public static function &getClientInfo() {
+		$ci =null;
 		$ci = Session::get('__clientInfo');
 		if (!$ci) {
 			$ci = new ClientInfo(Utils::makeDir(CGAF::getInternalStorage('browsecap', false), 0700, '*'));
+
 			Session::set('__clientInfo', $ci);
 		}
 		return $ci;

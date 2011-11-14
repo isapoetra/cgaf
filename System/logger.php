@@ -216,9 +216,6 @@ final class Logger {
 		}
 		if (CGAF::isDebugMode()) {
 			self::trigger('onLog', $s, $level);
-			/*self::$_logdata[] = array(
-			        "level" => $level,
-			        "message" => $s);*/
 		}
 		$msg = time() . '#' . \System::getRemoteAddress() . '#' . $s . '#' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
 		$replevel = error_reporting();

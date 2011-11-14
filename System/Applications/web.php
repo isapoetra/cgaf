@@ -35,6 +35,7 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 		$this->_clientScripts = array();
 		$this->_clientDirectScripts = array();
 	}
+
 	/**
 	 *
 	 * Enter description here ...
@@ -45,6 +46,11 @@ class WebApplication extends AbstractApplication implements \IWebApplication {
 			return;
 		}
 		$this->_clientScripts[] = $script;
+	}
+
+
+	function isFromHome() {
+		return true;
 	}
 	function getAppManifest($force = false) {
 		$f = CGAF_PATH . 'manifest/' . $this->getAppId() . '.manifest';
@@ -422,7 +428,8 @@ EOT;
 						'href' => BASE_URL . 'search/opensearch/?r=def'), 'link');
 		$this->addMetaHeader('author', 'Iwan Sapoetra');
 		$this->addMetaHeader('copyright', date('M Y'));
-		$this->addMetaHeader('description', $info->app_descr ? $info->app_descr : CGAF::getConfig('cgaf.description', 'CGAF'));
+		$descr = $this->getConfig('app.description', $info->app_descr ? $info->app_descr : CGAF::getConfig('cgaf.description', 'CGAF'));
+		$this->addMetaHeader('description', $descr);
 		$this->addMetaHeader('keywords', array(
 						'content' => $this->getConfig('app.keywords', CGAF::getConfig('cgaf.keywords', 'CGAF'))));
 		$this->addMetaHeader('Version', $info->app_version);

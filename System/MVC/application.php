@@ -280,7 +280,6 @@ if (System::isWebContext()) {
 		return $content;
 		}*/
 		protected function initRequest() {
-			parent::initRequest();
 			$_crumbs = array();
 			$route = $this->getRoute();
 			if ($route['_c'] !== 'home') {
@@ -298,7 +297,12 @@ if (System::isWebContext()) {
 						'title' => ucwords(__($route['_c'] . '.' . $route['_c'], $route['_a'])),
 						'url' => URLHelper::add(APP_URL, $route['_c'] . '/' . $route['_a']));
 			}
+			//Session::set('app.isfromhome', false);
+			if ($route['_c'] === 'home') {
+				Session::set('app.isfromhome', true);
+			}
 			CGAFJS::initialize($this);
+			parent::initRequest();
 			$this->addCrumbs($_crumbs);
 			$controller = null;
 			try {
@@ -318,6 +322,9 @@ if (System::isWebContext()) {
 				$this->getAppOwner()->addClientAsset($this->getRoute('_a') . '.css');
 			}
 			$this->Assign("token", $this->getToken());
+		}
+		function isFromHome() {
+			return Session::get('app.isfromhome');
 		}
 		function getSharedPath() {
 			return dirname(__FILE__) . DS . "shared" . DS;
@@ -679,8 +686,11 @@ if (System::isWebContext()) {
 						//convert to String
 						$content = Utils::toString($content);
 					}
-				} elseif ($controller && !($content = $controller->handleAccessDenied($action))) {
-					$content = $controller->getLastError() ? $controller->getLastError() : "access to action $action is denied on controller " . Request::get('__c');
+				} elseif ($controller) {
+					$content = $controller->handleAccessDenied($action);
+					if (!$content) {
+						$content = $controller->getLastError() ? $controller->getLastError() : "access to action $action is denied on controller " . Request::get('__c');
+					}
 				}
 			}
 			$retval = '';
@@ -731,15 +741,23 @@ if (System::isWebContext()) {
 			}
 			return $retval;
 		}
+		private function parseAction($row, $ctl, &$params) {
+			$action = $row->actions;
+			$raction = $ctl->getActionAlias($action);
+			if ($ctl && $ctl->isAllow($action)) {
+				return \URLHelper::add(APP_URL, $ctl->getControllerName() . '/' . $action, $params);
+			}
+		}
 		function renderContents($rows, $location, $params = null, $tabmode = false) {
 			if (!count($rows)) {
 				return null;
 			}
 			$content = null;
+			$menus = array();
 			$controller = $this->getController()->getControllerName();
 			foreach ($rows as $midx => $row) {
 				$class = null;
-				$dbparams = Utils::DBDataToParam($row->params);
+				$dbparams = Utils::DBDataToParam($row->params, $params);
 				$rparams = \Utils::arrayMerge($dbparams, $params);
 				$ctl = null;
 				$hcontent = null;
@@ -795,9 +813,10 @@ if (System::isWebContext()) {
 					} catch (Exception $e) {
 						$ctl = null;
 					}
-					if ($ctl && $ctl->isAllow($row->actions)) {
+					$url = $this->parseAction($row, $ctl, $params);
+					if ($url) {
 						//cek security by internal controller
-						$menus[] = HTMLUtils::renderLink(\URLHelper::add(APP_URL, $row->controller . '/' . $row->actions), __($row->content_title));
+						$menus[] = HTMLUtils::renderLink($url, __($row->content_title));
 					}
 					break;
 				case 4:
@@ -862,6 +881,8 @@ if (System::isWebContext()) {
 						$content .= '</div>';
 					}
 					$retOri[] = $row;
+				} elseif ($menus) {
+					$content = implode('', $menus);
 				}
 				unset($ctl);
 			}

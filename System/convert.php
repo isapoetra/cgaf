@@ -10,7 +10,7 @@ abstract class Convert {
 		case 'number':
 			break;
 		case 'string':
-			switch (strtolower($o)) {
+			switch (strtolower(trim($o))) {
 			case 'no':
 			case '0':
 			case 'false':
@@ -89,7 +89,7 @@ abstract class Convert {
 		return $o;
 	}
 	public static function toNumber($o) {
-		settype($o,'float');
+		settype($o, 'float');
 		return $o;
 	}
 }

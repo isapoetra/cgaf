@@ -26,7 +26,7 @@ abstract class HTMLUtils {
 		if (is_array($attr) && !count($attr)) {
 			return '';
 		}
-		$r = '';
+		$r = ' ';
 		foreach ($attr as $k => $v) {
 			switch (strtolower($k)) {
 			default:
