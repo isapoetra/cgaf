@@ -601,7 +601,7 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 		return CGAF::assetToLive($asset);
 	}
 	function Log($cat, $msg, $success) {
-		$filename = $this->_appPath . "/tmp/logs/";
+		$filename = $this->getInternalStorage('.cache/logs/', true);
 		if (!is_dir($filename)) {
 			Utils::makeDir($filename);
 		}
@@ -640,7 +640,7 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 			return $cfg;
 		} elseif ($this->_userConfig === null) {
 			$istore = $this->getInternalStoragePath() . DS . 'userconfig' . DS . $cid . '.config';
-			Utils::makeDir(dirname($istore),0770);
+			Utils::makeDir(dirname($istore), 0770);
 			$cfg = array();
 			if (is_file($istore)) {
 				$this->_userConfig = $this->unserialize(file_get_contents($istore));

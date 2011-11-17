@@ -109,7 +109,7 @@ class Collection extends \Object implements \IteratorAggregate, \ArrayAccess, \C
 		}
 		foreach ($this->_d as $k => $v) {
 			if (is_object($v)) {
-				if ($v->equals($item)) {
+				if (method_exists($v,'equals') && $v->equals($item)) {
 					return true;
 				}
 			}

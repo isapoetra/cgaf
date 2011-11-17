@@ -290,8 +290,8 @@ abstract class Utils {
 		    }*/
 		return $o;
 	}
-	public static function toObject($o, &$ref) {
-		return \Convert::toObject($o, $ref);
+	public static function toObject($o, &$ref, $bindAll = true) {
+		return \Convert::toObject($o, $ref, $bindAll);
 	}
 	public static function copyFile($source, $dest, $options = array(
 			"overwrite" => false,

@@ -19,6 +19,9 @@ class HomeController extends Controller {
 		}
 		return parent::isAllow($access);
 	}
+	function getControllerName() {
+		return 'home';
+	}
 	function getAction($o, $id = null, $route = null) {
 		return null;
 	}

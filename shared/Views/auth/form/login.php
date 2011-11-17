@@ -21,7 +21,7 @@ echo HTMLUtils::beginForm(\URLHelper::add(APP_URL, 'auth?__t=' . time(), ($json 
 //echo '<input type="hidden" name="redirect" value="' . $redirect . '">';
 echo HTMLUtils::renderTextBox(__('user.user_name'), 'username', null, 'class="required"', true) . '<br/>';
 echo HTMLUtils::renderPassword(__('user.user_password'), 'password', null, 'class="required"', true);
-echo HTMLUtils::renderCheckbox(__('auth.remember'), 'remember', false);
+echo HTMLUtils::renderCheckbox(__('auth.remember'), 'remember', true);
 echo '<div class="formAction">';
 echo HTMLUtils::renderButton('submit', __('auth.login.title', 'Sign In'), 'Login to System', array(), true, 'login-small.png');
 echo '</div>';

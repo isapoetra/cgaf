@@ -27,15 +27,13 @@ class UserController extends Controller {
 		case 'selectopenid':
 		case 'fbRegister':
 		case "index":
+		case "profile":
 		case 'contacts':
 			return true;
 			break;
 		case "register":
 			return $isAuth === false;
 			break;
-		case 'dashboard':
-		case "profile":
-			return true;
 		case "updateprofile":
 		case 'dashboard':
 		case "action":

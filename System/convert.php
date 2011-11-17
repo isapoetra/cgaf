@@ -28,7 +28,7 @@ abstract class Convert {
 	public static function toBool($o) {
 		return self::toBoolean($o);
 	}
-	public static function toObject($o, &$ref) {
+	public static function toObject($o, &$ref, $bindAll = true) {
 		if ($ref == null) {
 			$ref = new stdClass();
 		}
@@ -36,7 +36,7 @@ abstract class Convert {
 			return $ref;
 		} else {
 			if (is_array($o) || is_object($o)) {
-				$ref = Utils::bindToObject($ref, $o, true);
+				$ref = Utils::bindToObject($ref, $o, $bindAll);
 			}
 		}
 		return $ref;

@@ -777,6 +777,7 @@ if (System::isWebContext()) {
 					try {
 						$ctl = $this->getController($row->controller);
 						if ($ctl) {
+							$row->actions = $ctl->getActionAlias($row->actions);
 							if ($this->getConfig('content.rendercontentaction')) {
 								$row->actions = $row->actions ? $row->actions : "index";
 								if ($ctl->isAllow(ACLHelper::ACCESS_MANAGE)) {
@@ -785,7 +786,6 @@ if (System::isWebContext()) {
 													'__a' => 'aed')), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png', __($row->controller . '.add.descr', 'Add Data'));
 								}
 							}
-							$row->actions = $ctl->getActionAlias($row->actions);
 							if (method_exists($ctl, $row->actions) && $ctl->isAllow($row->actions)) {
 								$class = $row->controller . '-' . $row->actions;
 								$cparams = $rparams;

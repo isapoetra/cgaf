@@ -1,7 +1,6 @@
 <?php
 namespace System\API;
 use System\Exceptions\SystemException;
-
 use System\Configurations\Configuration;
 use \AppManager;
 use \CGAF;
@@ -36,7 +35,7 @@ abstract class PublicApi {
 			return $instance->$method($config);
 		}
 		if (CGAF_DEBUG) {
-			throw new SystemException('undefined method '.$method.' on class '.get_class($instance));
+			throw new SystemException('undefined method ' . $method . ' on class ' . get_class($instance));
 		}
 	}
 	public static function getInstance($api) {

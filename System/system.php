@@ -243,7 +243,7 @@ abstract class System {
 				unlink($temp_file);
 				$path = $temp_dir;
 			} else {
-				return "/tmp";
+				return CGAF::getInternalStorage('.cache/tmp/', true);
 			}
 		}
 		return $path;

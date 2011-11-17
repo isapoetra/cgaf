@@ -4,6 +4,7 @@ interface IAuthentificatorAdapter {
 	function setIdentify($value);
 	function setCredential($value);
 	function SetLogonMethod($value);
+	function setRemember($value);
 	/**
 	 *
 	 * Enter description here ...

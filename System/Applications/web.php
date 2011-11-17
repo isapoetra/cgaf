@@ -453,6 +453,7 @@ EOT;
 			$d = $this->getConfig('app.debugmode', \CGAF::isDebugMode());
 			if ($d === true) {
 				if (!CGAF::isDebugMode()) {
+					ppd(CGAF::isDebugMode());
 					$r = $this->getConfig('app.allowedebughost');
 					if ($r) {
 						$r = explode(',', $r);
@@ -463,6 +464,7 @@ EOT;
 				}
 			}
 		}
+
 		return $d;
 	}
 	public function Run() {

@@ -1,5 +1,6 @@
 <?php
 namespace System\Controllers;
+use System\API\PublicApi;
 use System\Exceptions\SystemException;
 use System\JSON\JSONResult;
 use System\ACL\ACLHelper;
@@ -16,6 +17,8 @@ class AboutController extends StaticContentController {
 		case 'app':
 		case 'cgaf':
 		case 'auth':
+		case 'donnatebutton':
+		case 'donnate':
 			return true;
 			break;
 		}
@@ -23,7 +26,6 @@ class AboutController extends StaticContentController {
 	}
 	protected function getParamForAction($a, $mode = null) {
 		$retval = parent::getParamForAction($a, $mode);
-
 		switch (strtolower($a)) {
 		case 'auth':
 			$retval['joinurl'] = \URLHelper::add(APP_URL, 'user/register');
@@ -80,6 +82,19 @@ class AboutController extends StaticContentController {
 	function renderAbout($what, $sub) {
 		$abpath = $this->getInternalPath($what);
 		return parent::renderFile($what, $abpath . $sub);
+	}
+	function donnatebutton() {
+		$donnateProfider = $this->getConfig('donnate.providers', array(
+						'paypal',
+						'google'));
+		$retval = '';
+		foreach ($donnateProfider as $d) {
+			$api = PublicApi::getInstance($d);
+			if (method_exists($api, 'donnate')) {
+				$retval .= $api->donnate();
+			}
+		}
+		return $retval;
 	}
 	function Index($a = null) {
 		$route = MVCHelper::getRoute();

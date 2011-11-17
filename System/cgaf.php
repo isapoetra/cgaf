@@ -345,6 +345,8 @@ final class CGAF {
 				} else {
 					self::$_isDebugMode = false;
 				}
+			} else {
+				self::$_isDebugMode = CGAF_DEBUG;
 			}
 		}
 		/**
@@ -406,7 +408,7 @@ final class CGAF {
 		return true;
 	}
 	static function getTempPath() {
-		return self::getConfig("temp.path", CGAF_PATH . 'tmp' . DS);
+		return self::getConfig("temp.path", CGAF_PATH . 'protected/.cache/tmp' . DS);
 	}
 	private static function offlineRedirect($code) {
 		//TODO move to response

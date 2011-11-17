@@ -5,6 +5,9 @@ if ($this->getAppOwner()->parent)
 	return;
 $share = null;
 $footer = $appOwner->renderContent('footer');
+if ($appOwner->getAppId() !== CGAF::APP_ID && $appOwner->getConfig('cgaf.footer.global.show', true)) {
+	$footer .= \AppManager::getInstance(\CGAF::APP_ID)->renderContent('footer-global');
+}
 echo '</div><!-- EOF page/wrapper -->';
 if (Request::isMobile()) {
 	echo '<div data-role="footer" class="footer-docs" data-theme="c">';

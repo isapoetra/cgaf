@@ -513,7 +513,7 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		$retval = "<div class=\"menu-container\" id='menu-container-$position'>";
 		if (!count($filtered) && $position != "top") {
 			if (CGAF_DEBUG) {
-				$retval .= "<div class=\"warning\">Menu not found for position $position @app : " . $this->getAppOwner()->getAppId() . "</div>";
+				$retval .= "<div class=\"warning\">Menu not found for position $position @".$this->getRouteName()." app : " . $this->getAppOwner()->getAppId() . "</div>";
 			}
 		}
 		$retval .= HTMLUtils::renderMenu($filtered, null, $ulclass . " menu-$position", $replacer, 'menu-' . $position);

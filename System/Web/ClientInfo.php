@@ -113,6 +113,9 @@ class ClientInfo {
 		}
 		return $retval;
 	}
+	function setPlatform($value) {
+		$this->_data->platform = $value;
+	}
 	private function getBrowserCaps($name, $version, $agent) {
 		if (!is_array($name)) {
 			$name = array(
