@@ -24,7 +24,7 @@ abstract class SessionBase extends \Object implements \ISession {
 			session_unset();
 			session_destroy();
 		}
-		$this->_configs = CGAF::getConfigs('Session');
+		$this->_configs = CGAF::getConfigs('Session',array());
 		//set default sessios save handler
 		ini_set('session.save_handler', 'files');
 		//disable transparent sid support

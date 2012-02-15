@@ -1,4 +1,5 @@
 <?php
+use System\Web\Utils\HTMLUtils;
 $id = 'share-' . time();
 $url = isset($url) ? $url : NULL;
 $title = isset($title) ? $title : null;
@@ -7,10 +8,10 @@ if (!$services) {
 	return;
 }
 ?>
-<div id="<? echo $id ?>" class="share">
-	<input id="txt-<? echo $id ?>" type="text" name="url"
-		value="<?php echo $url; ?>" /> <input id="title-<?echo $id ?>"
-		type="text" name="title" value="<?php echo $title ?>" />
+<div id="<?php echo $id; ?>" class="share">
+	<input id="txt-<?php echo $id; ?>" type="text" name="url"
+		value="<?php echo $url; ?>" /> <input id="title-<?php echo $id; ?>"
+		type="text" name="title" value="<?php echo $title; ?>" />
 	<div class="services"><?php
 						  foreach ($services as $s) {
 							  echo HTMLUtils::renderButtonLink($s['url'], $s['title'], $s['attr'], $s['icon'], $s['descr']);

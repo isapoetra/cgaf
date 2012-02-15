@@ -17,7 +17,6 @@ abstract class DB {
 		$retval = new $class($connArgs);
 		$retval->Open();
 		return $retval;
-
 		//throw new DBException("Database Class [$class] Not Found");
 	}
 	public static function loadObjectLists($sql,$conn =null) {

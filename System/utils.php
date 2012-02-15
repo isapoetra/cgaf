@@ -193,6 +193,12 @@ abstract class Utils {
 		return Strings::BeginWith("./", $f) || Strings::BeginWith($f, "http://") || Strings::BeginWith($f, "https://") || (is_file($f) && substr($f, 0, strlen(SITE_PATH)) === SITE_PATH);
 	}
 	public static function makeDir($pathname, $mode = 0750, $securepatern = null) {
+		if (is_array($pathname)) {
+			foreach ($pathname as  $key => $value) {
+				self::makeDir($value,$mode,$securepatern);
+			}
+			return;
+		}
 		$pathname = self::ToDirectory($pathname);
 		if (!$pathname) {
 			return false;

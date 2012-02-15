@@ -1,16 +1,20 @@
 <?php
 namespace System\Models;
+use System\MVC\Model;
+
 use \CGAF,\System\ACL\ACLHelper;
+use \System\DB\Table;
 /**
  *
  * @author Iwan Sapoetra
  * @DBEngine InnoDB
  */
-class Application extends \System\DB\Table implements \IApplicationInfo {
+class Application extends Model implements \IApplicationInfo {
 	/**
 	 * @FieldType varchar
 	 * @FieldLength 50
 	 * @var String
+	 * @FieldIsPrimarykey true
 	 * @FieldArgs NOT NULL PRIMARY KEY UNIQUE
 	 */
 	public $app_id;
@@ -18,6 +22,7 @@ class Application extends \System\DB\Table implements \IApplicationInfo {
 	/**
 	 * @FieldType varchar
 	 * @FieldLength 150
+	 * @FieldAllowNull false
 	 * @var String
 	 */
 	public $app_name;

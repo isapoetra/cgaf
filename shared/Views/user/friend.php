@@ -1,4 +1,4 @@
-<table width="100%" cellspacing="0" cellpadding="0">
+<table>
 	<tr>
 		<td colspan="2">
 		<?php echo $this->render('person/search', true, false); ?></td>

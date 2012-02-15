@@ -1,5 +1,7 @@
 <?php
-class SWFObject extends WebControl implements IRenderable {
+namespace System\Web;
+use System\Web\UI\Controls\WebControl;
+class SWFObject extends WebControl implements \IRenderable {
 	private $_params=array();
 	function __construct($source) {
 		parent::__construct('object',true);
@@ -23,4 +25,6 @@ class SWFObject extends WebControl implements IRenderable {
 	function setParam($name,$value) {
 		$this->_params[$name] = $value;
 	}
+
+
 }

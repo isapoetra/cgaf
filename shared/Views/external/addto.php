@@ -2,11 +2,7 @@
 $url = Request::getOrigin();
 $site_title = isset($site_title) ? $site_title : "CGAF";
 ?>
-<table
-	cellspacing="0"
-	cellpadding="0"
-	border="0"
-	style="width: 300px; height: 50px; text-align: left; margin-left: auto; margin-right: auto;">
+<table style="width: 300px; height: 50px; text-align: left; margin-left: auto; margin-right: auto;">
 	<tbody>
 		<tr>
 			<td style="text-align: center;"><a

@@ -1,4 +1,7 @@
 <?php
+use System\Exceptions\SystemException;
+use System\Exceptions\InvalidOperationException;
+use System\Collections\Collection;
 interface IEventDispatcher {
 	function addEventListener($type, $callback);
 	function RemoveEventListener($type, $callback);

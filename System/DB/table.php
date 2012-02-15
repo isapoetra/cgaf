@@ -1,6 +1,7 @@
 <?php
 namespace System\DB;
 use \AppManager, \CGAF, \ReflectionClass, \Utils;
+use System\ACL\ACLHelper;
 class Table extends DBQuery {
 	protected $_tableName;
 	private $_pk;
@@ -24,15 +25,17 @@ class Table extends DBQuery {
 	 */
 	function __construct($connection, $tableName, $pk = "id", $includeAppId = false) {
 		$this->_tableName = $tableName;
-		if ($connection instanceof IApplication) {
+		if ($connection instanceof \IApplication) {
 			$this->_appOwner = $connection;
 		} elseif (AppManager::isAppStarted()) {
 			$this->_appOwner = AppManager::getInstance();
 		}
-		parent::__construct($connection);
-		$this->_filterACL = CGAF::getConfig('installed');
 		$pk = $pk ? $pk : array();
 		$this->_pk = is_array($pk) ? $pk : explode(",", $pk);
+		
+		parent::__construct($connection);
+		$this->_filterACL = CGAF::getConfig('installed');
+		
 		$this->_includeAppId = $includeAppId;
 		$this->Initialize();
 	}
@@ -124,44 +127,6 @@ class Table extends DBQuery {
 			return;
 		}
 		return $this->getConnection()->createDBObjectFromClass($this, 'table', $this->_tableName);
-		$this->clear();
-		$this->setMode("create.table");
-		$r = new ReflectionClass($this);
-		$props = $r->getProperties();
-		$hasField = false;
-		$this->_fields = array();
-		foreach ($props as $prop) {
-			$name = $prop->getName();
-			if (Strings::BeginWith($name, "_")) {
-				continue;
-			}
-			$hasField = true;
-			$doc = $prop->getDocComment();
-			$type = "varchar";
-			$fLength = 20;
-			$defaultValue = '';
-			if ($doc) {
-				$doc = PHPDocHelper::parse($doc);
-				pp($doc);
-				$type = $doc->getVar("FieldType", $doc->getVar("var", $type));
-				$def = $this->getConnection()->getFieldConfig($type);
-				$fLength = $doc->getVar("FieldLength", $def['DefaultFieldLength']);
-				$defaultValue = $doc->getVar("FieldDefaultValue");
-			}
-			$this->select($this->getConnection()->parseFieldCreate($name, $type, $fLength, $defaultValue));
-		}
-		if ($hasField) {
-			$this->addTable($this->_tableName, $this->getAlias(), $this->_isExpr);
-			//ppd ( $this->getSQL () );
-			$r = $this->exec();
-			if ($r) {
-				$f = $this->getConnection()->getInstallFile($this->_tableName);
-				if ($f) {
-					$this->clear()->loadSQLFile($f)->Exec();
-				}
-			}
-		}
-		$this->clear();
 	}
 	/**
 	 *
@@ -186,7 +151,11 @@ class Table extends DBQuery {
 				if (!$field)
 					continue;
 				if ($this->_infos) {
-					$f = isset($this->_infos[$field]) ? $this->_infos[$field] : null;
+					if (is_object($this->_infos)) {
+						$f =  $this->_infos->getFieldInfo($field);
+					}else{
+						$f = isset($this->_infos[$field]) ? $this->_infos[$field] : null;
+					}
 					if ($f) {
 						$this->$field = $f->default_value;
 					}
@@ -264,7 +233,7 @@ class Table extends DBQuery {
 					} else {
 						$this->_appOwner = '__cgaf';
 					}
-				} catch (Exception $e) {
+				} catch (\Exception $e) {
 					throw $e;
 				}
 			}
@@ -482,6 +451,9 @@ class Table extends DBQuery {
 	protected function afterStore($mode, $old = null) {
 	}
 	protected function onDelete($id) {
+	}
+	public function drop() {
+		return parent::drop($this->getTableName());
 	}
 	public function delete() {
 		$q = new DBQuery($this->getConnection());

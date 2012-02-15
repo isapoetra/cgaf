@@ -56,6 +56,16 @@ function ppd($o, $clear = false) {
 	echo "</pre>";
 	CGAF::doExit();
 }
+function dj($arg) {
+	ob_clean();
+	$d = array();
+	$d['args'] =  func_get_args();
+	$t =debug_backtrace();
+	//array_shift($t);
+	$d['trace'] =  $t;
+	echo json_encode($d);
+	exit();
+}
 function ppbt() {
 	echo '<pre>';
 	debug_print_backtrace();

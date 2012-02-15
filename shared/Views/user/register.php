@@ -21,7 +21,7 @@ echo HTMLUtils::beginForm($actionurl, false, false, null, array(
 		'class' => 'ui-widget-content ui-corner-all'))
 ?>
 <div id="error-message" class="error ui-clear-fix">&nbsp;</div>
-<table cellpadding="0" cellspacing="0" border="0" width="100%">
+<table>
 	<tr>
 		<th colspan="2" class="ui-widget-header"><?php echo __('user.logon.info') ?>
 		</th>

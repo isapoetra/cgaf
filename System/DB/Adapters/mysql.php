@@ -6,6 +6,8 @@ use System\DB\DBConnection;
 use System\DB\DBFieldInfo;
 use \DateUtils;
 use System\DB\DBReflectionClass;
+use System\DB\IndexInfo;
+use System\Exceptions\SystemException;
 class MySQL extends DBConnection {
 	private $_affectedRow = 0;
 	private $_engine = "innoDb";
@@ -22,7 +24,7 @@ class MySQL extends DBConnection {
 			$this->_lastError = mysql_error();
 		}
 		if ($this->_resource === false) {
-			throw new Exception($this->_lastError);
+			throw new \Exception($this->_lastError);
 		}
 		if ($this->getArg("database") !== null) {
 			$this->SelectDB($this->getArg("database"));
@@ -67,7 +69,6 @@ class MySQL extends DBConnection {
 		}
 		//ppd($fields);
 		$this->_thows = true;
-		pp($retval);
 		return $this->Exec($retval);
 	}
 	function phptofieldtype($type) {
@@ -194,7 +195,7 @@ class MySQL extends DBConnection {
 		$q = $this->Query('show indexes in ' . $table);
 		$retval = array();
 		while ($r = $q->next()) {
-			$o = new TDBIndexInfo();
+			$o = new IndexInfo();
 			$o->Table = $r->Table;
 			$o->Title = $r->Key_name;
 			$o->Column = $r->Column_name;

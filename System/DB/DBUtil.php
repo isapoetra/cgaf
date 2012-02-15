@@ -185,7 +185,7 @@ abstract class DBUtil {
 			//
 			//return ;
 			//$retval = Date('Y-m-d H:i:s',$retval);
-			$tretval = new CDate($retval);
+			$tretval = new \CDate($retval);
 			if ($Out) {
 				$retval = $tretval->format("%d/%m/%Y %H:%M:%S");
 			} else {
@@ -204,7 +204,7 @@ abstract class DBUtil {
 			} elseif (is_int($retval)) {
 				$retval = Date('Y-m-d', $retval);
 			}
-			$tretval = new CDate($retval);
+			$tretval = new \CDate($retval);
 			if ($Out) {
 				$retval = $tretval->format("%d/%m/%Y");
 			} else {
@@ -212,7 +212,7 @@ abstract class DBUtil {
 			}
 			break;
 		default:
-			CGAF::$Message->Add(__CLASS__ . '@' . __LINE__ . " Unknown Format " . $fieldtype);
+			\CGAF::$Message->Add(__CLASS__ . '@' . __LINE__ . " Unknown Format " . $fieldtype);
 			break;
 		}
 		//CGAF :: $Message->Add("Format : ".$fieldtype." $retval");
@@ -244,7 +244,7 @@ abstract class DBUtil {
 		return $str;
 	}
 	public static function dumptabledata($conn, $tableName, $commitRow = 0) {
-		$q = new TDBQuery($conn);
+		$q = new DBQuery($conn);
 		$q->addTable($tableName);
 		$cur = $q->exec(ADODB_FETCH_ASSOC);
 		$c = 0;

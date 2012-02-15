@@ -5,6 +5,7 @@ use \Utils;
 use System\Web\Utils\HTMLUtils;
 use \CGAF;
 use \Exception;
+use \AppManager;
 /**
  * Copyright 2011 Facebook, Inc.
  *
@@ -1061,11 +1062,10 @@ EOT;
 		AppManager::getInstance()->addClientDirectScript($script);
 	}
 	public static function getfbInstance() {
-		static $_fb;
-		if (!$_fb) {
-			$_fb = new fbInstance(\AppManager::getInstance());
+		if (!self::$_fb) {
+			self::$_fb = new fbInstance(\AppManager::getInstance());
 		}
-		return $_fb;
+		return self::$_fb;
 	}
 	function init($service) {
 	}

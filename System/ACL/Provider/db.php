@@ -90,7 +90,8 @@ class Db extends BaseACL {
 			$ur->where("ur.active=1");
 			$roles = $ur->loadObjects();
 			if ($roles) {
-				foreach ($roles as $role) {
+				
+				foreach ($roles as $role) {					
 					$retval[] = $role;
 					if ((int) $role->role_parent !== -1) {
 						$rtemp = $this->_getRole($role->role_parent);

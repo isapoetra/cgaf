@@ -11,6 +11,7 @@ final class Response {
 		if (self::$_instance == null) {
 			//using('System.'.CGAF_CONTEXT.".Response");
 			$class = "System\\" . CGAF_CONTEXT . "\\Response";
+			//CGAF::using(str_replace('\\', '.', $class));
 			$instance = new $class();
 			if (!($instance instanceof \IResponse)) {
 			    throw new SystemException('class '.$class.'not implement IResponse interface');

@@ -6,8 +6,7 @@ $redirect = isset($redirect) ? $redirect : URLHelper::addParam(BASE_URL, array(
 		'__t' => time()));
 $msg = isset($msg) ? $msg : Request::get('msg');
 ?>
-<table width="100%" cellspacing="0" cellpadding="0" border="0"
-	class="login-form">
+<table class="table login-form">
 	<tr>
 		<td width="75%">&nbsp;<?php echo $this->getController()->renderContent('left') ?></td>
 		<td class="login-container">
@@ -28,7 +27,7 @@ echo '</div>';
 echo HTMLUtils::renderLink(BASE_URL . 'user/forget/', __('user.forgetpassword'));
 echo HTMLUtils::renderLink(BASE_URL . 'user/register/', __('user.register'));
 echo HTMLUtils::endForm(false, true);
-if ($providers) {
+if (isset($providers) && $providers) {
 	$script = <<<EOT
 	$('.auth-external').click(function(e) {
 		e.preventDefault();

@@ -5,9 +5,20 @@ class DBResultList implements \Iterator {
 	private $_rows = array();
 	private $_insert_id = null;
 	private $_affectedRow = null;
+	private $_errors=array();
 	function Assign($o) {
 		$this->_crow = -1;
-		$this->_rows[] = $o;
+		if ($o instanceof \Exception) {
+			$this->_errors[] =  $o;
+		}else{
+			$this->_rows[] = $o;
+		}
+	}
+	function getError() {
+		return $this->_errors;
+	}
+	function hasError () {
+		return count($this->_errors)>0;
 	}
 	function getLastInsertId() {
 		return $this->_insert_id;

@@ -2,6 +2,7 @@
 use \System\Session\Session, \System\ACL\ACLHelper;
 use System\Exceptions\SystemException;
 use System\DB\DBQuery;
+use \CGAF;
 abstract class AppManager extends \StaticObject {
 	private static $_instances = array();
 	private static $_initialized = false;

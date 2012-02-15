@@ -7,6 +7,8 @@ class  DBReflectionClass extends \ReflectionClass {
 	function __construct($argument) {
 		parent::__construct($argument);
 		$props = $this->getProperties ();
+		
+		
 		foreach ( $props as $prop ) {
 			$name = $prop->getName ();
 			if (Strings::BeginWith ( $name, "_" )) {
@@ -19,6 +21,18 @@ class  DBReflectionClass extends \ReflectionClass {
 
 			//$this->select ( $this->getConnection ()->parseFieldCreate ( $name, $type, $fLength, $defaultValue ) );
 		}
+		if ($argument instanceof Table) {
+			$rpk = $argument->getPK();
+			if ($rpk) {
+				foreach($rpk as $p) {
+					if (isset($this->_fields[$p])) {
+						$this->_fields[$p]->fieldisprimarykey = true;
+						
+					}
+				}
+			}
+		}
+		
 	}
 	function getPrimaryKey() {
 		if ($this->_pk) {
@@ -27,7 +41,7 @@ class  DBReflectionClass extends \ReflectionClass {
 		$this->_pk = array();
 		foreach ($this->_fields as $field) {
 			if ($field->fieldisprimarykey) {
-				$this->_pk = $field->fieldname;
+				$this->_pk[] = $field->fieldname;
 			}
 		}
 		return $this->_pk;

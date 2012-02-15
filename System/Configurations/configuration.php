@@ -163,7 +163,7 @@ class Configuration extends \Object implements IConfiguration, \IRenderable {
 		//}
 		return $retval === null ? $default : $retval;
 	}
-	public function getConfigs($prefix = null) {
+	public function getConfigs($prefix = null,$def=null) {
 		if ($prefix == null) {
 			return $this->_configs;
 		}
@@ -173,7 +173,11 @@ class Configuration extends \Object implements IConfiguration, \IRenderable {
 		}
 
 		$nprefix = $prefix ? $prefix . "." : $prefix;
-		return Utils::findConfig($prefix, $this->_configs);
+		$retval =  Utils::findConfig($prefix, $this->_configs);
+		if ($retval === null) {
+			return $def;
+		}
+		return $retval;
 	}
 	private function findConfigFile($f) {
 		if (is_file($f)) {

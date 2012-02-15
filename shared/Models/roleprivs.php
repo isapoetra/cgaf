@@ -1,5 +1,6 @@
 <?php
-class RolePrivsModel extends MVCModel {
+use System\MVC\Model;
+class RolePrivsModel extends Model {
 	public $role_id;
 	public $app_id;
 	public $object_id;

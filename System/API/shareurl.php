@@ -2,11 +2,11 @@
 namespace System\API;
 class shareurl extends PublicApi {
 	private $_defaultImage;
+	private $_init;
 	private static function initAsset() {
-		static $init;
-		if ($init)
+		if ($this->_init)
 			return;
-		$init = true;
+		$this->_init = true;
 		\AppManager::getInstance()->addClientAsset('share.css');
 	}
 	function init($service) {
@@ -32,9 +32,6 @@ class shareurl extends PublicApi {
 			$t = array();
 			foreach ($config as $kk => $vv) {
 				$val = $this->parse($vv);
-				if ($kk === 'shareurl') {
-					$val = $val;
-				}
 				$t[$kk] = $val;
 			}
 			$url = BASE_URL . '/share/?service=shareurl&id=' . $id . '&url=' . urlencode($this->getConfig('url')) . '&description=' . urlencode($this->getConfig('description')) . '&title=' . urlencode($this->getConfig('title')) . '&tags='

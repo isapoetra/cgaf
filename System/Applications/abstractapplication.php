@@ -55,8 +55,11 @@ abstract class AbstractApplication extends \Control implements \IApplication {
 		global $_configs;
 		$this->_clientAssets = new ClientAssetCollections($this);
 		if ($appName != null) {
-			CGAF::addClassPath($appName, $appPath);
-			CGAF::addClassPath($appName . 'Class', $appPath . DS . "classes");
+			$appPath = \Utils::ToDirectory($appPath.DS);
+			if ($appPath !== CGAF_PATH) {
+				CGAF::addClassPath($appName, $appPath);
+				CGAF::addClassPath($appName . 'Class', $appPath . DS . "classes");
+			}
 		}
 		if (substr($appPath, strlen($appPath) - 1) !== DS) {
 			$appPath = $appPath . DS;
