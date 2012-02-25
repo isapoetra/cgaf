@@ -1,12 +1,17 @@
 <?php
 use \System\Web\Utils\HTMLUtils;
+use System\Web\UI\Controls\Menu;
+$menu = new Menu();
+
 $id = \System\ACL\ACLHelper::getUserId();
 $appOwner = $this->getAppOwner();
 $items = $appOwner->getMenuItems('user-menu', 0, null, true, true);
+$menu->addChild($items);
+$menu->setId('user_menu');
+$menu->setClass('nav nav-pills user-menu');
+//$menu->addStyle('float','right');
 $replacer = array();
-$attr = array(
-		'id' => 'user_menu',
-		'class' => 'user-menu');
+
 if ($appOwner->isAuthentificated()) {
 	$auth = $appOwner->getAuthInfo();
 	$pi = $appOwner->getModel('person')->getPersonByUser($auth->getUserId());
@@ -19,5 +24,10 @@ if ($appOwner->isAuthentificated()) {
 } else {
 	$replacer['FullName'] = '';
 }
-echo HTMLUtils::renderLinks($items, $attr, $replacer);
+$menu->setReplacer($replacer);
+//echo HTMLUtils::renderLinks($items, $attr, $replacer);
+echo '<div class="nav-collapse" id="user-menu-container">';
+echo $menu->render(true);
+echo '</div>';
+return;
 ?>

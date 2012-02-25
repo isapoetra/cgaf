@@ -1,5 +1,4 @@
 #temporary ignore
-/assets/
 /install/
 manifest/
 ogp
@@ -8,14 +7,16 @@ ogp
 tmp
 tmpl
 .project
-.sc
-.stats
-test.php
 .svn
 thumbs.db
 .cache
 /info.php
-google30697a216b9c4f5c.html
+protected/.cache
+assets/js
+assets/applications
+Libs/
+daemons/
+
 #temporary
 log
 sessions
@@ -25,3 +26,4 @@ vendor
 config.php
 upload.php
 .upload
+userconfig/

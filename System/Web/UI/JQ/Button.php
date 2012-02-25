@@ -1,5 +1,7 @@
 <?php
 namespace System\Web\UI\JQ;
+use System\JSON\JSON;
+
 class Button extends Control {
 	protected $_methods = array ();
 
@@ -46,7 +48,7 @@ class Button extends Control {
 			}
 			$script .= ';';
 
-			$this->getTemplate()->addClientScript($script);
+			$this->getAppOwner()->addClientScript($script);
 		}
 		return $retval;
 	}

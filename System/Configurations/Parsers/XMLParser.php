@@ -23,7 +23,7 @@ class XMLParser implements IConfigurationParser {
 		$xml = Utils::toXML($cfgs,$settings);
 		try {
 			Utils::removeFile($fileName);
-		}catch (Exception $e) {
+		}catch (\Exception $e) {
 		}
 		Utils::makeDir(dirname($fileName));
 		file_put_contents($fileName, $xml);

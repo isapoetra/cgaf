@@ -1,6 +1,5 @@
 <?php
 namespace System\Controllers;
-use System\MVC\Controller;
 use System\ACL\ACLHelper;
 /**
  *
@@ -9,18 +8,15 @@ use System\ACL\ACLHelper;
  *
  */
 class HomeController extends Controller {
-	public function isAllow($access = "view") {
-		switch ($access) {
+	function isAllow($view = 'view') {
+		switch ($view) {
 		case ACLHelper::ACCESS_VIEW;
 		case 'applist':
 		case 'view':
 		case 'index':
 			return true;
 		}
-		return parent::isAllow($access);
-	}
-	function getControllerName() {
-		return 'home';
+		return parent::isAllow ( $view );
 	}
 	function getAction($o, $id = null, $route = null) {
 		return null;

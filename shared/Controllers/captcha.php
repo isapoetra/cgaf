@@ -35,7 +35,7 @@ class CaptchaController extends Controller implements ICaptchaContainer {
 		$captchaId = $captchaId ? $captchaId : "__captcha";
 		$captcha = $this->getCaptcha ( $captchaId );
 
-		$retval = ($captcha && ($captcha === Request::get ( $captchaId )));
+		$retval = ($captcha && ($captcha === \Request::get ( $captchaId )));
 		if (! $captcha) {
 			$captcha = $this->generateCode ();
 			$this->setCaptcha ( $captchaId, $captcha );

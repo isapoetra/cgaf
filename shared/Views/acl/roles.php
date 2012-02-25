@@ -8,7 +8,7 @@ $grd->setAutoGenenerateColumn(true);
 $grd->setBaseLang('roles');
 if (!Request::isJSONRequest()) {
 ?>
-<table width="100%">
+<table>
 	<tr>
 		<td>
 		<?php echo $grd->render(true); ?>

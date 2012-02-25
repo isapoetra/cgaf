@@ -34,7 +34,7 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 				"password" => "",
 				"remember" => "");
 		if ($args == null) {
-			$args = \Request::gets();
+			$args = \Request::gets('p');
 		}
 		$retval = new \stdClass();
 		$err = array();

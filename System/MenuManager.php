@@ -1,5 +1,6 @@
 <?php
-
+use System\Exceptions\AccessDeniedException;
+use System\ACL\ACLHelper;
 class MenuManager {
 	protected static function getChildModuleMenu($m, $parent = 0) {
 		$sql = "select * from #__modules_menu where mod_id='$m' and menu_parent='$parent' and menu_visible=1 order by menu_order";

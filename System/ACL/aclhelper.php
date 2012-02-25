@@ -40,7 +40,8 @@ class ACLHelper {
 			"update" => ACLHelper::ACL_UPDATE,
 			"manage" => ACLHelper::ACL_MANAGE,
 			"ext1" => ACLHelper::ACL_EXT_1,
-			"ext2" => ACLHelper::ACL_EXT_2);
+			"ext2" => ACLHelper::ACL_EXT_2
+	);
 	//for grant / revoke
 	public static $ACCESS_ACCESSENUM = array(
 			"access" => ACLHelper::ACCESS_VIEW,
@@ -52,7 +53,8 @@ class ACLHelper {
 			"manage" => ACLHelper::ACCESS_MANAGE,
 			"ext1" => ACLHelper::ACCESS_EXT_1,
 			"ext2" => ACLHelper::ACCESS_EXT_2,
-			"MAX" => ACLHelper::ACCESS_MAX);
+			"MAX" => ACLHelper::ACCESS_MAX
+	);
 	public static function getUserId() {
 		$data = AppManager::getInstance()->getAuthInfo();
 
@@ -82,7 +84,6 @@ class ACLHelper {
 		if ((int) $uid !== (int) ACLHelper::getUserId()) {
 			return AppManager::getInstance()->getACL()->isAdmin() ? $uid : ACLHelper::getUserId();
 		}
-
 		return $rnull ? null : (int) $uid;
 	}
 	public static function getAuthInfo() {
@@ -90,7 +91,7 @@ class ACLHelper {
 	}
 	public static function checkAppModule($modid, $op = 'view', $user = null, $appOwner = null) {
 		if ($appOwner == null) {
-			$modid = ModuleManager::getModuleInfo($modid, false);
+			$modid = \ModuleManager::getModuleInfo($modid, false);
 			if (!$modid) {
 				return false;
 			}
@@ -124,7 +125,8 @@ class ACLHelper {
 				"..",
 				".",
 				"\0",
-				"\n");
+				"\n"
+		);
 		if (!$allowPath) {
 			$file = \Utils::ToDirectory($file, false);
 			$bad_chars[] = DS;

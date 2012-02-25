@@ -1,9 +1,11 @@
 <?php
 namespace System\Web;
+use System\Session\Session;
 use System\AbstractResponse;
 use System\Web\JS\JSUtils;
 use \Utils;
 use System\JSON\JSONResult;
+
 class Response extends AbstractResponse {
 	private $_flush;
 	function __construct() {
@@ -14,6 +16,7 @@ class Response extends AbstractResponse {
 	}
 	private function hasSent($header) {
 		$list = headers_list();
+
 		foreach ($list as $l) {
 			if (substr(strtolower($l), 0, strlen($header)) === strtolower($header)) {
 				return true;
@@ -35,7 +38,7 @@ class Response extends AbstractResponse {
 			return;
 		}
 		if ($attr !== null) {
-			$attr = new \TAttribute($attr);
+			$attr = new \Attribute($attr);
 			$attr->addIgnore("__tag");
 			$tag = $attr->get("__tag");
 			$s = isset($tag) ? "<$tag " . $attr->Render(true) . ">$s</$tag>\n" : $s;

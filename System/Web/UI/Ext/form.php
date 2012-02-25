@@ -107,7 +107,7 @@ class Form extends Control {
 
   protected function _getActionUrl ($param = null) {
     if (is_array($param)) {
-      $param = Utils::arrayImplode($param, "=", "&");
+      $param = \Utils::arrayImplode($param, "=", "&");
     }
     $url = $this->_action . ($this->_dosql ? "&_dosql=$this->_dosql" : "");
     $url .= "&$param";
@@ -161,7 +161,7 @@ class Form extends Control {
     if (count($this->_config["items"]) == 0) {
       $this->addItem(array(
         "xtype" => "hidden" ,
-        "id" => CGAF::genID()), false);
+        "id" => \Utils::generateId()), false);
     }
     //ppd($this);
     return $retval;

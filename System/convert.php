@@ -1,5 +1,6 @@
 <?php
 defined("CGAF") or die("Restricted Access");
+
 abstract class Convert {
 	public static function toBoolean($o) {
 		$t = strtolower(gettype($o));
@@ -91,6 +92,19 @@ abstract class Convert {
 	public static function toNumber($o) {
 		settype($o, 'float');
 		return $o;
+	}
+	public static function toArray($o) {
+		$retval =$o;
+		if (is_object($o) || is_array($o)) {
+			$retval = array();
+			foreach ($o as $k => $v) {
+				if (is_object($v) || is_array($v)) {
+					$v = self::toArray($v);
+				}
+				$retval[$k] = $v;
+			}
+		}
+		return $retval;
 	}
 }
 ?>

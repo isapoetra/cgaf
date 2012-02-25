@@ -30,7 +30,8 @@ abstract class DateUtils {
 			$date = new CDate();
 			try {
 				$date->setDayMonthYear($dt[0], $dt[1], $dt[2]);
-			} catch (Exception $e) {
+			}
+			catch (Exception $e) {
 				$date->setDayMonthYear($dt[1], $dt[0], $dt[2]);
 			}
 		} else {
@@ -50,7 +51,7 @@ abstract class DateUtils {
 			$date->addMonths($long);
 			break;
 		default:
-			throw new SystemException('Unknown Mode ' . $mode);
+			throw new \Exception('Unknown Mode ' . $mode);
 			break;
 		}
 		return $date->format($format);
@@ -74,7 +75,8 @@ abstract class DateUtils {
 				"week",
 				"month",
 				"years",
-				"decade");
+				"decade"
+		);
 		$lengths = array(
 				60,
 				60,
@@ -82,7 +84,8 @@ abstract class DateUtils {
 				7,
 				4.35,
 				12,
-				10);
+				10
+		);
 		for ($j = 0; $difference >= $lengths[$j]; $j++) {
 			if ((int) $lengths[$j] > 0) {
 				$difference /= $lengths[$j];
@@ -99,8 +102,32 @@ abstract class DateUtils {
 		$text = "$difference " . __($periods[$j], ucfirst($periods[$j])) . ' ' . __('ago', "ago");
 		return $text;
 	}
-	public static function formatDate($date, $long = true) {
+	public static function formatDate($date = null, $long = true) {
 		return CGAF::getLocale()->formatDate($date, $long);
+	}
+	function formatDateISO($date) {
+		if (!$date) {
+			$date = new \DateTime();
+		}
+		if (!($date instanceof \DateTime)) {
+
+		}
+		return $date->format(\DateTime::ISO8601);
+	}
+	function formatDateJS($date, $format = null) {
+		$format = $format ? $format : __('client.dateFormat');
+		if (!$date) {
+			$date = new \DateTime();
+		}
+		if (!($date instanceof \DateTime)) {
+
+		}
+		$format = str_replace('mm', 'm', $format);
+		$format = str_replace('yy', 'Y', $format);
+		$format = str_replace('dd', 'd', $format);
+		/*pp($date);
+		ppd($format);*/
+		return $date->format($format);
 	}
 	public static function DateToUnixTime($time) {
 		$unix_time = null;
@@ -120,7 +147,8 @@ abstract class DateUtils {
 		try {
 			$d = new CDate($o);
 			return true;
-		} catch (Exception $e) {
+		}
+		catch (Exception $e) {
 		}
 		return false;
 	}

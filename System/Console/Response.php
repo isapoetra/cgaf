@@ -41,15 +41,15 @@ class Response extends AbstractResponse {
 	}
 	function clearBuffer() {
 		parent::clearBuffer();
-		if (System::isWindows()) {
-			Utils::sysexec('clear');
-		} elseif (System::isLinuxCompat()) {
-			Utils::sysexec('clear');
+		if (\System::isWindows()) {
+			\Utils::sysexec('clear');
+		} elseif (\System::isLinuxCompat()) {
+			\Utils::sysexec('clear');
 		}
 	}
 	private function parseColor($fore, $back = null, $style = null) {
 		//TODO Fix
-		if (!System::isLinuxCompat()) {
+		if (!\System::isLinuxCompat()) {
 			return '';
 		}
 		if ($fore == 'reset') {

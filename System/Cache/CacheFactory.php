@@ -30,7 +30,7 @@ class CacheFactory {
 		return self::getInstance()->getId($o);
 	}
 	static function isCacheValid($fname) {
-		$id = self::getId($fname, Utils::getFileExt($fname));
+		$id = self::getId($fname, \Utils::getFileExt($fname));
 		return self::getInstance()->isCacheValid($id);
 	}
 	static function putFile($fname, $callback = null) {

@@ -1,5 +1,11 @@
 <?php
 namespace System\Template;
+use System\Web\WebUtils;
+
+use System\Exceptions\UnimplementedException;
+
+use System\Exceptions\SystemException;
+
 use System\Web\JS\JSUtils;
 use \System\Web\JS\CGAFJS;
 //TODO Cleanup
@@ -48,7 +54,7 @@ class BaseTemplate extends AbstractTemplate {
 	protected function Init() {
 		parent::Init();
 		$owner = $this->getAppOwner();
-		$header = $owner && $owner instanceof IApplication ? $owner->getConfig('header', array()) : array();
+		$header = $owner && $owner instanceof \IApplication ? $owner->getConfig('header', array()) : array();
 		foreach ($header as $k => $v) {
 			$this->parseHeaderElement($k, $v);
 		}
@@ -145,7 +151,7 @@ class BaseTemplate extends AbstractTemplate {
 		return null;
 	}
 	function renderScript($s, $force = false) {
-		if (Request::isSupport("javascript") || $force) {
+		if (\Request::isSupport("javascript") || $force) {
 			if (is_array($s)) {
 				ppd($s);
 				$s = implode("\n;", $s);
@@ -211,7 +217,7 @@ class BaseTemplate extends AbstractTemplate {
 			} elseif (is_array($js)) {
 				ppd($js);
 			}
-			if (Utils::isLive($js)) {
+			if (\Utils::isLive($js)) {
 				$retval[] = $js;
 			} else {
 				$r = null;
@@ -325,7 +331,7 @@ class BaseTemplate extends AbstractTemplate {
 	}
 	private function getLiveJS($js, $throw = true) {
 		$ori = $js;
-		$min = $this->getLive(Utils::changeFileExt($js, "min.js"), $this->_jsEngine, false);
+		$min = $this->getLive(\Utils::changeFileExt($js, "min.js"), $this->_jsEngine, false);
 		if ($min === null) {
 			//
 			if (!CGAF_DEBUG) {
@@ -345,7 +351,7 @@ class BaseTemplate extends AbstractTemplate {
 		return $js;
 	}
 	private function getJSAsset($js) {
-		$min = $this->getAppOwner()->getResource(Utils::changeFileExt($js, "min.js"), null, false);
+		$min = $this->getAppOwner()->getResource(\Utils::changeFileExt($js, "min.js"), null, false);
 		$js = $this->getAppOwner()->getResource($js, null, false);
 		if (!CGAF_DEBUG && $min) {
 			$js = $min;
@@ -366,8 +372,8 @@ class BaseTemplate extends AbstractTemplate {
 				}
 				return $retval;
 			}
-			$ext = Utils::getFileExt($r, false);
-			$r = Utils::LocalToLive($r, $ext);
+			$ext = \Utils::getFileExt($r, false);
+			$r = \Utils::LocalToLive($r, $ext);
 			switch (strtolower($ext)) {
 			case 'js':
 				return '<script language="javascript" type="text/javascript" ' . ($data['id'] ? 'id="' . $data['id'] . '" ' : '') . ' src="' . $r . '"></script>';
@@ -421,7 +427,7 @@ class BaseTemplate extends AbstractTemplate {
 	}
 	private function renderJS($script = true) {
 		$retval = "";
-		if (!Request::get('__s') && Request::isSupport("javascript") && (count($this->_jsFile) || count($this->_scripts))) {
+		if (!\Request::get('__s') && \Request::isSupport("javascript") && (count($this->_jsFile) || count($this->_scripts))) {
 			$retval = count($this->_jsFile) ? "<!-- BEGIN JSFile --->\n" : '';
 			foreach ($this->_jsFile as $key => $data) {
 				$js = $data['url'];

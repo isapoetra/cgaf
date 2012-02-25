@@ -1,5 +1,11 @@
 <?php
 namespace System\DB\Adapters;
+use System\DB\DBFieldInfo;
+
+use System\DB\DBReflectionClass;
+
+use System\DB\DBException;
+
 use System\DB\DBConnection as DBConnection;
 class DBSQLiteAdapter extends DBConnection {
 	private $_objects =array();
@@ -7,7 +13,7 @@ class DBSQLiteAdapter extends DBConnection {
 		parent::__construct ( $connArgs );
 
 		if (! extension_loaded ( "sqlite" )) {
-			System::loadExtension('sqlite');
+			\System::loadExtension('sqlite');
 		}
 	}
 	function quote($str, $prep = true) {
@@ -26,7 +32,7 @@ class DBSQLiteAdapter extends DBConnection {
 		$this->_result = @sqlite_query ( $sql, $this->_resource, SQLITE_ASSOC, $this->_lastError );
 		if ($this->_result == false) {
 
-			$this->throwError ( new Exception ( $this->_lastError .Logger::WriteDebug($sql)) );
+			$this->throwError ( new DBException( $this->_lastError .\Logger::WriteDebug($sql)) );
 		}
 
 		$this->_affectedRow = sqlite_changes ( $this->_resource );
@@ -45,7 +51,7 @@ class DBSQLiteAdapter extends DBConnection {
 			if (!$arr) {
 				return null;
 			}
-			$obj = new stdClass();
+			$obj = new \stdClass();
 			foreach ($arr as $key => $value) {
 				$obj->$key = $value;
 			}
@@ -70,13 +76,13 @@ class DBSQLiteAdapter extends DBConnection {
 	function Exec($sql) {
 		$sql = $this->prepareQuery($sql);
 
-		if (Strings::BeginWith($sql,'drop',false) || Strings::BeginWith($sql,'create',false)) {
+		if (\Strings::BeginWith($sql,'drop',false) || \Strings::BeginWith($sql,'create',false)) {
 			$this->_objects = array();
 		}
 		$this->Log ( $sql );
 		$this->_result = @sqlite_exec ( $this->_resource, $sql, $this->_lastError );
 		if ($this->_result == false) {
-			$this->throwError ( new Exception ( $this->_lastError ) );
+			$this->throwError ( new DBException ( $this->_lastError ) );
 		}
 		$this->_affectedRow = sqlite_changes ( $this->_resource );
 		return $this->toResultList ();
@@ -86,15 +92,15 @@ class DBSQLiteAdapter extends DBConnection {
 			return true;
 		}
 
-		$host = Utils::ToDirectory($this->getArg ( "host" ));
+		$host = \Utils::ToDirectory($this->getArg ( "host" ));
 
 		if (!$host) {
-			$host = CGAF::getInternalStorage('db',false);
+			$host = \CGAF::getInternalStorage('db',false);
 		}
-		$host = realpath(Utils::ToDirectory($host));
+		$host = realpath(\Utils::ToDirectory($host));
 		if (!$host) {
-			Logger::WriteDebug($host);
-			throw new Exception('Sqlite storage not found');
+			\Logger::WriteDebug($host);
+			throw new DBException('Sqlite storage not found');
 		}
 		$file = $host.DS.$this->getArg('database').'.sqlite';
 		$this->_lastError =null;
@@ -106,8 +112,8 @@ class DBSQLiteAdapter extends DBConnection {
 		}
 
 		if ($this->_resource === false) {
-			$lerror = CGAF::getLastError ();
-			throw new Exception ( $lerror );
+			$lerror = \CGAF::getLastError ();
+			throw new DBException ( $lerror );
 		}
 		$this->SelectDB ( $file);
 		$this->setConnected ( $this->_resource != false );
@@ -157,7 +163,7 @@ class DBSQLiteAdapter extends DBConnection {
 		return "$retval $type" . ($width !== null ? " ($width)" : "") . " " . $args;
 	}
 	public function createDBObjectFromClass($classInstance,$objecttype,$objectName) {
-		$r = new DBReflectionClass ( $classInstance );
+		$r = new DBReflectionClass( $classInstance );
 		$fields = $r->getFields();
 		//$this->Exec('drop ' .$objecttype . ' #__'.$this->quoteTable($objectName));
 		$sql = 'create '.$objecttype.' #__'.$this->quoteTable($objectName).' (';
@@ -251,7 +257,7 @@ class DBSQLiteAdapter extends DBConnection {
 			case 'text' :
 				break;
 			default :
-				throw new SystemException ( "unknown type $type for database mysql" );
+				throw new DBException ( "unknown type $type for database mysql" );
 		}
 		return $type;
 	}

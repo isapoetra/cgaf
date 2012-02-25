@@ -31,7 +31,7 @@ echo HTMLUtils::beginForm(BASE_URL.'user/updateProfile/id/'. $data->user_id,fals
 
 
 	<?php echo __("user.personalInfo","Personal Information")?></legend>
-	<table width="100%">
+	<table>
 		<tr>
 			<td>
 			<?php echo HTMLUtils::renderFormField(__("person.first_name","First Name"),"first_name",$personInfo->first_name,"",$edit)?>

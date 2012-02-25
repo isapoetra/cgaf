@@ -3,6 +3,7 @@ namespace System\Session;
 if (!defined("CGAF"))
 	die("Restricted Access");
 use \CGAF as CGAF;
+
 abstract class Session {
 	private static $_instance;
 	const STATE_EXPIRED = 'expired';
@@ -14,7 +15,7 @@ abstract class Session {
 	/**
 	 * get Session Instance
 	 *
-	 * @return ISession
+	 * @return \ISession
 	 */
 	public static function getInstance() {
 		if (self::$_instance == null) {
@@ -30,18 +31,24 @@ abstract class Session {
 			}
 			self::$_instance = new $handler();
 			session_set_save_handler(array(
-							&self::$_instance,
-							'open'), array(
-							&self::$_instance,
-							'close'), array(
-							&self::$_instance,
-							'read'), array(
-							&self::$_instance,
-							'write'), array(
-							&self::$_instance,
-							'destroy'), array(
-							&self::$_instance,
-							'gc'));
+					&self::$_instance,
+					'open'
+			), array(
+					&self::$_instance,
+					'close'
+			), array(
+					&self::$_instance,
+					'read'
+			), array(
+					&self::$_instance,
+					'write'
+			), array(
+					&self::$_instance,
+					'destroy'
+			), array(
+					&self::$_instance,
+					'gc'
+			));
 		}
 		return self::$_instance;
 	}

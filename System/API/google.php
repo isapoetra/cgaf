@@ -1,13 +1,16 @@
 <?php
 namespace System\API;
 //TODO move to System.Web.JS.API
+use System\JSON\JSON;
 use System\Exceptions\SystemException;
 use \AppManager;
+
 class google extends PublicApi {
 	function __construct() {
 		parent::__construct();
 		$this->_apijs = array(
-				'plusone' => \URLHelper::getCurrentProtocol() . '://apis.google.com/js/plusone.js');
+				'plusone' => \URLHelper::getCurrentProtocol() . '://apis.google.com/js/plusone.js'
+		);
 	}
 	public function plusOne($size = 'small') {
 		$size = $size ? $size : 'small';
@@ -27,7 +30,25 @@ class google extends PublicApi {
 		if (!$key) {
 			throw new SystemException("invalid google api key");
 		}
-		AppManager::getInstance()->addClientAsset('https://www.google.com/jsapi?key=' . $key);
+		AppManager::getInstance()->addClientAsset(\URLHelper::getCurrentProtocol() . '://www.google.com/jsapi?key=' . $key);
+	}
+	public function loadGoogleJS($js, $v, $configs) {
+	}
+	public function map($configs) {
+		$this->initJS();
+		$app = AppManager::getInstance();
+		$configs = $configs ? $configs : array();
+		$g = $this->getConfig('map', array(
+						'sensor' => 'false',
+						'key' => $app->getConfig('service.google.maps.key')
+				));
+
+		\Utils::arrayMerge($g, $configs);
+		$configs = json_encode($g);
+		$js = <<<EOT
+cgaf.getJSAsync('http://maps.googleapis.com/maps/api/js',$configs);
+EOT;
+		$app->addClientScript($js);
 	}
 	public function analitycs() {
 		$gag = $this->getConfig('analytics.alitycsid');

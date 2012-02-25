@@ -1,5 +1,9 @@
 <?php
 namespace System\Web;
+use System\Exceptions\SystemException;
+
+use System\DB\Table;
+
 use \AppManager;
 use \Utils;
 //using('System.Web.Utils.*');
@@ -131,8 +135,8 @@ abstract class WebUtils {
 
 		$tpl = $app->getInternalData("template/email/$template.html");
 		if ($tpl) {
-			$o = new stdClass();
-			if ($m instanceof DBTable) {
+			$o = new \stdClass();
+			if ($m instanceof Table) {
 				$arr = $m->getFields(true, true, false);
 				$o = Utils::bindToObject($o, $arr, true);
 			} elseif (is_array($m)) {
@@ -144,7 +148,7 @@ abstract class WebUtils {
 			$o->base_url = BASE_URL;
 			$msg = Utils::parseDBTemplate(file_get_contents($tpl), $o);
 
-			return MailUtils::send($to, $subject, $msg, true);
+			return \MailUtils::send($to, $subject, $msg, true);
 		} else {
 			throw new SystemException('mail.template.notfound');
 		}

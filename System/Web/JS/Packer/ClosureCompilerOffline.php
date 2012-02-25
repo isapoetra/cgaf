@@ -1,5 +1,5 @@
 <?php
-
+namespace System\Web\JS\Packer;
 class ClosureCompilerOfflinePacker implements IScriptPacker {
 	/* (non-PHPdoc)
 	 * @see IScriptPacker::setScript()

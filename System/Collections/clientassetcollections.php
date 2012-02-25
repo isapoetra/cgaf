@@ -33,9 +33,11 @@ class ClientAssetCollections extends Collection implements \IRenderable {
 	}
 	function Render($return = false, $type = null, $clear = false) {
 		$retval = '';
+
 		foreach ($this->toArray() as $v) {
 			if ($type) {
 				$item = $v->getLiveResourceByType($type);
+
 				if ($item) {
 					$retval .= AssetHelper::renderAsset($item);
 				}

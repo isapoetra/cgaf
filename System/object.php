@@ -1,4 +1,6 @@
 <?php
+use System\Exceptions\InvalidOperationException;
+use System\Exceptions\SystemException;
 interface IEventDispatcher {
 	function addEventListener($type, $callback);
 	function RemoveEventListener($type, $callback);
@@ -116,7 +118,7 @@ class Object extends \stdClass implements IObject, IEventDispatcher {
 				// getting an event (handler list)
 				$name = strtolower($name);
 				if (!isset($this->_e[$name]))
-					$this->_e[$name] = new Collection();
+					$this->_e[$name] = new System\Collections\Collection();
 				return $this->_e[$name];
 			} else {
 				if (!$this->_strict) {

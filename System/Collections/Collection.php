@@ -1,5 +1,7 @@
 <?php
 namespace System\Collections;
+use System\Exceptions\InvalidOperationException;
+
 use \Convert, \System\Exceptions\SystemException;
 
 class Collection extends \Object implements \IteratorAggregate, \ArrayAccess, \Countable {
@@ -242,7 +244,7 @@ class Collection extends \Object implements \IteratorAggregate, \ArrayAccess, \C
 	 * @throws TInvalidDataTypeException If data is neither an array nor a Traversable.
 	 */
 	function assign($var, $val = null) {
-		if (is_array($var) || ($var instanceof Traversable)) {
+		if (is_array($var) || ($var instanceof \Traversable)) {
 			if ($this->_c > 0)
 				$this->clear();
 			foreach ($var as $item) {
@@ -259,7 +261,7 @@ class Collection extends \Object implements \IteratorAggregate, \ArrayAccess, \C
 	 * @throws TInvalidDataTypeException If data is neither an array nor an iterator.
 	 */
 	public function mergeWith($data) {
-		if (is_array($data) || ($data instanceof Traversable)) {
+		if (is_array($data) || ($data instanceof \Traversable)) {
 			foreach ($data as $item)
 				$this->add($item);
 		} else if ($data !== null)

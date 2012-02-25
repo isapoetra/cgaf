@@ -4,6 +4,8 @@
  *
  */
 namespace System\Assets;
+use System\Exceptions\SystemException;
+
 use \CGAF, \Utils, \Strings, \System\Configurations\Configuration, \AppManager, \CDate;
 
 class AssetManifest extends Configuration {
@@ -243,7 +245,7 @@ class AssetProjectFile {
 					}
 				} else {
 					throw new SystemException($file . '@' . $this->_source . '[relative path :' . $srcPath . ']');
-					Logger::info($this->_source . ':File Not Found' . $file);
+					\Logger::info($this->_source . ':File Not Found' . $file);
 				}
 			}
 		}
@@ -424,7 +426,7 @@ abstract class AssetBuilder {
 		foreach ($files as $file) {
 			$live = $appOwner->getLiveData($file);
 			if ($live) {
-				$retval[] = URLHelper::addParam($live, array('v' => $v));
+				$retval[] = \URLHelper::addParam($live, array('v' => $v));
 			}
 		}
 		return $retval;

@@ -33,7 +33,7 @@ class shareurl extends PublicApi {
 			foreach ($config as $kk => $vv) {
 				$val = $this->parse($vv);
 				if ($kk === 'shareurl') {
-					$val = $val;
+					//$val = $val;
 				}
 				$t[$kk] = $val;
 			}

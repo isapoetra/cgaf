@@ -1,5 +1,7 @@
 <?php
 namespace System\Web;
+use System\Web\Utils\HTMLUtils;
+
 use \CGAF as CGAF, \Utils as Utils;
 class Request implements \IRequest {
 	protected $_secure = array();
@@ -56,7 +58,7 @@ class Request implements \IRequest {
 		}
 	}
 	public function getOrigin() {
-		return BASE_URL . "/" . (isset($_REQUEST['__url']) ? $_REQUEST['__url'] : '');
+		return \URLHelper::add(APP_URL, (isset($_REQUEST['__url']) ? $_REQUEST['__url'] : ''));
 	}
 	public function __get($varname) {
 		if (isset($this->input[$varname])) {
@@ -107,7 +109,8 @@ class Request implements \IRequest {
 			return $this->_secure[$varName];
 		}
 		$retval = $this->$varName;
-		$this->_secure[$varName] = is_string($retval) ? htmlentities(Utils::filterXSS($retval)) : $retval;
+		$this->_secure[$varName] = is_string($retval) ? HTMLUtils::removeTag($retval) : $retval;
+
 		return $this->_secure[$varName] !== null ? $this->_secure[$varName] : $default;
 	}
 	function getSecure($varName, $default = null) {

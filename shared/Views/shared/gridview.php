@@ -3,6 +3,7 @@ use System\Web\UI\JQ\Grid;
 use System\Web\UI\JQ\Accordion;
 use System\MVC\MVCHelper;
 $route = MVCHelper::getRoute();
+$appOwner = isset($appOwner) ? $appOwner : $this->getAppOwner();
 $routename = isset($routename) ? $routename : $this->getController()->getControllerName();
 $action = isset($action) ? $action : $route['_a'];
 $baseLang = isset($baseLang) ? $baseLang : $routename;

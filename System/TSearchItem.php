@@ -32,7 +32,7 @@ class TSearchItem extends Object{
 				return $retval;
 				break;
 			default:
-				throw new SystemException('unhandled output format '.$f);
+				throw new System\Exceptions\SystemException('unhandled output format '.$f);
 		}
 	}
 	function getObject() {

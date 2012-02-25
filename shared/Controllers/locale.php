@@ -17,7 +17,7 @@ class LocaleController extends Controller {
 		return parent::isAllow($access);
 	}
 	function select() {
-		$id = \Request::get('id');
+		$id = \Request::get('id',null,true);
 		if ($id) {
 			$this->getAppOwner()->getLocale()->setLocale($id);
 			\Response::Redirect();

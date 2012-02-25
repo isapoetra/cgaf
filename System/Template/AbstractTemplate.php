@@ -101,7 +101,7 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 			}
 		}
 		if (is_array($varName)) {
-			throw new Exception("x");
+			throw new \Exception("x");
 		}
 		$overwrite = $overwrite || !array_key_exists($varName, $this->_vars) || (array_key_exists($varName, $this->_vars) && $this->_vars[$varName] === null);
 		if ($overwrite) {
@@ -120,7 +120,7 @@ abstract class AbstractTemplate extends \Object implements \ITemplate, \System\C
 		$retval = array(
 				$this->getTemplatePath() . DS . $templateName . $this->getTemplateFileExt(),
 				dirname($last) . DS . $templateName . $this->getTemplateFileExt());
-		if ($this->getAppOwner() instanceof IApplication) {
+		if ($this->getAppOwner() instanceof \IApplication) {
 			$retval[] = $this->getAppOwner()->getAppPath() . DS . 'Views' . DS . $templateName . $this->getTemplateFileExt();
 		}
 		$retval = array_merge($retval,

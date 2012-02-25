@@ -1,5 +1,9 @@
 <?php
 namespace System\Web\UI;
+use System\Web\UI\Items\MenuItem;
+
+use System\Web\JS\CGAFJS;
+
 use System\Collections\Collection;
 use \CGAF;
 use \AppManager;
@@ -35,14 +39,14 @@ abstract class JExt {
 		return CGAFJS::loadScript(self::PluginURL().$plugin);
 	}
 	public static function loadClass($className) {
-		if (Strings::BeginWith ( $className, 'JExt' )) {
+		if (\Strings::BeginWith ( $className, 'JExt' )) {
 			$c = strtolower ( substr ( $className, 4 ) );
 			return CGAF::Using ( 'System.Web.UI.Ext.' . $c );
 		}
 	}
 	public static function addToolbar($obj, $id = null, $handler = null, $description = null, $icon = null, $type = 1) {
 		if (is_string ( $obj )) {
-			$obj = new MenuItem ( $obj, $id, 1, $handler, null, $description, $icon, $type );
+			$obj = new MenuItem( $obj, $id, 1, $handler, null, $description, $icon, $type );
 		}
 		self::$_tb [$obj->id] = $obj;
 	}

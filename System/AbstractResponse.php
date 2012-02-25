@@ -1,6 +1,7 @@
 <?php
 namespace System;
 use \Utils;
+
 abstract class AbstractResponse extends \Object implements \IResponse, \IRenderable {
 	private $_buffered = true;
 	private $_buffer = null;
@@ -16,6 +17,9 @@ abstract class AbstractResponse extends \Object implements \IResponse, \IRendera
 		}
 		$this->Init();
 	}
+	function __destruct() {
+		$this->EndBuffer(false);
+	}
 	function Init() {
 	}
 	function clearBuffer() {
@@ -23,6 +27,15 @@ abstract class AbstractResponse extends \Object implements \IResponse, \IRendera
 	}
 	protected function setBuffer($buff) {
 		$this->_buffer = $buff;
+	}
+	function setBuffered($value) {
+		if ($this->_buffered !== $value) {
+			$this->_buffered = $value;
+			$this->clearBuffer();
+			$this->flush();
+			$this->StartBuffer();
+		}
+		return $this;
 	}
 	function getBuffer() {
 		return $this->_buffer;
@@ -47,7 +60,8 @@ abstract class AbstractResponse extends \Object implements \IResponse, \IRendera
 		if ($this->_buffered) {
 			ob_start(array(
 					$this,
-					"OnBuffer"), null, true);
+					"OnBuffer"
+			), null, true);
 		}
 	}
 	function EndBuffer($flush = false) {

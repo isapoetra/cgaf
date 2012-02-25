@@ -11,6 +11,18 @@ class Base  implements ICacheEngine {
 		$this->_cacheTimeOut = (CGAF_DEBUG ? 5 : 60);
 		$this->setCachePath(CGAF::getTempPath() . DS . "cache" . DS);
 	}
+	function clear($sessionOnly=true) {
+		$path = $this->getCachePath();
+		if ($sessionOnly) {
+			$id= session_id();
+			if (!$id) {
+				return;
+			}
+			$path .= $id;
+
+		}
+		\Utils::removeFile($path,true,true);
+	}
 	function setCacheTimeOut($value) {
 		$this->_cacheTimeOut = $value;
 	}

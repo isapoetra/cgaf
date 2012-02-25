@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace System\Configurations\Parsers;
 use \Utils;
 class INIParser extends AbstractConfigParser implements IConfigurationParser  {
@@ -21,11 +21,11 @@ class INIParser extends AbstractConfigParser implements IConfigurationParser  {
 		return $retval;
 	}
 	function parseString($s) {
-	
-	
+
+
 	}
 	public function save($fileName, $configs,$settings=null) {
-		
+		return true;
 	}
 }
 ?>

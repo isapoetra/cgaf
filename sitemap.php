@@ -1,7 +1,6 @@
 <?php
-define('CGAF_DEBUG', true);
 try {
-	include 'cgafinit.php';
+	require 'cgafinit.php';
 	function writexmltag(&$s, $k, $v) {
 		foreach ($v as $kk => $vv) {
 			$s[] = "<$k:$kk>";

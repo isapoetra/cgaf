@@ -35,7 +35,7 @@ class AboutController extends StaticContentController {
 	function app() {
 		$instance = \AppManager::getInstance(\Request::get('appid'));
 		$fidx = \Utils::getFileName(ACLHelper::secureFile(\Request::get('f', 'index'), false), false);
-		$f = $instance->getInternalStorage('about/app/');
+		$f = $instance->getInternalStorage('contents/about/app/');
 		if (!is_dir($f)) {
 			$f = \CGAF::getInternalStorage('contents/about/app/' . $instance->getAppId() . '/', false, false) . $fidx;
 		} else {

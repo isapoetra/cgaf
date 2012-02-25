@@ -1,13 +1,30 @@
 <?php
 namespace System\Installer;
+use System\Models\Application;
+
+use System\Models\RolePrivsModel;
+
+use System\DB\DBQuery;
+
+use System\Models\UserPrivs;
+
+use System\Models\UserRoles;
+
+use System\Models\RolesModel;
+
+use System\Models\SessionModel;
+
+use System\Models\User;
+
 use System\Configurations\Configuration;
 use System\Configurations\IConfiguration;
-use \CGAF;
+use CGAF;
+use Response, Utils;
 abstract class AbstractInstaller extends \Object implements \IRenderable {
 	private $_configs;
 	private $_verbose;
 	private $_logFile;
-	private $_initialized =false;
+	private $_initialized = false;
 	private $_basePath;
 	function __construct($basePath, IConfiguration $configs = null) {
 		$this->_basePath = $basePath;
@@ -17,13 +34,13 @@ abstract class AbstractInstaller extends \Object implements \IRenderable {
 	function getBasePath() {
 		return $this->_basePath;
 	}
-
+	
 	protected function Initialize() {
 		if ($this->_initialized) {
 			return true;
 		}
 		$this->_initialized = true;
-
+		
 		$this->_verbose = $this->getConfig ( 'verbose', CGAF_DEBUG );
 		$this->_logFile = $this->getConfig ( 'logfile', CGAF_PATH . 'install.log' );
 		if (is_file ( $this->_logFile )) {
@@ -32,16 +49,16 @@ abstract class AbstractInstaller extends \Object implements \IRenderable {
 		return $this->_initialized;
 	}
 	function geConfiguration() {
-		if (!$this->_configs) {
+		if (! $this->_configs) {
 			$this->_configs = new Configuration ( null, false );
 			$this->_configs->loadFile ( $this->_basePath . 'install.config.php' );
 		}
 		return $this->_configs;
 	}
 	function getConfig($name, $def = null) {
-		return $this->geConfiguration()->getConfig ( $name, $def );
+		return $this->geConfiguration ()->getConfig ( $name, $def );
 	}
-
+	
 	private function parse($v) {
 		if ($v === null) {
 			return null;
@@ -59,7 +76,7 @@ abstract class AbstractInstaller extends \Object implements \IRenderable {
 		if ($r && ! $this->_verbose) {
 			return;
 		}
-
+		
 		$status = $resp->writeOkNo ( $r, true );
 		$resp->writeLn ( $msg . ($current !== null || $req !== null ? " ( $current = $req) " : '') . ($r !== null ? '....... ' . $status : '') );
 		file_put_contents ( $this->_logFile, implode ( ',', func_get_args () ) . "\n", FILE_APPEND );
@@ -114,7 +131,7 @@ abstract class AbstractInstaller extends \Object implements \IRenderable {
 	private function checkPath() {
 		$this->log ( 'Checking File Permission' );
 		$paths = $this->GetConfig ( 'path' );
-		//var_dump($paths);
+		// var_dump($paths);
 		$tocheck = $this->getConfig ( 'config.path' );
 		foreach ( $paths as $k => $v ) {
 			$p = $v;
@@ -136,16 +153,16 @@ abstract class AbstractInstaller extends \Object implements \IRenderable {
 					}
 				}
 				switch ($k) {
-					case 'owner_usergroup':
-						if (!System::isLinuxCompat()) {
+					case 'owner_usergroup' :
+						if (! \System::isLinuxCompat ()) {
 							$this->log ( "\t!!!!INCOMPATIBLE OS!!! check " . $k, true, $v, $stat->$k, $info );
 							break;
 						}
-					default:
+					default :
 						$this->log ( "\tcheck " . $k, $stat->$k == $v, $v, $stat->$k, $info );
 						break;
 				}
-
+			
 			}
 		}
 	}
@@ -156,44 +173,45 @@ abstract class AbstractInstaller extends \Object implements \IRenderable {
 		$conn->Drop ( 'users' );
 		$conn->Drop ( 'role_privs' );
 		$conn->Drop ( 'user_privs' );
-		$u = new UserModel ( $conn );
-
+		$u = new User ( $conn );
+		
 		new SessionModel ( $conn );
 		new RolesModel ( $conn );
-		new UserRolesModel ( $conn );
+		new UserRoles ( $conn );
 		new RolePrivsModel ( $conn );
 		new UserPrivs ( $conn );
 	}
 	private function installCore() {
-
+		
 		$q = new DBQuery ( CGAF::getDBConnection () );
 		if ($q->isObjectExist ( "applications" )) {
-			//$q->drop("applications")->exec();
-		//$q->drop("users")->exec();
+			// $q->drop("applications")->exec();
+			// $q->drop("users")->exec();
 		}
 		if (! $q->isObjectExist ( "applications" )) {
 			using ( 'System.AppModel.MVC.MVCModel' );
 			using ( "System.Models" );
-			new ApplicationModel ( self::getDBConnection () );
-			new UserModel ( self::getDBConnection () );
+			new Application ( self::getDBConnection () );
+			new User ( self::getDBConnection () );
 		}
 		$ignore = CGAF::getConfig ( 'install.ignoreapp', array (
-				'chart',
-				'cgii',
-				'cms-admin',
-				'mfh-1.5',
-				'wordtube',
-				'Test' ) );
+				'chart', 
+				'cgii', 
+				'cms-admin', 
+				'mfh-1.5', 
+				'wordtube', 
+				'Test' 
+		) );
 		$conn = CGAF::getConnector ();
 		$dirs = Utils::getDirList ( CGAF_APP_PATH . DS );
 		$acl = CGAF::getACL ();
 		foreach ( $dirs as $dir ) {
 			if ($dir != "." && $dir != ".." && $dir != ".svn" && ! in_array ( $dir, $ignore )) {
-				$id = AppManager::install ( $dir );
+				$id = \AppManager::install ( $dir );
 				$acl->grantToRole ( $id, 'app', 1, - 1 );
 			}
 		}
-
+	
 	}
 	function Render($return = false) {
 		$this->installACL ();

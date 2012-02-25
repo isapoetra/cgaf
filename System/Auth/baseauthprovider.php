@@ -10,6 +10,7 @@ abstract class BaseAuthProvider implements IAuthProvider {
 		$this->_appOwner = $appOwner;
 
 	}
+	abstract function getRemoteUser();
 	abstract  function Initialize();
 	protected function getAppOwner() {
 		return $this->_appOwner;

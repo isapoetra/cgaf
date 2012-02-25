@@ -11,7 +11,7 @@ class TreeModel extends Model {
 		if ($parent === null) {
 			return array();
 		}
-		$this->clear();
+		$this->reset('tree-parent');
 		$this->Where($this->_parentField . '=' . $this->quote($parent));
 		$rows = $this->loadObjects();
 		$pk = implode('', $this->getPK());
@@ -21,6 +21,7 @@ class TreeModel extends Model {
 		}
 		return $rows;
 	}
+
 	function LoadAll($page = -1, $rowPerPage = -1) {
 		return $this->loadParents(0, $page, $rowPerPage);
 	}

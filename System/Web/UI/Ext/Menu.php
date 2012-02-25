@@ -1,7 +1,13 @@
 <?php
-if (! defined ( "CGAF" ))
-	die ( "Restricted Access" );
-class JExtMenuItem extends JExtComponent {
+namespace System\Web\UI\Ext;
+use System\DB\DBUtil;
+
+use System\ACL\ACLHelper;
+
+use System\Web\UI\JExt;
+
+use CGAF;
+class JExtMenuItem extends CustomComponent {
 	protected $_actionType;
 	protected $_menuType;
 	protected $_showCaption = true;
@@ -12,15 +18,15 @@ class JExtMenuItem extends JExtComponent {
 	function __construct($id = null, $title = null, $menuType = 1, $handler = null, $link = null, $description = null, $icon = null, $action_type = 1) {
 		parent::__construct ( null );
 		$this->handler = $handler;
-		$this->id = ($id ? $id : CGAF::genID ());
+		$this->id = ($id ? $id : \Utils::generateId ());
 		$this->text = $title == "separator" ? $title : __ ( $title );
 		$this->tooltip = $description;
 		$this->link = $link;
 		$this->iconCls = $icon;
 		$this->_actionType = $action_type;
 		$this->_menuType = $menuType;
-	
-		//$this->_config["menu"]= array ();
+		
+		// $this->_config["menu"]= array ();
 	}
 	
 	function setBeginGroup($value) {
@@ -41,7 +47,7 @@ class JExtMenuItem extends JExtComponent {
 		}
 		if (! CGAF::isLiveFile ( $value )) {
 			// try to use small image first
-			$fname = IOHelper::ExtractFileName ( $value ) . '-icon.' . IOHelper::extractFileExt ( $value );
+			$fname = \Utils::getFileName ( $value ) . '-icon.' . \Utils::getFileExt ( $value );
 			$path = $this->_iconPath . DS . "images" . DS;
 			$found = false;
 			if (is_file ( $path . $fname )) {
@@ -72,8 +78,9 @@ class JExtMenuItem extends JExtComponent {
 			$tooltip = $value;
 			if (! is_array ( $tooltip )) {
 				$tooltip = array (
-					"text" => __ ( $value ), 
-					"title" => __ ( 'Info' ) );
+						"text" => __ ( $value ), 
+						"title" => __ ( 'Info' ) 
+				);
 			}
 			$this->setConfig ( "tooltip", $tooltip );
 		}
@@ -118,7 +125,7 @@ class JExtMenuItem extends JExtComponent {
 		}
 		if ($this->_id === JExt::MENU_SEPARATOR) {
 			$handle = true;
-			$retval .= "tb.addSeparator()"; //"'".EXT::MENU_SEPARATOR."'";
+			$retval .= "tb.addSeparator()"; // "'".EXT::MENU_SEPARATOR."'";
 		} else {
 			if ($this->_beginGroup) {
 				$retval .= "{" . parent::Render ( $return, $handle ) . "}";
@@ -127,7 +134,7 @@ class JExtMenuItem extends JExtComponent {
 			}
 		}
 		if (! $retval) {
-			Response::Write ( $retval );
+			\Response::Write ( $retval );
 		}
 		return $retval;
 	}
@@ -142,10 +149,11 @@ class JExtMenuItem extends JExtComponent {
 			$this->id = "mm_" . $obj->mod_id;
 			$this->text = __ ( $obj->mod_ui_name );
 			$this->description = __ ( $obj->mod_description );
-			//$item->img= $module->mod_ui_icon; //GUI::findImage($module->mod_ui_icon,$module->mod_directory);
+			// $item->img= $module->mod_ui_icon;
+			// //GUI::findImage($module->mod_ui_icon,$module->mod_directory);
 			$this->module = $obj->mod_id;
 			$this->action_type = 1;
-			//$item->icon = $module->mod_ui_icon;
+			// $item->icon = $module->mod_ui_icon;
 			$this->link = "_m=" . $obj->mod_id;
 			$this->handler = "function() {doLoadPageContent('" . $this->link . "','" . $obj->mod_dir . "','" . $this->text . "');}";
 		} elseif (is_array ( $obj )) {
@@ -155,7 +163,7 @@ class JExtMenuItem extends JExtComponent {
 		}
 	}
 }
-class TExtMenu extends JExtComponent {
+class MenuExt extends CustomComponent {
 	
 	function __construct() {
 		parent::__construct ( "GExt.controls.Toolbar" );
@@ -163,22 +171,23 @@ class TExtMenu extends JExtComponent {
 	
 	protected function getChildMenu($mod_id, $parent) {
 		$sql = "select * from #__modules_menu where mod_id='$mod_id' and menu_parent=$parent and menu_visible=1 order by menu_order";
-		return DB::loadObjectLists ( $sql );
+		return DBUtil::loadObjectLists ( $sql );
 	}
 	
 	function loadChildMenu(& $item, $module, $parent) {
-		if (! ACL::checkModule ( $module )) {
+		if (! ACLHelper::checkModule ( $module )) {
 			return false;
 		}
 		$crows = $this->getChildMenu ( $module, $parent );
 		if (count ( $crows ) > 0) {
-			$minfo = ModuleManager::getModuleInfo ( $module );
+			$minfo = \ModuleManager::getModuleInfo ( $module );
 			foreach ( $crows as $row ) {
-				$c = new JExtMenuItem (); 
+				$c = new JExtMenuItem ();
 				$c->id = "m_" . $row->menu_id;
 				$c->text = __ ( $row->menu_caption );
 				$c->iconPath = $minfo->mod_path;
-				$c->icon = $row->menu_images; //$row->menu_images; //GUI::findImage($module->mod_ui_icon,$module->mod_directory);
+				$c->icon = $row->menu_images; // $row->menu_images;
+				                              // //GUI::findImage($module->mod_ui_icon,$module->mod_directory);
 				$c->module = $module;
 				$c->action_type = $row->menu_action;
 				$c->parent = $row->menu_parent;
@@ -201,8 +210,8 @@ class TExtMenu extends JExtComponent {
 					$this->loadChildMenu ( $c, $module, $row->menu_id );
 				}
 				$item->addItem ( $c );
-			
-		//$item->childs[]= $c;
+				
+				// $item->childs[]= $c;
 			}
 		}
 		return true;
@@ -218,34 +227,35 @@ class TExtMenu extends JExtComponent {
 		$sql = "SELECT * FROM #__modules WHERE mod_active > 0 AND mod_ui_active > 0 ";
 		$sql .= "and mod_app_owner=$app_id and mod_ui_active=1";
 		$sql .= " ORDER BY mod_order,mod_ui_order";
-		$nav = DB::loadObjectLists ( $sql );
+		$nav = DBUtil::loadObjectLists ( $sql );
 		foreach ( $nav as $module ) {
 			$this->assignModule ( $module->mod_id );
 		}
-		$mods = ModuleManager::getInternalModules ();
+		$mods = \ModuleManager::getInternalModules ();
 		foreach ( $mods as $module ) {
 			$this->assignModule ( $module->mod_id );
 		}
 	}
 	
 	function assignModule($module) {
-		$module = ModuleManager::getModuleInfo ( $module );
-		//pp($module);
+		$module = \ModuleManager::getModuleInfo ( $module );
+		// pp($module);
 		if ($module && $module->mod_active && $module->mod_ui_active) {
 			$item = new JExtMenuItem ();
 			$item->id = "mm_" . $module->mod_dir;
 			$item->text = __ ( $module->mod_ui_name );
 			$item->tooltip = __ ( $module->mod_description );
-			//$item->img= $module->mod_ui_icon; //GUI::findImage($module->mod_ui_icon,$module->mod_directory);
+			// $item->img= $module->mod_ui_icon;
+			// //GUI::findImage($module->mod_ui_icon,$module->mod_directory);
 			$item->module = $module->mod_id;
 			$item->action_type = 1;
-			//$item->icon = $module->mod_ui_icon;
+			// $item->icon = $module->mod_ui_icon;
 			$item->link = "_m=" . $module->mod_id;
 			$item->handler = "function() {doLoadPageContent('" . $item->link . "','" . $module->mod_id . "','" . $item->text . "');}";
 			$icon = $module->menu_icon ? $module->menu_icon : $module->live_icon;
 			$item->icon = $icon;
 			if ($item->icon) {
-				//$item->icon= $module->menu_icon;
+				// $item->icon= $module->menu_icon;
 				$item->cls = "x-btn-text-icon";
 			}
 			$this->loadChildMenu ( $item, $module->mod_id, 0 );
@@ -257,22 +267,22 @@ class TExtMenu extends JExtComponent {
 	}
 	
 	function RenderTable($item, $imgprops = "width=\"48\" height=\"48\"") {
-		return MenuManager::RenderMenuAsTable ( $item, $imgprops );
+		return \MenuManager::RenderMenuAsTable ( $item, $imgprops );
 	}
-
-	//eof class 
+	
+	// eof class
 }
 class ExtMenu {
 	
 	public static function RenderModuleMenu($m, $app = null, $return = false) {
-		//throw new TSystemException("hi");
+		// throw new TSystemException("hi");
 		if (! $app) {
-			$app = AppManager::getInstance ();
+			$app = \AppManager::getInstance ();
 		}
 		$menulist = $app->getMenuModule ( $m );
-		$menu = new TExtMenu ();
+		$menu = new MenuExt ();
 		$retval = $menu->RenderTable ( $menulist );
-		if (ACL::checkmodule ( $m, "add" )) {
+		if (ACLHelper::checkmodule ( $m, "add" )) {
 			$retval .= "<a href=\"?_m=devtools&_u=menu&_a=addedit&module=$m\">New</a>";
 		}
 		if (! $return) {

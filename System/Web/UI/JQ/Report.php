@@ -1,5 +1,11 @@
 <?php
 namespace System\Web\UI\JQ;
+use System\JSON\JSON;
+
+use System\MVC\MVCHelper;
+
+use System\Web\UI\Controls\WebControl;
+
 class Report extends Control {
 	private $_toolbar;
 	private $_model;
@@ -26,7 +32,7 @@ class Report extends Control {
 						'displayreportheader' => true
 				)
 		), false);
-		$this->_toolbar = new \WebReportToolbar($this);
+		$this->_toolbar = new ReportToolbar($this);
 	}
 
 	function setModel($model) {
@@ -36,9 +42,9 @@ class Report extends Control {
 
 	function getInfo() {
 		if (! $this->_info) {
-			$pi = new stdClass();
-			$rpp = Request::get('__rpp', $this->getConfig('rowperpage', 20));
-			$cp = Request::get('__cp', 0);
+			$pi = new \stdClass();
+			$rpp = \Request::get('__rpp', $this->getConfig('rowperpage', 20));
+			$cp = \Request::get('__cp', 0);
 			if ($cp < 0) {
 				$cp = 0;
 			}
@@ -59,7 +65,7 @@ class Report extends Control {
 	}
 
 	function prepareRender() {
-		if (! Request::isDataRequest()) {
+		if (! \Request::isDataRequest()) {
 			$tpl = $this->getTemplate();
 			$tpl->addAsset('report.xml');
 			$this->_toolbar->setId($this->getId() . '-toolbar');
@@ -73,7 +79,7 @@ class Report extends Control {
 					'id' => $this->getId() . '-page-container'
 			));
 
-			if (Request::get('__preview', false)) {
+			if (\Request::get('__preview', false)) {
 				for($i = 0; $i < $pi->pageCount; $i ++) {
 					$p = new WebControl('div', false, array (
 							'class' => 'report-page'
@@ -87,7 +93,7 @@ class Report extends Control {
 				));
 				$pc->addChild($p);
 				$url = MVCHelper::getRouteORI(null);
-				$url = URLHelper::addParam($url, array (
+				$url = \URLHelper::addParam($url, array (
 						'__cp' => $pi->currentPage - 1,
 						'__data' => 1
 				));
@@ -171,7 +177,7 @@ class Report extends Control {
 
 	function renderJSON($return = true) {
 		$pi = $this->getInfo();
-		$preview = Request::get('__preview');
+		$preview = \Request::get('__preview');
 		if (! $preview) {
 			$retval = $this->renderPage($pi->currentPage, $pi->rowPerPage);
 

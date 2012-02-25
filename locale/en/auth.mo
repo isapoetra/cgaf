@@ -7,3 +7,7 @@ alternative=Signin Using
 logout=Signout
 signout.confirm.title=Signout Confirmation
 signout.confirm.descr=do you want to signout?
+user_name=User Name
+user_password=Password
+forgetpassword=Forget your Password?
+register=Register

@@ -35,7 +35,7 @@ class JSONResult implements \IRenderable {
 			$retval =json_encode($retval);// JSON::encodeConfig($retval,true);
 		} else {
 			if ($this->_redirect) {
-				return Response::Redirect($this->_redirect);
+				return \Response::Redirect($this->_redirect);
 			}
 			$retval .= $msg;
 			if ($this->_vars) {
@@ -53,7 +53,7 @@ class JSONResult implements \IRenderable {
 			}
 		}
 		if (!$return) {
-			Response::write($retval);
+			\Response::write($retval);
 		}
 		return $retval;
 	}

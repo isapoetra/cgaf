@@ -1,5 +1,7 @@
 <?php
 namespace System\Web\JS\Engine;
+use System\Web\JS\JSUtils;
+
 use System\MVC\Application;
 use \Utils, \CGAF, \Request, \System\Web\JS\CGAFJS;
 use System\Exceptions\AssetException;
@@ -35,10 +37,10 @@ abstract class AbstractJSEngine implements \IJSEngine {
 		return $this->_searchPath;
 	}
 	protected function getConfigs($configName, $def = null) {
-		return $this->_appOwner->getConfigs('app.js.' . $this->_baseConfig . '.' . $configName, $def);
+		return $this->_appOwner->getConfigs('js.' . $this->_baseConfig . '.' . $configName, $def);
 	}
 	protected function getConfig($configName, $def = null) {
-		return $this->_appOwner->getConfig('app.js.' . $this->_baseConfig . '.' . $configName, $def);
+		return $this->_appOwner->getConfig('js.' . $this->_baseConfig . '.' . $configName, $def);
 	}
 	/**
 	 *
@@ -58,6 +60,7 @@ abstract class AbstractJSEngine implements \IJSEngine {
 			}
 			return $retval;
 		}
+
 		if (is_file($asset)) {
 			return $asset;
 		}
@@ -81,7 +84,7 @@ abstract class AbstractJSEngine implements \IJSEngine {
 		$r = $this->_appOwner->getLiveAsset($old);
 		if (!$r) {
 			if ($throw) {
-				ppd($cpath);
+				//ppd($cpath);
 				throw new AssetException("unable to get asset " . $old);
 			}
 		}

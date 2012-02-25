@@ -27,7 +27,7 @@ class Flat extends Document implements Embedder {
 	 */
 	function __construct($type) {
 		parent::__construct();
-		$this->_setRoot(new System\Documents\ODF\Dio\Office\Document($type));
+		$this->_setRoot(new \System\Documents\ODF\Dio\Office\Document($type));
 	}
 	function importRoot(\DomDocument $doc) {
 		$root = clone $doc->root;

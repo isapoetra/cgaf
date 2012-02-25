@@ -1,5 +1,6 @@
 <?php
-abstract class TBaseFeed implements IRenderable {
+namespace System\Web\Feed;
+abstract class Base implements \IRenderable {
 	protected $_data;
 	private $_validHeader = array ();
 	function Render($return = false) {

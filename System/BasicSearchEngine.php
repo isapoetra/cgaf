@@ -1,4 +1,7 @@
 <?php
+use System\Exceptions\SystemException;
+use System\Configurations\Configuration;
+use System\Collections\SearchItemCollection;
 abstract class OpenSearch {
 	private static function _header($s,$o,$f) {
 		$total =0;
@@ -51,7 +54,7 @@ EOF;
 			$r = null;
 			foreach ( $o as $v ) {
 				$res = $v ['result'];
-				if ($res instanceof TSearchItemCollection) {
+				if ($res instanceof SearchItemCollection) {
 					$r .= $res->renderAs ( $f );
 
 				}
@@ -93,7 +96,7 @@ class BasicSearchEngine implements ISearchEngine {
 					$ct = 'TSearchProvider' . $sc ["provider"];
 					$c = new $ct ( $this );
 					$r = $c->search ( $s, $sc );
-					if ($r instanceof TSearchItemCollection) {
+					if ($r instanceof SearchItemCollection) {
 						$data = array ();
 						$data ["config"] = $sc;
 						$data ["result"] = $r;

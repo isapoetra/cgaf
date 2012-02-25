@@ -1,6 +1,10 @@
 <?php
-define('CGAF_DEBUG', true);
-include "System/cgaf.php";
+//define ('CGAF_DEBUG',true);
 define('CGAF_CONTEXT', "Web");
-CGAF::Run();
+include "cgafinit.php";
+if (!CGAF::isInstalled()) {
+	include "install.php";
+}else{
+	CGAF::Run();
+}
 ?>

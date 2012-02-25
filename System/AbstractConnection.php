@@ -16,7 +16,7 @@ abstract class AbstractConnection implements \IConnection {
 		return $this->_config->setConfig($configName,$value);
 	}
 	function getConfig($configName,$default=null) {
-		return $this->_config->getConfig($configName,$value);
+		return $this->_config->getConfig($configName,$default);
 	}
 	function Open() {
 		$this->_connected = true;
