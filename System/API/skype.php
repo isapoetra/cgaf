@@ -19,11 +19,11 @@ class Skype extends PublicApi {
 		}
 		$def = array(
 				//'image' => 'call_green_white_153x63.png'
-				'image' => 'call_blue_white_124x52.png');
+				'image' => 'bigclassic');
 		$config = \Utils::arrayMerge($def, $config);
 		if (!isset($config['username'])) {
 			return null;
 		}
-		return '<a href="skype:' . $config['username'] . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/' . $config['image'] . '" style="border: none;" width="153" height="63" alt="Skype Me™!" /></a>';
+		return '<a href="skype:' . $config['username'] . '?call"><img src="http://mystatus.skype.com/' . $config['image'] . '/'.$config['username'].'" style="border: none;" alt="Skype Me™!" /><span>Skype Me™!</span></a>';
 	}
 }

@@ -1,5 +1,5 @@
 <?php
-
+use System\Exceptions\SystemException;
 class MailHelper {
 	public static function sendMail($m, $template, $subject = "alKisah-Online") {
 		
@@ -8,7 +8,7 @@ class MailHelper {
 		$tpl = $app->getInternalData ( "template/email/$template.html" );
 		if ($tpl) {
 			$o = new stdClass ();
-			if ($m instanceof DBTable) {
+			if ($m instanceof System\DB\Table) {
 				$arr = $m->getFields ( true, true, false );
 				$o = Utils::bindToObject ( $o, $arr, true );
 			} else if (is_array ( $m )) {

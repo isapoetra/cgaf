@@ -1,9 +1,10 @@
 <?php
 namespace System\Events;
-class Event {
+class Event extends \Object {
 	public $type;
 	public $sender;
 	public $args;
+	public $handle = false;
 	function __construct($sender, $type, $args = null) {
 		$this->type = $type;
 		$this->sender = $sender;

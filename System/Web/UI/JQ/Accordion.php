@@ -26,7 +26,7 @@ class AccordionItem extends \Object implements \IRenderable {
 		}
 		$r .= '</div>';
 		if (!$return) {
-			Response::write($r);
+			\Response::write($r);
 		}
 		return $r;
 	}
@@ -84,7 +84,7 @@ class Accordion extends Control {
 		}
 		$r .= '</div>';
 		if (!$return) {
-			Response::write($r);
+			\Response::write($r);
 		}
 		return $r;
 	}

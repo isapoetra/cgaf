@@ -5,6 +5,7 @@ namespace {
 	defined("CGAF") or define("CGAF", true);
 	defined('CGAF_CLASS_PREFIX') or define('CGAF_CLASS_PREFIX', '');
 	defined('DS') or define("DS", DIRECTORY_SEPARATOR);
+	defined('NSS') or define('NSS', '\\'); //namespace separator
 	defined('CGAF_VERSION') or define('CGAF_VERSION', '1.0');
 	use System\Configurations\Configuration as Configuration;
 	use AppManager as AppManager;
@@ -41,17 +42,18 @@ namespace {
 		private static $_searchPath = array();
 		private static $_allowedLivePath = array();
 		private static $loadedNamespaces = array();
+		private static $_running= false;
 		/**
 		 *
 		 * @var IConfiguration
 		 */
 		private static $_configuration;
+		private static $_internalStorage=null;
 		public static function shutdown_handler() {
-			static $shut;
-			if ($shut) {
+			if (!self::$_running) {
 				return;
 			}
-			$shut = true;
+			self::$_running = false;
 			if (class_exists('Response', false)) {
 				Response::Flush();
 			}
@@ -62,7 +64,7 @@ namespace {
 				Logger::Flush();
 			}
 			self::$_initialized = false;
-			self::$_shutdown = true;
+
 		}
 
 		public static function startTime() {
@@ -154,11 +156,6 @@ namespace {
 		}
 
 		public static function doExit() {
-			static $exited;
-			if ($exited) {
-				return;
-			}
-			$exited = true;
 			if (class_exists('Response', false)) {
 				if (!System::isConsole()) {
 					Response::clearBuffer();
@@ -247,11 +244,11 @@ namespace {
 		 * return IConfiguration
 		 */
 		static function & getConfiguration() {
-			global $_configs;
+
 			if (self::$_configuration == null) {
-				include CGAF_PATH . "config.php";
-				self::$_configuration = new Configuration($_configs);
-				unset($_configs);
+				self::$_configuration = new Configuration(null,false);
+				self::$_configuration->loadFile(CGAF_PATH.'config.php');
+
 			}
 			return self::$_configuration;
 		}
@@ -303,6 +300,7 @@ namespace {
 			if (!defined("CGAF_CLASS_EXT")) {
 				define("CGAF_CLASS_EXT", ".php");
 			}
+
 			define('CGAF_SYS_PATH', CGAF_PATH . 'System' . DS);
 			self::addClassPath('system', CGAF_SYS_PATH);
 			self::$_searchPath['System'] = array(CGAF_SYS_PATH);
@@ -336,7 +334,7 @@ namespace {
 				define("ASSET_URL", self::getConfig("cgaf.asseturl", BASE_URL . self::getConfig('livedatapath', 'assets') . '/'));
 			}
 			if (!defined('ASSET_PATH')) {
-				define("ASSET_PATH", self::getConfig("cgaf.assetpath", SITE_PATH . 'assets/'));
+				define("ASSET_PATH", self::getConfig("cgaf.assetpath", SITE_PATH . 'assets'.DS));
 			}
 			ini_set("session.save_path", self::getInternalStorage('sessions', false));
 			register_shutdown_function("CGAF::shutdown_handler");
@@ -382,7 +380,11 @@ namespace {
 				error_reporting(E_ERROR | E_WARNING | E_PARSE);
 				set_error_handler("CGAF::error_handler");
 				set_exception_handler("CGAF::exception_handler");
+				if (function_exists('xdebug_disable')) {
+					xdebug_disable();
+				}
 			} else {
+
 				error_reporting(E_ALL);
 				ini_set('display_errors', 1);
 			}
@@ -425,8 +427,16 @@ namespace {
 			if (CGAF_DEBUG) {
 				self::addAlowedLiveAssetPath(CGAF_DEV_PATH . self::getConfig("livedatapath", "assets"));
 			}
+
 			self::using('System.' . CGAF_CONTEXT . '.Request');
 			self::using('System.' . CGAF_CONTEXT . '.Response');
+			Session::getInstance() -> addEventListener('*', array(
+					'CGAF',
+					'onSessionEvent'
+			));
+
+			AppManager::initialize();
+
 			self::$_initialized = true;
 			return true;
 		}
@@ -492,7 +502,8 @@ namespace {
 		}
 
 		private static function handleAssetNotFound() {
-			$f = $_REQUEST["__url"];
+			$f = htmlentities(Utils::filterXSS($_REQUEST["__url"]));
+
 			$ext = Utils::getFileExt($f, false);
 			$alt = null;
 			$asset = str_ireplace('assets/', '', $f);
@@ -516,6 +527,7 @@ namespace {
 
 		static function Run($appName = null, $installMode = false) {
 			//ppd($_FILES);
+			self::$_running =true;
 			if (!self::Initialize()) {
 				die("unable to initialize framework");
 			}
@@ -527,19 +539,16 @@ namespace {
 				self::offlineRedirect(1);
 			}
 			if (\Request::isMobile()) {
-				ppd('mobile');
+				//ppd('mobile');
 			}
-			AppManager::initialize();
+
 			self::exitIfNotModified();
 			//TODO moved to application
 			if (isset($_REQUEST["__url"]) && Strings::BeginWith($_REQUEST["__url"], "assets/")) {
 				return self::handleAssetNotFound();
 			}
 			$retval = null;
-			Session::getInstance() -> addEventListener('*', array(
-					'CGAF',
-					'onSessionEvent'
-			));
+
 			if (is_object($appName) && $appName instanceof IApplication) {
 				AppManager::setActiveApp($appName);
 				$instance = $appName;
@@ -551,17 +560,17 @@ namespace {
 				$path = Request::get('__app');
 				if ($path) {
 					$instance = AppManager::getInstanceByPath($path);
-					AppManager::setActiveApp($appName);
+					AppManager::setActiveApp($instance);
 					$instance = $appName;
 				}
 				$appId = Request::get('__appId');
 				if (!$instance && $appId) {
 					try {
 						if (AppManager::isAppIdInstalled($appId)) {
-							Session::set('__appId', $appId);
+
 							$appName = $appId;
 						} else {
-							throw new SystemException('Application ' . $appId . 'not installed');
+							throw new SystemException('Application ' . $appId . ' not installed');
 						}
 					} catch (Exception $e) {
 						if (self::isDebugMode()) {
@@ -586,15 +595,15 @@ namespace {
 							if (self::isDebugMode()) {
 								throw $ex;
 							}
-							die('ex');
 							$instance = AppManager::getInstance('__cgaf');
 						}
 						break;
 				}
 			}
 			if (!$instance) {
-				die("Application Instance not found/Access Denied");
+				throw new SystemException("Application Instance not found/Access Denied");
 			}
+			Session::set ( '__appId', $instance->getAppId() );
 			//ppd($instance);
 			Response::StartBuffer();
 			$retval = $instance -> Run();
@@ -650,7 +659,7 @@ namespace {
 		public static function addClassPath($nsName, $path) {
 			$path = str_replace("/", DS, $path);
 			$path = str_replace(DS . DS, DS, $path);
-			$nsName = strtolower($nsName);
+			$nsName = str_replace('.',DS,strtolower($nsName));
 			if (!isset(self::$_classPath[$nsName])) {
 				self::$_classPath[$nsName] = array();
 			}
@@ -706,13 +715,15 @@ namespace {
 
 		private static function UsingDir($fname) {
 			$dir = opendir($fname);
-			while ($d = readdir($dir)) {
+			$d = readdir($dir);
+			while ($d) {
 				if (substr($d, 0, 1) !== "." && is_file($fname . DS . $d)) {
 					$ext2 = substr($d, strlen($d) - 3);
 					if (is_file($fname . DS . $d)) {
 						self::Using($fname . DS . $d, false);
 					}
 				}
+				$d = readdir($dir);
 			}
 			closedir($dir);
 			return true;
@@ -779,12 +790,8 @@ namespace {
 
 			foreach (self::$_classPath as $k => $v) {
 				foreach ($v as $p) {
-
 					if (substr($ns, 0, strlen($p)) === $p) {
-
-						$ns = $k . '.' . substr($ns, strlen($p));
-						//ppd(substr($ns,0,strlen($p)-1));
-
+						$ns = $k . DS . substr($ns, strlen($p));
 					}
 				}
 			}
@@ -792,21 +799,22 @@ namespace {
 				$ns = substr($ns, 0, strlen($ns) - strlen($ext));
 			}
 			$ns = str_replace(CGAF_PATH, '', $ns);
-			$ns = str_replace(DS, '.', $ns);
+			$ns = str_replace('.', DS, $ns);
+			$ns = str_replace(DS.DS, DS, $ns);
 			return $ns;
 		}
 
 		private static function _getFileOfNS($ns, $debug = false) {
 			$retval = null;
-			if (strpos($ns, '.') !== false) {
-				$first = substr($ns, 0, strpos($ns, '.'));
+			if (strpos($ns, NSS) !== false) {
+				$first = substr($ns, 0, strpos($ns, NSS));
 				$spath = self::getClassPath($first);
 				$fns = substr($ns, strlen($first) + 1);
 			} else {
 				$fns = $ns;
 				$spath = self::getClassPath('System');
 			}
-			$fns = str_replace('.', DS, $fns);
+			$fns = str_replace(NSS, DS, $fns);
 			if ($spath) {
 				foreach ($spath as $path) {
 					$fname = Utils::ToDirectory($path . DS . $fns);
@@ -844,6 +852,7 @@ namespace {
 			}
 			$nsnormal = self::_toNS($namespace);
 			if (!$star && is_file($namespace)) {
+				$namespace = realpath($namespace);
 				if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
 					$namespace = strtolower($namespace);
 					$nsnormal = strtolower($nsnormal);
@@ -852,7 +861,7 @@ namespace {
 				if (!isset(self::$_namespaces[$nsnormal])) {
 					self::$_namespaces[$nsnormal] = array();
 				}
-				
+
 				if (!in_array($namespace, self::$_namespaces[$nsnormal])) {
 					self::$_namespaces[$nsnormal][] = $namespace;
 					require $namespace;
@@ -966,7 +975,7 @@ namespace {
 
 		public static function addAlowedLiveAssetPath($path) {
 			if (!in_array($path, self::$_allowedLivePath)) {
-				self::$_allowedLivePath[] = $path;
+				self::$_allowedLivePath[] = \Utils::ToDirectory($path);
 			}
 		}
 
@@ -977,7 +986,7 @@ namespace {
 			if (!Strings::BeginWith($asset, self::$_allowedLivePath)) {
 				if (CGAF_DEBUG) {
 					pp($asset);
-					pp(self::$_allowedLivePath);
+					ppd(self::$_allowedLivePath);
 				}
 				return false;
 			}
@@ -1044,7 +1053,7 @@ namespace {
 
 		public static function getClassNameFor($classname, $namespace, $useApp = true) {
 			if ($useApp && AppManager::isAppStarted()) {
-				return AppManager::getInstance() -> getClassNameFor($className, $namespace);
+				return AppManager::getInstance() -> getClassNameFor($classname, $namespace);
 			}
 			$search = array(
 					$namespace . '\\' . $classname,
@@ -1092,19 +1101,20 @@ namespace {
 		}
 
 		public static function LoadClass($className, $throw = true) {
-			$className = str_replace(array(
-					'/',
-					'\\'
-			), DS, $className);
+			$className = NSS.str_replace(array(
+					'.'
+			), NSS, $className);
+
 			if (substr($className, 0, 1) === DS) {
 				$className = substr($className, 1);
 			}
-			$namespaces = explode(DIRECTORY_SEPARATOR, $className);
+			$namespaces = explode(NSS, $className);
 			unset($namespaces[sizeof($namespaces) - 1]);
 			// the last item is the classname
 			$clname = $className;
 			$oricpath = null;
 			$nspath = array();
+
 			if (count($namespaces)) {
 				$fns = $namespaces[0];
 				$classpart = explode(DS, $className);
@@ -1132,6 +1142,7 @@ namespace {
 			$nspath = array_merge($nspath, self::getClassPath($fns));
 			$current = "";
 			$fdebug = array();
+
 			foreach ($nspath as $p) {
 				foreach ($namespaces as $namepart) {
 					$current .= '\\' . $namepart;
@@ -1154,7 +1165,7 @@ namespace {
 					if (is_file($fname)) {
 						$fdebug[] = $fname;
 						self::Using($fname);
-						break;
+						//break;
 					}
 				}
 				$fname = $p . $clname . '.php';
@@ -1162,9 +1173,9 @@ namespace {
 
 				if (is_file($fname)) {
 					self::Using($fname);
-					break;
+					//break;
 				}
-				
+
 			}
 			if (!class_exists($className, false)) {
 				foreach (self::$_autoLoadCallBack as $func) {
@@ -1173,15 +1184,12 @@ namespace {
 					}
 				}
 			}
-			$className = str_replace(array(
-					'/',
-					'\\'
-			), "\\", $className);
+
+
 			// return true if class is loaded
 			if (class_exists($className, false) || interface_exists($className, false)) {
 				return false;
 			}
-
 			\Logger::Warning('Unable to load class ' . $className);
 			if (CGAF_DEBUG && $throw) {
 				pp(get_declared_classes());
@@ -1214,8 +1222,12 @@ namespace {
 				if (!$args) {
 					$args = self::getConfigs('db');
 				}
-				self::$_dbConnection = DB::Connect($args);
-				self::$_dbConnection -> setThrowOnError(true);
+				try {
+					self::$_dbConnection = DB::Connect($args);
+					self::$_dbConnection -> setThrowOnError(true);
+				}catch(\Exception $e) {
+					\Response::Redirect(BASE_URL.'/offline.php?id=2001');
+				}
 			}
 			return self::$_dbConnection;
 		}
@@ -1256,18 +1268,17 @@ namespace {
 		}
 
 		public static function getInternalStorage($path = null, $checkApp = true, $create = false, $mode = 0750) {
-			static $istorage;
-			if (!$istorage) {
-				$istorage = Utils::ToDirectory(CGAF_PATH . DS . self::getConfig('app.internalstorage', 'protected') . DS);
+			if (!self::$_internalStorage) {
+				self::$_internalStorage = Utils::ToDirectory(CGAF_PATH . DS . self::getConfig('app.internalstorage', 'protected') . DS);
 			}
 			$retval = null;
 			if ($checkApp && AppManager::isAppStarted()) {
 				return AppManager::getInstance() -> getInternalStorage($path, $create);
 			} else {
 				if ($create) {
-					\Utils::makeDir($istorage . $path, $mode);
+					\Utils::makeDir(self::$_internalStorage . $path, $mode);
 				}
-				return \Utils::toDirectory($istorage . $path);
+				return \Utils::toDirectory(self::$_internalStorage . $path);
 			}
 		}
 

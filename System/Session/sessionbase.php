@@ -1,6 +1,7 @@
 <?php
 namespace System\Session;
 use \CGAF as CGAF, \Utils as Utils;
+
 class sessionStateHandler extends \ArrayObject {
 	function getState($name, $def = null) {
 		if (is_array($name)) {
@@ -10,13 +11,14 @@ class sessionStateHandler extends \ArrayObject {
 		}
 		return isset($this[$name]) ? $this[$name] : $def;
 	}
-	function setState($name,$value) {
+	function setState($name, $value) {
 		$this[$name] = $value;
 	}
 }
+
 abstract class SessionBase extends \Object implements \ISession {
 	private $_started = false;
-	private $_sessionState = 'active';
+	protected $_sessionState = 'active';
 	private $_configs;
 	function __construct() {
 		//Need to destroy any existing sessions started with session.auto_start
@@ -24,7 +26,7 @@ abstract class SessionBase extends \Object implements \ISession {
 			session_unset();
 			session_destroy();
 		}
-		$this->_configs = CGAF::getConfigs('Session',array());
+		$this->_configs = CGAF::getConfigs('Session');
 		//set default sessios save handler
 		ini_set('session.save_handler', 'files');
 		//disable transparent sid support
@@ -79,6 +81,9 @@ abstract class SessionBase extends \Object implements \ISession {
 		}
 		$id = md5(uniqid($id, true));
 		return $id;
+	}
+	function write($sessID, $sessData) {
+		$this->_sessionState = Session::STATE_CLOSED;
 	}
 	function getId() {
 		return session_id();
@@ -166,6 +171,9 @@ abstract class SessionBase extends \Object implements \ISession {
 		return true;
 	}
 	private function _setCookieParams() {
+		if (defined('NO_COOKIE')) {
+			return true;
+		}
 		ini_set('session.gc_maxlifetime', $this->getConfig('gc_maxlifetime'));
 		$cookie = session_get_cookie_params();
 		if ($this->_force_ssl) {
@@ -185,6 +193,7 @@ abstract class SessionBase extends \Object implements \ISession {
 		$ses = session_name();
 		setcookie($ses, "", time() - 3600);
 		setcookie($ses, $this->getId(), $cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure']);
+
 		//session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure']);
 		//ppd(date('D, d M Y H:i:s', $expire));
 	}
@@ -246,6 +255,7 @@ abstract class SessionBase extends \Object implements \ISession {
 	 * @param unknown_type $default
 	 */
 	public function &get($name, $default = null) {
+		if ($this->_sessionState ==  Session::STATE_DESTROYED) return null;
 		if ($this->_sessionState !== 'active' && $this->_sessionState !== 'expired') {
 			$this->restart();
 		}
@@ -261,6 +271,10 @@ abstract class SessionBase extends \Object implements \ISession {
 	public function set($name, $value) {
 		if ($this->_sessionState !== Session::STATE_ACTIVE) {
 			return null;
+		}
+		if ($name === '__sessionState') {
+			$this->_sessionState = $value;
+			return;
 		}
 		$old = isset($_SESSION['__session'][$name]) ? $_SESSION['__session'][$name] : null;
 		if (null === $value) {
@@ -292,12 +306,11 @@ abstract class SessionBase extends \Object implements \ISession {
 	 * @param unknown_type $sessID
 	 */
 	public function destroy($sessID = null) {
+		if ($this->_sessionState === Session::STATE_DESTROYED)
+			return;
+		$this->_sessionState = Session::STATE_DESTROYED;
 		$sessID = $sessID ? $sessID : $this->getId();
 		$this->dispatchEvent(new SessionEvent($this, SessionEvent::DESTROY));
-		// session was already destroyed
-		if ($this->_sessionState === Session::STATE_DESTROYED) {
-			return true;
-		}
 		// In order to kill the session altogether, like to log the user out, the session id
 		// must also be unset. If a cookie is used to propagate the session id (default behavior),
 		// then the session cookie must be deleted.
@@ -306,7 +319,6 @@ abstract class SessionBase extends \Object implements \ISession {
 			$cookie_path = $this->getConfig('cookie.path', '/');
 			setcookie(session_name(), '', time() - 42000, $cookie_path, $cookie_domain);
 		}
-		$this->_sessionState = Session::STATE_DESTROYED;
 		session_unset();
 		@session_destroy();
 		$this->_started = false;

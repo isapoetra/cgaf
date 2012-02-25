@@ -1,5 +1,7 @@
 <?php
 namespace System\Documents;
+use System\Exceptions\SystemException;
+
 use \Utils;
 class Image extends \Object {
 	private $_file;

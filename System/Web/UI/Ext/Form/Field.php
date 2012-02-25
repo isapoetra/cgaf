@@ -11,7 +11,7 @@ class Field extends Component {
 		if (! $configs) {
 			$configs = array();
 		}
-		$config = Utils::arrayMerge($config, $configs);
+		$config = \Utils::arrayMerge($config, $configs);
 		$this->removeConfig("id");
 		parent::__construct($config);
 	}

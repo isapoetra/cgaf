@@ -1,5 +1,9 @@
 <?php
 namespace System\Web\UI\JQ;
+use System\MVC\Models\TreeModel;
+
+use System\MVC\MVCHelper;
+
 use System\Web\JS\CGAFJS;
 use \URLHelper;
 use \Request;
@@ -8,8 +12,8 @@ use System\JSON\JSON;
 use System\Exceptions\SystemException;
 use \Strings;
 class TreeView extends Control {
-	private $_url;
-	private $_asyncMode = true;
+	protected $_url;
+	protected $_asyncMode = true;
 	/**
 	 *
 	 * Enter description here ...
@@ -19,14 +23,16 @@ class TreeView extends Control {
 	private $_defaultMapping = array(
 			'text' => 'text',
 			'id' => 'id',
-			'parent' => 'parent');
+			'parent' => 'parent'
+	);
 	private $_textParser = null;
 	private $_columnMapping = null;
-	private $_nodeText;
+	protected $_nodeText;
 	private $_rootNode;
 	private $_baseLocale = null;
 	function __construct($id, $url = null, $baseLocale = null) {
 		parent::__construct($id);
+		$url = $url ? $url : URLHelper::add(APP_URL, MVCHelper::getRoute('_c'));
 		$url = URLHelper::addParam($url, '__s=json&_treeid=' . $id);
 		$this->_url = $url;
 		$this->_baseLocale = $baseLocale;
@@ -47,7 +53,7 @@ class TreeView extends Control {
 	public function setTextParser($value) {
 		$this->_textParser = $value;
 	}
-	private function parseText($s, $o) {
+	protected function parseText($s, $o) {
 		if ($this->_textParser) {
 			return call_user_func($this->_textParser, $s, $o, $this);
 		}
@@ -56,16 +62,25 @@ class TreeView extends Control {
 	public function setNodeText($value) {
 		$this->_nodeText = $value;
 	}
-	private function parseModelRows($rows, $loadChild = false) {
+	protected function parseModelRows($rows, $loadChild = false) {
 		$retval = array();
+
 		foreach ($rows as $row) {
-			$child = $this->loadAll($row->id, $loadChild);
+			//ppd($row);
+			$child = array();
+			if ($loadChild) {
+				$child = $this->loadAll($row->id, $loadChild);
+			}
 			$r = new \stdClass();
 			$r->id = $row->id;
 			$row->text = $this->_baseLocale ? __($this->_baseLocale . '.' . $row->text, $row->text) : $row->text;
 			$r->text = $this->parseText($this->_nodeText ? $this->_nodeText : $row->text, $row);
-			$r->expanded = true;
-			$r->children = $child;
+			if ($loadChild) {
+				$r->children = $child;
+			} else {
+				$r->hasChildren = $row->childs > 0;
+			}
+
 			$retval[] = $r;
 		}
 		return $retval;
@@ -78,14 +93,19 @@ class TreeView extends Control {
 		$m->select($this->colMapping('parent'), 'parent');
 		$m->select($this->colMapping('text'), 'text');
 		$m->where($this->colMapping('parent') . '=' . $m->quote($parent));
-		//ppd($m->getSQL());
-		return $this->parseModelRows($m->loadAll(), $loadChild);
+		$m->select('(select count(' . $this->colMapping('id') . ') from ' . $m->getFirstTableName() . ' c where c.' . $this->colMapping('parent') . '=id)', 'childs', true);
+		//$m->groupBy($this->colMapping('parent'));
+		return $this->parseModelRows($m->loadObjects(), $loadChild);
 	}
-	private function renderData() {
+	protected function renderData() {
 		if (!$this->_model) {
 			throw new SystemException('Invalid Model');
 		}
-		return $this->loadAll((int) $this->getConfig('root', Request::get('root', 0)));
+		$rparent = Request::get('root', 0);
+		if ($rparent === 'source') {
+			$rparent = 0;
+		}
+		return $this->loadAll($this->getConfig('root', $rparent), false);
 	}
 	/**
 	 * @param boolean $return
@@ -98,21 +118,26 @@ class TreeView extends Control {
 		if ($this->_asyncMode) {
 			CGAFJS::loadPlugin('jquery-treeview/jquery.treeview.async', true);
 			$this->setConfig('url', $this->_url);
+			//$this->setConfig('collapsed', true);
 		}
 		$retval = null;
 		CGAFJS::addJQAsset('plugins/jquery-treeview/jquery.treeview.css');
 		$id = $this->getId();
 		$parent = $this->getConfig('renderTo', 'body');
 		$this->removeConfig('renderTo');
-		//pp($this->_configs);
 		$configs = JSON::encodeConfig($this->_configs);
-		$c = urlencode("<div id=\"$id\"></div>");
-		$js = <<<EOT
+		$js = '';
+		if (!$return) {
+			$c = urlencode("<div id=\"$id\"></div>");
+			$js = <<<EOT
 		if ($('#$id').length ===0) {
 			$(decodeURIComponent('$c').replace('+',' ')).appendTo('$parent');
 		}
 EOT;
-		$js .= ';$(\'#' . $this->getId() . '\').treeview(' . $configs . ')';
+		} else {
+			$retval = "<div id=\"$id\"></div>";
+		}
+		$js .= '$(\'#' . $this->getId() . '\').treeview(' . $configs . ')';
 		$this->getAppOwner()->addClientScript($js);
 		if (!$return) {
 			Response::write($retval);

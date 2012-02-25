@@ -1,5 +1,4 @@
 #temporary ignore
-/assets/
 /install/
 manifest/
 ogp
@@ -12,6 +11,11 @@ tmpl
 thumbs.db
 .cache
 /info.php
+protected/.cache
+assets/js
+assets/applications
+Libs/
+daemons/
 
 #temporary
 log

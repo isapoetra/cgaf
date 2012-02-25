@@ -19,9 +19,11 @@ abstract class Control extends WebControl implements \IRenderable {
 		$this->_configs = new Configuration(null, false);
 	}
 	function addEvent($eventName, $value, $replace = false) {
-		$value = str_replace("\r", '', $value);
-		$value = str_replace("\t", '', $value);
-		$value = str_replace("\n", '', $value);
+		if (is_string($value)) {
+			$value = str_replace("\r", '', $value);
+			$value = str_replace("\t", '', $value);
+			$value = str_replace("\n", '', $value);
+		}
 		$this->_events[$eventName][] = $value;
 		//return $this->setConfig($eventName, $value, $replace);
 	}
@@ -89,7 +91,7 @@ abstract class Control extends WebControl implements \IRenderable {
 			$this->AppOwner->addClientScript($this->getScript());
 			$retval = parent::Render(true);
 			if (!$return) {
-				Response::write($retval);
+				\Response::write($retval);
 			}
 			return $retval;
 		}

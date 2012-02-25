@@ -3,6 +3,7 @@ if (!defined("CGAF"))
 	die("Restricted Access");
 use System\Session\Session;
 use System\Web\ClientInfo;
+
 abstract class Request {
 	private static $_instance;
 	private static $_ajax;
@@ -22,9 +23,6 @@ abstract class Request {
 			self::$_instance = new $class();
 			if (self::get('__mobile')) {
 				self::isMobile(true);
-				if (CGAF_DEBUG) {
-					\Request::getClientInfo()->setPlatform('android');
-				}
 			}
 		}
 		return self::$_instance;
@@ -37,7 +35,8 @@ abstract class Request {
 		$retval = array();
 		if (is_string($ignored)) {
 			$ignored = array(
-					$ignored);
+					$ignored
+			);
 		}
 		foreach ($req as $k => $v) {
 			if (!in_array($k, $ignored)) {
@@ -51,7 +50,7 @@ abstract class Request {
 			self::$_isMobile = $value;
 		} else {
 			if (self::$_isMobile === null) {
-				self::$_isMobile = self::getClientInfo()->isMobile();
+				self::$_isMobile = \Utils::toBool(self::getClientInfo()->isMobile());
 			}
 		}
 		return self::$_isMobile;
@@ -65,7 +64,7 @@ abstract class Request {
 			self::$_ajax = $value;
 		}
 		if (self::$_ajax == null) {
-			self::$_ajax = (isset($_SERVER["HTTP_X_REQUESTED_WITH"]) && $_SERVER["HTTP_X_REQUESTED_WITH"] === "XMLHttpRequest") || Request::get("_ajax") || Request::get("__ajax") || Request::isJSONRequest();
+			self::$_ajax = (isset($_SERVER["HTTP_X_REQUESTED_WITH"]) && $_SERVER["HTTP_X_REQUESTED_WITH"] === "XMLHttpRequest") || self::get("_ajax") || self::get("__ajax") || self::isJSONRequest();
 		}
 		return self::$_ajax;
 	}
@@ -117,7 +116,11 @@ abstract class Request {
 	 * @return System\Web\ClientInfo
 	 */
 	public static function &getClientInfo() {
+		$ci = null;
 		$ci = Session::get('__clientInfo');
+		if ($ci && isset($_SERVER["HTTP_USER_AGENT"]) && $ci->agent !== $_SERVER["HTTP_USER_AGENT"]) {
+			Session::set('__clientInfo', null);
+		}
 		if (!$ci) {
 			$ci = new ClientInfo(Utils::makeDir(CGAF::getInternalStorage('browsecap', false), 0700, '*'));
 			Session::set('__clientInfo', $ci);

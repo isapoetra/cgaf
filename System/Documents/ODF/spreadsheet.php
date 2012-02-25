@@ -47,6 +47,7 @@ class SpreadSheet extends Archive {
 		if (is_numeric($sheet)) {
 			$sheet = 'Sheet ' . ($sheet + 1);
 		}
+		$sname =$sheet;
 		$sheet = $this->_findSheet($sheet);
 		if ($value === null) {
 			if ($sheet instanceof Table) {

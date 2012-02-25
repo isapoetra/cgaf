@@ -1,9 +1,12 @@
 <?php
 namespace System\Template;
+use System\Parsers\MarkdownExtra;
+use System\Parsers\Wiki;
 use \Utils;
 use \CGAF;
 use \AppManager;
 use \System\Exceptions\SystemException;
+
 final class TemplateHelper {
 	private static $_instances = array();
 	public static function getInstance($args = null, $templateEngine = null) {
@@ -23,21 +26,25 @@ final class TemplateHelper {
 	}
 	public static function getInstanceForFile($file, $args) {
 		$ext = Utils::getFileExt($file, false);
-		return self::getInstanceForExt($ext,$args);
+		return self::getInstanceForExt($ext, $args);
 	}
 	public static function getInstanceForExt($ext, $args) {
 		switch (strtolower($ext)) {
-			case 'html':
-				return self::getInstance($args, 'SmartyTemplate');
-			case 'php':
-				return self::getInstance($args, 'BaseTemplate');
+		case 'html':
+			return self::getInstance($args, 'SimpleTemplate');
+		case 'php':
+			return self::getInstance($args, 'BaseTemplate');
+		case 'wiki':
+			return new Wiki();
+		case 'md':
+			return new MarkdownExtra();
 		}
 	}
-	public static function renderString($s,$params=array(),$controller=null,$ext='php') {
-		$tmp = tempnam(CGAF::getInternalStorage('tmpl',false,true),'tpl').'.'.$ext;
-		file_put_contents($tmp,$s);
-		$retval = self::renderFile($tmp,$params,$controller,$ext);
-		@unlink($tmp);
+	public static function renderString($s, $params = array(), $controller = null, $ext = 'php') {
+		$tmp = CGAF::getInternalStorage('.cache/statics/', false, true) . hash('crc32', $s) . '.' . $ext;
+		file_put_contents($tmp, $s);
+		$retval = self::renderFile($tmp, $params, $controller, $ext);
+		unlink($tmp);
 		return $retval;
 	}
 	public static function renderFile($file, $params = array(), $controller = null, $ext = null) {

@@ -8,11 +8,7 @@ class DBResultList implements \Iterator {
 	private $_errors=array();
 	function Assign($o) {
 		$this->_crow = -1;
-		if ($o instanceof \Exception) {
-			$this->_errors[] =  $o;
-		}else{
-			$this->_rows[] = $o;
-		}
+		$this->_rows[] = $o;
 	}
 	function getError() {
 		return $this->_errors;
@@ -40,6 +36,9 @@ class DBResultList implements \Iterator {
 			return $this->Rows($this->_crow);
 		}
 		return null;
+	}
+	function reset() {
+		$this->_crow = -1;
 	}
 	function First() {
 		if (count($this->_rows)) {

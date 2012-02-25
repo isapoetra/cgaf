@@ -1,9 +1,12 @@
 <?php
 namespace System\Session\Storage;
+use System\Session\Session;
+
 use System\Session\SessionBase as SessionBase, \CGAF as CGAF, \Utils as Utils;
 function serialize_fix_callback($match) {
 	return 's:' . strlen($match[2]);
 }
+
 class File extends SessionBase {
 	private $_savePath;
 	private $_sessionName = "CGAF";
@@ -35,8 +38,8 @@ class File extends SessionBase {
 		return ("");
 	}
 	function write($sessID, $sessData) {
+		parent::write($sessID, $sessData);
 		$sess_file = $this->getFileName($sessID);
-		//die($sess_file);
 		$fp = @fopen($sess_file, "w+");
 		if ($fp) {
 			$return = fwrite($fp, base64_encode($sessData));
@@ -47,7 +50,7 @@ class File extends SessionBase {
 		}
 	}
 	function destroy($sessID = null) {
-		if ($this->getSessionState() === 'destroyed') {
+		if ($this->getSessionState() === Session::STATE_DESTROYED) {
 			return true;
 		}
 		if ($sessID == null)

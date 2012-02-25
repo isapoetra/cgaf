@@ -17,6 +17,8 @@ namespace System\Documents\ODF\Dio\Chart;
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+use System\Documents\ODF\Dio\Document;
+
 class Axis extends Element {
 	const DIMENSION_X = 'x';
 	const DIMENSION_Y = 'y';

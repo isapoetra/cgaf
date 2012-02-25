@@ -1,8 +1,10 @@
 <?php
-if (! defined("CGAF")) die("Restricted Access");
-using("System.Web.UI.Ext");
-using("System.Web.UI.Ext.form");
-class TExtCombo extends JExtCustom {
+namespace System\Web\UI\Ext\Form;
+use System\JSON\JSON;
+
+use System\Web\UI\Ext\CustomComponent;
+use System\Exceptions\SystemException;
+class Combo extends CustomComponent {
 
   function __construct ($name, $value, $data, $caption = null, $displayField = 'text', $valueField = 'value') {
     parent::__construct("Ext.form.ComboBox");
@@ -32,7 +34,7 @@ class TExtCombo extends JExtCustom {
     return $this->setConfig("name", $value);
   }
 }
-class JExtFormCombo extends JExtFormField {
+class ComboField extends Field {
 
   function __construct ($name, $value, $data, $caption = null, $displayField = 'text', $valueField = 'value', $configs = array()) {
     $displayField = $displayField ? $displayField : "text";
@@ -75,7 +77,7 @@ class JExtFormCombo extends JExtFormField {
     return $this->setConfig("name", $value);
   }
 }
-class TExtButtonCombo extends JExtFormCombo {
+class ComboBox extends ComboField {
 
   function Initialize () {
     $this->_class = "Ext.form.ComboBox";

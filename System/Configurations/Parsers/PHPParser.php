@@ -1,14 +1,14 @@
 <?php
 namespace System\Configurations\Parsers;
 use \Utils;
+use \Logger;
 class PHPParser implements IConfigurationParser {
 	const NL = "\n";
 	function parseFile($f) {
-		global $_configs;
 		if (!is_file($f)) {
 			return null;
 		}
-		include($f);
+		$_configs = include($f);
 		return $_configs;
 	}
 	function parseString($s) {
@@ -20,7 +20,7 @@ class PHPParser implements IConfigurationParser {
 			$cnt = 0;
 			foreach ($config as $k => $v) {
 				$cmt = (is_array($v) || is_object($v)) ? '' : ($showComment ? '//' . sprintf(__('config.' . $prev . '.' . $k, 'Namespace %s'), $prev . '.' . $k) : '');
-				$x = is_numeric($k) ? '' : '"' . $k . '"=>';
+				$x = is_numeric($k) ? '' : '\'' . $k . '\'=>';
 				$retval .= self::NL . str_repeat('	', $level + 1) . $x . $this->toConfigItem($v, $prev . '.' . $k, $level + 1, $showComment);
 				if ($cnt < count($config) - 1) {
 					$retval .= ',';
@@ -40,7 +40,7 @@ class PHPParser implements IConfigurationParser {
 				$retval .= $config ? 'true' : 'false';
 				break;
 			case 'string':
-				$retval .= '"' . $config . '"';
+				$retval .= '\'' . $config . '\'';
 				break;
 			default:
 				$retval .= $config;
@@ -55,11 +55,10 @@ class PHPParser implements IConfigurationParser {
 		$retval = '<?php ';
 		$retval .= 'if (! defined("CGAF"))	die("Restricted Access");';
 		$retval .= PHP_EOL;
-		$retval .= 'global $_configs;' . PHP_EOL;
-		$retval .= '$_configs = array(' . PHP_EOL;
+		$retval .= 'return array(' . PHP_EOL;
 		if ($configs) {
 			foreach ($configs as $k => $v) {
-				$retval .= str_repeat('	', $level) . '"' . $k . '"=>' . $this->toConfigItem($v, $k, $level + 1, $showComment) . ',' . PHP_EOL;
+				$retval .= str_repeat('	', $level) . '\'' . $k . '\'=>' . $this->toConfigItem($v, $k, $level + 1, $showComment) . ',' . PHP_EOL;
 			}
 		}
 		$retval .= ');' . PHP_EOL;
@@ -69,5 +68,6 @@ class PHPParser implements IConfigurationParser {
 	public function save($fileName, $configs, $settings = null) {
 		$configs = $this->toPHPConfig($settings ? $settings : $configs->getConfigs());
 		file_put_contents($fileName, $configs);
+		return true;
 	}
 }

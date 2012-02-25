@@ -1,13 +1,13 @@
 <?php
-if (! defined("CGAF")) die("Restricted Access");
-class TTabPanel extends JExtControl {
+namespace System\Web\UI\Ext;
+class TTabPanel extends Control {
 
   function __construct ($config) {
     parent::__construct("G.Panel");
     $this->setConfigs($config);
   }
 }
-class TExtTabAjax extends JExtControl {
+class TExtTabAjax extends Control {
   protected $_baseHref;
   protected $_baseInc;
   protected $_active;

@@ -1,11 +1,12 @@
 <?php
-using('System.Web.feed.base');
+namespace System\Web\Feed;
+use System\Exceptions\SystemException;
+
 abstract class FeedBuilder {
 	private  function __construct() {
 	}
 	public static function getInstance($type='rss') {
-		using('System.Web.feed.'.strtolower($type));
-		$c =  'T'.$type.'Feed';
+		$c =  'System\\Web\\Feed\\'.$type;
 		$c = new $c;
 		return $c;
 	}
@@ -15,7 +16,7 @@ abstract class FeedBuilder {
 		if ($instance) {
 			$instance->setData($data);
 			$instance->render(false);
-			CGAF::doExit();
+			\CGAF::doExit();
 		}else{
 			throw new SystemException('Unknown Feed Type $type');
 		}

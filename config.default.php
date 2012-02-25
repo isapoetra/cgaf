@@ -1,6 +1,6 @@
 <?php
-global $_configs;
-$_configs = array(
+defined('CGAF') or die('Restricted access');;
+return array(
 	//Application to ignore while installation
 		'appignoreinstall' => array(),
 		'installed' => true,

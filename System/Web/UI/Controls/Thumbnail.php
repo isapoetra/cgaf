@@ -1,90 +1,108 @@
 <?php
 namespace System\Web\UI\Controls;
 use System\Web\JS\CGAFJS;
-use \Convert;
+use Convert;
 class ThumbnailItem extends WebControl {
 	private $_backgroundImage;
-	private $_actions = array();
+	private $_actions = array ();
 	private $_description;
 	public $width;
 	public $height;
+	private $_action;
+	private $_stitle;
 	function __construct($title, $image, $action) {
-		parent::__construct('a', true, array('href' => $action));
-		$this->setTitle($title);
+		parent::__construct ( 'div', true, array (
+				'class' => 'thumbnail' 
+		) );
+		$this->_stitle = $title;
+		$this->_action = $action;
+		// array('href' => $action)
+		// $this->setTitle($title);
 		$this->_backgroundImage = $image;
-
 	}
 	function setDescription($value) {
 		$this->_description = $value;
 	}
 	function addAction($action) {
-		$this->_actions[] = $action;
+		$this->_actions [] = $action;
 	}
 	function getBackgroundImage() {
 		return $this->_backgroundImage;
 	}
 	function setAction($action) {
-		$this->setAttr('href', $action);
+		$this->setAttr ( 'href', $action );
 	}
 	function getAction() {
-		return $this->getAttr('href');
+		return $this->getAttr ( 'href' );
 	}
-	function Render($return = false) {
-		//CGAFJS::loadPlugin('plugin.scrollbar',true);
-		$retval = '<div class="thumbnail-item" style="width:'.$this->width.'px;height:'.$this->height.'px;position:relative"><div>';
-		$retval .= '<div class="thumbnail-item-wrapper fill-parent" style="background-image:url(' . $this->_backgroundImage . ')">';
-		$retval .= '<div class="thumbnail-content"><div>';
-		foreach ($this->_childs as $c) {
-			$retval .= Convert::toString($c);
-		}
-		$retval .= '</div></div>';
-		if ($this->_description) {
-			$retval .= '<div class="descr"><span>' . $this->_description . '</span></div>';
-		}
-		if ($this->_actions) {
-			$retval .= '<div class="action">';
-			foreach ($this->_actions as $c) {
-				$retval .= Convert::toString($c);
-			}
-			$retval .= '</div>';
-		}
-		$retval .= '</div>';
-		$retval .= '<a href="' . $this->action . '" class="item-title" title="'.$this->getTitle().'"><span>' . $this->getTitle() . '</span></a>';
-		$retval .= '</div></div>';
-		return $retval;
+	function prepareRender() {
+		$link = new Anchor ( $this->_action, '' );
+		$link->addChild ( '<img src="' . $this->_backgroundImage . '"/>' );
+		$this->addChild ( $link );
+		$cap = new WebControl ( 'div', false, array (
+				'class' => 'caption' 
+		) );
+		$cap->AddChild('<h5>'.$this->_title.'</h5>');
+		$cap->addChild('<div>'.$this->_description.'</div>');
+		$cap->addChild('<div class="actions">'.\Utils::toString($this->_actions).'</div>');
+		$this->addChild ( $cap );
 	}
+	/*
+	 * function Render($return = false) {
+	 * //CGAFJS::loadPlugin('plugin.scrollbar',true); $retval = '<div
+	 * class="thumbnail-item"
+	 * style="width:'.$this->width.'px;height:'.$this->height.'px;position:relative"><div>';
+	 * $retval .= '<div class="thumbnail-item-wrapper fill-parent"
+	 * style="background-image:url(' . $this->_backgroundImage . ')">'; $retval
+	 * .= '<div class="thumbnail-content"><div>'; foreach ($this->_childs as $c)
+	 * { $retval .= Convert::toString($c); } $retval .= '</div></div>'; if
+	 * ($this->_description) { $retval .= '<div class="descr"><span>' .
+	 * $this->_description . '</span></div>'; } if ($this->_actions) { $retval
+	 * .= '<div class="action">'; foreach ($this->_actions as $c) { $retval .=
+	 * Convert::toString($c); } $retval .= '</div>'; } $retval .= '</div>';
+	 * $retval .= '<a href="' . $this->action . '" class="item-title"
+	 * title="'.$this->getTitle().'"><span>' . $this->getTitle() .
+	 * '</span></a>'; $retval .= '</div></div>'; return $retval; }
+	 */
 }
 class Thumbnail extends WebControl {
 	private $_thumContainer;
 	function __construct() {
-		parent::__construct('div', false, array('class' => 'thumbnail'));
-		//$this->addChild(new HTMLControl('div',true,array('class'=>'thumbnail-scrollbar')));
-		$this->_thumContainer = $this->addChild(new HTMLControl('div', false, array('class' => 'thumbnail-container')));
+		parent::__construct ( 'ul', false, array (
+				'class' => 'thumbnails' 
+		) );
+		// $this->addChild(new
+		// HTMLControl('div',true,array('class'=>'thumbnail-scrollbar')));
+		// $this->_thumContainer = $this->addChild(new HTMLControl('div', false,
+		// array('class' => 'thumbnail-container')));
+	}
+	function renderItems() {
+		// $c = $this->_childs;
+		$retval = '';
+		foreach ( $this->_childs as $c ) {
+			$retval .= '<li class="span2">';
+			$retval .= \Utils::toString ( $c );
+			$retval .= '</li>';
+		}
+		return $retval;
 	}
 	function prepareRender() {
-		CGAFJS::loadPlugin('thumbnail', true);
-		$thumbcss = $this->getAppOwner()->getLiveAsset('thumbnail.css', 'cgaf');
-		$this->getAppOwner()->addClientAsset($thumbcss);
-
-		$id = $this->getId();
-		//TODO MOVe to imagescroll.js
-		$script = <<< EOT
-$('#{$id}').thumbnail();
-EOT;
-		$ss = <<<EOT
-		.img-item img {
-			width:100%;
-			height:100%;
-		}
-EOT;
-		$this->getAppOwner()->addStyleSheet($ss);
-		$this->getAppOwner()->addClientScript($script);
+		CGAFJS::loadPlugin ( 'thumbnail', true );
+		// $thumbcss = $this->getAppOwner()->getLiveAsset('thumbnail.css',
+		// 'cgaf');
+		// $this->getAppOwner()->addClientAsset($thumbcss);
+		
+		$id = $this->getId ();
+		// TODO MOVe to imagescroll.js
+		/*
+		 * $script = <<< EOT $('#{$id}').thumbnail(); EOT; $ss = <<<EOT
+		 * .img-item img { width:100%; height:100%; } EOT;
+		 * $this->getAppOwner()->addStyleSheet($ss);
+		 * $this->getAppOwner()->addClientScript($script);
+		 */
 		return true;
 	}
 	function addChild($c) {
-		if ($this->_thumContainer) {
-			return $this->_thumContainer->addChild($c);
-		}
-		return parent::addChild($c);
+		return parent::addChild ( $c );
 	}
 }

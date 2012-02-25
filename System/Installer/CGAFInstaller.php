@@ -1,5 +1,7 @@
 <?php
 namespace System\Installer;
+use System\Exceptions\SystemException;
+
 use \CGAF;
 class CGAFInstaller extends AbstractInstaller{
 	function Initialize() {

@@ -1,5 +1,7 @@
 <?php
 namespace System\DB\Adapters;
+use System\DB\DBResultList;
+
 use System\DB\DBQuery;
 
 use System\DB\Table;
@@ -40,6 +42,7 @@ class JSON extends DBConnection {
 			) );
 		}
 		$path = \Utils::toDirectory ( $this->getArg ( 'host' ) . $this->getArg ( 'database' ) . DS );
+		
 		if (! is_dir ( $path )) {
 			$this->throwError ( new DBException ( 'Host Not Foudn' ) );
 		}
@@ -136,7 +139,7 @@ class JSON extends DBConnection {
 					return $this->_toDBFieldType ( $ex [0] );
 				
 				}
-				ppd ( $ex );
+				ppd ( $f );
 		}
 	
 	}
@@ -445,6 +448,7 @@ class JSONTableSQL extends JSONTable {
 	private function _iseqfilt($o) {
 		$f = $this->_filter;
 		$sfilt = '';
+		$idx=0;
 		foreach ( $f as $k => $ff ) {
 			$oper = $ff [1];
 			$val = trim ( $ff [2], '\' ' );
@@ -455,8 +459,9 @@ class JSONTableSQL extends JSONTable {
 			
 			}
 			$sfilt .= '(\'' . $o->$ff [0] . '\'' . $oper . '\'' . $val . '\')';
+			if ($idx<count($f)-1) $sfilt.='&&';
+			$idx ++;
 		}
-		
 		eval ( "\$sfilt=$sfilt;" );
 		
 		return $sfilt;
@@ -573,6 +578,7 @@ class JSONSQL {
 	}
 	
 	private function _getTableObject($t) {
+		$t = str_replace('`', '', $t);
 		if (! $this->_db->isObjectExist ( $t, 'table' )) {
 			return null;
 		}
@@ -614,6 +620,7 @@ class JSONSQL {
 	}
 	private function prepareSQL($sql) {
 		$sql = str_ireplace ( '#__', $this->_db->getArg ( 'prefix', '' ), $sql );
+		$sql = str_ireplace ( '`', '', $sql );
 		return $sql;
 	}
 	public function exec($sql) {
@@ -630,8 +637,7 @@ class JSONSQL {
 				if ($t) {
 					$tables [$v ['alias']] = $t;
 				} else {
-					dj ( $sql );
-					throw new DBException ( 'Invalid Statement ' . $sql . ' Table name ' . $v ['table'] );
+					throw new DBException ( 'Table ' . $v ['table'] .' not exists');
 				}
 			}
 			
@@ -704,18 +710,27 @@ class JSONSQL {
 			}
 			$rows = array ();
 			foreach ( $tables as $v ) {
-				$rows [$v->getTableName ()] = $v->load ();				
+				$rows [$v->getTableName ()] = $v->load ();
 			}
-			$first = $tables[0]->getTableName();
-			
+			$retval = new \stdClass ();
+			$retval->cols = array ();
+			$retval->rows = array ();
+			$rowt = $rows [$tname];
 			foreach ( $fieldselect as $k => $v ) {
-				$r = array ();
-				$row = $rows[$v[0]];
-				$retval->assign ( $r );
+				$retval->cols[] = $v[1];
 			}
-			
-			pp ( $fieldselect );
-			ppd ( $retval );
+			foreach ( $rowt as $row ) {
+				$r = array ();
+				foreach ( $fieldselect as $k => $v ) {
+					if ($v [0] === $tname) {
+						$r [] = $row->$v [1];
+					} else {
+						$r [] = null;
+					}
+				
+				}
+				$retval->rows [] = $r;
+			}		
 			return $retval;
 		} elseif (isset ( $p ['INSERT'] )) {
 			$o = $p ['INSERT'];
@@ -771,10 +786,24 @@ class JSONSQL {
 			dj ( $p );
 		}
 	}
-	
+	private static function toResultObject($res) {
+		$retval = new DBResultList();
+		if (!is_object($res)) {
+			return $res;
+		}
+		foreach($res->rows as $row ) {
+			$srow = new \stdClass();
+			foreach($res->cols as $idx=>$col) {
+				$srow->$col = $row[$idx];
+			}
+			$retval->assign($srow);
+		}
+		return $retval;
+	}
 	public static function getResults($db, $sql) {
 		$i = new JSONSQL ( $db );
-		return $i->exec ( $sql );
+		$res =  $i->exec ( $sql );
+		return self::toResultObject($res);
 	}
 
 }

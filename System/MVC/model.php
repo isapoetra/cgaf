@@ -2,8 +2,8 @@
 namespace System\MVC;
 use System\DB\Table;
 class Model extends Table {
-	function __construct($connection, $tableName, $pk = "id", $includeAppId = false) {
-		parent::__construct ( $connection, $tableName, $pk, $includeAppId );
+	function __construct($connection, $tableName, $pk = "id", $includeAppId = false,$autoCreate = false) {
+		parent::__construct ( $connection, $tableName, $pk, $includeAppId ,$autoCreate);
 	}
 	function getModel($model) {
 		return $this->getAppOwner ()->getModel ( $model );

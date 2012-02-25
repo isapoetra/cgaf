@@ -1,5 +1,7 @@
 <?php
 namespace System\Web\UI\Ext;
+use System\JSON\JSON;
+
 class CustomRenderer extends ExtJS {
 
 	function __construct($tpl, $params) {

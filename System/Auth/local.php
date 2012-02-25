@@ -29,11 +29,12 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 		}
 		return $this->_adapter;
 	}
-	function authDirect($username, $password, $method = 'local') {
+	function authDirect($username, $password, $method = 'local', $remember = false) {
 		$adapter = $this->getAdapter();
 		$adapter->setIdentify($username);
 		$adapter->setCredential($password);
 		$adapter->SetLogonMethod($method);
+		$adapter->setRemember($remember);
 		$result = $adapter->authenticate();
 		if ($result) {
 			$states = $result->getStates();
@@ -54,7 +55,7 @@ class Local extends BaseAuthentificator implements IAuthentificator {
 			$args = Request::gets(null, true);
 		}
 		$args = parent::getAuthArgs();
-		$result = $this->authDirect($args->username, $this->encryptPassword($args->password));
+		$result = $this->authDirect($args->username, $this->encryptPassword($args->password), 'local', $args->remember);
 		if (!$result) {
 			$this->setLastError("Invalid Username/password");
 			return false;

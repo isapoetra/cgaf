@@ -1,4 +1,5 @@
 <?php
+namespace System\Web\JS\Packer;
 using ('libs.php-closure.php-closure' );
 class ClosureCompilerPacker extends PhpClosure implements IScriptPacker {
 	private $_instance;

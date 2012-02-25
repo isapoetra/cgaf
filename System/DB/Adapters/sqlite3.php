@@ -1,5 +1,7 @@
 <?php
 namespace System\DB\Adapters;
+use \System,\CGAF,\Utils,\Logger;
+use System\DB\DBException;
 class DBSQLite3Adapter extends DBSQLiteAdapter {
 	function __construct($connArgs) {
 		if (!class_exists('SQLite3')) {
@@ -20,19 +22,19 @@ class DBSQLite3Adapter extends DBSQLiteAdapter {
 		$host = realpath(Utils::ToDirectory($host));
 		if (!$host) {
 			Logger::WriteDebug($host);
-			throw new Exception('Sqlite storage not found');
+			throw new DBException('Sqlite storage not found');
 		}
 		$file = $host.DS.$this->getArg('database').'.sqlite';
 		$this->_lastError =null;
 		if (!is_file($file) && $this->getArg('autocreate',CGAF_DEBUG)) {
-			$this->_resource = new SQlite3 ( $file ,SQLITE3_OPEN_READWRITE,$this->getArg('password'));
+			$this->_resource = new \SQlite3 ( $file ,SQLITE3_OPEN_READWRITE,$this->getArg('password'));
 		}else{
 			
-			$this->_resource = new SQlite3 ( $file,SQLITE3_OPEN_READWRITE,$this->getArg('password') );
+			$this->_resource = new \SQlite3 ( $file,SQLITE3_OPEN_READWRITE,$this->getArg('password') );
 		}
 		if ($this->_resource === false) {
 			$lerror = CGAF::getLastError ();
-			throw new Exception ( $this->_la );
+			throw new DBException ( $this->_la );
 		}				
 		$this->SelectDB ( $file);
 		$this->setConnected ( $this->_resource != false );
@@ -51,7 +53,7 @@ class DBSQLite3Adapter extends DBSQLiteAdapter {
 	function fetchObject() {
 		
 		if ($this->_result instanceof  SQLite3Result) {
-			$retval = new stdClass();			
+			$retval = new \stdClass();			
 			$arr = $this->_result->fetchArray();
 			if ($arr) {
 				return Utils::bindToObject($retval, $arr,true);
@@ -75,7 +77,7 @@ class DBSQLite3Adapter extends DBSQLiteAdapter {
 		$this->_lastError = $this->_resource->lastErrorMsg();
 		$this->_lastErrorCode = $this->_resource->lastErrorCode();
 		if ($this->_result == false && $this->_lastErrorCode !==0) {			
-			$this->throwError ( new Exception ( $this->_lastErrorCode.':'.$this->_lastError ) );
+			$this->throwError ( new DBException ( $this->_lastErrorCode.':'.$this->_lastError ) );
 		}
 	}
 	function Exec($sql) {

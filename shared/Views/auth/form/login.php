@@ -1,33 +1,47 @@
 <?php
-use \System\Web\Utils\HTMLUtils;
-use \System\Auth\Auth;
-$redirect = isset($redirect) ? $redirect : URLHelper::addParam(BASE_URL, array(
-		'redirect' => Request::get("redirect"),
-		'__t' => time()));
-$msg = isset($msg) ? $msg : Request::get('msg');
+use System\Web\Utils\HTMLUtils;
+use System\Auth\Auth;
+$redirect = isset ( $redirect ) ? $redirect : URLHelper::addParam ( BASE_URL, array (
+		'redirect' => Request::get ( "redirect" ),
+		'__t' => time ()
+) );
+$providers = isset ( $providers ) ? $providers : array();
+$msg = isset ( $msg ) ? $msg : Request::get ( 'msg' );
 ?>
-<table class="table login-form">
+<table class="table table-bordered login-form">
 	<tr>
 		<td width="75%">&nbsp;<?php echo $this->getController()->renderContent('left') ?></td>
 		<td class="login-container">
 <?php
-$cssClass = isset($cssClass) ? $cssClass : 'login';
-$renderNext = isset($renderNext) ? $renderNext : false;
-$json = isset($json) ? $json : false;
-echo HTMLUtils::beginForm(\URLHelper::add(APP_URL, 'auth?__t=' . time(), ($json ? '_json=1' : '')), false, true, $msg, array(
+$cssClass = isset ( $cssClass ) ? $cssClass : 'login';
+$renderNext = isset ( $renderNext ) ? $renderNext : false;
+$json = isset ( $json ) ? $json : false;
+echo HTMLUtils::beginForm ( \URLHelper::add ( APP_URL, 'auth?__t=' . time (), ($json ? '_json=1' : '') ), false, true, $msg, array (
 		'class' => $cssClass,
-		'id' => 'login'));
-//echo '<input type="hidden" name="redirect" value="' . $redirect . '">';
-echo HTMLUtils::renderTextBox(__('user.user_name'), 'username', null, 'class="required"', true) . '<br/>';
-echo HTMLUtils::renderPassword(__('user.user_password'), 'password', null, 'class="required"', true);
-echo HTMLUtils::renderCheckbox(__('auth.remember'), 'remember', false);
-echo '<div class="formAction">';
-echo HTMLUtils::renderButton('submit', __('auth.login.title', 'Sign In'), 'Login to System', array(), true, 'login-small.png');
+		'id' => 'login'
+) );
+// echo '<input type="hidden" name="redirect" value="' . $redirect . '">';
+echo HTMLUtils::renderTextBox ( __ ( 'auth.user_name' ), 'username', null, 'class="required"', true ) . '<br/>';
+echo HTMLUtils::renderPassword ( __ ( 'auth.user_password' ), 'password', null, 'required class="required"', true );
+//echo HTMLUtils::renderCheckbox ( __ ( 'auth.remember' ), 'remember', false );
+
+echo '<div class="form-actions">';
+echo HTMLUtils::renderButton ( 'submit', __ ( 'auth.login.title', 'Sign In' ), 'Login to System', array ('class'=>'btn btn-primary'), true, 'login-small.png' );
+$title =  __ ( 'auth.remember' );
+echo <<< EOT
+<div class="help-inline" >
+	<label class="checkbox">
+		<input type="checkbox" id="remember" name="remember"/>$title
+	</label>
+</div>
+EOT;
+echo '<div>';
+echo HTMLUtils::renderLink ( BASE_URL . 'user/forget/', __ ( 'auth.forgetpassword' ) );
+echo HTMLUtils::renderLink ( BASE_URL . 'user/register/', __ ( 'auth.register' ) );
 echo '</div>';
-echo HTMLUtils::renderLink(BASE_URL . 'user/forget/', __('user.forgetpassword'));
-echo HTMLUtils::renderLink(BASE_URL . 'user/register/', __('user.register'));
-echo HTMLUtils::endForm(false, true);
-if (isset($providers) && $providers) {
+echo '</div>';
+echo HTMLUtils::endForm ( false, true );
+if ($providers) {
 	$script = <<<EOT
 	$('.auth-external').click(function(e) {
 		e.preventDefault();
@@ -54,18 +68,18 @@ if (isset($providers) && $providers) {
 		return false;
 			});
 EOT;
-	$appOwner->addClientScript($script);
+	$appOwner->addClientScript ( $script );
 	echo '<div class="auth-external-container">';
-	echo '<div class="ui-widget-header">' . __('auth.alternative') . '</div>';
-	foreach ($providers as $provider) {
-		echo HTMLUtils::renderLink(\URLHelper::add(APP_URL, 'auth/external', 'id=' . $provider), __('auth.' . $provider . 'title', ucfirst($provider)),
-				array(
-						'title' => __('auth.' . $provider . 'descr', 'Signin using ' . ucfirst($provider)),
-						'class' => 'auth-external auth-external-' . $provider), 'auth/' . $provider . '.png');
+	echo '<div class="ui-widget-header">' . __ ( 'auth.alternative' ) . '</div>';
+	foreach ( $providers as $provider ) {
+		echo HTMLUtils::renderLink ( \URLHelper::add ( APP_URL, 'auth/external', 'id=' . $provider ), __ ( 'auth.' . $provider . 'title', ucfirst ( $provider ) ), array (
+				'title' => __ ( 'auth.' . $provider . 'descr', 'Signin using ' . ucfirst ( $provider ) ),
+				'class' => 'auth-external auth-external-' . $provider
+		), 'auth/' . $provider . '.png' );
 	}
 	echo '</div>';
 }
-									?>
+?>
 		</td>
 	</tr>
 </table>

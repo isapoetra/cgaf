@@ -1,4 +1,5 @@
 <?php
+namespace System\Models;
 use System\MVC\Model;
 class RolePrivsModel extends Model {
 	public $role_id;
@@ -7,6 +8,10 @@ class RolePrivsModel extends Model {
 	public $privs;
 	public $object_type;
 	function __construct($connection) {
-		parent::__construct($connection,'role_privs',array('role_id','app_id','object_id'),true);
+		parent::__construct ( $connection, 'role_privs', array (
+				'role_id',
+				'app_id',
+				'object_id'
+		), true, \CGAF::isInstalled () === false );
 	}
 }

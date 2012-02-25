@@ -1,5 +1,7 @@
 <?php
 namespace System\Assets;
+use System\Exceptions\SystemException;
+
 use System\Web\JS\JSUtils;
 use \CGAF;
 use \Utils;

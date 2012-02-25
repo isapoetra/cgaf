@@ -27,62 +27,69 @@ class DBQuery extends \Object implements IQuery {
 	private $_distinct = false;
 	protected $_fields = array ();
 	private $_unions = array ();
+	public $_throwOnError =true;
+
 	private $_validModes = array (
-			DBQuery::MODE_SELECT, 
-			DBQuery::MODE_UPDATE, 
-			DBQuery::MODE_DROP, 
-			DBQuery::MODE_INSERT, 
-			DBQuery::MODE_DELETE, 
-			DBQuery::MODE_DIRECT, 
-			DBQuery::MODE_CREATE_TABLE 
+			DBQuery::MODE_SELECT,
+			DBQuery::MODE_UPDATE,
+			DBQuery::MODE_DROP,
+			DBQuery::MODE_INSERT,
+			DBQuery::MODE_DELETE,
+			DBQuery::MODE_DIRECT,
+			DBQuery::MODE_CREATE_TABLE
 	);
+	function setThrowOnError($value) {
+		$this->_throwOnError = $value;
+	}
 	function __construct($connection = null) {
 		if ($connection instanceof \IApplication) {
 			$this->_conn = $connection->getDBConnection ();
-		} else {
+		} elseif ($connection instanceof IDBConnection) {
 			if ($connection == null) {
 				$connection = \AppManager::getInstance ()->getDBConnection ();
 			}
 			$this->_conn = $connection;
+		}else{
+			throw new DBException('unknown connection type');
 		}
 		$this->Initialize ();
 	}
-	
+
 	protected function Initialize() {
 	}
-	
+
 	function getConnection() {
 		return $this->_conn;
 	}
-	
+
 	function toDate($o = null) {
 		return $this->getConnection ()->DateToDB ( $o );
 	}
-	
+
 	function lastSQL() {
 		return $this->_lastSQL;
 	}
-	
+
 	function getDriverString() {
 		return $this->_conn->getArg ( "type" );
 	}
-	
+
 	/**
 	 *
-	 * @param $str string       	
+	 * @param $str string
 	 * @return unknown_type
 	 */
 	function quote($str, $pref = true) {
 		return $this->getConnection ()->quote ( $str, $pref );
 	}
-	
+
 	function quoteTable($str, $includedbname = false) {
 		return $this->getConnection ()->quoteTable ( $str, $includedbname );
 	}
-	
+
 	/**
 	 * clear
-	 * 
+	 *
 	 * @return TDBQuery
 	 */
 	function clear($what = 'all') {
@@ -136,24 +143,24 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return $this;
 	}
-	
+
 	/**
 	 * Enter description here...
-	 * 
-	 * @param $field string       	
-	 * @param $value mixed       	
+	 *
+	 * @param $field string
+	 * @param $value mixed
 	 * @return TDBQuery
 	 */
 	function Update($field, $value, $ope = "=", $func = false) {
 		$this->_type = "update";
 		$this->_update [$field] = array (
-				$ope, 
-				$value, 
-				$func 
+				$ope,
+				$value,
+				$func
 		);
 		return $this;
 	}
-	
+
 	/**
 	 *
 	 * @param
@@ -164,11 +171,12 @@ class DBQuery extends \Object implements IQuery {
 	 *
 	 *
 	 *
+	 *
 	 */
 	function addOrder($order) {
 		return $this->orderBy ( $order );
 	}
-	
+
 	/**
 	 *
 	 * @param
@@ -190,13 +198,13 @@ class DBQuery extends \Object implements IQuery {
 				$ob = $o [1];
 			}
 			$this->_orderby [] = array (
-					'field' => $o [0], 
-					'order' => $ob 
+					'field' => $o [0],
+					'order' => $ob
 			);
 		}
 		return $this;
 	}
-	
+
 	/**
 	 *
 	 * @param
@@ -222,24 +230,24 @@ class DBQuery extends \Object implements IQuery {
 			}
 		}
 		$this->_where [] = array (
-				$where, 
-				$next 
+				$where,
+				$next
 		);
 		return $this;
 	}
-	
+
 	protected function getValidMode() {
 		return $this->_validModes;
 	}
-	
+
 	protected function isValidMode($mode) {
 		$valid = $this->getValidMode ();
 		return in_array ( $mode, $valid );
 	}
-	
+
 	/**
 	 *
-	 * @param $value String       	
+	 * @param $value String
 	 * @return TDBQuery
 	 */
 	public function setMode($value) {
@@ -249,12 +257,12 @@ class DBQuery extends \Object implements IQuery {
 		$this->_type = $value;
 		return $this;
 	}
-	
+
 	public function setDistinct($value) {
 		$this->_distinct = $value;
 		return $this;
 	}
-	
+
 	function loadSQLFile($f) {
 		if (is_readable ( $f )) {
 			$query = file_get_contents ( $f, FILE_TEXT ) . "\n";
@@ -283,13 +291,13 @@ class DBQuery extends \Object implements IQuery {
 		} else {
 			throw new \Exception ( "File Not Found" . Logger::WriteDebug ( $f ) );
 		}
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * (non-PHPdoc)
-	 * 
+	 *
 	 * @see System/Interface/IConnector#addSQL($sql)
 	 */
 	function addSQL($sql) {
@@ -297,11 +305,11 @@ class DBQuery extends \Object implements IQuery {
 		$this->_sql [] = $sql;
 		return $this;
 	}
-	
+
 	function addInsert($field, $value = null, $func = false) {
 		return $this->insert ( $field, $value, $func );
 	}
-	
+
 	/**
 	 *
 	 * @param
@@ -331,18 +339,18 @@ class DBQuery extends \Object implements IQuery {
 				$value = "null";
 			}
 			$this->_inserts [$field] = array (
-					'value' => $value, 
-					'func' => $func 
+					'value' => $value,
+					'func' => $func
 			);
 		}
 		return $this;
 	}
-	
+
 	function delete() {
 		$this->_type = 'delete';
 		return $this;
 	}
-	
+
 	/**
 	 *
 	 * @param
@@ -357,26 +365,26 @@ class DBQuery extends \Object implements IQuery {
 				Utils::arrayRemoveValue ( $this->_fields, $field );
 			}
 			$this->_fields [$alias] = array (
-					'field' => $field, 
-					'func' => $func 
+					'field' => $field,
+					'func' => $func
 			);
 		} else {
 			$this->_fields [] = array (
-					'field' => $field, 
-					'func' => $func 
+					'field' => $field,
+					'func' => $func
 			);
 		}
 		return $this;
 	}
-	
+
 	function union($o) {
 		$this->_unions [] = $o;
 	}
-	
+
 	function getFields() {
 		return $this->_fields;
 	}
-	
+
 	/**
 	 *
 	 * @param
@@ -387,31 +395,31 @@ class DBQuery extends \Object implements IQuery {
 		$this->_groupBy [] = $f;
 		return $this;
 	}
-	
+
 	function having($f) {
 		$this->_having [] = $f;
 		return $this;
 	}
-	
+
 	function addGroupBy($f) {
 		return $this->groupBy ( $f );
 	}
-	
+
 	protected function getAllField() {
 		return "*";
 	}
-	
+
 	protected function getWhere() {
 		return $this->_where;
 	}
-	
+
 	protected function quoteAlias($fields) {
 		if (strpos ( $fields, ',' ) === false && strpos ( $fields, '*' ) === false && strpos ( $fields, ' ' ) === false && strpos ( $fields, '.' ) === false) {
 			return $this->quoteTable ( $fields );
 		}
 		return $fields;
 	}
-	
+
 	protected function quoteField($fields) {
 		if (is_array ( $fields )) {
 			$retval = '';
@@ -435,7 +443,7 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return $this->quoteAlias ( $fields );
 	}
-	
+
 	/**
 	 *
 	 * @return string
@@ -486,7 +494,7 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return $sql;
 	}
-	
+
 	private function getSQLOrder() {
 		if (count ( $this->_orderby ) > 0) {
 			$ob = array ();
@@ -511,9 +519,9 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return null;
 	}
-	
+
 	public function getFirstTableName() {
-		
+
 		if (! isset ( $this->_table [0] )) {
 			$key = array_keys ( $this->_table );
 			$tbl = $key [0];
@@ -522,25 +530,25 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return $tbl;
 	}
-	
+
 	protected function getFirstTable() {
 		if (! isset ( $this->_table [0] )) {
 			$key = array_keys ( $this->_table );
 			$tbl = array (
-					'_table' => $key [0], 
-					'alias' => $key [0], 
-					'expr' => false 
+					'_table' => $key [0],
+					'alias' => $key [0],
+					'expr' => false
 			);
 		} else {
 			$tbl = $this->_table [0];
 		}
 		return $tbl;
 	}
-	
+
 	protected function getTableName($includeDBName = false) {
 		return $this->quoteTable ( $this->getConnection ()->table_prefix . $this->getFirstTableName (), $includeDBName );
 	}
-	
+
 	private function getSQLUpdate() {
 		if (count ( $this->_table ) == 0) {
 			throw new \Exception ( "Table Not Found" );
@@ -558,13 +566,13 @@ class DBQuery extends \Object implements IQuery {
 		$sql .= $this->getSQLWhere ();
 		return $sql;
 	}
-	
+
 	private function getSQLDelete() {
 		$sql = "delete from " . $this->getTableName ();
 		$sql .= $this->getSQLWhere ( $this->_where );
 		return $sql;
 	}
-	
+
 	private function getSQLInsert() {
 		$sql = "insert into " . $this->getTableName () . " (";
 		foreach ( $this->_inserts as $k => $v ) {
@@ -588,17 +596,17 @@ class DBQuery extends \Object implements IQuery {
 		$sql .= ")";
 		return $sql;
 	}
-	
+
 	public function isObjectExist($objectName, $objectType = "table") {
 		return $this->getConnection ()->isObjectExist ( $objectName, $objectType );
 	}
-	
+
 	private function getSQLDrop() {
 		if (empty ( $this->_drops )) {
 			throw new \Exception ( "NO Object to drop" );
 		}
 		foreach ( $this->_drops as $d ) {
-			
+
 			if ($this->isObjectExist ( $d [1], $d [0] )) {
 				$this->addSQL ( "DROP " . strtoupper ( $d [0] ) . " " . $this->getConnection ()->table_prefix . $d [1] );
 			}
@@ -608,7 +616,7 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return null;
 	}
-	
+
 	private function getSQLWhere($where = null) {
 		if ($where == null) {
 			$where = $this->_where;
@@ -628,16 +636,16 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return null;
 	}
-	
+
 	protected function prepare($type = null) {
 		$this->_prepared = true;
 	}
-	
+
 	function getSQL($page = -1, $rowPerPage = -1) {
 		if (! $this->_prepared) {
 			$this->prepare ( $this->_type );
 		}
-		
+
 		switch (strtolower ( $this->_type )) {
 			case self::MODE_UPDATE :
 				return $this->getSQLUpdate ();
@@ -653,7 +661,7 @@ class DBQuery extends \Object implements IQuery {
 			case self::MODE_INSERT :
 				return $this->getSQLInsert ();
 			case self::MODE_DROP :
-				
+
 				return $this->getSQLDrop ();
 			case self::MODE_CREATE_TABLE :
 				return $this->getConnection ()->getSQLCreateTable ( $this );
@@ -662,11 +670,11 @@ class DBQuery extends \Object implements IQuery {
 				break;
 		}
 	}
-	
+
 	function loadScalar() {
 		return ( int ) Utils::getObjectProperty ( $this->loadObject (), 0 );
 	}
-	
+
 	function loadObject($o = null) {
 		if ($o === 'this') {
 			$o = $this;
@@ -688,11 +696,11 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return null;
 	}
-	
+
 	protected function prepareOutput($o) {
 		return $o;
 	}
-	
+
 	function loadObjects($class = null, $page = -1, $rowPerPage = -1) {
 		$sql = $this->getSQL ( $page, $rowPerPage );
 		if (is_array ( $sql )) {
@@ -716,11 +724,11 @@ class DBQuery extends \Object implements IQuery {
 		}
 		return null;
 	}
-	
+
 	public static function execute($sql, $connection) {
 		return $connection->exec ( $sql );
 	}
-	
+
 	function exec($sql = null) {
 		if ($sql == null) {
 			$sql = $this->getSQL ();
@@ -729,37 +737,45 @@ class DBQuery extends \Object implements IQuery {
 			throw new \Exception ( "Empty SQL" );
 		}
 		$this->_lastSQL = $sql;
-		if (is_array ( $sql )) {
-			$res = $this->getConnection ()->execBatch ( $sql );
-		} else {
-			$res = $this->getConnection ()->Query ( $sql );
+		$res = null;
+		try {
+			if (is_array ( $sql )) {
+				$res = $this->getConnection ()->execBatch ( $sql );
+			} else {
+				$res = $this->getConnection ()->Query ( $sql );
+			}
+		} catch ( \Exception $e ) {
+			if ($this->_throwOnError) {
+				throw $e;
+			}
+			$this->setLastError($e->getMessage());
 		}
 		return $res;
 	}
-	
+
 	function getError() {
 		return $this->getConnection ()->getError ();
 	}
-	
+
 	/**
 	 * Add table to statement
-	 * 
-	 * @param $table string       	
-	 * @param $alias string       	
-	 * @param $expr boolean       	
+	 *
+	 * @param $table string
+	 * @param $alias string
+	 * @param $expr boolean
 	 * @return \System\DB\DBQuery
 	 */
 	function addTable($table, $alias = null, $expr = false) {
 		if (! in_array ( $table, $this->_table )) {
 			$this->_table [$table] = array (
-					'_table' => $table, 
-					'alias' => $alias, 
-					'expr' => $expr 
+					'_table' => $table,
+					'alias' => $alias,
+					'expr' => $expr
 			);
 		}
 		return $this;
 	}
-	
+
 	/**
 	 *
 	 * @param
@@ -774,38 +790,38 @@ class DBQuery extends \Object implements IQuery {
 	 */
 	function join($table, $alias, $expr, $m = "inner", $vw = false) {
 		$this->_join [] = array (
-				"table" => $table, 
-				"alias" => $alias, 
-				"expr" => $expr, 
-				"type" => $m, 
-				'view' => $vw 
+				"table" => $table,
+				"alias" => $alias,
+				"expr" => $expr,
+				"type" => $m,
+				'view' => $vw
 		);
 		return $this;
 	}
-	
+
 	function leftJoin($table, $alias, $expr, $vw = false) {
 		return $this->join ( $table, $alias, $expr, 'left', $vw );
 	}
-	
+
 	/**
 	 * Enter description here .
 	 * ..
-	 * 
-	 * @param $table unknown_type       	
-	 * @param $alias unknown_type       	
-	 * @param $expr unknown_type       	
-	 * @param $m unknown_type       	
+	 *
+	 * @param $table unknown_type
+	 * @param $alias unknown_type
+	 * @param $expr unknown_type
+	 * @param $m unknown_type
 	 * @deprecated please use join
 	 */
 	function addJoin($table, $alias, $expr, $m = "inner") {
 		return $this->join ( $table, $alias, $expr, $m );
 	}
-	
+
 	function drop($object, $what = "table") {
 		$this->clear ();
 		$this->_drops [] = array (
-				$what, 
-				$object 
+				$what,
+				$object
 		);
 		$this->_type = self::MODE_DROP;
 		return $this;

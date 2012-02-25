@@ -1,6 +1,6 @@
 <?php
-
-class TRSS2Feed extends TBaseFeed {
+namespace System\Web\Feed;
+class RSS2 extends Base {
 	function __construct() {
 		$this->setValidHeader ( array ('title', 'link', 'description', 'language', 'pubdate', 'lastBuilddate', 'docs', 'generator' => 'generator', 'managingeditor' => 'managingdirector', 'webMaster' => 'webMaster' ) );
 	}

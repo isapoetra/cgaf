@@ -1,0 +1,5 @@
+@CHARSET "UTF-8";
+
+.button.large {
+	-moz-border-radius: 6px;
+}

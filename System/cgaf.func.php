@@ -103,6 +103,6 @@ function __fromObject($field, $o, $locale = null, $def = null) {
 }
 function CGAFDebugOnly() {
 	if (!CGAF_DEBUG) {
-		throw new SystemException('DEBUG ONLY');
+		throw new \Exception('DEBUG ONLY');
 	}
 }

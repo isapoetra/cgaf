@@ -64,6 +64,7 @@ namespace System\JSON;
  * @copyright  2005 Michal Migurski
  * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
  */
+
 abstract class JSON {
 	/**
 	 * Marker constant for JSON::decode(), used to flag stack state
@@ -93,6 +94,7 @@ abstract class JSON {
 	 * Behavior switch for JSON::decode()
 	 */
 	const JSON_STRICT_TYPE = 11;
+
 	public static function encode($var, $single = false, $ignorestr = null) {
 		$json = new Service(self::JSON_STRICT_TYPE);
 		$json->quoteKey = true;
@@ -100,10 +102,12 @@ abstract class JSON {
 		$json->quoteSingle = $single;
 		return $json->encode($var);
 	}
+
 	public static function decode($txt) {
 		$json = new Service(self::JSON_STRICT_TYPE);
 		return $json->decode($txt);
 	}
+
 	public static function encodeConfig($var, $ignorestr = null, $classMap = null) {
 		$json = new Service();
 		$json->classMap = $classMap;
@@ -119,6 +123,7 @@ abstract class JSON {
 		//$retval = substr($retval,1,strlen($retval)-2);
 		return $retval;
 	}
+
 	public static function encodeSimple($data, $quote = "'") {
 		$retval = array();
 		foreach ($data as $k => $v) {
@@ -134,6 +139,7 @@ abstract class JSON {
 		}
 		return "[" . join($retval, ",") . "]";
 	}
+
 	public static function getJSONData($data, $rescount = null) {
 		$json = new JSONSimpleData();
 		$json->results = $rescount ? $rescount : count($data);
@@ -143,10 +149,12 @@ abstract class JSON {
 		$json->rows = $data;
 		return $json;
 	}
+
 	public static function toJSONData($data, $key = "id", $rescount = null, $includeField = false) {
 		$json = self::getJSONData($data, $key, $rescount, $includeField);
 		return $json->render();
 	}
+
 	public static function json_pp($json) {
 		$tab = '  ';
 		$new_json = '';
@@ -201,6 +209,47 @@ abstract class JSON {
 			}
 		}
 		return $new_json;
+	}
+
+	public static function indent($json) {
+		$result = '';
+		$pos = 0;
+		$strLen = strlen($json);
+		$indentStr = '  ';
+		$newLine = "\n";
+		$prevChar = '';
+		$outOfQuotes = true;
+		for ($i = 0; $i <= $strLen; $i++) {
+			// Grab the next character in the string.
+			$char = substr($json, $i, 1);
+			// Are we inside a quoted string?
+			if ($char == '"' && $prevChar != '\\') {
+				$outOfQuotes = !$outOfQuotes;
+				// If this character is the end of an element,
+				// output a new line and indent the next line.
+			} else if (($char == '}' || $char == ']') && $outOfQuotes) {
+				$result .= $newLine;
+				$pos--;
+				for ($j = 0; $j < $pos; $j++) {
+					$result .= $indentStr;
+				}
+			}
+			// Add the character to the result string.
+			$result .= $char;
+			// If the last character was the beginning of an element,
+			// output a new line and indent the next line.
+			if (($char == ',' || $char == '{' || $char == '[') && $outOfQuotes) {
+				$result .= $newLine;
+				if ($char == '{' || $char == '[') {
+					$pos++;
+				}
+				for ($j = 0; $j < $pos; $j++) {
+					$result .= $indentStr;
+				}
+			}
+			$prevChar = $char;
+		}
+		return $result;
 	}
 }
 ?>

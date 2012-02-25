@@ -3,57 +3,56 @@ namespace System\Models;
 use System\MVC\Model;
 class UserPrivs extends Model {
 	/**
+	 * @FieldType int
+	 * @FieldLength 10
 	 *
 	 * @var mixed User ID
-	 *      @FieldType int
-	 *      @FieldLength 10
 	 */
-	
 	public $user_id;
-	
 	/**
+	 * @FieldType varchar
+	 * @FieldLength 45
 	 *
 	 * @var string application id
-	 *      @FieldType varchar
-	 *      @FieldLength 45
 	 */
 	public $app_id;
 	/**
+	 * @FieldType varchar
+	 * @FieldLength 45
 	 *
 	 * @var string Object
-	 *      @FieldType varchar
-	 *      @FieldLength 45
 	 */
 	public $object_id;
 	/**
+	 * @FieldType varchar
+	 * @FieldLength 20
 	 *
 	 * @var int User Priviledges
-	 *      @FieldType varchar
-	 *      @FieldLength 20
 	 */
 	public $privs;
 	/**
+	 * @FieldType varchar
+	 * @FieldLength 45
 	 *
-	 * @var int @FieldType varchar
-	 *      @FieldLength 45
+	 * @var int
+	 *
 	 */
 	public $object_type;
 	/**
+	 * @FieldType text
 	 *
 	 * @var string Description of priviledges
-	 *      @FieldType text
 	 */
 	public $descr;
-	
 	/**
 	 *
-	 * @param $connection IDBConnection       	
+	 * @param $connection IDBConnection
 	 */
 	function __construct($connection) {
 		parent::__construct ( $connection, 'user_privs', array (
-				'role_id', 
-				'app_id', 
-				'object_id' 
-		), true );
+				'role_id',
+				'app_id',
+				'object_id'
+		), true, \CGAF::isInstalled () === false );
 	}
 }

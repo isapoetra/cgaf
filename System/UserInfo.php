@@ -3,6 +3,7 @@
 use System\Web\Utils\HTMLUtils;
 use System\API\PublicApi;
 use System\ACL\ACLHelper;
+
 class UserInfo {
 	private $_info;
 	/**
@@ -26,7 +27,7 @@ class UserInfo {
 		//TODO parse by application
 		switch ($callback) {
 		case 'email':
-			$retval = '<a href="mailto:' . $descr . '">send email</a>';
+			$retval = '<a href="mailto:' . $descr . '" class="email"><img src="' . ASSET_URL . '/images/email.png"/><span>' . __('sendemail') . '</span></a>';
 			break;
 		case 'skype':
 			$retval = PublicApi::share('skype', 'onlinestatus', $descr);
@@ -39,6 +40,9 @@ class UserInfo {
 			if (CGAF_DEBUG) {
 				throw new SystemException('unhandled contact callback ' . $callback);
 			}
+		}
+		if ($retval) {
+			$retval = '<div class="contact ' . $callback . '">' . $retval . '</div>';
 		}
 		return $retval;
 	}
@@ -57,7 +61,8 @@ class UserInfo {
 		//TODO generate while user register
 		$def = array(
 				'birth_date' => 'd/m',
-				'email' => 'public');
+				'email' => 'public'
+		);
 		//TODO Filter by current user
 		$cfg = $this->getConfig('person.' . $person->person_id . '' . $access, isset($def[$access]) ? $def[$access] : 'self');
 		$allow = false;
@@ -118,7 +123,7 @@ class UserInfo {
 		}
 		return '';
 	}
-	function getUserInfoModules($type, $uid = null) {
+	function getUserInfoModules($type, $uid = null,$ajaxmode=true) {
 		$uid = $uid === null ? $this->_id : $uid;
 		$m = $this->_owner->getModel('usercontent');
 		$m->setIncludeAppId(false);
@@ -137,7 +142,8 @@ class UserInfo {
 			$retval .= '</ul>';
 			$retval .= $this->_owner->renderContents($rows, $type, array(
 							'person' => $this->getPerson(),
-							'uid' => $uid), true);
+							'uid' => $uid
+					), true);
 			$retval .= '</div>';
 			return $retval;
 		}

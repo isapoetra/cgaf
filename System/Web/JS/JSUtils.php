@@ -51,7 +51,7 @@ class JSUtils {
 		return self::$_instance;
 	}
 	public static function PackFile($jsfile, $dest = null, $group = 'js') {
-		$cm = AppManager::getInstance()->getCacheManager();
+		$cm = \AppManager::getInstance()->getCacheManager();
 		if (is_array($jsfile)) {
 			$js = '';
 			$cm->remove($dest, $group, true);
@@ -86,7 +86,7 @@ class JSUtils {
 		return $packed;
 	}
 	public static function renderJSFile($js, $target = null) {
-		$app = AppManager::getInstance();
+		$app = \AppManager::getInstance();
 		$jsname = $app->getCacheManager()->getCachePath('js') . $target;
 		if (!CGAF_DEBUG && !is_readable($jsname)) {
 		}
@@ -109,8 +109,9 @@ class JSUtils {
 		if ($file) {
 			return '<script type="text/javascript" src="' . $f . '" ' . HTMLUtils::renderAttr($attr) . '></script>';
 		} else {
+
 			if (is_array($f)) {
-				$f = implode(';', $f);
+				$f = implode('', $f);
 			}
 			return '<script type="text/javascript">' . $f . '</script>';
 		}

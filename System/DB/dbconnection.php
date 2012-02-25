@@ -16,29 +16,12 @@ abstract class DBConnection implements IDBConnection {
 	function __construct($connArgs) {
 		$this->_connArgs = $connArgs;
 	}
-	
 	function __get($name) {
 		return $this->getArg ( $name, null );
 	}
-	
 	function getDatabase() {
 		return $this->_database ? $this->_database : $this->getArg ( 'database' );
 	}
-	
-	/**
-	 * Abstract Methods
-	 */
-	public abstract function Query($sql);
-	public abstract function Exec($sql);
-	public abstract function getObjectInfo($objectId, $objectType = "table", $throw = true);
-	public abstract function parseFieldCreate($name, $type, $width, $args = null);
-	public abstract function getLimitExpr($start, $end);
-	public abstract function fetchObject();
-	public abstract function isObjectExist($objectName, $objectType);
-	public abstract function getLastInsertId();
-	public abstract function getAffectedRow();
-	public abstract function createDBObjectFromClass($classInstance, $objecttype, $objectName);
-	
 	/**
 	 *
 	 * @param
@@ -56,15 +39,12 @@ abstract class DBConnection implements IDBConnection {
 			throw $ex;
 		}
 	}
-	
 	function setThrowOnError($value) {
 		$this->_thows = $value;
 	}
-	
 	function getArgs() {
 		return $this->_connArgs;
 	}
-	
 	function getArg($name, $default = null) {
 		return isset ( $this->_connArgs [$name] ) ? $this->_connArgs [$name] : $default;
 	}
@@ -81,21 +61,24 @@ abstract class DBConnection implements IDBConnection {
 		}
 		return $table;
 	}
-	
 	function isConnected() {
 		return $this->_connected;
 	}
-	
 	function Log($msg, $level = 'db') {
 		if ($this->getArg ( "debug" )) {
 			Logger::write ( "DB:: $msg", $level );
 		}
 	}
-	
+	abstract function Query($sql);
+	abstract function Exec($sql);
+	abstract function getObjectInfo($objectId, $objectType = "table", $throw = true);
+	abstract function parseFieldCreate($name, $type, $width, $args = null);
+	abstract function getLimitExpr($start, $end);
+	abstract function fetchObject();
+	abstract function isObjectExist($objectName, $objectType);
 	function SelectDB($db) {
 		$this->_db = $db;
 	}
-	
 	function getTableInfo($tableName, $infoType) {
 		$info = $this->getObjectInfo ( $tableName );
 		$retval = array ();
@@ -103,7 +86,7 @@ abstract class DBConnection implements IDBConnection {
 			switch (strtolower ( $infoType )) {
 				case 'fields' :
 					$retval [] = array (
-							'name' => $i->field_name 
+							'name' => $i->field_name
 					);
 					break;
 				default :
@@ -113,58 +96,46 @@ abstract class DBConnection implements IDBConnection {
 		}
 		return $retval;
 	}
-	
 	function setConnected($value) {
 		$this->_connected = $value;
 	}
-	
 	function quote($s) {
 		return $s;
 	}
-	
 	function Open() {
 		if ($this->_connected) {
 			return true;
 		}
 		return $this->_connected;
 	}
-	
 	function Close() {
 	}
-	
 	function execBatch($sql) {
 		$t = $this->_thows;
 		$this->_thows = true;
 		$r = new DBResultList ();
 		foreach ( $sql as $s ) {
 			if (! empty ( $s )) {
-				try {
-					$e = $this->exec ( $s );
-				} catch ( \Exception $ex ) {
-					$e = $ex;
-				}
-				$r->Assign ( $e );
+				$r->Assign ( $this->exec ( $s ) );
 			}
 		}
 		$this->_thows = $t;
 		return $r;
 	}
-	
 	public function getLastSQL() {
 		return $this->_lastSQL;
 	}
-	
 	protected function setLastSQL($sql) {
 		$this->_lastSQL = $sql;
 	}
-	
 	protected function first(&$r) {
 	}
-	
 	protected function unQuoteField($field) {
 		return $field;
 	}
-	
+	public abstract function getLastInsertId();
+	public abstract function getAffectedRow();
+	public abstract function createDBObjectFromClass($classInstance, $objecttype, $objectName);
 	protected function toResultList() {
 		$r = null;
 		if ($this->_result) {
@@ -183,7 +154,6 @@ abstract class DBConnection implements IDBConnection {
 		}
 		return $r;
 	}
-	
 	protected function toTableName($tbl) {
 		$sql = str_ireplace ( "[table_prefix]", $this->getArg ( "table_prefix" ), $tbl );
 		if (Strings::BeginWith ( $tbl, $this->getArg ( "table_prefix" ) )) {
@@ -195,7 +165,6 @@ abstract class DBConnection implements IDBConnection {
 		$tbl = str_ireplace ( "#__", $this->getArg ( "table_prefix" ), $tbl );
 		return $tbl;
 	}
-	
 	protected function prepareQuery($sql) {
 		if (Strings::BeginWith ( $sql, 'drop', false ) || Strings::BeginWith ( $sql, 'create', false )) {
 			$this->_objects = array ();
@@ -205,36 +174,29 @@ abstract class DBConnection implements IDBConnection {
 		$this->_lastSQL = $sql;
 		return $sql;
 	}
-	
 	public function DateToDB($date = null) {
 		$dt = new \CDate ( $date );
 		return $dt->format ( FMT_DATETIME_MYSQL );
 	}
-	
 	public function drop($id, $type = 'table') {
 		if ($this->isObjectExist ( $id, $type )) {
 			$this->Exec ( 'drop ' . $type . ' ' . $this->toTableName ( $id ) );
 		}
 	}
-	
 	public function getInstallFile($table) {
-		$path = \CGAF::getInternalStorage ( 'install/db/' . $this->getArg ( 'type' ) . '/', true, false );
+		$check = \CGAF::isInstalled();
+		$path = \CGAF::getInternalStorage ( 'install/db/' . $this->getArg ( 'type' ) . '/', $check, false );
 		if ($path && is_dir ( $path )) {
 			$path .= $table . '.sql';
 			return is_file ( $path ) ? \Utils::ToDirectory ( $path ) : null;
 		}
-		$path = \CGAF::getInternalStorage ( 'install/db/common/' );
-		
-		if ($path && is_dir ( $path )) {
-			$path .= $table . '.sql';			
-			return is_file ( $path ) ? \Utils::ToDirectory ( $path ) : null;
-		}
-		return null;
+		$path = \CGAF::getInternalStorage ( 'install/db/common/', $check, false );
+		$path .= $table . '.sql';
+		$path = \Utils::ToDirectory ( $path );
+		return is_file ( $path ) ? $path : null;
 	}
-	
 	public function getFieldConfig($fieldType = null) {
 		return array ();
 	}
-
 }
 ?>

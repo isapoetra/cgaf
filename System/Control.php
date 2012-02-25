@@ -3,12 +3,22 @@ abstract class Control extends \Object implements \IRenderable {
 	private $_properties;
 	protected $_childs = array ();
 	private $_container;
+	private $_parent;
 	function __construct() {
 		$this->_properties = array ();
 		$this->_events = array ();
 	}
 	function getAppOwner() {
 		return AppManager::getInstance();
+	}
+	function hasChild() {
+		return count($this->_childs) > 0;
+	}
+	function setProperties($name,$value) {
+		$this->_properties[$name] =  $value;
+	}
+	function removeProperty($name) {
+		unset($this->_properties [$name]);
 	}
 	function setProperty($propertyName, $value = null) {
 		if (is_array ( $propertyName )) {
@@ -29,8 +39,14 @@ abstract class Control extends \Object implements \IRenderable {
 	protected function getProperties() {
 		return $this->_properties;
 	}
-	function getProperty($name) {
-		return isset ( $this->_properties [$name] ) ? $this->_properties [$name] : null;
+	function getProperty($name,$def=null) {
+		return isset ( $this->_properties [$name] ) ? $this->_properties [$name] : $def;
+	}
+	function setParent($value) {
+		$this->_parent=$value;
+	}
+	function getParent() {
+		return $this->_parent;
 	}
 	function addChild($c) {
 		if ($c === null) {
@@ -41,6 +57,9 @@ abstract class Control extends \Object implements \IRenderable {
 				$this->addChild($cc);
 			}
 			return $c;
+		}
+		if ($c instanceof Control) {
+			$c->setParent($this);
 		}
 		$this->_childs [] = $c;
 		return $c;

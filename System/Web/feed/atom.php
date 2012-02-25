@@ -1,5 +1,5 @@
 <?php
-using('System.Web.feed.base');
+namespace System\Web\Feed;
 /**
  * @example
  * <?xml version="1.0" encoding="utf-8"?>
@@ -32,7 +32,7 @@ using('System.Web.feed.base');
  * @author e1
  *
  */
-class TAtomFeed extends TBaseFeed {
+class Atom extends Base {
 	function __construct() {
 		$this->setValidHeader(array(
 			'title','subtitle','link','id','updated','author'

@@ -8,7 +8,6 @@ class SWFObject extends WebControl implements \IRenderable {
 		$this->setAttr('type',"application/x-shockwave-flash");
 		$this->setMovie($source);
 		$this->setParam('allowScriptAccess','always');
-
 	}
 	protected function preRender() {
 		foreach($this->_params as $k=>$v) {

@@ -1,5 +1,6 @@
 <?php
 define('ALLOWED_CHARS', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+
 class URLHelper {
 	private static $selfUrl;
 	public static function getCurrentProtocol() {
@@ -99,7 +100,8 @@ class URLHelper {
 				"port" => '',
 				"path" => '',
 				"query" => '',
-				"fragment" => '');
+				"fragment" => ''
+		);
 		switch (count($match)) {
 		case 10:
 			$parts['fragment'] = $match[9];
@@ -160,8 +162,7 @@ class URLHelper {
 			$path = substr($path, 0, strlen($path) - 1);
 		}
 		// Compile url
-		$sUrl = (isset($aUrl['scheme']) ? $aUrl['scheme'] . '://' : BASE_URL . '/') . (isset($aUrl['user']) && $aUrl['user'] != '' && isset($aUrl['pass']) ? $aUrl['user'] . ':' . $aUrl['pass'] . '@' : '')
-				. (isset($aUrl['host']) ? $aUrl['host'] : '') . $path . ($sQuery != '' ? '?' . $sQuery : '') . (isset($aUrl['fragment']) && $aUrl['fragment'] != '' ? '#' . $aUrl['fragment'] : '');
+		$sUrl = (isset($aUrl['scheme']) ? $aUrl['scheme'] . '://' : BASE_URL . '/') . (isset($aUrl['user']) && $aUrl['user'] != '' && isset($aUrl['pass']) ? $aUrl['user'] . ':' . $aUrl['pass'] . '@' : '') . (isset($aUrl['host']) ? $aUrl['host'] : '') . $path . ($sQuery != '' ? '?' . $sQuery : '') . (isset($aUrl['fragment']) && $aUrl['fragment'] != '' ? '#' . $aUrl['fragment'] : '');
 		return $sUrl;
 	}
 	public static function addPath($url, $path) {
@@ -176,7 +177,8 @@ class URLHelper {
 		$retval = array();
 		$ignore = array(
 				'ZDEDebuggerPresent',
-				'PHPSESSID');
+				'PHPSESSID'
+		);
 		switch ($arg) {
 		case 'path':
 			$param = array_merge($path, $param);
@@ -224,6 +226,7 @@ class URLHelper {
 	}
 	public static function add($url, $path = null, $param = null, $replacer = null) {
 		if (!$url) {
+			pp($url);
 			$url = BASE_URL;
 		}
 		$addparams = null;
@@ -232,6 +235,7 @@ class URLHelper {
 			$path = substr($path, 0, strpos($path, '?'));
 		}
 		$url = self::explode($url);
+
 		if ($path) {
 			if (!is_array($path)) {
 				$path = explode('/', $path);
@@ -246,9 +250,11 @@ class URLHelper {
 		}
 		$retval = self::implode($url);
 		if ($replacer) {
-			$retval =urldecode($retval);
-			foreach ($replacer as $k => $v) {
-				$retval = str_replace('#' . $k . '#', $v, $retval);
+			$retval = urldecode($retval);
+			if ($replacer) {
+				foreach ($replacer as $k => $v) {
+					$retval = str_replace('#' . $k . '#', $v, $retval);
+				}
 			}
 		}
 		return $retval;
@@ -267,6 +273,7 @@ class URLHelper {
 		return self::getURLShortenerInstance()->UnshortUrl($id);
 	}
 }
+
 class URLShortener {
 	private $_cachePath;
 	private $_urlCache = array();
@@ -307,7 +314,8 @@ class URLShortener {
 		$this->_urlCache[$fid] = array(
 				'ori' => $url,
 				'short' => $short,
-				'created' => microtime(true));
+				'created' => microtime(true)
+		);
 		$this->_urlMap[$short] = $fid;
 		return $this->_urlCache[$fid];
 	}

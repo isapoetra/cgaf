@@ -9,7 +9,7 @@ class WebControl extends \Control implements \IRenderable {
 	protected $_tag = "";
 	protected $_attr = array();
 	private $_autoCloseTag = true;
-	private $_title;
+	protected $_title;
 	private $_text;
 	protected $_renderPrepared = false;
 	function __construct($tag, $autoCloseTag = false, $attr = array()) {
@@ -24,12 +24,11 @@ class WebControl extends \Control implements \IRenderable {
 		$this->_autoCloseTag = $autoCloseTag;
 	}
 	function addStyle($name, $value = null) {
-		if (!isset($this->_attr['style'])) {
-			$this->_attr['style'] = array();
-		}
-		$this->_attr['style'] = HTMLUtils::mergeStyle($this->_attr['style'], is_array($name) ? $name : array(
-				$name => $value));
-		return $this;
+		$old = parent::getProperty('style',array());
+		
+		$n = HTMLUtils::mergeStyle($old, is_array($name) ? $name : array(
+				$name => $value));		
+		return parent::setProperty('style',$n);
 	}
 	function add($c) {
 		return parent::addChild($c);
@@ -39,6 +38,60 @@ class WebControl extends \Control implements \IRenderable {
 	}
 	function setText($text) {
 		$this->_text = $text;
+	}
+	function setClass($c) {
+		$this->setProperties('class',$c);
+	}
+	function addClass($c) {
+		if (!is_array($c)) {
+			$c = explode(' ',$c);
+		}
+		$current  = explode(' ',$this->getProperty('class',''));
+		foreach($c as  $a) {
+			if (!in_array($c,$current)) {
+				$current[]= $a;
+			}
+		} 
+		$this->setProperties('class', implode(' ',$current));
+	}
+	function removeClass($c) {
+		if (is_string($c)) {
+			$c = explode(' ',$c);
+		}
+		$current  = explode(' ',$this->getProperty('class',''));
+		$rc = $current;
+		foreach($current as $k=>$v) {
+			if (empty($v)) continue;
+			if (!in_array($v,$c)) {
+				$rc[]= $v;
+			}
+		}
+		$this->setProperties('class', implode(' ',$rc));
+		return $this;
+	}
+	function setProperty($propertyName,$value=null) {
+		if (is_array($propertyName)) {
+			foreach ( $propertyName as $k => $v ) {
+				$this->setProperty($k,$v);
+			}
+			return $this;
+		}
+		switch (strtolower($propertyName)) {
+			case 'style':
+				return $this->addStyle($value);
+			case 'class':
+				$value = explode(' ',$value);
+				$current  = $this->getProperty('class','');
+				$current =  explode(' ',$current);
+				foreach($value as $v) {
+					if (!in_array($v,$current)) {
+						$current[]= $v;
+					}
+				}
+				$current =  trim(implode(' ',$current)); 
+				return $this->setProperties('class',$current);				
+		}
+		return parent::setProperty($propertyName,$value);
 	}
 	function getId() {
 		if (!$this->getProperty("id")) {
@@ -68,6 +121,9 @@ class WebControl extends \Control implements \IRenderable {
 		return $this->setProperty($attName, $Value);
 	}
 	function setAttr($attName, $Value = null) {
+		if (!is_array($attName) && empty($Value)) {
+			return $this->removeProperty($attName);
+		}
 		return $this->setProperty($attName, $Value);
 	}
 	function setTag($tag) {
@@ -128,7 +184,7 @@ class WebControl extends \Control implements \IRenderable {
 		}
 		$retval = $this->renderBeginLabel() . $this->RenderBeginTag() . $this->_text . $this->renderItems() . $this->renderEndTag() . $this->renderEndLabel();
 		if (!$return) {
-			Response::write($retval);
+			\Response::write($retval);
 		}
 		return $retval;
 	}

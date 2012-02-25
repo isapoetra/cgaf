@@ -7,52 +7,55 @@ class personappController extends Controller {
 	public function isAllow($access = 'view') {
 		$access = $access ? $access : 'view';
 		switch ($access) {
-		case 'view':
-			return true;
-		case 'contact':
-		case 'index':
-		case 'lists':
-			return $this->getAppOwner()->isAuthentificated();
+			case 'view' :
+				return true;
+			case 'contact' :
+			case 'index' :
+			case 'lists' :
+				return $this->getAppOwner ()->isAuthentificated ();
 		}
-		return parent::isAllow($access);
+		return parent::isAllow ( $access );
 	}
 	function Initialize() {
-		if (parent::Initialize()) {
-			$this->setModel('persondetail');
+		if (parent::Initialize ()) {
+			$this->setModel ( 'persondetail' );
 			return true;
 		}
 		return false;
 	}
-
 	function prepareRender() {
-		parent::prepareRender();
-		$appOwner->clearCrumbs();
-		$appOwner->addCrumbs(array(
-						array(
-								'title' => 'Person')));
+		parent::prepareRender ();
+		$this->getAppOwner ()->clearCrumbs ();
+		$this->getAppOwner ()->addCrumbs ( array (
+				array (
+						'title' => 'Person'
+				)
+		) );
 	}
 	function contact($personId = null, $asArray = false) {
-		$appOwner = $this->getAppOwner();
+		$appOwner = $this->getAppOwner ();
 		//
-		$id = $personId ? $personId : \Request::get('id');
-		$rows = $this->getModel('persondetail')->loadByPerson($id);
+		$id = $personId ? $personId : \Request::get ( 'id' );
+		$rows = $this->getModel ( 'persondetail' )->loadByPerson ( $id );
 		if ($asArray)
 			return $rows;
-		foreach ($rows as $row) {
-			$row->callback = \UserInfo::parseCallback($row->callback, $row->descr);
+		foreach ( $rows as $row ) {
+			$row->callback = \UserInfo::parseCallback ( $row->callback, $row->descr );
 		}
-		return parent::render(__FUNCTION__, array(
-				'rows' => $rows));
+		return parent::render ( __FUNCTION__, array (
+				'rows' => $rows
+		) );
 	}
 	function detail($args = null, $return = null) {
-		$id = \Request::get('id') . ',' . \Request::get('app_id', $this->getAppOwner()->getAppId());
-		\Request::set('id', $id);
-		return parent::detail();
+		$id = \Request::get ( 'id' ) . ',' . \Request::get ( 'app_id', $this->getAppOwner ()->getAppId () );
+		\Request::set ( 'id', $id );
+		return parent::detail ();
 	}
 	function lists() {
-		$this->setModel('personapp');
-		$rows = $this->getModel()->reset()->LoadAll();
-		return parent::render(__FUNCTION__, array(
-				'rows' => $rows));
+		$this->setModel ( 'personapp' );
+		$rows = $this->getModel ()->reset ()->LoadAll ();
+		return parent::render ( __FUNCTION__, array (
+				'rows' => $rows
+		) );
 	}
 }

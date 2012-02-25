@@ -22,7 +22,7 @@ class Tab extends Control {
 			$link = "#$id-tab-$i";
 			if (Strings::BeginWith ( $step ["content"], "http" )) {
 				$link = $step ["content"];
-				$link = URLHelper::addParam ( $link, array(
+				$link = \URLHelper::addParam ( $link, array(
 					'_ajax'=>1) );
 			}
 			$retval .= "<li><a href=\"$link\">" . $step ["title"] . "</a></li>";
@@ -50,7 +50,7 @@ class Tab extends Control {
 			'show') );
 		$this->getAppOwner()->addClientScript ( "$(\"#$id-tabs\").tabs($.extend($config,deftaboptions||{}))" );
 		if (! $return) {
-			Response::write ( $retval );
+			\Response::write ( $retval );
 		}
 		return $retval;
 	}

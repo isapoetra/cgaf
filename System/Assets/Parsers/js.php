@@ -1,5 +1,7 @@
 <?php
 namespace System\Assets\Parsers;
+use System\Web\JS\JSUtils;
+
 use \Utils;
 class JSProjectParser extends AbstractProjectParser {
 

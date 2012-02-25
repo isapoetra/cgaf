@@ -1,4 +1,6 @@
 <?php
+namespace System\Cache;
+use System\Configurations\Configuration;
 
 class CachedData extends Configuration {
 	private $_file;
@@ -8,7 +10,7 @@ class CachedData extends Configuration {
 	}
 	function __destruct() {
 		if ($this->_file) {
-			Utils::makeDir(dirname($this->_file));
+			\Utils::makeDir(dirname($this->_file));
 			file_put_contents($this->_file, serialize($this->_configs));
 		}
 	}

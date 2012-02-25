@@ -1,10 +1,9 @@
 <?php
 if (! defined ( 'CGAF' )) {
 	include 'cgafinit.php';
-
 }
 if (CGAF::isInstalled ()) {
-	dj ( 'installed' );
+	die ( 'installed' );
 	Response::Redirect ( 'index.php' );
 	exit ( 0 );
 }
@@ -13,36 +12,36 @@ class Install extends \System\MVC\Application {
 	function __construct() {
 		parent::__construct ( dirname ( __FILE__ ) . DS . 'tmp/install/', 'install' );
 	}
-	
 	function getAppName() {
 		return 'install';
 	}
-	
 	function run() {
+		clearstatcache ();
 		$init = array (
-				'applications' => 'application', 
-				'roles' => 'roles', 
-				'role_privs' => 'roleprivs', 
-				'user_privs' => 'userprivs' 
+				'session' => 'session',
+				'applications' => 'application',
+				'roles' => 'roles',
+				'users' => 'user',
+				'role_privs' => 'roleprivs',
+				'user_privs' => 'userprivs',
+				'menus' => 'menus'
 		);
 		$q = new DBQuery ( CGAF::getDBConnection () );
-		$f = CGAF::getInternalStorage ( 'install/db/', false, true );
 		foreach ( $init as $k => $v ) {
-			try {
-				$q->exec ( 'drop table ' . $k );
-			} catch ( Exception $e ) {
-			
-			}
+			$q->exec ( 'drop table if exists ' . $k );
+			echo 'loading model ' . $v . '<br/>';
 			$m = $this->getModel ( $v );
+			if (! $m) {
+				ppd ( $v );
+			}
 		}
-		
-		CGAF::getConfiguration ()->setConfig ( 'installed', true );
-		CGAF::getConfiguration ()->save ( CGAF_PATH . 'config.php' );
-		Response::Redirect ();
+		if (! CGAF_DEBUG) {
+			CGAF::getConfiguration ()->setConfig ( 'installed', true );
+			CGAF::getConfiguration ()->save ( CGAF_PATH . 'config.php' );
+			Response::Redirect ();
+		}
 	}
 }
-
 $app = new Install ();
 CGAF::run ( $app, true );
-
 ?>

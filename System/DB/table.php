@@ -1,5 +1,7 @@
 <?php
 namespace System\DB;
+use System\Exceptions\InvalidOperationException;
+
 use \AppManager, \CGAF, \ReflectionClass, \Utils;
 use System\ACL\ACLHelper;
 class Table extends DBQuery {
@@ -16,26 +18,27 @@ class Table extends DBQuery {
 	protected $_isExpr = false;
 	private $_filterACL = null;
 	protected $_oldData;
-	protected $_autoCreateTable = CGAF_DEBUG;
+	protected $_autoCreateTable = false;
 	/**
 	 *
 	 * @param $appOwner
 	 * @param $tableName
 	 * @param $pk
 	 */
-	function __construct($connection, $tableName, $pk = "id", $includeAppId = false) {
+	function __construct($connection, $tableName, $pk = "id", $includeAppId = false,$autoCreate=false) {
 		$this->_tableName = $tableName;
 		if ($connection instanceof \IApplication) {
 			$this->_appOwner = $connection;
 		} elseif (AppManager::isAppStarted()) {
 			$this->_appOwner = AppManager::getInstance();
 		}
+		$this->_autoCreateTable = $autoCreate;
 		$pk = $pk ? $pk : array();
 		$this->_pk = is_array($pk) ? $pk : explode(",", $pk);
-		
+
 		parent::__construct($connection);
 		$this->_filterACL = CGAF::getConfig('installed');
-		
+
 		$this->_includeAppId = $includeAppId;
 		$this->Initialize();
 	}

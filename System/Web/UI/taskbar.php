@@ -1,14 +1,23 @@
 <?php
+namespace System\Web\UI;
+use System\Web\UI\Controls\WebControl;
+
 class Taskbar extends WebControl {
 	private $_desktop;
 	private $_startMenu;
 	private $_tasklist;
 	private $_traylist;
 	function __construct(IDesktop $desktop) {
-		parent::__construct ( "div", false, array ('class' => 'desktop-taskbar' ) );
+		parent::__construct ( "div", false, array (
+				'class' => 'desktop-taskbar' 
+		) );
 		$this->_desktop = $desktop;
-		$this->_tasklist = new WebControl('div',false,array('class'=>'task-container'));
-		$this->_traylist = new WebControl('div',false,array('class'=>'task-container'));
+		$this->_tasklist = new WebControl ( 'div', false, array (
+				'class' => 'task-container' 
+		) );
+		$this->_traylist = new WebControl ( 'div', false, array (
+				'class' => 'task-container' 
+		) );
 	}
 	function getMainMenu() {
 		if (! $this->_startMenu) {
@@ -19,8 +28,8 @@ class Taskbar extends WebControl {
 	}
 	function prepareRender() {
 		
-		$this->addChild($this->getMainMenu());
-		$this->addChild($this->_tasklist);
-		$this->addChild($this->_traylist);
+		$this->addChild ( $this->getMainMenu () );
+		$this->addChild ( $this->_tasklist );
+		$this->addChild ( $this->_traylist );
 	}
 }

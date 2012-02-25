@@ -1,8 +1,15 @@
 <?php
 namespace System\Web\UI\Ext;
+use System\Exceptions\SystemException;
+
+use System\Web\JS\JSUtils;
+
+use System\JSON\JSON;
+
 use System\ACL\ACLHelper;
 use System\Web\UI\JExt;
 use \Request;
+use \Utils;
 class Grid extends Control {
 	public $mode = "js";
 	protected $_defaultHeight = 250;
@@ -99,7 +106,7 @@ class Grid extends Control {
 			}
 		}
 		JExt::LoadPlugin('gridfilters/GridFilters.js');
-		$filters = new JExtCustom("Ext.ux.grid.GridFilters", array(
+		$filters = new CustomComponent("Ext.ux.grid.GridFilters", array(
 				"filters" => $arrfilter), null, false);
 		$this->addClientScript("filters=" . $filters->render(true), "start");
 		if (!isset($this->_config["plugins"])) {
@@ -337,13 +344,13 @@ EOT;
 					$js .= "});\n$storeid.loadData(" . JSON::encode($this->_data) . ");\n";
 					$this->addClientScript($js);
 				} elseif (is_string($this->_data)) {
-					$storeid = new JJsonStore($this->_data, array(
-							"fields" => new JExtJS("[$fields]")));
+					$storeid = new JsonStore($this->_data, array(
+							"fields" => new ExtJS("[$fields]")));
 				}
 				$this->setConfig("store", $storeid);
 			} else if (!$this->_RenderWhenNoData) {
 				JExt::addToolbar('badd', 'Add', "function(){doCreateRemoteWindow({modal:true,autoScroll:true,height:200,autoLoad:{url:'" . $this->_addEditURL . "'}});}");
-				Response::Write(__("No Data"));
+				\Response::Write(__("No Data"));
 				return false;
 			}
 		}
@@ -451,11 +458,11 @@ class JExtGroupingGrid extends Grid {
 	function __construct($dataurl, $field, $column = null) {
 		parent::__construct(null, $column, null);
 		$this->setConfigs(array(
-						"view" => new JExtCustom("Ext.grid.GroupingView", array(
+						"view" => new CustomComponent("Ext.grid.GroupingView", array(
 								"forceFit" => true,
 								"showGroupName" => true,
 								"hideGroupedColumn" => true), null, false)));
-		$this->_config["store"] = new JGroupingStore($dataurl, null, $field);
+		$this->_config["store"] = new GroupingStore($dataurl, null, $field);
 	}
 	function setForceFit($value) {
 		return $this->apply("view", "forceFit", $value);
@@ -476,12 +483,12 @@ class JExtGroupingSummaryGrid extends JExtGroupingGrid {
 				"id" => $this->_config["id"],
 				"store" => $this->_config["store"],
 				"columns" => $this->_config["columns"],
-				"view" => new JExtCustom("Ext.grid.GroupingView", array(
+				"view" => new CustomComponent("Ext.grid.GroupingView", array(
 						"showGroupName" => false,
 						"enableNoGroups" => false,
 						// REQUIRED!
 						"hideGroupedColumn" => true), null, false),
-				"plugins" => new JExtJS("new Ext.grid.GroupSummary()"));
+				"plugins" => new ExtJS("new Ext.grid.GroupSummary()"));
 		$cfg = $this->_config;
 		$this->_config = array();
 		$this->setConfigs($initconfigs, false);

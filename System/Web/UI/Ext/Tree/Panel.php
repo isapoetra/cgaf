@@ -1,5 +1,11 @@
 <?php
 namespace System\Web\UI\Ext\Tree;
+use System\Web\UI\JExt;
+
+use System\ACL\ACLHelper;
+
+use System\Web\UI\Ext\CustomComponent;
+
 use System\Web\UI\Ext\ExtJS;
 use System\Web\UI\Ext\Control;
 class Panel extends Control {
@@ -26,7 +32,7 @@ class Panel extends Control {
 			$this->removeConfig("renderStandardButton");
 		}
 		if (!isset($configs["root"])) {
-			$configs["root"] = new JExtCustom("Ext.tree.AsyncTreeNode", array(
+			$configs["root"] = new CustomComponent("Ext.tree.AsyncTreeNode", array(
 					"text" => 'root',
 					"id" => "0",
 					"expanded" => true));
@@ -96,12 +102,12 @@ class Panel extends Control {
 	function preRender() {
 		$buttons = array();
 		if ($this->_renderStandardButton) {
-			$minfo = ModuleManager::getModuleInfo();
+			$minfo = \ModuleManager::getModuleInfo();
 			$m = $minfo->mod_id;
-			$perms = ACL::getInstance();
+			$perms = ACLHelper::getInstance();
 			//pp($_GET);
 			$id = $this->_fieldId ? $this->_fieldId : "id";
-			$renderto = CGAF::getParam("renderTo");
+			$renderto = \Request::get("renderTo");
 			$removed = false;
 			if (isset($this->_config["tbar"]) && $this->_config["tbar"] === null) {
 				$this->removeConfig("tbar");
@@ -120,7 +126,7 @@ class Panel extends Control {
 							"iconCls" => JExt::ICON_ADD . "child",
 							"handler" => "function(){ var tree=Ext.getCmp('{$this->getId()}'); s = tree.getSelectionModel().getSelectedNode();if (s) { doCreateRemoteWindow({autoLoad:{url:'{$this->_addEditURL}&parent_id='+s.id}"
 									. ($winc ? ",$winc" : "") . "},'$renderto',{changed:function(){tree.loader.load(s.parentNode)} })}}");
-					$buttons[] = new JExtJS("new Ext.menu.Separator()");
+					$buttons[] = new ExtJS("new Ext.menu.Separator()");
 				}
 				if (in_array("view", $this->_showButton)) {
 					$winc = $this->getWinConfig("view");

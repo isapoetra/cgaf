@@ -1,5 +1,8 @@
 <?php
 namespace System\Assets\Parsers;
+use System\Configurations\Configuration;
+
+use \Utils,\AppManager,\CGAF;
 abstract class AbstractProjectParser {
 	protected $_configs;
 	protected $_files;
@@ -43,7 +46,7 @@ abstract class AbstractProjectParser {
 
 	function loadProjectFile($projectFile) {
 		$this->_projectPath = dirname ( $projectFile );
-		$config = new Configuration ( null, false );
+		$config = new Configuration(null, false );
 		$config->loadFile ( $projectFile );
 		$this->setConfigs ( $config->getConfig ( 'assets.configs' ) );
 		$files = $config->getConfig ( 'assets.files' );

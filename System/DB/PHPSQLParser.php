@@ -369,6 +369,7 @@ EOREGEX
 				case 'EXECUTE':
 				case 'PREPARE':
 				case 'DEALLOCATE':
+				case 'VALUES(':
 					if($token == 'DEALLOCATE') {
 						$skip_next = true;
 					}
@@ -782,7 +783,7 @@ EOREGEX
 		$base_expr="";
 		$sub_tree = false;
 		$subquery = "";
-
+		$token_category ='';
 		$first_join=true;
 		$modifier="";
 		$saved_join_type="";

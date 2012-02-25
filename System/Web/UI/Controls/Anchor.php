@@ -3,39 +3,55 @@ namespace System\Web\UI\Controls;
 class Anchor extends WebControl implements \IRenderable {
 	private $_link;
 	private $_target;
-	private $_title;
 	private $_jsMode = true;
-	private $_tooltip;
+	
 	private $_additionaljs;
-	private $_class;
-	function __construct($link, $title, $target=null,$tooltip=null, $jsMode = true,$additionaljs=null) {
-
-		$this->_link = $link;
-		$this->_target = $target;
-		$this->_title = $title;
+	function __construct($link, $title, $target = null, $tooltip = null, $jsMode = true, $additionaljs = null) {
+		parent::__construct ( 'a', true );
+		$this->Action = $link;
+		$this->Target = $target;
+		if ($title) {
+			$this->Text = $title;
+		}
 		$this->_jsMode = $jsMode;
-		$this->_tooltip = $tooltip;
-		$this->_additionaljs=$additionaljs;
-		$attr =array();
-		if ($tooltip) {
-			$attr['title'] = $tooltip;
-		}
-		if ($target) {
-			$attr['rel'] = $target;
-		}
-
-		$attr['href'] = $link;
-		$this->setText($title);
-		parent::__construct('a',true,$attr);
+		$this->Tooltip = $tooltip;
+		$this->_additionaljs = $additionaljs;
 	}
-
-	function setClass($class) {
-		$this->_class =$class;
+	function setTitle($value) {
+		return $this->setAttr ( 'title', $value );
+	}
+	function getTitle() {
+		return $this->getAttr ( 'title' );
 	}
 	
-
-	public static function link($link, $title, $target,$tooltip, $jsMode = true,$additionaljs=null) {		
-		$link = new WebLink($link, $title, $target,$tooltip, $jsMode,$additionaljs);
-		return $link->render(true);
+	function setToolTip($value) {
+		if ($value) {
+			$this->setAttr ( 'rel', 'tooltip' );
+			$this->setAttr ( 'title', $value );
+		}
+	}
+	function setTarget($t) {
+		$this->setAttr ( 'target', $t );
+	}
+	function getTooltip() {
+		return $this->getAttr ( 'title' );
+	}
+	function setAction($a) {
+		return $this->setAttr ( 'href', $a );
+	}
+	function getAction() {
+		return $this->getAttr ( 'href' );
+	}
+	function prepareRender() {
+		if ($this->_additionaljs) {
+			ppd ( $this );
+		}
+		$this->setText ( '<span>' . $this->Text . '</span>' );
+		return parent::prepareRender ();
+	}
+	
+	public static function link($link, $title, $target, $tooltip, $jsMode = true, $additionaljs = null) {
+		$link = new Anchor ( $link, $title, $target, $tooltip, $jsMode, $additionaljs );
+		return $link->render ( true );
 	}
 }

@@ -1,5 +1,6 @@
 <?php
 defined("CGAF") or die("Restricted Access");
+
 abstract class Convert {
 	public static function toBoolean($o) {
 		$t = strtolower(gettype($o));
@@ -10,7 +11,7 @@ abstract class Convert {
 		case 'number':
 			break;
 		case 'string':
-			switch (strtolower($o)) {
+			switch (strtolower(trim($o))) {
 			case 'no':
 			case '0':
 			case 'false':
@@ -28,7 +29,7 @@ abstract class Convert {
 	public static function toBool($o) {
 		return self::toBoolean($o);
 	}
-	public static function toObject($o, &$ref) {
+	public static function toObject($o, &$ref, $bindAll = true) {
 		if ($ref == null) {
 			$ref = new stdClass();
 		}
@@ -36,7 +37,7 @@ abstract class Convert {
 			return $ref;
 		} else {
 			if (is_array($o) || is_object($o)) {
-				$ref = Utils::bindToObject($ref, $o, true);
+				$ref = Utils::bindToObject($ref, $o, $bindAll);
 			}
 		}
 		return $ref;
@@ -89,8 +90,21 @@ abstract class Convert {
 		return $o;
 	}
 	public static function toNumber($o) {
-		settype($o,'float');
+		settype($o, 'float');
 		return $o;
+	}
+	public static function toArray($o) {
+		$retval =$o;
+		if (is_object($o) || is_array($o)) {
+			$retval = array();
+			foreach ($o as $k => $v) {
+				if (is_object($v) || is_array($v)) {
+					$v = self::toArray($v);
+				}
+				$retval[$k] = $v;
+			}
+		}
+		return $retval;
 	}
 }
 ?>
