@@ -1,5 +1,5 @@
 <?php
-abstract class Control extends \Object implements \IRenderable {
+abstract class Control extends \BaseObject implements \IRenderable {
 	private $_properties;
 	protected $_childs = array ();
 	private $_container;

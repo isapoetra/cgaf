@@ -1,5 +1,5 @@
 <?php
-if (!defined("CGAF") ) die("Restricted Access");
+defined("CGAF") or die("Restricted Access");
 interface IRenderable {
 	function Render ($return = false);
 }

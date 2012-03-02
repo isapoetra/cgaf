@@ -1,6 +1,6 @@
 <?php
 namespace  System\Collections\Items;
-class SearchItem extends \Object{
+class SearchItem extends \BaseObject{
 	public static  $DEFAULT_PROP=array('title','descr','link');
 	private $_object = null;
 	function __construct($o=null,$attr=null) {

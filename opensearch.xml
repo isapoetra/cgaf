@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"  ?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/"
+	xmlns:moz="http://www.mozilla.org/2006/browser/search/">
+	<ShortName>CGAF</ShortName>
+	<Description>Search CGAF, Multi Application Framework</Description>
+	<InputEncoding>UTF-8</InputEncoding>
+	<Image width="16" height="16" type="image/x-icon">http://www.cgaf.com:80/assets/images/favicon.ico
+	</Image>
+	<Url type="text/html" method="get"
+		template="http://www.cgaf.com:80/search/opensearch/">
+		<Param Name="pw" value="{startPage}" />
+
+
+
+		<Param Name="q" value="{searchTerms}" />
+		<Param name="format" value="rss" />
+	</Url>
+	<Url type="application/x-suggestions+json"
+		template="http://www.cgaf.com:80//search/opensearch/?__json=1&amp;q={searchTerm}" />
+</OpenSearchDescription>

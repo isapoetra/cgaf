@@ -6,10 +6,10 @@ class ClientInfo {
 	private $_path;
 	private $_cachepath;
 	private $_data;
-	function __construct($path) {
+	function __construct($path,$cachePath) {
 		// throw new Exception($path);
 		$this->_path = Utils::toDirectory ( $path . DS );
-		$this->_cachepath = Utils::makeDir ( $path . DS . '.cache/', 0777, '*' );
+		$this->_cachepath = $cachePath;
 		$this->_data = $this->parse ();
 	}
 	function __get($name) {
@@ -52,6 +52,10 @@ class ClientInfo {
 		} elseif (preg_match ( '/Firefox/i', $u_agent )) {
 			$bname = 'Mozilla Firefox';
 			$ub = "Firefox";
+			if ($platform==='linux') {
+				$ub='firefox';
+				$verpatern = '[/]+(?<version>[0-9.|a-zA-Z.]*)';
+			}
 		} elseif (preg_match ( '/Chromium/i', $u_agent )) {
 			$pattern = '#(?<browser>chromium)[/ ]+(?<version>[0-9.|a-zA-Z.]*)#';
 			$bname = 'Chromium';
@@ -110,15 +114,16 @@ class ClientInfo {
 	}
 	function parse($agent = null) {
 		$agent = strtolower ( $agent ? $agent : isset ( $_SERVER ['HTTP_USER_AGENT'] ) ? $_SERVER ['HTTP_USER_AGENT'] : self::DEFAULT_AGENT );
+		$cfile='';		
 		$cfile = $this->_cachepath . crc32 ( $agent );
 		$retval = null;
+		//unlink($cfile);
 		if (is_file ( $cfile )) {
 			$retval = unserialize ( file_get_contents ( $cfile ) );
 		}
 		if (! $retval) {
 			$matches = $this->getBrowser ( $agent );
-			$retval = $this->getBrowserCaps ( $matches ['realName'], $matches ['version'], $agent );
-			$retval->platform = $matches ['platform'];
+			$retval = $this->getBrowserCaps ( $matches ['realName'], $matches ['version'],$matches ['platform'], $agent );
 			if ($matches ['mobile'] != null) {
 				$retval->ismobiledevice = $matches ['mobile'];
 			}
@@ -129,7 +134,7 @@ class ClientInfo {
 	function setPlatform($value) {
 		$this->_data->platform = $value;
 	}
-	private function getBrowserCaps($name, $version, $agent) {
+	private function getBrowserCaps($name, $version, $platform,$agent) {
 		if (! is_array ( $name )) {
 			$name = array (
 					$name
@@ -137,12 +142,15 @@ class ClientInfo {
 		}
 		$retval = new TClientInfoData ();
 		$retval->agent = $agent;
-		$retval->Browser = $name;
+		$retval->browser = $name;
 		$retval->version = $version;
+		$retval->platform = $platform;
 		$this->parseFile ( $this->_path . 'default.ini', $retval );
 		foreach ( $name as $k => $v ) {
 			$ver = explode ( '.', $version [$k] );
 			$fname = $this->_path . strtolower ( $name [$k] ) . '.ini';
+			$this->parseFile ( $fname, $retval );
+			$fname = $this->_path . strtolower ( $name [$k] ) .DS.$platform. '.ini';
 			$this->parseFile ( $fname, $retval );
 			$fname = $this->_path . strtolower ( $name [$k] ) . DS;
 			foreach ( $ver as $ve ) {
@@ -183,6 +191,10 @@ class TClientInfoData {
 		}
 		pp ( $k );
 		ppd ( $this );
+	}
+	function __set($key,$val) {
+		$key = strtolower($key);
+		$this->$key=$val;
 	}
 	function get($key, $def) {
 		if (isset ( $this->$key ) && $this->$key !== null) {

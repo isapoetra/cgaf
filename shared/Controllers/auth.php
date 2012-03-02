@@ -1,23 +1,13 @@
 <?php
 namespace System\Controllers;
 use System\JSON\JSONResult;
-use System\API\facebook;
-use System\Exceptions\UnimplementedException;
-use System\Web\JS\JSUtils;
-use System\Auth\Auth;
-use System\MVC\Controller;
-use System\Auth\OAuth;
-use System\Auth\Google;
 use System\Exceptions\SystemException;
+use System\Exceptions\UnimplementedException;
 use System\Auth\OpenId;
-use System\Auth\Google\Common;
-use System\Session\Session;
-use System\JSON;
-use System\Auth\Yadis\Yadis;
-use System\Auth\OAuth\OAuthRequest;
+use System\Auth\Auth;
+use System\Web\JS\JSUtils;
+use System\MVC\Controller;
 use Request;
-use Response;
-use URLHelper;
 class AuthController extends Controller {
 	public function isAllow($access = "view") {
 		$isAuth = $this->getAppOwner ()->isAuthentificated ();
@@ -29,9 +19,9 @@ class AuthController extends Controller {
 			case 'view' :
 				return true;
 			case 'login' :
-				return $isAuth === false;
+				return \CGAF::isInstalled() && $isAuth === false;
 			case 'logout' :
-				return $isAuth === true;
+				return \CGAF::isInstalled() && $isAuth === true;
 		}
 		return parent::isAllow ( $access );
 	}
@@ -67,18 +57,21 @@ class AuthController extends Controller {
 		if ($mode) {
 			switch ($mode) {
 				case 'rtl' : // register to local
-					if ($this->getAppOwner()->isValidToken()) {
-
+					if ($this->getAppOwner ()->isValidToken ()) {
+						\Utils::bindToObject ( $params ['remoteuser'], \Request::gets ( 'p' ) );
 					}
 					if (! $params ['localuser'] && $params ['remoteuser']) {
 						$u = $this->getController ( 'user' );
 						try {
 							$valid = $u->registerDirect ( $params ['remoteuser'], $p );
-							if (!$valid['result']) {
-								$params['message'] = $valid['message'];
+							ppd($valid);
+							if (is_array($valid) && ! $valid ['result']) {
+								$params ['message'] = $valid ['message'];
 								return $this->renderView ( 'external/register', $params );
 							}
+							ppd($valid);
 						} catch ( \Exception $e ) {
+							ppd($e);
 							$params ['msg'] = $e->getMessage ();
 							\Request::isAJAXRequest ( false );
 							return $this->renderView ( 'external/register', $params );
@@ -103,7 +96,7 @@ EOT;
 			}
 		}
 		switch ($state) {
-			case AUTH::ERROR_STATE :
+			case Auth::ERROR_STATE :
 				return $this->renderView ( 'external/error', $params );
 			case Auth::NEED_RETRY_STATE :
 				return $this->renderView ( 'external/retry', $params );
@@ -164,7 +157,7 @@ EOT;
 		if (strtolower ( $confirm === 'yes' ) || $confirm === '1') {
 			$this->getAppOwner ()->LogOut ();
 		}
-		Response::Redirect ( BASE_URL . '?__t=' . time () );
+		\Response::Redirect ( BASE_URL . '?__t=' . time () );
 	}
 	function Index() {
 		$retval = false;
@@ -173,7 +166,7 @@ EOT;
 		$msg = Request::get ( 'msg' );
 		if (! $appOwner->isAuthentificated ()) {
 			if ($appOwner->isValidToken ()) {
-				$args = Request::gets ();
+				//$args = Request::gets ();
 				$msg = null;
 				try {
 					$retval = $this->getAppOwner ()->Authenticate ();
@@ -183,13 +176,13 @@ EOT;
 				if (! $msg && ! $retval) {
 					$msg = $this->getAppOwner ()->getAuthentificator ()->getLastError ();
 				}
-				$redir = Request::get ( 'original_url', Request::get ( "redirect", URLHelper::add ( APP_URL, 'auth' ) ) );
+				$redir = Request::get ( 'original_url', Request::get ( "redirect", \URLHelper::add ( APP_URL, 'auth' ) ) );
 				if ($retval) {
-					$redir = URLHelper::addParam ( $redir, array (
+					$redir = \URLHelper::addParam ( $redir, array (
 							'__t' => time ()
 					) );
 				} else {
-					$redir = URLHelper::addParam ( BASE_URL . '/auth/local/', array (
+					$redir = \URLHelper::addParam ( BASE_URL . '/auth/local/', array (
 							'__t' => time (),
 							'__msg' => $msg
 					) );
@@ -207,7 +200,7 @@ EOT;
 						) );
 					}
 				} elseif ($redirect) {
-					Response::Redirect ( $redir );
+					\Response::Redirect ( $redir );
 				}
 			} elseif (Request::get ( '__token' )) {
 				$msg = __ ( 'error.invalidtoken', 'Invalid Token' );

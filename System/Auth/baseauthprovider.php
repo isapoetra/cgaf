@@ -3,7 +3,7 @@ namespace System\Auth;
 abstract class BaseAuthProvider implements IAuthProvider {
 	private $_appOwner;
 	protected $_realUser;
-	protected $_lastError;
+	private $_lastError;
 	protected $_isAuthentificated = false;
 	private $_state = Auth::NEED_RETRY_STATE;
 	function __construct(\IApplication $appOwner) {
@@ -26,6 +26,10 @@ abstract class BaseAuthProvider implements IAuthProvider {
 	}
 	function getLastError() {
 		return $this->_lastError;
+	}
+	function setLastError($value) {
+		$this->setState(Auth::ERROR_STATE);
+		$this->_lastError = $value;
 	}
 	/**
 	 * (non-PHPdoc)

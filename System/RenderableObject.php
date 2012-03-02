@@ -1,5 +1,5 @@
 <?php
-class RenderableObject extends \Object implements  \IRenderable {
+class RenderableObject extends \BaseObject implements  \IRenderable {
 	function __construct($o=null) {
 		$this->bind($o);		
 	}

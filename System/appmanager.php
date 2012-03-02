@@ -3,462 +3,583 @@ use System\Session\Session, System\ACL\ACLHelper;
 use System\Exceptions\SystemException;
 use System\DB\DBQuery;
 use System\Configurations\Configuration;
+use System\Applications\IApplication;
+
 abstract class AppManager extends \StaticObject {
-	private static $_instances = array ();
-	private static $_initialized = false;
-	/**
-	 * Enter description here...
-	 *
-	 * @var IApplication
-	 */
-	private static $_activeApp = null;
-	private static $_model;
-	private static $_appInfos = array ();
-	private static $_installedApps;
-	public static function setActiveApp($appId) {
-		if (is_object ( $appId ) && $appId instanceof IApplication) {
-			$id = $appId->getAppId ();
-			self::$_activeApp = $id;
-			if (! isset ( self::$_instances [$id] )) {
-				self::$_instances [$id] = $appId;
-			}
-			$appId = $id;
+  private static $_instances = array();
+  private static $_initialized = false;
+  /**
+   * Enter description here...
+   *
+   * @var IApplication
+   */
+  private static $_activeApp = null;
+  /**
+   * @var \System\MVC\Model
+   */
+  private static $_model;
+  private static $_appInfos = array();
+  private static $_installedApps;
+
+  /**
+   * @static
+   *
+   * @param $appId string|\System\Applications\IApplication
+   */
+  public static function setActiveApp($appId) {
+    if (is_object($appId) && $appId instanceof IApplication) {
+      $id = $appId->getAppId();
+      self::$_activeApp = $id;
+      if (!isset (self::$_instances [$id])) {
+        self::$_instances [$id] = $appId;
+      }
+      $appId = $id;
+    }
+    Session::set("__appId", $appId);
+  }
+
+  private static function getDefaultAppId() {
+    return CGAF::getConfig("defaultAppId", "__cgaf");
+  }
+
+  /**
+   * @static
+   *
+   * @param null $appId
+   *
+   * @return System\Applications\IApplication
+   * @throws System\Exceptions\SystemException
+   */
+  public static function getInstance($appId = null) {
+    if ($appId instanceof \IApplication) {
+      $id = $appId->getAppId();
+      if (!$id) {
+        throw new SystemException ('Unable to get application id from class ' . get_class($appId));
+      }
+      if (!isset (self::$_instances [$id])) {
+        self::$_activeApp = $id;
+        Session::set("__appId", $id);
+        self::$_instances ["$id"] = $appId;
+      }
+      return $appId;
+    }
+    $appInfo = null;
+    if ($appId == null) {
+      if (self::$_activeApp) {
+        $appId = self::$_activeApp;
+      } else {
+        $appId = Session::get("__appId", self::getDefaultAppId());
+        if ($appId !== null && $appId !== "") {
+          $appInfo = self::getAppInfo($appId, false);
+          if (!CGAF::isAllow($appId, ACLHelper::APP_GROUP)) {
+            $appId = \CGAF::APP_ID;
+          } elseif ($appInfo) {
+            $appId = $appInfo->app_id;
+          } else {
+            throw new SystemException ('unable to get Application ' . $appId);
+          }
+        }
+      }
+    }
+    if (!$appId) {
+      throw new SystemException ('unable to get Application ' . $appId);
+    }
+    if (isset (self::$_instances [$appId])) {
+      return self::$_instances [$appId];
+    }
+    if ($appInfo == null) {
+      $appInfo = self::getAppInfo($appId, false);
+      if (!$appInfo) {
+        return null;
+      }
+    }
+    // $appName = $appInfo->app_class_name ? $appInfo->app_class_name :
+    // $appInfo->app_name;
+    $appShortName = $appInfo->app_path ? $appInfo->app_path : $appInfo->app_name;
+    $cName = $appInfo->app_class_name ? $appInfo->app_class_name
+      : CGAF_CLASS_PREFIX . ($appInfo->app_path ? $appInfo->app_path : $appInfo->app_name) . "App";
+    $cName = str_ireplace('/', NSS, $cName);
+    $clsfile = Utils::ToDirectory(CGAF_APP_PATH . DS . $appInfo->app_path . DS . "app.class" . CGAF_CLASS_EXT);
+    if (is_file($clsfile)) {
+      CGAF::Using($clsfile);
+    }
+    $appPath = CGAF_APP_PATH . DS . $appInfo->app_path . DS . "index" . CGAF_CLASS_EXT;
+    if ($appInfo->app_id === '__cgaf' && Strings::isEmpty($appInfo->app_path)) {
+      $appPath = CGAF_APP_PATH . DS . 'desktop' . DS . CGAF_CONTEXT . DS . "index" . CGAF_CLASS_EXT;
+      $cName = "cgafdesktopapp";
+    }
+    $appFileName = Utils::ToDirectory($appPath);
+    if (is_file($appFileName)) {
+      require ($appFileName);
+    } else {
+      $alt = CGAF_APP_PATH . DS . $appInfo->app_path . DS . $appShortName . CGAF_CLASS_EXT;
+      if (is_file($alt)) {
+        //$appFileName = $alt;
+        $appPath = dirname($alt);
+        require $alt;
+      } else {
+        Logger::Warning("Application File Not Found." . Logger::WriteDebug("  @%s | %s"), $appFileName, $alt);
+      }
+    }
+    $rname = \CGAF::getClassNameFor($cName, '\\System\\Applications', false);
+    if ($rname) {
+      $cName = $rname;
+    }
+    if (!class_exists($cName, true)) {
+      throw new SystemException ("Class Application $cName Not Found");
+    }
+    $appPath = (Strings::isEmpty($appPath) ? CGAF_APP_PATH . DS . $appInfo->app_path . DS : dirname($appPath)) . DS;
+    // CGAF::addStandardSearchPath(null, $appPath .DS. 'classes' ,false);
+    CGAF::addClassPath('apps', $appPath . 'classes' . DS);
+    /**
+     * @var  \System\Applications\IApplication $instance
+     */
+    $instance = new $cName ($appPath, $appInfo->app_name);
+    $instance->setAppInfo($appInfo);
+    if ($instance->Initialize()) {
+      // Session::set ( '__appId', $appId );
+      // CGAF::addAlowedLiveAssetPath($instance->getAppPath(true));
+      self::$_instances [$appId] = $instance;
+      if (!self::$_activeApp) {
+        self::$_activeApp = $appId;
+      }
+      self::trigger("onAppLoaded", $instance);
+      return self::$_instances [$appId];
+    } else {
+      throw new SystemException ('Unable to Initialize Application');
+    }
+  }
+
+  public static function getInstanceByPath($path, $throw = true) {
+    $model = self::getModel(true);
+    // $model->setFilterACL ( FALSE );
+    $model->Where('app_path=' . $model->quote($path));
+    $o = $model->loadObject();
+    if ($o) {
+      // check for security
+      return self::getInstance($o->app_id);
+    }
+    return null;
+  }
+
+  /**
+   * @static
+   *
+   * @param      $id string|\System\Applications\IApplication
+   * @param bool $throw
+   *
+   * @return null
+   * @throws System\Exceptions\SystemException
+   */
+  public static function getAppInfo($id, $throw = true) {
+
+    $id = $id ? $id : self::getDefaultAppId();
+
+    $direct = false;
+    if ($id instanceof IApplication) {
+      $id = $id->getAppId();
+      $direct = true;
+    }
+    if (isset (self::$_appInfos [$id])) {
+      return self::$_appInfos [$id];
+    }
+		if (\CGAF::isInstalled()) {
+		  $model = self::getModel()
+		    ->clear();
+		  if ($direct) {
+		    $model->setFilterACL(FALSE);
+		  }
+		  $model->Where('app_id=' . $model->quote($id));
+		  $o = $model->loadObject();
+		  if ($o) {
+		    $infos [$o->app_id] = $o;
+		  } else {
+		    if ($throw) {
+		      throw new SystemException ("Application $id not found");
+		    } else {
+		      return null;
+		    }
+		  }
+		}elseif (self::$_activeApp) {
+			ppd(self::$_activeApp);
+			return self::$_activeApp;
 		}
-		Session::set ( "__appId", $appId );
-	}
-	private static function getDefaultAppId() {
-		return CGAF::getConfig ( "defaultAppId", "__cgaf" );
-	}
-	/**
-	 * getInstance of application
-	 *
-	 * @param $appName string
-	 * @return \IApplication
-	 */
-	public static function getInstance($appId = null) {
-		if ($appId instanceof \IApplication) {
-			$id = $appId->getAppId ();
-			if (! $id) {
-				throw new SystemException ( 'Unable to get application id from class ' . get_class ( $appId ) );
-			}
-			if (! isset ( self::$_instances [$id] )) {
-				self::$_activeApp = $id;
-				Session::set ( "__appId", $id );
-				self::$_instances ["$id"] = $appId;
-			}
-			return $appId;
-		}
-		$appInfo = null;
-		if ($appId == null) {
-			if (self::$_activeApp) {
-				$appId = self::$_activeApp;
-			} else {
-				$appId = Session::get ( "__appId", self::getDefaultAppId () );
-				if ($appId !== null && $appId !== "") {
-					$appInfo = self::getAppInfo ( $appId, false );
-					if (! CGAF::isAllow ( $appId, ACLHelper::APP_GROUP )) {
-						$appId = null;
-					} elseif ($appInfo) {
-						$appId = $appInfo->app_id;
-					} else {
-						throw new SystemException ( 'unable to get Application ' . $appId );
-					}
-				}
-			}
-		}
-		if (! $appId) {
-			throw new SystemException ( 'unable to get Application ' . $appId );
-		}
-		if (isset ( self::$_instances [$appId] )) {
-			return self::$_instances [$appId];
-		}
-		if ($appInfo == null) {
-			$appInfo = self::getAppInfo ( $appId, false );
-			if (! $appInfo) {
-				return null;
-			}
-		}
-		// $appName = $appInfo->app_class_name ? $appInfo->app_class_name :
-		// $appInfo->app_name;
-		$appShortName = $appInfo->app_path ? $appInfo->app_path : $appInfo->app_name;
-		$cName = $appInfo->app_class_name ? $appInfo->app_class_name : CGAF_CLASS_PREFIX . ($appInfo->app_path ? $appInfo->app_path : $appInfo->app_name) . "App";
-		$clsfile = Utils::ToDirectory ( CGAF_APP_PATH . DS . $appInfo->app_path . DS . "app.class" . CGAF_CLASS_EXT );
-		if (is_file ( $clsfile )) {
-			CGAF::Using ( $clsfile );
-		}
-		$appPath = CGAF_APP_PATH . DS . $appInfo->app_path . DS . "index" . CGAF_CLASS_EXT;
-		if ($appInfo->app_id === '__cgaf' && Strings::isEmpty ( $appInfo->app_path )) {
-			$appPath = CGAF_APP_PATH . DS . 'desktop' . DS . CGAF_CONTEXT . DS . "index" . CGAF_CLASS_EXT;
-			$cName = "cgafdesktopapp";
-		}
-		$appFileName = Utils::ToDirectory ( $appPath );
-		if (is_file ( $appFileName )) {
-			require ($appFileName);
-		} else {
-			$alt = CGAF_APP_PATH . DS . $appInfo->app_path . DS . $appShortName . CGAF_CLASS_EXT;
-			if (is_file ( $alt )) {
-				$appFileName = $alt;
-				$appPath = dirname ( $alt );
-				require $alt;
-			} else {
-				Logger::Warning ( "Application File Not Found." . Logger::WriteDebug ( "  @%s | %s" ), $appFileName, $alt );
-			}
-		}
-		$rname = \CGAF::getClassNameFor ( $cName, '\\System\\Applications', false );
-		if ($rname) {
-			$cName = $rname;
-		} else {
-			$cName = "\\System\\MVC\\Application";
-		}
-		if (! class_exists ( $cName, true )) {
-			throw new SystemException ( "Class Application $cName Not Found" );
-		}
-		$appPath = (Strings::isEmpty ( $appPath ) ? CGAF_APP_PATH . DS . $appInfo->app_path . DS : dirname ( $appPath )) . DS;
-		// CGAF::addStandardSearchPath(null, $appPath .DS. 'classes' ,false);
-		CGAF::addClassPath ( 'apps', $appPath . 'classes' . DS );
-		$instance = new $cName ( $appPath, $appInfo->app_name );
-		$instance->setAppInfo ( $appInfo );
-		if ($instance->Initialize ()) {
-			// Session::set ( '__appId', $appId );
-			// CGAF::addAlowedLiveAssetPath($instance->getAppPath(true));
-			self::$_instances [$appId] = $instance;
-			if (! self::$_activeApp) {
-				self::$_activeApp = $appId;
-			}
-			self::trigger ( "onAppLoaded", $instance );
-			return self::$_instances [$appId];
-		} else {
-			throw new SystemException ( 'Unable to Initialize Application' );
-		}
-		return null;
-	}
-	public static function getInstanceByPath($path, $throw = true) {
-		$model = self::getModel ( true );
-		$model->setFilterACL ( FALSE );
-		$model->Where ( 'app_path=' . $model->quote ( $path ) );
-		$o = $model->loadObject ();
-		if ($o) {
-			// check for security
-			return self::getInstance ( $o->app_id );
-		}
-		return null;
-	}
-	public static function getAppInfo($id, $throw = true) {
-		$id = $id ? $id : self::getDefaultAppId ();
-		$direct = false;
-		if ($id instanceof \IApplication) {
-			$id = $id->getAppId ();
-			$direct = true;
-		}
-		if (isset ( self::$_appInfos [$id] )) {
-			return self::$_appInfos [$id];
-		}
-		$model = self::getModel ()->clear ();
-		if ($direct) {
-			$model->setFilterACL ( FALSE );
-		}
-		$model->Where ( 'app_id=' . $model->quote ( $id ) );
-		$o = $model->loadObject ();
-		if ($o) {
-			$infos [$o->app_id] = $o;
-		} else {
-			if ($throw) {
-				throw new SystemException ( "Application $id not found" );
-			} else {
-				return null;
-			}
-		}
-		return $infos [$o->app_id];
-	}
-	/**
-	 * Enter description here .
-	 * ..
-	 *
-	 * @return String
-	 */
-	public static function getActiveApp() {
-		return self::$_activeApp;
-	}
-	public static function getCurrentAppInfo() {
-		return self::getAppInfo ( self::getInstance ()->getAppName (), true );
-	}
-	public static function isAppStarted() {
-		return self::$_activeApp != null;
-	}
-	public static function Shutdown() {
-		if (self::$_activeApp != null) {
-			self::getInstance ()->Shutdown ();
-		}
-	}
-	public static function getContent($position = null) {
-		return self::getInstance ()->getContent ( $position );
-	}
-	public static function isAppInstalled($appPath) {
-		// $q = CGAF::getConnector("applications");
-		$o = self::getModel ()->Where ( "app_path=" . self::getModel ()->quote ( $appPath ) )->loadObject ();
-		return $o;
-	}
-	public static function isAppIdInstalled($appId) {
-		if ($appId === "desktop") {
-			return true;
-		}
-		$q = CGAF::getConnector ( "applications" );
-		$o = $q->Where ( "app_id=" . $q->quote ( $appId ) )->loadObject ();
-		return $o;
-	}
-	private static function getAppClass($appName, $throw = true) {
-		$cName = CGAF_CLASS_PREFIX . "{$appName}App";
-		if (! class_exists ( $cName, false )) {
-			$clsfile = Utils::toDirectory ( CGAF_APP_PATH . DS . $appName . DS . $appName . '.class' . CGAF_CLASS_EXT );
-			if (is_file ( $clsfile )) {
-				require $clsfile;
-			}
-			$appFileName = Utils::toDirectory ( CGAF_APP_PATH . DS . $appName . DS . "index" . CGAF_CLASS_EXT );
-			if (is_file ( $appFileName )) {
-				require ($appFileName);
-			} else {
-				$alt = Utils::toDirectory ( CGAF_APP_PATH . DS . $appName . DS . $appName . CGAF_CLASS_EXT );
-				if (is_file ( $alt )) {
-					require $alt;
-				} elseif ($throw) {
-					Logger::Error ( "Application File Not Found." . Logger::WriteDebug ( "  @%s | %s" ), $appFileName, $alt );
-				} else {
-					Logger::Warning ( "Application File Not Found." . Logger::WriteDebug ( "  @%s | %s" ), $appFileName, $alt );
-				}
-			}
-		}
-		if (! class_exists ( $cName, false )) {
-			$cName = 'MVCApplication';
-		}
-		return $cName;
-	}
-	public static function getAppConfig($path) {
-		$cf = Utils::ToDirectory ( $path . DS . "config.php" );
-		$config = new Configuration ( null, false );
-		if (is_file ( $cf )) {
-			$config->loadFile ( $cf );
-		}
-		return $config;
-	}
-	public static function uninstall($id) {
-		if (! CGAF_DEBUG) {
-			// throw new SystemException ( 'only for debug' );
-			return false;
-		}
-		if (is_array ( $id )) {
-			foreach ( $id as $i ) {
-				self::uninstall ( $i );
-			}
-			return;
-		}
-		$continue = true;
-		if ($id instanceof \IApplication) {
-			if (! $id->Uninstall ()) {
-				// throw new SystemException('unable to uninstall
-				// applications');
-				$continue = false;
-			}
-			$id = $id->getAppId ();
-		}
-		if ($continue) {
-			$q = new DBQuery ( CGAF::getDBConnection () );
-			$qid = $q->quote ( $id );
-			$q->exec ( 'delete from #__sysvals where sysval_key_id in (select syskey_id from #__syskeys where app_id=' . $q->quote ( $id ) . ')' );
-			$q->exec ( 'delete from #__syskeys where app_id=' . $qid );
-			// content related
-			$q->exec ( 'delete from #__comment where app_id=' . $qid );
-			$q->exec ( 'delete from #__lookup where app_id=' . $qid );
-			$q->exec ( 'delete from #__contents where app_id=' . $qid );
-			$q->exec ( 'delete from #__modules where app_id=' . $qid );
-			$q->exec ( 'delete from #__recentlog where app_id=' . $qid );
-			$q->exec ( 'delete from #__menus where app_id=' . $qid );
-			// Privs
-			$q->exec ( 'delete from #__role_privs where app_id=' . $q->quote ( '__cgaf' ) . ' and object_id=' . $qid );
-			$q->exec ( 'delete from #__role_privs where app_id=' . $qid );
-			$q->exec ( 'delete from #__user_privs where app_id=' . $qid );
-			$q->exec ( 'delete from #__user_roles where app_id=' . $qid );
-			$q->exec ( 'delete from #__roles where app_id=' . $qid );
-			$q->exec ( 'delete from #__applications where app_id=' . $qid );
-		}
-	}
-	/**
-	 * Enter description here .
-	 * ..
-	 *
-	 * @param $appName String
-	 * @throws Exception
-	 * @return String id
-	 */
-	public static function install($appName) {
-		$instance = null;
-		if ($appName instanceof \IApplication) {
-			$instance = $appName;
-			$appName = $appName->getAppName ();
-			$appPath = $instance->getAppPath ();
-			$config = $instance->getConfigInstance ();
-		} else {
-			$appPath = realpath ( CGAF_APP_PATH . DS . $appName . DS );
-			$config = self::getAppConfig ( $appPath );
-		}
-		$id = $instance->getConfig ( "app.id" );
-		if (! $id) {
-			$id = GUID::getGUID ();
-			$config->setConfig ( "app.id", $id );
-			$config->Save ();
-		}
-		$npath = trim ( str_replace ( CGAF_APP_PATH, '', $appPath ), DS );
-		if (! self::isAppInstalled ( $npath )) {
-			if (self::isAppIdInstalled ( $id )) {
-				return $id;
-			}
-			if (! $instance) {
-				$cl = self::getAppClass ( $appName, false );
-				if ($cl) {
-					Response::write ( "Installing $appPath $appName" );
-					$instance = new $cl ( $appPath, $appName );
-				} else {
-					Logger::Warning ( "Unable to find application class for $appName" );
-				}
-			}
-			if ($instance) {
-				$class = str_replace ( 'System\\Applications\\', '', get_class ( $instance ) );
-				// $q->exec ( 'insert into #__applications values(' . $qid . ','
-				// . $q->quote ( $appName ) . ',1,' . $q->quote ( $npath ) . ','
-				// . $q->quote ( '0.1' ) . ',' . $q->quote ( $class . 'App' ) .
-				// ',null,1,null)' );
-				$app = self::getModel ()->clear ();
-				$app->app_id = $id;
-				$app->app_class_name = $class;
-				$app->active = true;
-				$app->app_name = $config->getConfig ( "app.name", $appName );
-				$app->app_path = $npath;
-				$app->app_version = $config->getConfig ( "app.version", "0.1" );
-				$app->store ( false );
-				if ($app->getError ()) {
-					throw new Exception ( $app->getError () );
-				}
-				if (! $instance->Install ()) {
-					self::uninstall ( $instance, false );
-					throw new SystemException ( 'Unable to Install application ' . $id );
-				}
-			}
-		}
-		return $id;
-	}
-	private static function getModel($clear = true) {
-		if (! self::$_model) {
-			self::$_model = new \System\Models\Application ( CGAF::getDBConnection () );
-		}
-		if ($clear) {
-			self::$_model->clear ();
-		}
-		return self::$_model;
-	}
-	public static function allowedApp() {
-		$rows = AppManager::getInstalledApp ();
-		return self::isAllowApp ( $rows );
-	}
-	public static function isAllowApp($o) {
-		$acl = CGAF::getACL ();
-		if (is_array ( $o )) {
-			$r = array ();
-			foreach ( $o as $v ) {
-				$v = self::isAllowApp ( $v );
-				if ($v) {
-					$r [] = $v;
-				}
-			}
-			return $r;
-		} elseif (is_object ( $o )) {
-			if (self::isAllowApp ( $o->app_id )) {
-				$path = self::getAppPath ( $o );
-				if (! is_dir ( $path )) {
-					return null;
-				}
-				return $o;
-			}
-		} else {
-			if ($o === '__cgaf' || ( int ) $o === - 1) {
-				return true;
-			}
-			return CGAF::isAllow ( $o, ACLHelper::APP_GROUP );
-		}
-	}
-	public static function getInstalledApp() {
-		if (self::$_installedApps == null) {
-			$installed = self::getModel ()->clear ();
-			if (CGAF::isInstalled ()) {
-				$installed = $installed->where ( "active=" . $installed->quote ( '1' ) );
-			}
-			$installed = $installed->loadObjects ();
-			if (CGAF::isInstalled ()) {
-				self::$_installedApps = self::isAllowApp ( $installed );
-			}
-		}
-		return self::$_installedApps;
-	}
-	protected static function isAppPathInstalled($path) {
-		$installed = self::getInstalledApp ();
-		foreach ( $installed as $app ) {
-			if ($app->app_path == $path) {
-				return true;
-			}
-		}
-		return false;
-	}
-	public static function getNotInstalledApp() {
-		$retval = array ();
-		if (! CGAF::isAllow ( "manage", "System" )) {
-			return $retval;
-		}
-		$files = Utils::getDirList ( CGAF_APP_PATH );
-		foreach ( $files as $file ) {
-			if (strpos ( $file, '.' ) !== false)
-				continue;
-			if (! self::isAppPathInstalled ( $file )) {
-				$retval [] = $file;
-			}
-		}
-		return $retval;
-	}
-	public static function initialize() {
-		if (self::$_initialized) {
-			return true;
-		}
-		/*
-		 * ppd(CGAF::getConfigs('Session.configs'));
-		 * ini_set('session.use_cookies', '0'); ini_set ( "session.auto_start",
-		 * false ); ini_set ( "session.use_only_cookies", false );
-		 */
-		Session::Start ();
-		self::$_initialized = true;
-	}
-	public static function getAppPath($AppName = null) {
-		if ($AppName === null) {
-			$AppName = self::$_activeApp;
-		}
-		$obj = new stdClass ();
-		if (! is_object ( $AppName )) {
-			$obj = self::getAppInfo ( $AppName, false );
-		} else {
-			$obj = $AppName;
-		}
-		$path = null;
-		if (isset ( $obj->app_id )) {
-			if (is_dir ( $obj->app_path )) {
-				$path = $obj->app_path;
-			} else {
-				$path = Utils::ToDirectory ( CGAF_APP_PATH . DS . $obj->app_path . DS );
-			}
-		} else {
-			// if (System::isWebContext ()) {
-			// throw new SystemException ( "cgaf_app_not_installed", $AppName );
-			// } else {
-			return null;
-			// }
-		}
-		$path = Utils::ToDirectory ( $path );
-		return $path;
-	}
+
+    return $infos [$o->app_id];
+  }
+
+  /**
+   * Enter description here .
+   * ..
+   *
+   * @return String
+   */
+  public static function getActiveApp() {
+    return self::$_activeApp;
+  }
+
+  public static function unpublish() {
+    $cn = new DBQuery(\CGAF::getDBConnection());
+    $cn
+      ->clear()
+      ->exec(
+      'delete from #__role_privs where role_id=0 and app_id=' . $cn->quote(\CGAF::APP_ID) . ' and object_id='
+        . $cn->quote('id') . ' and object_type=' . $cn->quote('app')
+    );
+  }
+
+  public static function publish($id) {
+    $cn = new DBQuery(\CGAF::getDBConnection());
+    $cn->addTable('role_privs');
+    $cn
+      ->where('role_id=0')
+      ->where('app_id=' . $cn->quote(\CGAF::APP_ID))
+      ->where('object_id=' . $cn->quote($id))
+      ->Where('object_type=' . $cn->quote(ACLHelper::APP_GROUP));
+    $o = $cn->loadObject();
+    \CGAF::getACL()
+      ->clearCache();
+    if (!$o) {
+      //ppd($cn->lastSQL());
+      $cn
+        ->clear()
+        ->exec(
+        'insert into #__role_privs value(0,' . $cn->quote(\CGAF::APP_ID) . ',' . $cn->quote($id) . ',' . $cn->quote(
+          'app'
+        ) . ',1)'
+      );
+      return true;
+    }
+    return false;
+  }
+
+  public static function getCurrentAppInfo() {
+    return self::getAppInfo(
+      self::getInstance()
+        ->getAppName(), true
+    );
+  }
+
+  public static function isAppStarted() {
+    return self::$_activeApp != null;
+  }
+
+  public static function Shutdown() {
+    if (self::$_activeApp != null) {
+      self::getInstance()
+        ->Shutdown();
+    }
+  }
+
+  public static function getContent($position = null) {
+    return self::getInstance()
+      ->getContent($position);
+  }
+
+  public static function isAppInstalled($appPath, $bypath = true) {
+    // $q = CGAF::getConnector("applications");
+    $m = self::getModel();
+    if ($bypath) {
+      $m->Where("app_path=" . $m->quote($appPath));
+    } else {
+      $m->where('app_id=' . $m->quote($appPath));
+    }
+    $o = $m->loadObject();
+    return $o;
+  }
+
+  public static function isAppIdInstalled($appId) {
+    if ($appId === "desktop") {
+      return true;
+    }
+    $q = CGAF::getConnector("applications");
+    $o = $q
+      ->Where("app_id=" . $q->quote($appId))
+      ->loadObject();
+    return $o;
+  }
+
+  private static function getAppClass($appName, $throw = true) {
+    $cName = CGAF_CLASS_PREFIX . "{$appName}App";
+    if (!class_exists($cName, false)) {
+      $clsfile = Utils::toDirectory(CGAF_APP_PATH . DS . $appName . DS . $appName . '.class' . CGAF_CLASS_EXT);
+      if (is_file($clsfile)) {
+        require $clsfile;
+      }
+      $appFileName = Utils::toDirectory(CGAF_APP_PATH . DS . $appName . DS . "index" . CGAF_CLASS_EXT);
+      if (is_file($appFileName)) {
+        require ($appFileName);
+      } else {
+        $alt = Utils::toDirectory(CGAF_APP_PATH . DS . $appName . DS . $appName . CGAF_CLASS_EXT);
+        if (is_file($alt)) {
+          require $alt;
+        } elseif ($throw) {
+          Logger::Error("Application File Not Found." . Logger::WriteDebug("  @%s | %s"), $appFileName, $alt);
+        } else {
+          Logger::Warning("Application File Not Found." . Logger::WriteDebug("  @%s | %s"), $appFileName, $alt);
+        }
+      }
+    }
+    $cl = '\\System\\Applications\\' . $appName . 'App';
+    if (class_exists($cl, false)) {
+      return $cl;
+    }
+    if (!class_exists($cName, false)) {
+      $cName = '\\System\\MVC\\Application';
+    }
+    return $cName;
+  }
+
+  public static function getAppConfig($path) {
+    $cf = Utils::ToDirectory($path . DS . "config.php");
+    $config = new Configuration (null, false);
+    if (is_file($cf)) {
+      $config->loadFile($cf);
+    }
+    return $config;
+  }
+
+  /**
+   * @static
+   *
+   * @param $id string|IApplication
+   *@param $force bool
+   * @return mixed
+   */
+  public static function uninstall($id,$force=false) {
+    if (is_array($id)) {
+      foreach ($id as $i) {
+        self::uninstall($i);
+      }
+      return;
+    }
+    $continue = true;
+    if ($id instanceof IApplication) {
+      if (!$id->Uninstall() && !$force) {
+         throw new SystemException('unable to uninstall applications');
+        $continue = false;
+      }
+      $id = $id->getAppId();
+    }
+    if ($continue) {
+      $q = new DBQuery (CGAF::getDBConnection());
+      $qid = $q->quote($id);
+      $q->exec(
+        'delete from #__sysvals where sysval_key_id in (select syskey_id from #__syskeys where app_id=' . $qid . ')'
+      );
+      $q->exec('delete from #__syskeys where app_id=' . $qid);
+      // content related
+      $q->exec('delete from #__comment where app_id=' . $qid);
+      $q->exec('delete from #__lookup where app_id=' . $qid);
+      $q->exec('delete from #__contents where app_id=' . $qid);
+      $q->exec('delete from #__modules where app_id=' . $qid);
+      $q->exec('delete from #__recentlog where app_id=' . $qid);
+      $q->exec('delete from #__menus where app_id=' . $qid);
+      // Privs
+      $q->exec('delete from #__role_privs where app_id=' . $q->quote(\CGAF::APP_ID) . ' and object_id=' . $qid);
+      $q->exec('delete from #__role_privs where app_id=' . $qid);
+      $q->exec('delete from #__user_privs where app_id=' . $qid);
+      $q->exec('delete from #__user_roles where app_id=' . $qid);
+      $q->exec('delete from #__roles where app_id=' . $qid);
+      $q->exec('delete from #__applications where app_id=' . $qid);
+    }
+  }
+
+  public static function activateApp($id, $active = true) {
+    if (self::isAllowApp($id)) {
+      $q = new DBQuery (CGAF::getDBConnection());
+      $q->exec('update #__applications set app_state=' . ($active ? '1' : '0') . ' where app_id=' . $q->quote($id));
+    }
+  }
+
+  /**
+   * Enter description here .
+   * ..
+   *
+   * @param $appName String|IApplication
+   *
+   * @throws Exception
+   * @return String id
+   */
+  public static function install($appName) {
+    $instance = null;
+    \CGAF::getACL()
+      ->clearCache();
+    if ($appName instanceof IApplication) {
+      $instance = $appName;
+      $appName = $appName->getAppName();
+      $appPath = $instance->getAppPath();
+      $config = $instance->getConfigInstance();
+    } else {
+      $appPath = realpath(CGAF_APP_PATH . DS . $appName . DS) . DS;
+      $config = self::getAppConfig($appPath);
+      $c = self::getAppClass($appName);
+      $instance = new $c ();
+    }
+    $id = $instance->getConfig("app.id");
+
+    if (!$id) {
+      $id = GUID::getGUID();
+      $config->setConfig("app.id", $id);
+      $config->setConfigFile($instance->getAppPath() . 'config.php');
+      $config->Save();
+    }
+    $npath = trim(str_replace(CGAF_APP_PATH, '', $appPath), DS);
+    if (!self::isAppInstalled($npath)) {
+      if (self::isAppIdInstalled($id)) {
+        return $id;
+      }
+      $class = str_replace('System\\Applications\\', '', get_class($instance));
+      $app = self::getModel()
+        ->clear();
+      $app->app_id = $id;
+      $app->app_class_name = $class;
+      $app->active = true;
+      $app->app_name = $config->getConfig("app.name", $appName);
+      $app->app_path = $npath;
+      $app->app_version = $config->getConfig("app.version", "0.1");
+      $app->store(false);
+      if ($app->getError()) {
+        throw new Exception ($app->getError());
+      }
+      if (!$instance->Install()) {
+        self::uninstall($instance, false);
+        throw new SystemException ('Unable to Install application ' . $id);
+      }
+    }
+    return $id;
+  }
+
+  /**
+   * @static
+   *
+   * @param bool $clear
+   *
+   * @return \System\MVC\Model
+   */
+  private static function getModel($clear = true) {
+    if (!self::$_model) {
+      self::$_model = new \System\Models\Application (CGAF::getDBConnection());
+    }
+    if ($clear) {
+      self::$_model->clear();
+    }
+    return self::$_model;
+  }
+
+  public static function allowedApp() {
+    $rows = AppManager::getInstalledApp();
+    return self::isAllowApp($rows);
+  }
+
+  public static function isAllowApp($o, $access = 'view') {
+    $acl = CGAF::getACL();
+    if (is_array($o)) {
+      $r = array();
+      foreach ($o as $v) {
+        $v = self::isAllowApp($v, $access);
+        if ($v) {
+          $r [] = $v;
+        }
+      }
+      return $r;
+    } elseif (is_object($o)) {
+      if (self::isAllowApp($o->app_id, $access)) {
+        $path = self::getAppPath($o);
+        if (!is_dir($path)) {
+          return null;
+        }
+        return $o;
+      }
+    } elseif (is_string($o) || is_numeric($o)) {
+      if ($o === \CGAF::APP_ID || ( int )$o === -1) {
+        return true;
+      }
+      return
+        CGAF::isAllow($o, ACLHelper::APP_GROUP, $access) || CGAF::isAllow('system', 'manage', ACLHelper::ACCESS_MANAGE);
+    }
+  }
+
+  public static function getInstalledApp() {
+    if (self::$_installedApps == null) {
+      $installed = self::getModel()
+        ->clear();
+      if (CGAF::isInstalled()) {
+        $installed->where("active=" . $installed->quote('1'));
+      }
+      $installed->where('app_id <> ' . $installed->quote(\CGAF::APP_ID));
+      $installed = $installed->loadObjects();
+      if (CGAF::isInstalled()) {
+        self::$_installedApps = self::isAllowApp($installed);
+      }
+    }
+    return self::$_installedApps;
+  }
+
+  protected static function isAppPathInstalled($path) {
+    $installed = self::getInstalledApp();
+    foreach ($installed as $app) {
+      if ($app->app_path == $path) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static function getNotInstalledApp() {
+    $retval = array();
+    $files = Utils::getDirList(CGAF_APP_PATH);
+    foreach ($files as $file) {
+      if (strpos($file, '.') !== false || $file === 'desktop' || $file === 'installer') {
+        continue;
+      }
+      if (!self::isAppInstalled($file)) {
+        $retval [] = $file;
+      }
+    }
+    return $retval;
+  }
+
+  public static function initialize() {
+    if (self::$_initialized) {
+      return true;
+    }
+    /*
+      * ppd(CGAF::getConfigs('Session.configs'));
+      * ini_set('session.use_cookies', '0'); ini_set ( "session.auto_start",
+      * false ); ini_set ( "session.use_only_cookies", false );
+      */
+    Session::Start();
+    self::$_initialized = true;
+  }
+
+  public static function getAppPath($AppName = null) {
+    if ($AppName === null) {
+      $AppName = self::$_activeApp;
+    }
+    $obj = new stdClass ();
+    if (!is_object($AppName)) {
+      $obj = self::getAppInfo($AppName, false);
+    } else {
+      $obj = $AppName;
+    }
+    $path = null;
+    if (isset ($obj->app_id)) {
+      if (is_dir($obj->app_path)) {
+        $path = $obj->app_path;
+      } else {
+        $path = Utils::ToDirectory(CGAF_APP_PATH . DS . $obj->app_path . DS);
+      }
+    } else {
+      // if (System::isWebContext ()) {
+      // throw new SystemException ( "cgaf_app_not_installed", $AppName );
+      // } else {
+      return null;
+      // }
+    }
+    $path = Utils::ToDirectory($path);
+    return $path;
+  }
 }
+
 ?>

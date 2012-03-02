@@ -1,24 +1,25 @@
 <?php
 namespace System\API;
-//TODO move to System.Web.JS.API
+// TODO move to System.Web.JS.API
+use System\Web\JS\CGAFJS;
+use System\Web\Utils\HTMLUtils;
 use System\JSON\JSON;
 use System\Exceptions\SystemException;
-use \AppManager;
-
+use AppManager;
 class google extends PublicApi {
 	function __construct() {
-		parent::__construct();
-		$this->_apijs = array(
-				'plusone' => \URLHelper::getCurrentProtocol() . '://apis.google.com/js/plusone.js'
+		parent::__construct ();
+		$this->_apijs = array (
+				'plusone' => \URLHelper::getCurrentProtocol () . '://apis.google.com/js/plusone.js'
 		);
 	}
 	public function plusOne($size = 'small') {
 		$size = $size ? $size : 'small';
-		$this->init(__FUNCTION__);
-		if (is_array($size)) {
-			$size = isset($size['size']) ? $size['size'] : 'small';
+		$this->init ( __FUNCTION__ );
+		if (is_array ( $size )) {
+			$size = isset ( $size ['size'] ) ? $size ['size'] : 'small';
 		}
-		$size = $size ? $size : $this->getConfig("plusOne.size");
+		$size = $size ? $size : $this->getConfig ( "plusOne.size" );
 		return '<g:plusone size="' . $size . '"></g:plusone>';
 	}
 	public function initJS() {
@@ -26,32 +27,52 @@ class google extends PublicApi {
 		if ($init)
 			return;
 		$init = true;
-		$key = AppManager::getInstance()->getConfig('service.google.jsapi.key');
-		if (!$key) {
-			throw new SystemException("invalid google api key");
+		$key = AppManager::getInstance ()->getConfig ( 'service.google.jsapi.key' );
+		if (! $key) {
+			throw new SystemException ( "invalid google api key" );
 		}
-		AppManager::getInstance()->addClientAsset(\URLHelper::getCurrentProtocol() . '://www.google.com/jsapi?key=' . $key);
+		AppManager::getInstance ()->addClientAsset ( \URLHelper::getCurrentProtocol () . '://www.google.com/jsapi?key=' . $key );
 	}
 	public function loadGoogleJS($js, $v, $configs) {
 	}
 	public function map($configs) {
-		$this->initJS();
-		$app = AppManager::getInstance();
-		$configs = $configs ? $configs : array();
-		$g = $this->getConfig('map', array(
-						'sensor' => 'false',
-						'key' => $app->getConfig('service.google.maps.key')
-				));
-
-		\Utils::arrayMerge($g, $configs);
-		$configs = json_encode($g);
+		$this->initJS ();
+		$app = AppManager::getInstance ();
+		$configs = $configs ? $configs : array ();
+		$g = $this->getConfig ( 'map', array (
+				'sensor' => 'false',
+				'key' => $app->getConfig ( 'service.google.maps.key' )
+		) );
+		\Utils::arrayMerge ( $g, $configs );
+		$configs = json_encode ( $g );
 		$js = <<<EOT
 cgaf.getJSAsync('http://maps.googleapis.com/maps/api/js',$configs);
 EOT;
-		$app->addClientScript($js);
+		$app->addClientScript ( $js );
+	}
+	public function gplus($params) {
+		$id= $params->id;
+		$s = <<< SC
+window.___gcfg = {lang: 'en'};
+(function()
+{var po = document.createElement("script");
+po.type = "text/javascript"; po.async = true;po.src = "https://apis.google.com/js/plusone.js";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(po, s);
+})();
+SC;
+		$params = HTMLUtils::renderAttr ( $params );
+		// CGAFJS::loadAsync();
+		AppManager::getInstance()->addMetaHeader('gplus',array(
+				'href'=>'https://plus.google.com/'.$id,
+				'rel'=>'publisher'
+		),'link');
+		AppManager::getInstance ()->addClientDirectScript ( $s );
+		$ret = '<div class="g-plus" data-href="https://plus.google.com/'.$id.'"	'.$params.'></div>';
+		return $ret;
 	}
 	public function analitycs() {
-		$gag = $this->getConfig('analytics.alitycsid');
+		$gag = $this->getConfig ( 'analytics.alitycsid' );
 		if ($gag) {
 			$script = <<< SC
 var _gaq = _gaq || [];
@@ -63,7 +84,7 @@ _gaq.push(['_trackPageview']);
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 })();
 SC;
-			AppManager::getInstance()->addClientScript($script);
+			AppManager::getInstance ()->addClientScript ( $script );
 		}
 	}
 }

@@ -22,7 +22,8 @@ class SearchItemCollection extends Collection {
 		switch ($f) {
 			case 'html':
 				foreach($this as $v) {
-					$retval .=  $v->renderAs($f);
+          /** @noinspection PhpUndefinedMethodInspection */
+          $retval .=  $v->renderAs($f);
 				}
 			break;
 			default:

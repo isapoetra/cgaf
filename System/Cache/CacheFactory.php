@@ -7,7 +7,7 @@ class CacheFactory {
 	 *
 	 * Enter description here ...
 	 * @param boolean $create
-	 * @return System\Cache\Engine\ICacheEngine
+	 * @return \System\Cache\Engine\ICacheEngine
 	 */
 	static function getInstance($create = false) {
 		if ($create || self::$_instance == null) {
@@ -20,8 +20,8 @@ class CacheFactory {
 		}
 		return self::$_instance;
 	}
-	static function get($id, $suffix = null) {
-		return self::getInstance()->get($id, $suffix);
+	static function get($id, $prefix, $suffix = null, $timeout = NULL) {
+		return self::getInstance()->get($id, $prefix,$suffix,$timeout);
 	}
 	static function putString($s, $id, $ext = null) {
 		return self::getInstance()->putString($s, $id, $ext);

@@ -45,7 +45,7 @@ class Application extends Model implements \IApplicationInfo {
 	public $app_state;
 	public $app_descr;
 	function __construct($connection) {
-		parent::__construct ( $connection, "applications", "app_id", false ,\CGAF::isInstalled () === false);
+		parent::__construct ( $connection, "applications", "app_id", false, \CGAF::isInstalled () === false );
 		// $connection->exec('alter table applications add (app_descr
 		// varchar(250))');
 		$this->_notAllowNull = array (
@@ -54,11 +54,7 @@ class Application extends Model implements \IApplicationInfo {
 	}
 	function filterACL($o) {
 		if (is_object ( $o )) {
-			if (( int ) $o->app_id === - 1 || $o->app_id === '__cgaf') {
-				return $o;
-			}
-			$r = CGAF::isAllow ( $o->app_id, ACLHelper::APP_GROUP );
-			if ($r) {
+			if (\AppManager::isAllowApp ( $o )) {
 				return $o;
 			}
 			return null;

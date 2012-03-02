@@ -1,4 +1,4 @@
 <?php
 $controller = $this->getController();
-echo \Utils::toString($controller->profile());
+echo \Convert::toString($controller->profile());
 ?>

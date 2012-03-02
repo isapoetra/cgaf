@@ -47,6 +47,7 @@ class Menus extends Model {
 	/**
 	 * @FieldType int
 	 * @FieldLength 11
+	 * @FieldDefaultValue 0
 	 *
 	 * @var int
 	 */
@@ -68,8 +69,9 @@ class Menus extends Model {
 	/**
 	 * @FieldType smallint
 	 * @FieldLength 6
+	 * @FieldDefaultValue 1
 	 *
-	 * @var String
+	 * @var int
 	 */
 	public $menu_state;
 	/**
@@ -82,6 +84,7 @@ class Menus extends Model {
 	/**
 	 * @FieldType int
 	 * @FieldLength 10
+	 * @FieldDefaultValue 0
 	 *
 	 * @var int
 	 */
@@ -100,27 +103,38 @@ class Menus extends Model {
 	 * @var String
 	 */
 	public $menu_tag;
-	function __construct($connection) {
-		parent::__construct ( $connection, "menus", "menu_id,app_id", true, \CGAF::isInstalled () === false );
+	function __construct() {
+		parent::__construct ( \CGAF::getDBConnection (), "menus", "menu_id,app_id", true, \CGAF::isInstalled () === false );
 	}
 	function filterACL($o) {
 		if (is_object ( $o )) {
 			$acl = $this->getAppOwner ()->getACL ();
 			$type = null;
+		
+				
 			$action = explode ( "/", $o->menu_action );
+			if (isset ( $action [1] )) {
+				$url = parse_url ( $action [1] );
+			}
+			$access = count ( $action ) > 1 ? $url ['path'] : "view";
 			switch (( int ) $o->menu_action_type) {
 				case 4 : // javascript
 				case 0 :
 					return $o;
+				case 3:
+					$ctl = $this->getAppOwner ()->getController ( trim ( $action [0] ) );
+		
+					if ($ctl && $ctl->isAllow ( $access )) {
+						return $ctl->{$action[1]}($o);
+					}
+					break;
 				case 2 :
 					$action [1] = 'view';
 				case 1 :
 				default :
 					$type = "controller";
-					if (isset ( $action [1] )) {
-						$url = parse_url ( $action [1] );
-					}
-					$access = count ( $action ) > 1 ? $url ['path'] : "view";
+					
+					
 					try {
 						$ctl = $this->getAppOwner ()->getController ( trim ( $action [0] ) );
 						if ($ctl && $ctl->isAllow ( $access )) {

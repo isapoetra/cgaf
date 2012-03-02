@@ -26,7 +26,7 @@ class Response extends AbstractResponse {
 	}
 	function flush() {
 		if ($this->_flush)
-			return;
+			return null;
 		$this->_flush = true;
 		if (!$this->hasSent('Content-Type')) {
 			@header("Content-Type:text/html; charset=UTF-8");
@@ -35,7 +35,7 @@ class Response extends AbstractResponse {
 	}
 	function Write($s, $attr = null) {
 		if ($s === null) {
-			return;
+			return null;
 		}
 		if ($attr !== null) {
 			$attr = new \Attribute($attr);

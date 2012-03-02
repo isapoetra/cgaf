@@ -17,7 +17,7 @@ class TreeView extends Control {
 	/**
 	 *
 	 * Enter description here ...
-	 * @var System\MVC\Model
+	 * @var \System\MVC\Model
 	 */
 	private $_model;
 	private $_defaultMapping = array(

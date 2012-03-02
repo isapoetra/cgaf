@@ -145,13 +145,13 @@ class URLHelper {
 		$aUrl['path'] = $aUrl['path'] ? Utils::explode("/", $aUrl['path'], true) : array();
 		return $aUrl;
 	}
-	public static function implode($aUrl) {
+	public static function implode($aUrl,$encode =true) {
 		$sQuery = '';
 		// Compile query
 		if (isset($aUrl['query_params']) && is_array($aUrl['query_params'])) {
 			$aPairs = array();
 			foreach ($aUrl['query_params'] as $sKey => $sValue) {
-				$aPairs[] = $sKey . '=' . urlencode($sValue);
+				$aPairs[] = $sKey . '=' . ($encode ? urlencode($sValue) :  $sValue);
 			}
 			$sQuery = implode('&', $aPairs);
 		} else {
@@ -203,6 +203,9 @@ class URLHelper {
 					$param[$key] = $val;
 				}
 			}
+			if (!is_array($param) ){
+				ppd($param);
+			}
 			$q = array_merge($q, $param);
 			foreach ($q as $k => $v) {
 				$exist = false;
@@ -224,7 +227,7 @@ class URLHelper {
 		}
 		return $retval;
 	}
-	public static function add($url, $path = null, $param = null, $replacer = null) {
+	public static function add($url, $path = null, $param = null, $replacer = null,$encode =true) {
 		if (!$url) {
 			$url = BASE_URL;
 		}
@@ -235,6 +238,7 @@ class URLHelper {
 		}
 		$url = self::explode($url);
 		if ($path) {
+			$path =trim($path,'/ ');
 			if (!is_array($path)) {
 				$path = explode('/', $path);
 			}
@@ -246,7 +250,7 @@ class URLHelper {
 		if ($param) {
 			$url['query_params'] = self::merge($url, 'query_params', $param);
 		}
-		$retval = self::implode($url);
+		$retval = self::implode($url,$encode);
 		if ($replacer) {
 			$retval =urldecode($retval);
 			if ($replacer) {

@@ -60,7 +60,7 @@ class Db extends BaseACL {
 	function assignRole($uid, $roleId) {
 		if (parent::assignRole ( $uid, $roleId )) {
 			if (! $this->_q->clear ()->addTable ( 'user_roles' )->insert ( 'app_id', $this->_q->quote ( $this->getAppOwer ()->getAppId () ) )->insert ( 'user_id', $uid )->insert ( 'role_id', $role->role_id )->exec ()) {
-				$this->_lastError = $this->_q->getLastError ();
+				$this->setLastError($this->_q->getLastError ());
 			}
 		}
 		return true;
@@ -138,8 +138,9 @@ class Db extends BaseACL {
 		if ($userid == null) {
 			$userid = $this->getUserId ();
 		}
-		// $this->removeCacheForUser($userid);
+		//$this->removeCacheForUser($userid);
 		$cache = $this->getCache ( $userid );
+
 		if ($cache) {
 			return parent::isAllow ( $id, $group, $access, $userid );
 		}
@@ -149,7 +150,7 @@ class Db extends BaseACL {
 			$retval = false;
 		}
 		$roles = $this->getUserRoles ( $userid );
-		$userRole = array ();
+  	$userRole = array ();
 		foreach ( $roles as $role ) {
 			if (( int ) $role->role_id !== ACLHelper::GUEST_ROLE_ID) {
 				$userRole [] = $role->role_id;

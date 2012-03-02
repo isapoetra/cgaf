@@ -1,5 +1,5 @@
 <?php
-final class FileInfo extends \Object {
+final class FileInfo extends \BaseObject {
 	private $_file;
 	private $_mime = null;
 	private static $_Mimecache;
@@ -7,6 +7,7 @@ final class FileInfo extends \Object {
 	function __construct($file) {
 		parent::__construct ();
 		$this->_file = $file;
+		$this->_infos();
 	}
 	function __get($var) {
 		$infos = $this->_infos ();
@@ -39,10 +40,10 @@ final class FileInfo extends \Object {
 		if ($this->_infos && ! $force) {
 			return $this->_infos;
 		}
-		clearstatcache ();
+		clearstatcache (true,$this->_file);
 		$this->_infos = array ();
 		$this->_infos ['is_exist'] = false;
-		$ss = @stat ( $this->_file );
+		$ss = stat ( $this->_file );
 		$ss ['type'] = isset ( $ss ['type'] ) ? $ss ['type'] : ($ss ['nlink'] > 1 ? 'link' : 'node');
 		if (! $ss)
 			return $this->_infos; // Couldnt stat file
@@ -56,6 +57,7 @@ final class FileInfo extends \Object {
 				0010000 => 'pfifo' 
 		);
 		$file = $this->_file;
+		
 		$p = $ss ['mode'];
 		$t = decoct ( $ss ['mode'] & 0170000 ); // File Encoding Bit
 		
@@ -122,7 +124,6 @@ final class FileInfo extends \Object {
 						) 
 				) 
 		);
-		clearstatcache ();
 		return $this->_infos;
 	}
 	

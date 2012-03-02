@@ -7,7 +7,7 @@ use System\Session\Session;
 use CDate;
 use Utils;
 
-class Locale extends \Object {
+class Locale extends \BaseObject {
 	private $_data = array ();
 	private $_locale = null;
 	private $_storePath;
@@ -24,7 +24,7 @@ class Locale extends \Object {
 		$this->_showDefault = CGAF::getConfig ( 'locale.showdefault', true );
 		$this->_defaultLocale = $locale instanceof \IApplication ? $locale->getConfig ( "locale.default", "en" ) : \CGAF::getConfig ( 'locale.default', 'en' );
 		$this->_singleFileMode = $singlemode;
-		if ($locale instanceof \IApplication) {
+		if ($locale instanceof IApplication) {
 			$this->_storePath = $storePath ? $storePath : $locale->getAppPath () . DS . "locale" . DS;
 			$this->_debug = $locale->getConfig ( 'app.debug.locale', $this->_debug );
 			$this->_showDefault = $locale->getConfig ( 'app.locale.showdefault', $this->_showDefault );

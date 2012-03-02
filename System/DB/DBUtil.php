@@ -141,12 +141,15 @@ abstract class DBUtil {
 		if ($ret instanceof DB_Error) {
 			// CGAF :: Trace(__FILE__, __LINE__, __FUNCTION__, $q->prepare(),
 			// true);
-			\CGAF::HandleError ( __FILE__, __LINE__, __FUNCTION__, $ret->getMessage () . "\n" . $q->prepare () );
+			\CGAF::HandleError ( __FILE__, __LINE__, __FUNCTION__, $ret->getMessage () . "\n" . $q->lastSQL() );
 			return false;
 		} else {
 			return true;
 		}
 	}
+  static public function exec($sql,IDBConnection $conn) {
+    return $conn->exec($sql);
+  }
 	static public function getFieldFormat($fieldname, $value, $tableinfo, $Out = true) {
 		$fieldtype = "string";
 		$fieldinfo = null;

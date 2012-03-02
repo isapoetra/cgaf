@@ -7,7 +7,7 @@ use CGAF, Utils, System\Exceptions\SystemException;
  *
  * @author e1
  */
-class Configuration extends \Object implements IConfiguration, \IRenderable {
+class Configuration extends \BaseObject implements IConfiguration, \IRenderable {
 	const NL = PHP_EOL;
 	protected $_configs = array ();
 	private $_useDef = true;
@@ -79,7 +79,9 @@ class Configuration extends \Object implements IConfiguration, \IRenderable {
 			unset ( $configs [$k] );
 		}
 	}
-	protected function _canSetConfig($configName) {
+
+  /** @noinspection PhpUnusedParameterInspection */
+  protected function _canSetConfig($configName) {
 		return true;
 	}
 	public function setConfig($configName, $value = null) {
@@ -91,7 +93,7 @@ class Configuration extends \Object implements IConfiguration, \IRenderable {
 			$configName = "System.$configName";
 		}
 		if (! $this->_canSetConfig ( $configName )) {
-			return;
+			return null;
 		}
 		$cfgs = explode ( '.', $configName );
 		$k = array_shift ( $cfgs );
@@ -117,6 +119,7 @@ class Configuration extends \Object implements IConfiguration, \IRenderable {
 			}
 		}
 		$this->_configCache [$ori] = $value;
+    return $value;
 	}
 	public function assign($var, $val = null) {
 		if (! is_array ( $var )) {
@@ -190,18 +193,18 @@ class Configuration extends \Object implements IConfiguration, \IRenderable {
 		// }
 		return $retval === null ? $default : $retval;
 	}
-	public function getConfigs($prefix = null, $def = null) {
-		if ($prefix == null) {
+	public function getConfigs($configName=null, $default = null) {
+		if ($configName == null) {
 			return $this->_configs;
 		}
 		$r = array ();
-		if (isset ( $this->_configs [$prefix] )) {
-			return $this->_configs [$prefix];
+		if (isset ( $this->_configs [$configName] )) {
+			return $this->_configs [$configName];
 		}
-		$nprefix = $prefix ? $prefix . "." : $prefix;
-		$r = Utils::findConfig ( $prefix, $this->_configs );
+		//$nprefix = $configName ? $configName . "." : $configName;
+		$r = Utils::findConfig ( $configName, $this->_configs );
 		if ($r === null) {
-			return $def;
+			return $default;
 		}
 		return $r;
 	}
@@ -222,6 +225,11 @@ class Configuration extends \Object implements IConfiguration, \IRenderable {
 		}
 		return null;
 	}
+  /**
+   * @param $ext
+   * @return \System\Configurations\Parsers\IConfigurationParser
+   * @throws \System\Exceptions\SystemException
+   */
 	public function getParser($ext) {
 		if (isset ( $this->_parser [$ext] )) {
 			return $this->_parser [$ext];
@@ -263,10 +271,11 @@ class Configuration extends \Object implements IConfiguration, \IRenderable {
 		}
 		return true;
 	}
-	/**
-	 *
-	 * @param $return unknown_type
-	 */
+/**
+ * @param bool $return
+ * @param bool $handle
+ * @return array
+ */
 	public function Render($return = false, &$handle = false) {
 		$arr = array ();
 		foreach ( $this->_configs as $k => $v ) {
@@ -299,6 +308,10 @@ final class Configurationx {
 		self::$_initialized = true;
 		unset ( $_configs );
 	}
+  /**
+   * @static
+   * @return IConfiguration
+   */
 	public static function getInstance() {
 		if (self::$_instance == null) {
 			self::Init ( null );

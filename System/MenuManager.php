@@ -4,7 +4,11 @@ use System\ACL\ACLHelper;
 class MenuManager {
 	protected static function getChildModuleMenu($m, $parent = 0) {
 		$sql = "select * from #__modules_menu where mod_id='$m' and menu_parent='$parent' and menu_visible=1 order by menu_order";
-		$mm = AppManager::getInstance() -> getModel('modules_menu');
+		/**
+     * @var \System\MVC\Model $mm;
+     */
+    /** @noinspection PhpUndefinedMethodInspection */
+    $mm = AppManager::getInstance() -> getModel('modules_menu');
 		$mm -> setAlias('mm') -> clear();
 		$mm -> select('mm.*,c.total');
 		$mm -> where('mod_id=' . $m);

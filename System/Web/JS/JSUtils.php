@@ -113,7 +113,7 @@ class JSUtils {
 			if (is_array($f)) {
 				$f = implode('', $f);
 			}
-			return '<script type="text/javascript">' . $f . '</script>';
+			return $f ? '<script type="text/javascript">' . $f . '</script>' : '';
 		}
 	}
 }

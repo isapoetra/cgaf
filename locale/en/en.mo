@@ -11,6 +11,7 @@ religion.catholic=Catholic
 religion.hindu=Hindu
 religion.budhist=Budhist
 client.dateFormat=m/d/Y
+dateLongFormat=m/d/Y h:i:s
 data.stored=Data Stored
 day.monday.short=Mon
 day.monday.long=Monday
@@ -52,3 +53,6 @@ month.november.long=November
 month.december.short=Dec
 month.december.long=December
 home.descr=Application Frontpage
+
+action.add=Add
+action.manage=Manage

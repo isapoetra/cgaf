@@ -1,0 +1,9 @@
+db_type=Database Type
+db_host=Server
+db_user=User Name
+db_password=Password
+db_database=Database
+user_name=User Name
+user_password=Password
+db_table_prefix=Table Prefix
+acl_public=Allow Public User Access System

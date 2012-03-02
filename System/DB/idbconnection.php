@@ -8,5 +8,6 @@ interface IDBConnection extends \IConnection {
 	 */
 	function setThrowOnError($value);
 	function fetchAssoc();
+  function exec($sql);
 }
 ?>

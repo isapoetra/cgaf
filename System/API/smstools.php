@@ -60,7 +60,7 @@ class SMSCollection extends Collection {
  * 	adduser www-data smsd
  */
 
-class SMSTools extends \Object {
+class SMSTools extends \BaseObject {
 	const SMS_INCOMING = 'incoming';
 	private $_appOwner;
 	private $_config;

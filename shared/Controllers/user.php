@@ -1,5 +1,6 @@
 <?php
 namespace System\Controllers;
+use System\API\PublicApi;
 use System\Exceptions\CGAFException;
 use System\Web\WebUtils;
 use System\Exceptions\AccessDeniedException;
@@ -8,7 +9,7 @@ use System\Exceptions\SystemException;
 use System\JSON\JSONResult;
 use System\Auth\Auth;
 use System\DB\DBQuery;
-use \AppManager;
+use AppManager;
 use System\MVC\ViewModel;
 use System\MVC\Controller;
 use System\ACL\ACLHelper;
@@ -36,14 +37,16 @@ class UserController extends Controller {
 			case 'contacts' :
 				return true;
 				break;
+			case "register" :
+				return $isAuth === false;
 			case 'dashboard' :
 			case "profile" :
-			case "register" :
 			case "updateprofile" :
 			case "action" :
 				return $isAuth;
+			case 'manage' :
 			case 'del' :
-				$access = 'delete';
+				return \CGAF::isAllow ( 'system', 'manage', ACLHelper::ACCESS_MANAGE );
 				break;
 		}
 		return parent::isAllow ( $access );
@@ -93,7 +96,34 @@ class UserController extends Controller {
 		if (! $valid ['result']) {
 			return $valid;
 		}
-		ppd ( $o );
+		$ext = $this->getModel ( 'userexternal' );
+		$user = $this->getUserRegisterExternal ( $method, $o->id );
+		$auth = $this->getAppOwner ()->getAuthentificator ();
+		$ext->where ( 'exttype=' . $ext->quote ( $method ) );
+		$ext->where ( 'extid=' . $ext->quote ( $o->id ) );
+		$rext = $ext->loadObject ();
+		if (! $rext) {
+			$pass = $auth->generateRandomPassword ();
+			$u = $this->getModel ( 'user' );
+			$u->insert ( 'user_name', $o->name );
+			$u->insert ( 'user_state', '1' );
+			$u->insert ( 'user_password', $pass );
+			$r = $u->exec ();
+			if ($r) {
+				$id = $r->getLastInsertId ();
+				$ext->clear ();
+				$ext->insert ( 'exttype', $method );
+				$ext->insert ( 'extid', $o->id );
+				$ext->insert ( 'userid', $id );
+				if ($ext->exec ()) {
+					$ext->clear ();
+					$ext->where ( 'exttype=' . $ext->quote ( $method ) );
+					$ext->where ( 'extid=' . $ext->quote ( $o->id ) );
+					return $ext->loadObject ();
+				}
+			}
+			return $rext;
+		}
 	}
 	private function isValidRegister($o) {
 		$app = $this->getAppOwner ();
@@ -198,21 +228,7 @@ class UserController extends Controller {
 				break;
 		}
 	}
-	public function contacts($args = null) {
-		$person = null;
-		if (is_array ( $args ) && $args) {
-			$uid = $args ['uid'];
-			$person = $args ['person'];
-		} else {
-			$uid = $args === null ? ACLHelper::getUserId () : $uid;
-		}
-		$rows = $this->getModel ( 'persondetail' )->loadByPerson ( $person->person_id );
-		$retval = '';
-		foreach ( $rows as $row ) {
-			$retval .= \UserInfo::parseCallback ( $row->callback, $row->descr );
-		}
-		return $retval;
-	}
+
 	public function register() {
 		$app = $this->getAppOwner ();
 		if ($this->getAppOwner ()->isValidToken ()) {
@@ -412,7 +428,7 @@ class UserController extends Controller {
 		) );
 	}
 	function profile($uid = null, $vars = null) {
-		if (! Request::isAJAXRequest ()) {
+		if (! Request::isDataRequest ()) {
 			$this->getAppOwner ()->getJSEngine ()->loadUI ();
 		}
 		$vars = $vars ? $vars : array ();
@@ -420,20 +436,16 @@ class UserController extends Controller {
 		$userinfo = null;
 		$personInfo = null;
 		$uid = $uid !== null && ! is_array ( $uid ) ? $uid : Request::get ( 'id', ACLHelper::getUserId () );
-		$m = $this->getModel ( "user" );
-		if ($this->getAppOwner ()->isAuthentificated ()) {
-			$userinfo = $m->clear ()->where ( "user_id=" . $uid )->loadObject ();
+		if (ACLHelper::getUserId ()  !==$uid) {
+			throw new AccessDeniedException();
 		}
-		/*
-		 * if ($acl->isPartner()) { $views ["product"] = "Product"; }
-		 */
+	
 		$vars = array_merge ( $vars, array (
+				'persons' => $this->getModel('person')->where('person_owner='.$uid)->loadObjects(),
 				'user_id' => $uid,
 				"userInfo" => $this->getAppOwner ()->getUserInfo ( $uid )
 		) );
-		return parent::render ( array (
-				"_a" => "profile"
-		), $vars );
+		return parent::renderView(__FUNCTION__, $vars );
 	}
 	public function handleAccessDenied($action) {
 		switch (strtolower ( $action )) {
@@ -446,7 +458,15 @@ class UserController extends Controller {
 	function pic() {
 	}
 	function dashboard() {
-		return parent::render ( __FUNCTION__ );
+		$uc = \CGAF::getUserStorage () . 'dashboard.json';
+		$items = array();
+		if (is_file ( $uc )) {
+			$items = json_decode ( file_get_contents ( $uc ) );
+		} 
+		return parent::render ( __FUNCTION__ ,array(
+				'items'=>$items
+			)
+		);
 	}
 	function del($id = null) {
 		return $this->delete ( $id );
@@ -577,6 +597,7 @@ class UserController extends Controller {
 		$m->where ( 'exttype=' . $m->quote ( $mode ) );
 		return $m->loadObject ();
 	}
+
 	function fbRegister() {
 		using ( 'Libs.facebook' );
 		$fb = \FBUtils::getInstance ();

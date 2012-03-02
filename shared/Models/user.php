@@ -21,10 +21,6 @@ class User extends ExtModel {
 	 */
 	public $user_password;
 	/**
-	 * @FieldType integer
-	 */
-	public $person_id;
-	/**
 	 * @FieldType smallint
 	 */
 	public $user_status;
@@ -60,6 +56,12 @@ class User extends ExtModel {
 	 *      @FieldLength 45
 	 */
 	public $last_ip;
+	/**
+	 * @FieldType text
+	 *
+	 * @var unknown_type
+	 */
+	public $states;
 	function __construct($connection = null) {
 		parent::__construct ( CGAF::getDBConnection (), "users", "user_id", false, \CGAF::isInstalled () === false );
 		if ($connection instanceof Application) {

@@ -3,10 +3,10 @@ namespace System\ACL;
 interface IACL {
 	/**
 	 *
-	 * @param $id
-	 * @param $group
-	 * @param $access
-	 * @param $userid
+	 * @param string $id
+	 * @param string $group
+	 * @param string|int $access
+	 * @param null|int $userid
 	 * @return boolean
 	 */
 	function isAllow($id, $group, $access = "view", $userid = null);
@@ -23,5 +23,8 @@ interface IACL {
 	 * @return boolean
 	 */
 	function isAuthentificated();
+  function clearCache();
+  function getUserId();
+  public function isInRole($role);
 }
 ?>

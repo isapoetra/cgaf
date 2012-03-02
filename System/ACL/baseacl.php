@@ -1,15 +1,15 @@
 <?php
 /**
- * Enter description here .
- * ..
+ * ACL Object
+ *
  */
 namespace System\ACL;
-use System\Events\LoginEvent;
 use System\Session\SessionEvent;
 use System\Session\Session;
 use CGAF;
 use System\Exceptions\SystemException;
-abstract class BaseACL extends \Object implements IACL {
+use System\Applications\IApplication;
+abstract class BaseACL extends \BaseObject implements IACL {
 	private $_cachePath = 'acl';
 	protected $_appId;
 	/**
@@ -27,7 +27,7 @@ abstract class BaseACL extends \Object implements IACL {
 	/**
 	 * Role Cache
 	 *
-	 * @var unknown_type
+	 * @var array
 	 */
 	protected $_rolesCache = array ();
 	/**
@@ -37,12 +37,19 @@ abstract class BaseACL extends \Object implements IACL {
 	 */
 	protected $_cacheUserPrivs = array ();
 	private $_groupCache = array ();
+  /**
+   * @var \System\DB\DBQuery
+   */
+  private $_q;
 	function __construct($appOwner) {
 		if ($appOwner === null) {
 			$this->_appId = "__cgaf";
 		}
-		$this->_cachePath = 'acl/' . session_id ();
-		if ($appOwner instanceof \IApplication) {
+
+		if ($appOwner instanceof IApplication) {
+			$this->setAppOwner($appOwner);
+		}
+		/*if ($appOwner instanceof \IApplication) {
 			$appOwner->addEventListener ( LoginEvent::LOGIN, array (
 					$this,
 					"onAuth"
@@ -56,13 +63,13 @@ abstract class BaseACL extends \Object implements IACL {
 		Session::getInstance ()->addEventListener ( SessionEvent::DESTROY, array (
 				$this,
 				'onSessionDestroy'
-		) );
+		) );*/
 	}
 	public function onSessionDestroy($event) {
-		$this->clearCache ();
+		//$this->clearCache ();
 	}
 	protected function onAuth($event) {
-		$this->clearCache ();
+		//$this->clearCache ();
 	}
 	function checkModule($moduleId, $access = "view", $userId = NULL) {
 		$userId = $userId === null ? $this->getUserId () : $userId;
@@ -71,7 +78,7 @@ abstract class BaseACL extends \Object implements IACL {
 	function setCacheMode($value) {
 		$this->_cacheMode = $value;
 	}
-	protected function setAppOwner($appOwner) {
+	protected function setAppOwner(IApplication $appOwner) {
 		$this->_appOwner = $appOwner;
 		$this->_appId = $appOwner->getAppId ();
 	}
@@ -159,7 +166,7 @@ abstract class BaseACL extends \Object implements IACL {
 	 * Enter description here .
 	 * ..
 	 *
-	 * @return System\Cache\Engine\ICacheEngine
+	 * @return \System\Cache\Engine\ICacheEngine
 	 */
 	protected function getCacheManager() {
 		if ($this->_appOwner) {
@@ -188,19 +195,23 @@ abstract class BaseACL extends \Object implements IACL {
 		if ($userid == null) {
 			$userid = $this->getUserId ();
 		}
-
 		if (isset ( $this->_cacheUserPrivs [$userid] )) {
 			return $this->_cacheUserPrivs [$userid];
 		}
 		$cm = $this->getCacheManager ();
 		$id = "acl-{$this->_appId}-$userid";
-		$this->_cacheUserPrivs [$userid] = unserialize ( $cm->getContent ( $id, $this->_cachePath ) );
+		$this->_cacheUserPrivs [$userid] = unserialize ( $cm->getContent ( $id,'acl' ) );
 		return $this->_cacheUserPrivs [$userid];
 	}
-	protected function clearCache() {
-		$id = "acl-{$this->_appId}-" . $this->getUserId ();
-		$cm = $this->getCacheManager ();
-		$cm->remove ( $id, "acl" );
+  protected function clearUserCache($uid) {
+    $this->_cacheUserPrivs[$uid] = array();
+    $id = "acl-{$this->_appId}-" . $uid;
+    $cm = $this->getCacheManager ();
+    $cm->remove ( $id, "acl" );
+  }
+	public function clearCache() {
+    $this->clearUserCache($this->getUserId ());
+    $this->clearUserCache(ACLHelper::PUBLIC_USER_ID);
 	}
 	function removeCache($id) {
 		$cm = $this->getCacheManager ();
@@ -239,7 +250,10 @@ abstract class BaseACL extends \Object implements IACL {
 		}
 	}
 	function isAllow($id, $group, $access = "view", $userid = null) {
-		if ($id ===CGAF::APP_ID  &&  $group === ACLHelper::APP_GROUP && $access === 'view') {
+		if (! \CGAF::isInstalled ()) {
+			return false;
+		}
+		if ($id === CGAF::APP_ID && $group === ACLHelper::APP_GROUP && $access === 'view') {
 			return true;
 		}
 		$owner = $this->getAppOwer ();

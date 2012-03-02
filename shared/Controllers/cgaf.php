@@ -1,13 +1,12 @@
 <?php
 namespace System\Controllers;
+use \Response;
+use \Request;
 use System\Session\Session;
 use System\MVC\Controller;
 use System\ACL\ACLHelper;
-use CGAF;
 use AppManager;
-use Request;
-use Response;
-class CgafController extends Controller {
+class CGAFController extends Controller {
 	function isAllow($access = 'view') {
 		switch (strtolower ( $access )) {
 			case 'view' :
@@ -21,10 +20,10 @@ class CgafController extends Controller {
 		return 'cgaf';
 	}
 	function reset() {
-		cgaf::getACL ()->onSessionDestroy ( null );
-		if (cgaf::isDebugMode ()) {
+		\CGAF::getACL ()->onSessionDestroy ( null );
+		if (CGAF::isDebugMode ()) {
 			// perform acl to destroy
-			cgaf::getACL ();
+			CGAF::getACL ();
 			Session::destroy ();
 		}
 		Response::Redirect ( '/?__t=' . time () );
@@ -43,7 +42,7 @@ class CgafController extends Controller {
 	}
 	function devmode() {
 		$dt = \Request::get ( '__devtoken' );
-		if ($dt === cgaf::getConfig ( 'app.devtoken' )) {
+		if ($dt === \CGAF::getConfig ( 'cgaf.devtoken' )) {
 			setcookie ( '__devtoken', md5 ( $dt ), 0, '/' );
 		} else {
 			setcookie ( '__devtoken', null );

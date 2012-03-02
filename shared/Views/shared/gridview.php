@@ -39,10 +39,12 @@ if (Request::isDataRequest()) {
 	return;
 }
 echo $header;
+echo '<div class="row-fluid">';
+echo '<div class="span9" style="height:300px">';
 if (isset($title)) {
 	echo '<h3>' . $title . '</h3>';
 }
-echo '<div id="' . $routename . '-grid-container" class="' . $action . '-grid-container grid-container">';
+//echo '<div id="' . $routename . '-grid-container" class="' . $action . '-grid-container grid-container">';
 
 if (isset($info)) {
 	echo '<div>' . $info . '</div>';
@@ -50,16 +52,21 @@ if (isset($info)) {
 echo $grid->render(true);
 echo '</div>';
 if (count($links)) {
-	echo '<div id="' . $routename . '-task-container" class="task-container">';
-	$acc = new Accordion($routename . '-taskmenu', $this);
-	$acc->setDivAttr(array(
-					'class' => 'tasks-menu'));
-	$ac = $acc->AddAccordion('Tasks', '');
-	$acc->setConfig('fillspace', true);
+	echo '<div class="well span2" style="padding: 8px 0;">';
+	echo '<ul id="' . $routename . '-task-container" class="nav nav-list">';
+	echo '<li class="nav-header">Actions</li>';
+	//$acc = new Accordion($routename . '-taskmenu', $this);
+	//$acc->setDivAttr(array(
+	//				'class' => 'tasks-menu'));
+	//$ac = $acc->AddAccordion('Tasks', '');
+	//$acc->setConfig('fillspace', true);
 	foreach ($links as $link) {
-		$ac->addItem($link);
+		echo '<li>'.$link.'</li>';
+		//ppd($link);
+		//$ac->addItem($link);
 	}
-	echo $acc->render(true);
+	//echo $acc->render(true);
+	echo '</ul>';
 	echo '</div>';
 }
 $clink = count($links) ? '200' : 0;
@@ -77,6 +84,7 @@ var w = $('#maincontent').width();
 	$('#$gid').setGridWidth(nw);
 EOT;
 $appOwner->addClientScript($script);
+echo '</div>';
 }
 
 ?>

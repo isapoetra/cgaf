@@ -10,22 +10,85 @@ use Request;
 use Response;
 use CGAF;
 use Utils;
-class PersonController extends Controller {
+class Person extends Controller {
 	function isAllow($access = 'view') {
 		switch ($access) {
+			case 'activities':
+			case 'friends' :
+				return $this->getAppOwner()->isAuthentificated();
 			case 'view' :
 			case 'index' :
 			case 'image' :
+			case 'info' :
+			case 'contacts' :
 				$access = 'view';
 		}
 		return parent::isAllow ( $access );
 	}
-	function Initialize() {
-		if (parent::Initialize ()) {
-			$this->setModel ( 'person' );
-			return true;
+	function contacts($args = null) {
+		$pi = null;
+		if (is_array ( $args )) {
+			// from rendercontents?
+			$pi = isset ( $args ['row'] ) ? $args ['row'] : null;
+		} elseif ($args !== null) {
+			// from direct access ?
+			$m = $this->getModel ();
+			$m->Where ( 'person_id=' . $m->quote ( $args ) );
+			$pi = $m->loadObject ( '\\PersonData' );
 		}
-		return false;
+		if (! ($pi instanceof \PersonData)) {
+			return '';
+		}
+		return parent::render ( __FUNCTION__, array (
+				'rows' => $pi->getContacts ()
+		) );
+	}
+	function friends($args = null) {
+		if (is_array ( $args )) {
+			// from rendercontents?
+			$pi = isset ( $args ['row'] ) ? $args ['row'] : null;
+		} elseif ($args !== null) {
+			// from direct access ?
+			$m = $this->getModel ();
+			$m->Where ( 'person_id=' . $m->quote ( $args ) );
+			$pi = $m->loadObject ( '\\PersonData' );
+		}
+		if (! ($pi instanceof \PersonData)) {
+			return '';
+		}
+		return parent::render ( __FUNCTION__, array (
+				'rows' => $pi->getFriends ()
+		) );
+	}
+	function activities($args=null) {
+		if (is_array ( $args )) {
+			// from rendercontents?
+			$pi = isset ( $args ['row'] ) ? $args ['row'] : null;
+		} elseif ($args !== null) {
+			// from direct access ?
+			$m = $this->getModel ();
+			$m->Where ( 'person_id=' . $m->quote ( $args ) );
+			$pi = $m->loadObject ( '\\PersonData' );
+		}
+
+		return parent::render ( __FUNCTION__, array (
+				'rows' => $pi->getActivities ()
+		) );
+	}
+	
+	
+	
+	function info() {
+		$id = \Request::get ( 'id' );
+		$m = $this->getModel ();
+		$m->where ( 'person_id=' . $m->quote ( $id ) );
+		$o = $m->LoadObject ( '\\PersonData' );
+		if (! $o) {
+			throw new SystemException ( 'Invalid Person' );
+		}
+		return parent::render ( __FUNCTION__, array (
+				'row' => $o
+		) );
 	}
 	function Index() {
 		return parent::render ();

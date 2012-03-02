@@ -1,3 +1,3 @@
-[submodule "assets/bootstrap"]
-	path = assets/bootstrap
-	url = git://github.com/twitter/bootstrap.git
+[submodule "assets/js/jqGrid"]
+	path = assets/js/jqGrid
+	url = git://github.com/tonytomov/jqGrid.git

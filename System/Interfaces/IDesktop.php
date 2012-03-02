@@ -1,5 +1,6 @@
 <?php
-interface IDesktop extends \IApplication {
+use System\Applications\IApplication;
+interface IDesktop extends IApplication {
 	/**
 	 * @return TMenuItem
 	 */

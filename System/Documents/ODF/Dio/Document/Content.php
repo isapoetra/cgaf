@@ -46,7 +46,7 @@ class Content extends Document {
 		$this->body = $this->_root->getElementsByTagName('body')->item(0);
 	}
 	function __get($name) {
-		switch ($name) {
+		switch (strtolower($name)) {
 		case 'fonts':
 			return $this->fonts;
 		case 'body':

@@ -25,8 +25,8 @@ class Grid extends Control {
 	private $_callback;
 	private $_openEditInOverlay = true;
 	private $_directConfig = array (
-			'loadComplete', 
-			'loadSuccess' 
+			'loadComplete',
+			'loadSuccess'
 	);
 	private $_route;
 	function __construct($id, $template, $model, $columns = null, $baseurl = null) {
@@ -64,9 +64,9 @@ class Grid extends Control {
 		return $this;
 	}
 	function parseValue($row, $value, $field) {
-		
+
 		$pk = $this->_model->getPK ();
-		
+
 		$retval = $value;
 		foreach ( $row as $k => $v ) {
 			$retval = str_ireplace ( "#$k#", htmlentities ( $v ), $retval );
@@ -86,10 +86,10 @@ class Grid extends Control {
 		$retval = str_ireplace ( "#PK_VALUE#", implode ( ",", $pkval ), $retval );
 		if ($this->_callback) {
 			$retval = call_user_func_array ( $this->_callback, array (
-					$field, 
-					$row, 
-					$value, 
-					$retval 
+					$field,
+					$row,
+					$value,
+					$retval
 			) );
 		}
 		return $retval;
@@ -112,8 +112,8 @@ class Grid extends Control {
 			}
 			if ($ctl->isAllow ( ACLHelper::ACCESS_MANAGE )) {
 				$retval [] = HTMLUtils::renderLink ( $baseurl . '/del/?id=#PK_VALUE#', 'Delete', array (
-						'rel' => '#confirm', 
-						'title' => __ ( 'delete.confirm', 'Delete this data' ) 
+						'rel' => '#confirm',
+						'title' => __ ( 'delete.confirm', 'Delete this data' )
 				), 'del-small.png' );
 			}
 		}
@@ -135,12 +135,12 @@ class Grid extends Control {
 		$where = null;
 		if ($search) {
 			$operator = array (
-					"eq" => "=", 
-					'ne' => '<>', 
-					'lt' => '<', 
-					'gt' => '>', 
-					'ge' => '>=', 
-					'le' => '<=' 
+					"eq" => "=",
+					'ne' => '<>',
+					'lt' => '<',
+					'gt' => '>',
+					'ge' => '>=',
+					'le' => '<='
 			);
 			$ope = Request::get ( "searchOper", "eq" );
 			$ss = Request::get ( "searchString" );
@@ -283,12 +283,12 @@ class Grid extends Control {
 			if ($k !== "__action") {
 				$cols [] = $title;
 				$models = array (
-						'name' => $k, 
-						'label' => $k, 
-						'index' => $k, 
-						'editable' => $editable, 
-						'sortable' => $sort, 
-						'width' => $width 
+						'name' => $k,
+						'label' => $k,
+						'index' => $k,
+						'editable' => $editable,
+						'sortable' => $sort,
+						'width' => $width
 				);
 				if (is_array ( $col ) && isset ( $col ['colmodel'] )) {
 					$models = array_merge ( $models, $col ['colmodel'] );
@@ -296,12 +296,12 @@ class Grid extends Control {
 				$colmodels [] = $models;
 			} else {
 				$hasaction = array (
-						'name' => $k, 
-						'label' => $k, 
-						'index' => $k, 
-						'editable' => false, 
-						'sortable' => false, 
-						'width' => 250 
+						'name' => $k,
+						'label' => $k,
+						'index' => $k,
+						'editable' => false,
+						'sortable' => false,
+						'width' => 250
 				);
 			}
 		}
@@ -313,51 +313,51 @@ class Grid extends Control {
 			$this->_columns ['__action'] = $old;
 		}
 		$params = array (
-				'_json', 
-				'1' 
+				'_json',
+				'1'
 		);
 		$params = array_merge ( Request::gets (), $params );
 		$baseurl = URLHelper::addParam ( $this->_baseURL, array (
-				'_grid' => $id 
+				'_grid' => $id
 		) );
 		$editurl = $this->getConfig ( "editurl", URLHelper::addParam ( $baseurl, array (
-				'_gridAction' => 'edit' 
+				'_gridAction' => 'edit'
 		) ) );
 		$addurl = $this->getConfig ( "addurl", URLHelper::addParam ( $baseurl, array (
-				'_gridAction' => 'add' 
+				'_gridAction' => 'add'
 		) ) );
 		$dataurl = $this->getConfig ( "dataurl", URLHelper::add ( $baseurl, null, $params ) );
 		$route = MVCHelper::getRoute ();
 		$ctl = AppManager::getInstance ()->getController ( $route ["_c"] );
 		$navConfig = array (
-				'add' => $ctl ? $ctl->isAllow ( ACLHelper::ACCESS_WRITE ) : true, 
-				'edit' => $ctl ? $ctl->isAllow ( ACLHelper::ACCESS_UPDATE ) : true, 
-				'del' => $ctl ? $ctl->isAllow ( ACLHelper::ACCESS_MANAGE ) : true, 
-				'editfunc' => 'function(row) {var gr = jQuery("#' . $id . '").jqGrid(\'getGridParam\',\'selrow\'); ' . ($this->_openEditInOverlay ? '$.openOverlay({url:\'' . $editurl . '&id=\'+gr})' : 'document.location=\'' . $editurl . '&id=\'+gr;') . '}', 
-				'addfunc' => 'function(row) { ' . ($this->_openEditInOverlay ? '$.openOverlay({url:\'' . $addurl . '\',onClosed:function(){$(\'#' . $this->getId () . '\').trigger(\'reloadGrid\')}}) ' : 'document.location=\'' . $addurl . '\'') . '}' 
+				'add' => $ctl ? $ctl->isAllow ( ACLHelper::ACCESS_WRITE ) : true,
+				'edit' => $ctl ? $ctl->isAllow ( ACLHelper::ACCESS_UPDATE ) : true,
+				'del' => $ctl ? $ctl->isAllow ( ACLHelper::ACCESS_MANAGE ) : true,
+				'editfunc' => 'function(row) {var gr = jQuery("#' . $id . '").jqGrid(\'getGridParam\',\'selrow\'); ' . ($this->_openEditInOverlay ? '$.openOverlay({url:\'' . $editurl . '&id=\'+gr})' : 'document.location=\'' . $editurl . '&id=\'+gr;') . '}',
+				'addfunc' => 'function(row) { ' . ($this->_openEditInOverlay ? '$.openOverlay({url:\'' . $addurl . '\',onClosed:function(){$(\'#' . $this->getId () . '\').trigger(\'reloadGrid\')}}) ' : 'document.location=\'' . $addurl . '\'') . '}'
 		);
 		$this->setNavConfig ( $navConfig, null, false );
 		$this->setConfig ( array (
-				'forceFit' => False, 
-				'shrinkToFit' => False, 
-				'sortname' => $this->getSortName (), 
-				'sortorder' => 'desc', 
+				'forceFit' => False,
+				'shrinkToFit' => False,
+				'sortname' => $this->getSortName (),
+				'sortorder' => 'desc',
 				'rowList' => array (
-						10, 
-						20, 
-						30, 
-						50, 
-						100 
-				), 
-				'url' => $dataurl, 
-				'editurl' => $editurl, 
-				'datatype' => 'json', 
-				'colNames' => $cols, 
-				'colModel' => $colmodels, 
-				'viewrecords' => true, 
-				'rowNum' => $this->_rowperpage, 
+						10,
+						20,
+						30,
+						50,
+						100
+				),
+				'url' => $dataurl,
+				'editurl' => $editurl,
+				'datatype' => 'json',
+				'colNames' => $cols,
+				'colModel' => $colmodels,
+				'viewrecords' => true,
+				'rowNum' => $this->_rowperpage,
 				// $this->_model->getRowCount(),
-				'pager' => "#$id-pager" 
+				'pager' => "#$id-pager"
 		), null, false );
 		foreach ( $this->_configs as $k => $config ) {
 			if (is_string ( $config ) && $config [0] === '$') {
@@ -385,7 +385,7 @@ class Grid extends Control {
 		}
 		$appOwner->addClientAsset ( 'js/jQuery/plugins/jqGrid/css/ui.jqgrid.css' );
 		$appOwner->addClientAsset ( 'js/jQuery/plugins/jqGrid/css/jquery.searchFilter.css' );
-		CGAFJS::loadPlugin ( 'jqGrid/i18n/grid.locale-' . $appOwner->getLocale ()->getLocale (), true );
+		CGAFJS::loadPlugin ( 'jqGrid/js/i18n/grid.locale-' . $appOwner->getLocale ()->getLocale (), true );
 		CGAFJS::loadPlugin ( 'jqGrid/jquery.jqGrid', true );
 		// $appOwner->addClientAsset(, null, 'jqGrid');
 	}
@@ -410,12 +410,12 @@ class Grid extends Control {
 		}
 		$configs = JSON::encodeConfig ( $this->_configs, $this->_directConfig );
 		$apid = Strings::replace ( array (
-				'-' => '' 
+				'-' => ''
 		), $id ) . 'api';
 		$scripts = "var {$apid}=$(\"#$id\").jqGrid($configs);";
 		$scripts .= "$(\"#$id\").jqGrid('navGrid','#$id-pager'," . JSON::encodeConfig ( $this->_navOptions, array (
-				'editfunc', 
-				'addfunc' 
+				'editfunc',
+				'addfunc'
 		) ) . ");";
 		$scripts .= "var w={$apid}.closest('.ui-jqgrid').parent().innerWidth()-50;";
 		$scripts .= "{$apid}.setGridWidth(w,false);\n";

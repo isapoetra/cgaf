@@ -3,7 +3,7 @@ namespace System\Documents;
 use System\Exceptions\SystemException;
 
 use \Utils;
-class Image extends \Object {
+class Image extends \BaseObject {
 	private $_file;
 	private $_watermark;
 	private $_outputFile;

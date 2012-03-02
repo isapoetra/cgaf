@@ -19,6 +19,7 @@ class ApiController extends Controller {
 		}
 		return parent::initAction($action, $params);
 	}
+
 	private function isValidRemote() {
 		$remote = $_SERVER['REMOTE_ADDR'];
 		$key = \Request::get('_key');

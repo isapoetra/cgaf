@@ -1,0 +1,6 @@
+/* CSS crunched with Crunch - http://crunchapp.net/ */
+body{overflow:hidden;}
+#wrapper{padding-left:10px;padding-right:10px;}
+#app-list li .caption{display:none;}
+#app-list li:hover .caption{display:block;}
+#wrapper .wrapper-inner{overflow:auto;}

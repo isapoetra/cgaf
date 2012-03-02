@@ -168,7 +168,7 @@ abstract class HTMLUtils {
 		}
 		return $js;
 	}
-	public static function endForm($renderAction = true, $renderToken = false, $ajaxmode = false, $ajaxConfig = null) {
+	public static function endForm($renderAction = true, $renderToken = false, $ajaxmode = false, $ajaxConfig = null,$js=true) {
 		$retval = "";
 		if ($renderAction) {
 			$retval .= self::renderFormAction ();
@@ -178,6 +178,7 @@ abstract class HTMLUtils {
 		}
 		$retval .= "</form>";
 		$id = self::$_lastForm;
+    if ($js) {
 		$ajaxConfig = $ajaxConfig ? $ajaxConfig : array ();
 		if (! $ajaxmode) {
 			$ajaxConfig ['ajaxmode'] = false;
@@ -194,6 +195,7 @@ abstract class HTMLUtils {
 				$('#$id').gform($ajaxConfig);
 JS;
 		AppManager::getInstance ()->addClientScript ( $js );
+    }
 		return $retval;
 	}
 	public static function renderScript($script) {
@@ -483,6 +485,7 @@ JS;
 		$retval = "";
 		if ($title) {
 			if (self::$_formMode == self::FORM_MODE_NORMAL) {
+				$retval .= '<div class="control-group '.(isset($attr['class']) ? $attr['class'] : '').'">';
 				$retval .= '<label class="field" for="' . $id . '">' . $title . '</label>';
 			} elseif (self::$_formMode == self::FORM_MODE_TABLE) {
 				$retval .= '<th class="field" for="' . $id . '">' . $title . '</th>';
@@ -516,7 +519,10 @@ JS;
 			$retval .= '</select>';
 			if (self::$_formMode === self::FORM_MODE_TABLE) {
 				$retval .= '</td>';
+			}elseif ($title){
+				$retval .='</div>';
 			}
+      //ppd($retval);
 		} else {
 			$val = self::getSelectValue ( $items, $selected );
 			$retval .= self::renderHiddenField ( $id, $selected );
@@ -607,7 +613,7 @@ JS;
 		if (! $msg) {
 			return '';
 		}
-		return '<div class="error">' . $msg . '</div>';
+		return '<div class="label label-important">' . $msg . '</div>';
 	}
 	public static function renderLink($link, $title, $attr = null, $icon = null, $descr = null, $showlabel = true) {
 		$icon = $icon ? $icon : 'cleardot.gif';

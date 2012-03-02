@@ -7,6 +7,7 @@ use System\DB\DBConnection;
 use System\DB\DBFieldInfo;
 use DateUtils;
 use System\DB\DBReflectionClass;
+use System\DB\DBException;
 use Exception;
 class MySQL extends DBConnection {
 	private $_affectedRow = 0;
@@ -14,13 +15,19 @@ class MySQL extends DBConnection {
 	private $_defaultFieldLength = array (
 			'varchar' => 50
 	);
+	function __construct($connArgs) {
+		if (!function_exists('mysql_connect')) {
+			throw new DBException('mysql not installed');
+		}
+		parent::__construct($connArgs);
+	}
 	function Open() {
 		parent::Open ();
 		if ($this->isConnected ()) {
 			return true;
 		}
 		// ppd($this->getArgs());
-		$this->_resource = mysql_connect ( $this->getArg ( "host", "localhost" ), $this->getArg ( "username", "root" ), $this->getArg ( "password" ), $this->getArg ( "persist", true ) );
+		$this->_resource = @mysql_connect ( $this->getArg ( "host", "localhost" ), $this->getArg ( "username", "root" ), $this->getArg ( "password" ), $this->getArg ( "persist", true ) );
 		if (! $this->_resource) {
 			$this->_lastError = mysql_error ();
 		}
@@ -42,7 +49,7 @@ class MySQL extends DBConnection {
 				$retval .= '(';
 				foreach ( $fields as $field ) {
 					$type = $this->phptofieldtype ( $field->fieldtype );
-					$retval .= $field->fieldname . ' ' . $type;
+					$retval .= $this->quoteTable ( $field->fieldname, false ) . ' ' . $type;
 					if ($field->fieldlength != null) {
 						$retval .= '(' . $field->fieldlength . ')';
 					} elseif (isset ( $this->_defaultFieldLength [strtolower ( $type )] )) {
@@ -70,7 +77,6 @@ class MySQL extends DBConnection {
 		}
 		// ppd($fields);
 		$this->_thows = true;
-		// pp($retval);
 		return $this->Exec ( $retval );
 	}
 	private function parseDefaultValue($val) {
@@ -110,7 +116,7 @@ class MySQL extends DBConnection {
 				break;
 			default :
 				if (! $rec) {
-					ppd($type);
+					ppd ( $type );
 					return 'varchar';
 				}
 				// contains comment ?

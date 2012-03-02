@@ -1,6 +1,6 @@
 <?php
 namespace System\Events;
-class Event extends \Object {
+class Event extends \BaseObject {
 	public $type;
 	public $sender;
 	public $args;

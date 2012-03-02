@@ -1,27 +1,19 @@
 <?php
-echo HTMLUtils::beginForm(BASE_URL.'user/updateProfile/id/'. $data->user_id,false);
+use System\Web\Utils\HTMLUtils;
+echo HTMLUtils::beginForm ( BASE_URL . 'user/updateProfile/id/' . $data->user_id, false );
 ?>
-
 <fieldset class="logonInfo">
 	<legend>
-
-
-	<?php echo __("user.logoninfo","Logon Info")?></legend>
-	
-	
-	
-	
-	
-	
-		<?php
-			echo HTMLUtils::renderTextBox(__("user.name","User Name"),"user_name",$data->user_name,"",$edit);
-			if (!$_detail) {
-				echo '<br/>';
-				echo HTMLUtils::renderPassword(__("user.password","Password"),"user_password",$data->user_password,"",$edit);
-				echo '<br/>';
-				echo HTMLUtils::renderPassword(__("user.confirmpassword","Password"),"confirm_password",$data->user_password,"",$edit);
-			}
-		?>
+<?php echo __("user.logoninfo","Logon Info")?></legend>
+<?php
+echo HTMLUtils::renderTextBox ( __ ( "user.name", "User Name" ), "user_name", $data->user_name, "", $edit );
+if (! $_detail) {
+	echo '<br/>';
+	echo HTMLUtils::renderPassword ( __ ( "user.password", "Password" ), "user_password", $data->user_password, "", $edit );
+	echo '<br/>';
+	echo HTMLUtils::renderPassword ( __ ( "user.confirmpassword", "Password" ), "confirm_password", $data->user_password, "", $edit );
+}
+?>
 	</fieldset>
 
 <fieldset class="personInfo">
@@ -47,16 +39,14 @@ echo HTMLUtils::beginForm(BASE_URL.'user/updateProfile/id/'. $data->user_id,fals
 			<td colspan="3">
 
 			<?php
-			echo HTMLUtils::renderFormField(__("person.birth_date","Birth Date"),"birth_date",$personInfo->birth_date,"",$edit)
-			?>
+			echo HTMLUtils::renderFormField ( __ ( "person.birth_date", "Birth Date" ), "birth_date", $personInfo->birth_date, "", $edit )?>
 			</td>
 		</tr>
 		<tr>
 			<td colspan="3">
 
 			<?php
-			echo HTMLUtils::renderTextBox(__("person.email","Email"),"email",$personInfo->email,"",$edit)
-			?>
+			echo HTMLUtils::renderTextBox ( __ ( "person.email", "Email" ), "email", $personInfo->email, "", $edit )?>
 			</td>
 		</tr>
 	</table>
@@ -70,5 +60,5 @@ $(function() {
 
 
 <?php
-echo HTMLUtils::endForm(true,true,true);
+echo HTMLUtils::endForm ( true, true, true );
 ?>

@@ -3,7 +3,7 @@ namespace System\Web\UI\JQ;
 use System\Web\Utils\HTMLUtils;
 
 use System\JSON\JSON;
-class AccordionItem extends \Object implements \IRenderable {
+class AccordionItem extends \BaseObject implements \IRenderable {
 	private $_items = array();
 	function __construct($title, $content) {
 		parent::__construct();

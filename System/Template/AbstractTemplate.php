@@ -3,7 +3,8 @@ namespace System\Template;
 use System\Web\Utils\HTMLUtils;
 use \URLHelper;
 use \Utils;
-use \System\Configurations\IConfiguration, \System\Configurations\Configuration;
+use \System\Configurations\IConfigurable;
+use \System\Configurations\Configuration;
 use \Response;
 use \AppManager;
 use \Logger;
@@ -11,7 +12,7 @@ use \Logger;
  * Base Template engine
  *
  */
-abstract class AbstractTemplate extends \Object implements \ITemplate, \System\Configurations\IConfiguration {
+abstract class AbstractTemplate extends \BaseObject implements \ITemplate, IConfigurable {
 	protected $_templateName = null;
 	protected $_vars = array();
 	protected $_appOwner;

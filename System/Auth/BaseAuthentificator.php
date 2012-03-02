@@ -1,13 +1,13 @@
 <?php
 namespace System\Auth;
-use System\Events\LoginEvent;
 use System\ACL\ACLHelper;
 use System\Session\Session;
 use System\IAuthentificator;
-abstract class BaseAuthentificator extends \Object implements IAuthentificator {
+use System\Applications\IApplication;
+abstract class BaseAuthentificator extends \BaseObject implements IAuthentificator {
 	private $_appOwner;
 	private $_lastError = null;
-	function __construct(\IApplication $appOwner) {
+	function __construct(IApplication $appOwner) {
 		$this->_appOwner = $appOwner;
 	}
 	public function getLastError() {
@@ -21,10 +21,10 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 	}
 	abstract function authDirect($username, $password, $method = 'local');
 	/**
-	 * Enter description here ...
-	 * @param unknown_type $configName
-	 * @param unknown_type $def
-	 */
+   * @param $configName
+   * @param $def
+   * @return mixed
+   */
 	function getConfig($configName, $def) {
 		return $this->_appOwner->getConfig('auth.' . $configName, $def);
 	}
@@ -32,15 +32,21 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 		$req = array(
 				"username" => "",
 				"password" => "",
-				"remember" => "");
+				"remember" => false);
 		if ($args == null) {
 			$args = \Request::gets('p');
 		}
+
 		$retval = new \stdClass();
 		$err = array();
 		foreach ($args as $k => $v) {
 			if (array_key_exists($k, $req)) {
 				$retval->$k = $v;
+			}
+		}
+		foreach ($req as $k=>$v) {
+			if (!isset($retval->$k)) {
+				$retval->$k=$v;
 			}
 		}
 		return $retval;
@@ -57,13 +63,11 @@ abstract class BaseAuthentificator extends \Object implements IAuthentificator {
 	 */
 	public function Logout() {
 		Session::restart();
-		$this->getAppOwner()->dispatchEvent(new LoginEvent($this, LoginEvent::LOGOUT));
-		\Response::forceContentExpires();
+		//$this->getAppOwner()->dispatchEvent(new LoginEvent($this, LoginEvent::LOGOUT));
+		//\Response::forceContentExpires();
+		return true;
 	}
-	/**
-	 * (non-PHPdoc)
-	 * @see System.IAuthentificator::getAuthInfo()
-	 */
+
 	function getAuthInfo() {
 		if ($this->isAuthentificated()) {
 			return Session::get("__logonInfo", null);

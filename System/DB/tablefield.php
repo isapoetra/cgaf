@@ -3,6 +3,9 @@ namespace System\DB;
 
 class TableField extends DBFieldInfo {
 	private $_table;
+  /**
+   * @param $table IDBConnection|Table|DBQuery
+   */
 	function __construct( $table) {
 		if ($table instanceof IDBConnection) {
 			parent::__construct ($table);

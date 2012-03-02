@@ -121,7 +121,7 @@ abstract class Request {
 			Session::set('__clientInfo', null);
 		}
 		if (!$ci) {
-			$ci = new ClientInfo(Utils::makeDir(CGAF::getInternalStorage('browsecap', false), 0700, '*'));
+			$ci = new ClientInfo(Utils::makeDir(CGAF::getInternalStorage('browsecap', false), 0700, '*'),Utils::makeDir(CGAF::getInternalStorage('.cache/.browsecap', false), 0700, '*'));
 
 			Session::set('__clientInfo', $ci);
 		}

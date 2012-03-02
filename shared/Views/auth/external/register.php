@@ -1,6 +1,8 @@
 <?php
 use \System\Web\Utils\HTMLUtils;
-echo $this->Render('shared/headersimple.php',true,false);
+if (\Request::isAJAXRequest()) {
+	echo $this->render('headersimple',true,false);
+}
 echo HTMLUtils::beginForm('',false,false);
 pp($remoteuser);
 //$appOwner->AddClientAsset(array('bootstrap/css/bootsrap.css'));
@@ -18,4 +20,7 @@ if (isset($message)) {
 echo HTMLUtils::renderTextBox(__('user.user_name'), 'user_name',$remoteuser->email,null,false);
 echo HTMLUtils::renderDateInput(__('birthdate'),'birth_date',$remoteuser->birth_date);
 echo HTMLUtils::endForm(true,true,false);
+if (\Request::isAJAXRequest()) {
+	echo $this->render('footersimple',true,false);
+}
 ?>

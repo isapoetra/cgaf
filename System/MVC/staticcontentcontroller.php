@@ -71,9 +71,12 @@ abstract class StaticContentController extends Controller {
 			$a = $a . DS . $id;
 		}
 		$f = $this->getContentFile($a, true);
+		
 		if ($f && is_file($f)) {
+			
 			return $this->renderFile($a, $f);
 		} elseif ($route['_a'] !=='index') {
+		
 			return "Content not found";
 		} elseif (CGAF_DEBUG) {
 			pp('content file not found' . $a);

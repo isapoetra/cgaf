@@ -5,7 +5,7 @@
  */
 namespace System\Assets;
 use System\Exceptions\SystemException;
-
+use System\Applications\IApplication;
 use \CGAF, \Utils, \Strings, \System\Configurations\Configuration, \AppManager, \CDate;
 
 class AssetManifest extends Configuration {
@@ -26,13 +26,22 @@ class AssetManifest extends Configuration {
 class AssetProjectFile {
 	private $_source;
 	private $_vars = array();
+  /**
+   * @var \System\Applications\IApplication
+   */
 	private $_appOwner;
 	private $_targetPath;
-	private $_parsers;
+	//private $_parsers;
+  /**
+   * @var \System\Configurations\IConfiguration
+   */
 	private $_config;
-	private $_parsed;
+	//private $_parsed;
 	private $_files;
 	private $_manifestFile;
+  /**
+   * @var AssetManifest
+   */
 	private $_manifest;
 
 	function __construct($src, $appOwner) {
@@ -191,7 +200,7 @@ class AssetProjectFile {
 
 		$files = $this->getConfig('assets.files', array());
 		$orit = $this->getConfig("assets.configs.Target");
-		$join = isset($files["@join"]) ? Utils::toBool($files["@join"]) === true : CGAF_DEBUG === false;
+		$join = isset($files["@join"]) ? \Convert::toBool($files["@join"]) === true : CGAF_DEBUG === false;
 		$files["@join"] = $join;
 		$sp = Utils::ToDirectory(dirname($this->_source) . DS . $this->getConfig("assets.configs.SourcePath", ''));
 		$srcPath = realpath($sp);
@@ -222,7 +231,7 @@ class AssetProjectFile {
 						$target = $file["@target"];
 					}
 					if (isset($file['@join'])) {
-						$j = Utils::toBool($file["@join"]);
+						$j = \Convert::toBool($file["@join"]);
 					}
 				}
 
@@ -245,7 +254,7 @@ class AssetProjectFile {
 					}
 				} else {
 					throw new SystemException($file . '@' . $this->_source . '[relative path :' . $srcPath . ']');
-					\Logger::info($this->_source . ':File Not Found' . $file);
+					//\Logger::info($this->_source . ':File Not Found' . $file);
 				}
 			}
 		}
@@ -343,13 +352,13 @@ class AssetProjectFile {
 abstract class AssetBuilder {
 
 	private static $parsers = array();
-	private static $_config;
+	//private static $_config;
 	private static $_files = array();
 
 	/**
 	 *
-	 * @param unknown_type $ext
-	 * @return ProjectParser
+	 * @param string $ext
+	 * @return \System\Assets\Parsers\AbstractProjectParser
 	 */
 
 	public static function getparser($ext) {
@@ -411,7 +420,7 @@ abstract class AssetBuilder {
 		return true;
 	}
 
-	private static function getManifest($f, $appOwner) {
+	private static function getManifest($f, IApplication $appOwner) {
 		$manifest = new Configuration(null, false);
 		$manifest->loadFile($f);
 		$v = $manifest->getConfig('manifest.@version') !== null ? $manifest->getConfig('manifest.@version') : time();
@@ -460,11 +469,6 @@ abstract class AssetBuilder {
 			if ($fext !== $ext) {
 				$fdest = dirname($dest) . DS . Utils::changeFileExt(basename($f), 'min.' . $fext);
 			}
-
-			/**
-			 *
-			 * @var ProjectParser
-			 */
 			$parser = self::getparser($fext);
 			$fdest = $parser->parseFile($f, $fdest, true);
 			if (is_array($fdest)) {

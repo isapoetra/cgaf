@@ -11,9 +11,7 @@ class ThumbnailItem extends WebControl {
 	private $_action;
 	private $_stitle;
 	function __construct($title, $image, $action) {
-		parent::__construct ( 'div', true, array (
-				'class' => 'thumbnail' 
-		) );
+		parent::__construct ( 'div', true );
 		$this->_stitle = $title;
 		$this->_action = $action;
 		// array('href' => $action)
@@ -37,6 +35,7 @@ class ThumbnailItem extends WebControl {
 	}
 	function prepareRender() {
 		$link = new Anchor ( $this->_action, '' );
+    $link->setAttr('class','thumbnail');
 		$link->addChild ( '<img src="' . $this->_backgroundImage . '"/>' );
 		$this->addChild ( $link );
 		$cap = new WebControl ( 'div', false, array (
@@ -66,22 +65,19 @@ class ThumbnailItem extends WebControl {
 	 */
 }
 class Thumbnail extends WebControl {
-	private $_thumContainer;
+  private $_itemClass='span2';
 	function __construct() {
+
 		parent::__construct ( 'ul', false, array (
 				'class' => 'thumbnails' 
 		) );
-		// $this->addChild(new
-		// HTMLControl('div',true,array('class'=>'thumbnail-scrollbar')));
-		// $this->_thumContainer = $this->addChild(new HTMLControl('div', false,
-		// array('class' => 'thumbnail-container')));
 	}
 	function renderItems() {
 		// $c = $this->_childs;
 		$retval = '';
 		foreach ( $this->_childs as $c ) {
-			$retval .= '<li class="span2">';
-			$retval .= \Utils::toString ( $c );
+			$retval .= '<li class="'.$this->_itemClass.'">';
+			$retval .= \Convert::toString ( $c );
 			$retval .= '</li>';
 		}
 		return $retval;

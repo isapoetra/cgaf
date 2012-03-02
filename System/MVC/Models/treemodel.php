@@ -3,8 +3,8 @@ namespace System\MVC\Models;
 use System\MVC\Model;
 class TreeModel extends Model {
 	private $_parentField;
-	function __construct($connection, $tableName, $pk, $parentField, $includeAppId = false) {
-		parent::__construct($connection, $tableName, $pk, $includeAppId);
+	function __construct($connection, $tableName, $pk, $parentField, $includeAppId = false,$autoCreate=null) {
+		parent::__construct($connection, $tableName, $pk, $includeAppId,$autoCreate);
 		$this->_parentField = $parentField;
 	}
 	function loadParents($parent, $page = -1, $rowPerPage = -1) {

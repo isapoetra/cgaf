@@ -20,7 +20,7 @@ class CaptchaController extends Controller implements ICaptchaContainer {
 	private $_renderer;
 	/**
 	 *
-	 * @param $appOwner IApplication
+	 * @param $appOwner \System\Applications\IApplication
 	 */
 	function __construct($appOwner) {
 		parent::__construct ( $appOwner, "captcha" );
@@ -56,7 +56,7 @@ class CaptchaController extends Controller implements ICaptchaContainer {
 
 		$captcha = Session::get ( $this->_SID );
 		if (! $captcha) {
-			$captcha = new \Object ();
+			$captcha = new \BaseObject ();
 			Session::set ( "Captcha", $captcha );
 		}
 		if ($id) {

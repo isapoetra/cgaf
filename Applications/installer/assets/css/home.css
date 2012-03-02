@@ -1,0 +1,12 @@
+@CHARSET "ISO-8859-1";
+#step-2-container .controls {
+	display:inline-block;
+	width:18px;
+	float:left;
+	margin:0;
+}
+#step-2-container .control-label {
+	margin:0;
+	padding:0;
+	width:auto;
+}

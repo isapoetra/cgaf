@@ -1,0 +1,15 @@
+{
+	"center" :[
+						{
+								"title" : "Manage User",
+								"action" : "user/manage",
+								"icon" : "icons/manage/user.png",
+								"descr" : "Manage User"
+						},
+						{
+								"title" : "Manage Applications",
+								"action" : "app/manage",
+								"icon" : "icons/manage/user.png"
+						}
+				]
+}

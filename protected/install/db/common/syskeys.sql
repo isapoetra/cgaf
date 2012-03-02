@@ -1,0 +1,1 @@
+INSERT INTO `#__syskeys` VALUES (1, '__cgaf', 'religion', 'religion', 0, '', '|');

@@ -1,4 +1,4 @@
 <?php
 namespace System\DB;
-class DBIndexInfo extends \Object {
+class DBIndexInfo extends \BaseObject {
 }

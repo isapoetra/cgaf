@@ -1,12 +1,17 @@
 <?php
 namespace System;
+use \System\JSON\JSON;
+use \Request;
 use \Utils;
 
-abstract class AbstractResponse extends \Object implements \IResponse, \IRenderable {
+abstract class AbstractResponse extends \BaseObject implements \IResponse, \IRenderable {
 	private $_buffered = true;
 	private $_buffer = null;
 	private $_buff = array();
 	private $_idx = 0;
+  /**
+   * @param bool|array $buffered
+   */
 	function __construct($buffered = true) {
 		if (is_array($buffered)) {
 			foreach ($buffered as $k => $v) {
@@ -41,7 +46,7 @@ abstract class AbstractResponse extends \Object implements \IResponse, \IRendera
 		return $this->_buffer;
 	}
 	function write($s, $attr = null) {
-		$s = Utils::toString($s);
+		$s = \Convert::toString($s);
 		if ($this->_idx == 0) {
 			echo $s;
 			return;
@@ -66,10 +71,10 @@ abstract class AbstractResponse extends \Object implements \IResponse, \IRendera
 	}
 	function EndBuffer($flush = false) {
 		if (!$this->_buffered) {
-			return;
+			return null;
 		}
 		if ($this->_idx == 0) {
-			return;
+			return null;
 		}
 		$r = @ob_get_clean();
 		$s = array();

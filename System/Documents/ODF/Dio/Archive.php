@@ -51,7 +51,7 @@ class Archive extends \ZipArchive {
 	}
 	function render() {
 		$this->addFromString('mimetype', $this->_mimetype);
-		$this->_content->copyFonts($this->_styles->fonts);
+		$this->content->copyFonts($this->_styles->Fonts);
 		$this->_addFile('content.xml', 'text/xml', $this->_content->saveXML());
 		$this->_addFile('styles.xml', 'text/xml', $this->_styles->saveXML());
 		$this->_addFile('meta.xml', 'text/xml', $this->_meta->saveXML());

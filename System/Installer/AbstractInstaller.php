@@ -20,7 +20,7 @@ use System\Configurations\Configuration;
 use System\Configurations\IConfiguration;
 use CGAF;
 use Response, Utils;
-abstract class AbstractInstaller extends \Object implements \IRenderable {
+abstract class AbstractInstaller extends \BaseObject implements \IRenderable {
 	private $_configs;
 	private $_verbose;
 	private $_logFile;

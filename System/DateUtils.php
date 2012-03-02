@@ -152,6 +152,14 @@ abstract class DateUtils {
 		}
 		return false;
 	}
+	public static function formatUser($date,$long=true) {
+		$date = new \CDate($date);
+		$format = __('client.dateFormat');
+		if ($long) {
+			$format = __('client.dateLongFormat');
+		}		
+		return $date->format($format);
+	}
 	public static function fromJS($date, $format, $asString = false) {
 		$format = str_replace('yy', 'Y', $format);
 		$format = str_replace('dd', 'd', $format);

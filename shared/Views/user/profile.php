@@ -1,59 +1,54 @@
 <?php
 use System\Web\Utils\HTMLUtils;
-$acl = $this->getAppOwner()->getACL();
-$_detail = isset($_detail) ? $_detail : false;
+use System\Exceptions\AccessDeniedException;
+$acl = $this->getAppOwner ()->getACL ();
+$_detail = isset ( $_detail ) ? $_detail : false;
 $edit = false;
 if ($userInfo) {
-	$edit = $acl->isAdmin() || $userInfo->isCurrentUser() && !$_detail;
+	$edit = $acl->isAdmin () || $userInfo->isCurrentUser () && ! $_detail;
 }
-$msg = isset($message) ? $message : null;
-$ov = Request::get('__overlay');
-$personInfo = $userInfo->getPerson();
-$tplVars = array(
+
+$msg = isset ( $message ) ? $message : null;
+$ov = Request::get ( '__overlay' );
+$tplVars = array (
 		"edit" => $edit,
-		"person" => $personInfo,
 		"acl" => $acl,
-		'_detail' => $_detail);
-//pp($personInfo);
-function renderProfile($tpl, $name, $vars) {
-	return $tpl->render("views/" . $name, true, false, $vars);
-}
-if ($view = Request::get("view")) {
-	if (array_key_exists($view, $views)) {
-		echo renderProfile($this, $view, $tplVars);
-		return;
-	}
-	throw new AccessDeniedException();
-}
-?>
-<div>
-	<div class="profile-header">
-		<div></div>
-		<form action="<?php echo BASE_URL . 'person/search/' ?>">
-			<input autocomplete="off" type="text" maxlength="256" name="q"
-				label="Find People" placeholder="Find People">
-		</form>
-	</div>
-	<div id="user-profile" class="user profile"
-
-		 <?php echo $ov ? ' style="width:750px;height:450px;margin:10px;overflow:hidden"' : '' ?>>
-
-
-<?php
-//echo $this->render("usreg");
+		'_detail' => $_detail
+);
 if ($msg) {
 	echo '<div id="message">' . $msg . '</div>';
 }
-echo '<div class="profile-detail">';
-if ($edit) {
-	echo '<div role="button" class="btn-edit">' . __('user.profile.edit', 'Edit Profile') . '</div>';
+?>
+<div class="well">
+<?php
+$av = array('user_name','user_status','date_created','last_access','last_ip');
+foreach($av as $v) {
+	$cl = 'label-info';
+	switch ($v) {
+		case 'last_ip':
+		case 'last_access':
+			$cl= 'label-warning';
+		break;
+	}
+	$val = $userInfo->$v  ? $userInfo->$v  : '-';
+	echo '<div class="row show-grid">';
+	echo '<div class="span2">'. __('user.'.$v) .'</div>';			
+	echo '<div class="label '.$cl.' span3">'.$val .'</div>';
+	echo '</div>';
 }
-if ($personInfo) {
-	echo $this->render('profile/person', true, false, array(
-					'userInfo' => $userInfo,
-					'personInfo' => $personInfo));
+echo '<h2>Registered Person By You</h2>';
+echo '<ul>';
+foreach($persons as $p) {
+	echo '<li>';
+	echo '<a href="' . \URLHelper::add(APP_URL,'/person/info/?id='.$p->person_id)  . '">'.$p->fullname.'</a>';
+	echo '<div class="actions">';
+	if (!$p->isprimary) {
+		echo '<a href="#">Set As Primary</a>';
+	}
+	echo '</div>';
+	echo '</li>';
 }
-																								  ?>
-	</div>
-	<div></div>
+echo '</ul>';
+?>
 </div>
+

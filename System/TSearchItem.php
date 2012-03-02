@@ -1,6 +1,6 @@
 <?php
 
-class TSearchItem extends Object{
+class TSearchItem extends BaseObject{
 	public static  $DEFAULT_PROP=array('title','descr','link');
 	private $_object = null;
 	function __construct($o=null,$attr=null) {

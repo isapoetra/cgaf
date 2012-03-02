@@ -1,0 +1,7 @@
+@CHARSET "ISO-8859-1";
+.auth-external .tdl {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    background: transparent url('../images/social-sprite.png') no-repeat scroll 50% 50%;
+}

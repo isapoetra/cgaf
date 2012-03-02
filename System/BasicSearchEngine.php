@@ -2,6 +2,7 @@
 use System\Exceptions\SystemException;
 use System\Configurations\Configuration;
 use System\Collections\SearchItemCollection;
+use System\Applications\IApplication;
 abstract class OpenSearch {
 	private static function _header($s,$o,$f) {
 		$total =0;
@@ -76,7 +77,7 @@ EOF;
 class BasicSearchEngine implements ISearchEngine {
 	private $_appOwner;
 	private $_config;
-	function __construct($appOwner) {
+	function __construct(IApplication $appOwner) {
 		$this->_appOwner = $appOwner;
 		$this->_config = new Configuration ( $appOwner->getConfig ( "searchEngine", array () ) );
 	}
@@ -87,7 +88,7 @@ class BasicSearchEngine implements ISearchEngine {
 		$c = $this->_appOwner->getCacheManager ();
 
 		$sid = md5 ( $s . '-' . $format );
-		$retval = $c->getContent ( $sid );
+		$retval = $c->getContent ( $sid,'search' );
 		if ($retval === null) {
 			$cfg = $this->getConfigs ();
 			foreach ( $cfg as $sc ) {

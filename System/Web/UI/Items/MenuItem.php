@@ -15,6 +15,7 @@ class MenuItem extends WebControl {
 	private $_icon;
 	private $_showCaption;
 	private $_showIcon = true;
+  private $_iconClass;
 	private $_replacer = array (
 			'appurl' => APP_URL
 	);
@@ -48,11 +49,13 @@ class MenuItem extends WebControl {
 			$this->ShowCaption = $showIcon;
 			$this->TargetLink = $xtarget;
 			$this->Icon = $icon;
-			$this->setAttrs ( $attrs );
 		}
 	}
 	function setAction($a) {
 		$this->_link->setAction ( $a );
+	}
+	function setDescr($val) {
+		$this->Tooltip = $val;
 	}
 	function getAction() {
 		return $this->_link->getAction ();
@@ -81,9 +84,13 @@ class MenuItem extends WebControl {
 			$this->removeClass ( 'active' );
 		}
 	}
+  function setShowIcon($value) {
+    $this->_showIcon=$value;
+  }
 	function setIcon($v) {
 		$this->_icon = $v;
 	}
+
 	private function parselink($link) {
 		$this->replace ( $link );
 		switch ($this->_actionType) {
@@ -100,7 +107,7 @@ class MenuItem extends WebControl {
 	}
 	function addChild($c) {
 		if ($c instanceof MenuItem) {
-			$c->addClass ( 'dropdown-menu' );
+			$this->_menu->addClass ( 'dropdown-menu' );
 		}
 		return $this->_menu->addChild ( $c );
 	}
@@ -122,6 +129,10 @@ class MenuItem extends WebControl {
 		}
 		return $text;
 	}
+  function setIconClass($c) {
+    $this->_showIcon=true;
+    $this->_iconClass=$c;
+  }
 	function prepareRender() {
 		parent::prepareRender ();
 		$hasChild = $this->_menu->hasChild ();
@@ -139,15 +150,19 @@ class MenuItem extends WebControl {
 		}
 		$title = __ ( $this->_link->Text );
 		$this->replace ( $title );
-		$this->_link->Text = $title;
+
 		$this->_link->Action = $this->parseLink ( $this->_link->Action );
 		$this->replace ( $this->_tooltip );
 		if ($this->_showIcon && $this->_icon) {
 			$icon = AppManager::getInstance ()->getLiveAsset ( $this->_icon, 'images' );
-			if ($icon) {
-				$this->_link->addChild ( '<img src="' . $icon . '"/>' );
+			if (!$icon) {
+				$icon = BASE_URL.'/assets/images/blank.png';
 			}
-		}
+			$this->_link->addChild ( '<img src="' . $icon . '"/>' );
+		}elseif ($this->_showIcon && $this->_iconClass) {
+      $title = '<i class="'.$this->_iconClass.'"></i>'.$title;
+    }
+    $this->_link->Text = $title;
 		$this->_childs [] = $this->_link;
 		if ($hasChild) {
 			$this->_menu->setClass ( 'dropdown-menu' );

@@ -10,7 +10,7 @@ use Utils;
  * @author e1
  *@deprecated
  */
-abstract class MenuItemx extends \Object implements \IRenderable {
+abstract class MenuItemx extends \BaseObject implements \IRenderable {
 	protected $_id;
 	protected $_title;
 	protected $_action;

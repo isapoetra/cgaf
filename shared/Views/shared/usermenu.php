@@ -1,6 +1,9 @@
 <?php
 use \System\Web\Utils\HTMLUtils;
 use System\Web\UI\Controls\Menu;
+if (!\CGAF::isInstalled()) {
+	return;
+}
 $menu = new Menu();
 
 $id = \System\ACL\ACLHelper::getUserId();
@@ -20,6 +23,9 @@ if ($appOwner->isAuthentificated()) {
 	} else {
 		$pi = $auth->getUserInfo();
 		$replacer['FullName'] = $pi->user_name;
+	}
+	if (!$replacer['FullName']) {
+		$replacer['FullName'] ='My';
 	}
 } else {
 	$replacer['FullName'] = '';

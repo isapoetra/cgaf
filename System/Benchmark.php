@@ -3,8 +3,15 @@ defined ( "CGAF" ) or die ( "Restricted Access" );
 class Benchmark {
 	private $checkpoint = array ();
 	private $time_epleased = 0;
+  /**
+   * @var Benchmark
+   */
 	private static $_instance = null;
-	function benchmark() {
+  /**
+   * @var array
+   */
+  private $func;
+	function __construct() {
 		$this->func ['round'] = create_function ( '$a,$b', '' );
 
 		$this->checkpoint ();
@@ -50,6 +57,7 @@ class Benchmark {
 		else
 		return ( string ) $output;
 	}
+
 	private static function getInstance() {
 		if (self::$_instance == null) {
 			self::$_instance = new Benchmark ( );

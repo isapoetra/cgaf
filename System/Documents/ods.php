@@ -1,6 +1,6 @@
 <?php
 namespace System\Documents;
-abstract class ODS extends \Object {
+abstract class ODS extends \BaseObject {
 	static function open($f) {
 		if (is_file($f)) {
 			$ext = strtolower(\Utils::getFileExt($f, false));

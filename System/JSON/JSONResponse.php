@@ -2,7 +2,7 @@
 namespace System\JSON;
 use \Response;
 use \Request;
-class JSONResponse extends \Object implements \IRenderable {
+class JSONResponse extends \BaseObject implements \IRenderable {
 	public $success = true;
 	public $redirect;
 	public $redirectInternal;

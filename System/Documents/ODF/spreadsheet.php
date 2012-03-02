@@ -24,7 +24,7 @@ class SpreadSheet extends Archive {
 	private function loadContent($content) {
 		$this->_sheets = array();
 		$this->_content->loadXML($content);
-		$list = $this->_content->body->getElementsByTagName('spreadsheet')->item(0)->getElementsByTagName('table');
+		$list = $this->_content->Body->getElementsByTagName('spreadsheet')->item(0)->getElementsByTagName('table');
 		foreach ($list as $item) {
 			$this->_sheets[$item->getAttribute('table:name')] = $item;
 		}

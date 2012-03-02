@@ -104,6 +104,7 @@ class Request implements \IRequest {
 			return $r;
 		}
 	}
+
 	protected function getSec($varName, $default) {
 		if (isset($this->_secure[$varName])) {
 			return $this->_secure[$varName];
@@ -116,6 +117,7 @@ class Request implements \IRequest {
 	function getSecure($varName, $default = null) {
 		return isset($this->_secure[$varName]) ? $this->_secure[$varName] : $this->getSec($varName, $default);
 	}
+
 	public function set($varName, $value) {
 		if (is_array($varName) && $value === null) {
 			foreach ($varName as $k => $v) {

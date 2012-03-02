@@ -1,0 +1,16 @@
+insert into #__lookup values ('__cgaf', 'gender', '0', 'Male', NULL);
+insert into #__lookup values ('__cgaf', 'gender', '1', 'Female', '');
+insert into #__lookup values ('__cgaf', 'religion', '0', 'religion.moslem', NULL);
+insert into #__lookup values ('__cgaf', 'religion', '1', 'religion.protestant', NULL);
+insert into #__lookup values ('__cgaf', 'religion', '2', 'religion.catholic', NULL);
+insert into #__lookup values ('__cgaf', 'religion', '3', 'religion.hindu', NULL);
+insert into #__lookup values ('__cgaf', 'religion', '4', 'religion.budhist', NULL);
+insert into #__lookup values ('__cgaf', 'todo-state', '0', 'Undecided', NULL);
+insert into #__lookup values ('__cgaf', 'todo-state', '1', 'High', NULL);
+insert into #__lookup values ('__cgaf', 'todo-state', '2', 'Medium', NULL);
+insert into #__lookup values ('__cgaf', 'todo-state', '3', 'Low', NULL);
+insert into #__lookup values ('__cgaf', 'user_state', '0', 'Disabled', NULL);
+insert into #__lookup values ('__cgaf', 'user_state', '1', 'Normal', NULL);
+insert into #__lookup values ('__cgaf', 'user_state', '999', 'Internal', NULL);
+insert into #__lookup values ('__cgaf', 'user_status', '0', 'Not Active', NULL);
+insert into #__lookup values ('__cgaf', 'user_status', '1', 'Active', NULL);

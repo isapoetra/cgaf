@@ -10,7 +10,7 @@ use \Exception;
  * sudo apt-get install libssh2-php
  */
 
-class SFTPConnection extends \Object {
+class SFTPConnection extends \BaseObject {
 	private $connection;
 	private $sftp;
 	private $_baseRemotePath;

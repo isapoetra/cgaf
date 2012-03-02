@@ -2,9 +2,9 @@
 if (!$actions) {
 	return null;
 }
-echo '<ul class="actions">';
+echo '<ul class="nav nav-pills">';
 foreach ($actions as $act) {
-	echo '<li class="item">'.\Utils::toString($act).'</li>';
+	echo '<li>'.\Convert::toString($act).'</li>';
 }
 echo '</ul>';
 ?>

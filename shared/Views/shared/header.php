@@ -11,8 +11,9 @@ $bodyattr = $this->getVar ( 'bodyattr' );
 $jsEngine = $appOwner->getJSEngine ();
 $appinfo = $appOwner->getAppInfo ();
 $title = isset ( $title ) ? $title : $appOwner->getConfig ( "site.title", CGAF::getConfig ( "cgaf.description" ) . ' v.' . CGAF_VERSION );
-$hcontent = $appOwner->renderContent ( 'header' );
+$hcontent = \CGAF::isInstalled() ? $appOwner->renderContent ( 'header' ) : null;
 $umenu = $this->render ( "shared/usermenu", true, false );
+
 $crumb = '';
 // $this->render ( 'shared/crumb', true, false );
 if ($appOwner->getConfig ( 'site.showcrumb', true )) {
@@ -43,7 +44,7 @@ $s = $appOwner->getStyleSheet ();
 echo '<style type="text/css" style="display: none !important; ">';
 if ($s) {
 	foreach ( $s as $ss ) {
-		echo Utils::toString ( $ss );
+		echo Convert::toString ( $ss );
 	}
 }
 echo '</style>';
@@ -51,7 +52,7 @@ echo '</head>';
 echo '<body ' . ($bodyattr ? $bodyattr : '') . '>';
 // if ((\Request::isMobile() && !\Request::isAJAXRequest()) ||
 // !\Request::isMobile()) {
-$mbar = $appOwner->renderMenu ( 'menu-bar', false, null, 'navbar', false );
+$mbar = \CGAF::isInstalled() ? $appOwner->renderMenu ( 'menu-bar', false, null, 'navbar', false ) : null;
 // echo '<div id="wrapper-top"' . ($crumb ? 'class="hascrumb"' : '') . '>';
 echo '<div id="navigation-top" class="navbar navbar-fixed-top">';
 echo '	<div class="navbar-inner">';
@@ -62,9 +63,8 @@ echo <<< EOT
 <span class="icon-bar"></span>
 <span class="icon-bar"></span>
 </a>
-
 EOT;
-echo '<a class="brand" href="' . APP_URL . '">' . $appOwner->GetAppName () . '</a>';
+echo '<a class="brand" href="' . APP_URL . '">' . $appOwner->getConfig('app.shortname',$appOwner->GetAppName ()) . '</a>';
 echo $umenu;
 echo '		<div class="nav-collapse">';
 echo $mbar;
@@ -88,14 +88,12 @@ if (\Request::isMobile ()) {
 	<div data-role="content">
 EOT;
 } else {
-	echo '<div id="wrapper" class="container-fluid wrapper wrapper-' . $appinfo->app_name . '">';
+	echo '<div id="wrapper" class="container-fluid wrapper wrapper-' . $appinfo->app_name .($crumb ? ' hascrumb' :'') .'">';
+	echo '<div class="wrapper-inner">';
 	echo '<div id="sysmessage" class="alert  alert-error"><a class="close" data-dismiss="alert">&times;</a><h4 class="alert-heading">Warning!</h4></div>';
 	if (! Session::get ( 'clientValidated' )) {
 		echo $this->render ( 'shared/noscript', true, false );
 	}
 	echo $hcontent;
-	// echo '</div>';
-	// echo '<div id="wrapper-content"' . ($crumb ? ' class="hascrumb"' : '') .
-	// '>';
 }
 ?>

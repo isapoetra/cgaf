@@ -64,6 +64,7 @@ final class CGAFJS {
 				$assets [] = 'cgaf/debug.js';
 				$assets [] = 'cgaf/css/debug.css';
 			}
+
 			$plugins = CGAF::getConfigs ( 'cgaf.js.plugins' );
 			if ($plugins) {
 				Utils::arrayMerge ( $assets, $jq->getAsset ( $plugins, 'plugins' ) );
@@ -82,14 +83,16 @@ final class CGAFJS {
 					'cgaf/css/cgaf-mobile.css'
 			);
 		}
+		$jq->initialize ( $appOwner );
 		try {
-		self::$_appOwner->addClientAsset ( $jq->getAsset ( $assets ) );
+			self::$_appOwner->addClientAsset ( $jq->getAsset ( $assets ) );
 		}catch (\Exception $e){
+			ppd($e);
 			if (CGAF_DEBUG) {
 				ppd($e);
 			}
 		}
-		$jq->initialize ( $appOwner );
+
 		$plugins = null;
 		try {
 			if (self::$_appOwner->getController ()) {
@@ -228,7 +231,7 @@ final class CGAFJS {
 			$retval [] = '}';
 		}
 		\Utils::arrayRemoveEmptyValue ( $retval );
-		if (! Request::isAJAXRequest () && count ( $retval ) <= 3) {
+		if (! Request::isAJAXRequest () && count ( $retval ) <= 3 ) {
 			return null;
 		}
 		return JSUtils::renderJSTag ( $retval, false );

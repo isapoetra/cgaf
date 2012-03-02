@@ -1,12 +1,14 @@
 <?php
 namespace System\Controllers;
+use System\ACL\ACLHelper;
+
 use System\Exceptions\SystemException;
 use System\JSON\JSONResult;
 use System\MVC\Controller;
 use Request;
 class ACLController extends Controller {
-	function Index() {
-		return parent::render ();
+	function isAllow($access='view') {
+		return \CGAF::isAllow('system', 'manage',ACLHelper::ACCESS_MANAGE);
 	}
 	function manage($vars = null, $newroute = null, $return = false) {
 		$a = Request::get ( "_a", 'manage' );

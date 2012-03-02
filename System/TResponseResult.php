@@ -6,7 +6,7 @@ use System\JSON\JSON;
  * @deprecated
  *
  */
-class TResponseResult extends Object implements IRenderable {
+class TResponseResult extends BaseObject implements IRenderable {
 	function __construct($result, $msg) {
 		$this->_result = $result;
 		$this->_message = __ ( $msg );

@@ -1,0 +1,1 @@
+INSERT INTO `#__user_roles` VALUES (0, '__cgaf', -1, 1);

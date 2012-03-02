@@ -15,6 +15,9 @@ use System\Exceptions\SystemException;
 use System\Exceptions\InvalidOperationException;
 use System\JSON\JSONResult;
 use URLHelper;
+/**
+ *
+ */
 interface IController {
 	/**
 	 * Enter description here .
@@ -26,20 +29,36 @@ interface IController {
 	 */
 	function render($route = null, $vars = null, $contentOnly = null);
 }
-abstract class Controller extends \Object implements IController, \ISearchProvider {
+/**
+ *
+ */
+abstract class Controller extends \BaseObject implements IController, \ISearchProvider {
+  /**
+   * @var Application
+   */
 	private $_appOwner;
-	private $_viewPath;
-	private $_tpl;
+	//private $_viewPath;
+	//private $_tpl;
 	protected $_vars;
+  /**
+   * @var string
+   */
 	private $_routeName;
 	protected $_clientContentId = "#maincontent";
+  /**
+   * @var Model
+   */
 	protected $_model;
 	protected $_initialized = false;
 	protected $_warning = null;
 	protected $_renderInternalAction = true;
 	protected $_actionAttr = null;
 	private $_currentAction;
-	function __construct(\IApplication $appOwner, $routeName = null) {
+  /**
+   * @param Application $appOwner
+   * @param null $routeName
+   */
+	function __construct(Application $appOwner, $routeName = null) {
 		$this->_appOwner = $appOwner;
 		$this->_routeName = $routeName;
 		if (! $this->Initialize ()) {
@@ -49,21 +68,42 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 	protected function isFromHome() {
 		return $this->getAppOwner ()->isFromHome ();
 	}
+  /**
+   * @param $controller
+   * @param bool $throw
+   * @return Controller
+   */
 	protected function getController($controller, $throw = true) {
 		if ($controller === $this->getControllerName ()) {
 			return $this;
 		}
 		return $this->getAppOwner ()->getController ( $controller, $throw );
 	}
+  /**
+   * @param $a
+   * @param null $param
+   */
 	protected function redirect($a, $param = null) {
 		\Response::Redirect ( \URLHelper::add ( APP_URL, $this->getControllerName () . '/' . $a, $param ) );
 	}
+  /**
+   * @param null $o
+   * @param null $id
+   * @param null $route
+   * @return string
+   */
 	public function renderActions($o = null, $id = null, $route = null) {
 		$actions = $this->getAction ( $o, $id, $route );
 		return $this->render ( 'actions', array (
 				'actions' => $actions
 		), true );
 	}
+  /**
+   * @param $o string|Table
+   * @param null $id
+   * @param null $route
+   * @return array
+   */
 	protected function getAction($o, $id = null, $route = null) {
 		$retval = array ();
 		if (! $this->_renderInternalAction)
@@ -113,21 +153,32 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		// ppd($retval);
 		return $retval;
 	}
+  /**
+   * @param $stateName
+   * @param $value
+   */
 	function setState($stateName, $value) {
 		$stid = $this->getAppOwner ()->getAppId () . '-' . $this->getControllerName ();
 		return Session::setState ( $stid, $stateName, $value );
 	}
+  /**
+   * @param $stateName
+   * @param null $default
+   */
 	function getState($stateName, $default = null) {
 		$stid = $this->getAppOwner ()->getAppId () . '-' . $this->getControllerName ();
 		return Session::getState ( $stid, $stateName, $default );
 	}
+  /**
+   * @return string
+   */
 	function name() {
 		return $this->_routeName;
 	}
 	protected function addClientAsset($asset, $group = null) {
 		return $this->getAppOwner ()->addClientAsset ( $asset, $group );
 	}
-	protected function _getControllerMenu($m, $row) {
+	protected function _getControllerMenu(Model $m, $row) {
 		$retval = array ();
 		$url = BASE_URL . $this->getControllerName ();
 		$r = MVCHelper::getRoute ();
@@ -192,6 +243,9 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 	}
 	protected function getConfig($configName, $def = null) {
 		return $this->getAppOwner ()->getConfig ( $this->getControllerName () . '.' . $configName, $def );
+	}
+	protected function getUserConfig($configName,$def=null) {
+		return $this->getAppOwner ()->getUserConfig ( $this->getControllerName () . '.' . $configName, $def );
 	}
 	function _changeApp() {
 	}
@@ -492,13 +546,14 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 	 * ..
 	 *
 	 * @deprecated please use getControllerName
+   * @return string
 	 */
 	function getRouteName() {
 		return $this->getControllerName ();
 	}
 	/**
 	 *
-	 * @return TACL
+	 * @return \System\ACL\IACL
 	 */
 	protected function getACL() {
 		return $this->getAppOwner ()->getACL ();
@@ -522,11 +577,14 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 			$route = $this->getAppOwner ()->getRoute ();
 			$rname = $route ["_c"];
 			$a = $route ['_a'];
+      /**
+       * @var $row MenuItem
+       */
 			foreach ( $rows as $row ) {
-				$action = $row->getMenuAction ();
+				$action = $row->getAction ();
 				$row->real_menuaction = $action;
 				if ($actionPrefix) {
-					$row->setMenuAction ( $row->getMenuAction () . $actionPrefix );
+					$row->setAction($row->getAction() . $actionPrefix );
 				}
 				$row->setShowIcon ( $showIcon );
 				if (($row->getActionType () == 1 || $row->getActionType () == null)) {
@@ -548,8 +606,8 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 	}
 	function menu($return = false, $params) {
 		$params = $params ? $params : array ();
-		$params ['position'] = isset ( $params ['position'] ) ? $params ['position'] : $this->getRouteName ();
-		$params ['style'] = isset ( $params ['style'] ) ? $params ['position'] : $this->getRouteName () . '-menu';
+		$params ['position'] = isset ( $params ['position'] ) ? $params ['position'] : $this->getControllerName() ;
+		$params ['style'] = isset ( $params ['style'] ) ? $params ['position'] : $this->getControllerName () . '-menu';
 		return $this->renderMenu ( $params ['position'], $params ['style'] );
 	}
 	function renderMenu($position, $ulclass = null, $showIcon = false, $replacer = array()) {
@@ -564,7 +622,7 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 			$home = new MenuItem ( 'home', 'Home', APP_URL, $r ['_c'] === $this->getAppOwner ()->getDefaultController (), 'home.descr' );
 			$home->setShowIcon ( true );
 			$home->setIcon ( 'appicon.png' );
-			$home->setCss ( 'home' );
+			$home->setClass ( 'home' );
 			$filtered = array_merge ( array (
 					$home
 			), $filtered );
@@ -572,7 +630,8 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		$retval = "<div class=\"menu-container\" id='menu-container-$position'>";
 		if (! count ( $filtered ) && $position != "menu-bar") {
 			if (CGAF_DEBUG) {
-				$retval .= "<div class=\"warning\">Menu not found for position $position @" . $this->getRouteName () . " app : " . $this->getAppOwner ()->getAppId () . "</div>";
+				$retval .= "<div class=\"warning\">Menu not found for position $position @" . $this->getControllerName() ;
+        $retval .=  " app : " . $this->getAppOwner ()->getAppId () . "</div>";
 			}
 		}
 		$retval .= HTMLUtils::renderMenu ( $filtered, null, $ulclass . " menu-$position", $replacer, 'menu-' . $position );
@@ -586,11 +645,16 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		// $this->getAppOwner()->getRequestAction()
 		if (! $this->isAllow ()) {
 			throw new AccessDeniedException ( "Access denied to Controller %s", $this->getControllerName () );
-			return false;
+			//return false;
 		}
 		try {
-			$this->setModel ( $this->getControllerName () );
+      if ($this->getControllerName () !=='home') {
+        if (! $this->_model) {
+          $this->setModel ( $this->getControllerName () );
+        }
+      }
 		} catch ( \Exception $e ) {
+
 		}
 		$this->Assign ( "baseurl", BASE_URL );
 		$this->Assign ( "content", null );
@@ -641,7 +705,7 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 	 *
 	 * @param
 	 *       	 $modelName
-	 * @return System\MVC\Model
+	 * @return \System\MVC\Model|\System\MVC\Models\TreeModel
 	 */
 	function getModel($modelName = null) {
 		if ($modelName == null) {
@@ -689,7 +753,7 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 				$c = $this->getClassInstance ( $viewName, 'View', $this );
 			}
 		} catch ( \Exception $ex ) {
-			Logger::log ( $ex );
+			\Logger::Error( $ex );
 		}
 		if ($c) {
 			return $c;
@@ -712,7 +776,7 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 		if (! $contentOnly) {
 			// $r = $this->getAppOwner()->getRoute();//::get ( "__route" );
 			// if ($r !== null && $route ["_c"] != $r ["_c"] && $route ["_a"] !=
-		// $r ["_a"]) {
+			// $r ["_a"]) {
 			// $content = $this->getView ( $r ["_c"], $r ["_a"] );
 			// $this->Assign ( "content", $content );
 			// }
@@ -733,11 +797,7 @@ abstract class Controller extends \Object implements IController, \ISearchProvid
 	protected function renderContentOnly() {
 		return null;
 	}
-	/**
-	 * (non-PHPdoc)
-	 *
-	 * @see System\MVC.IController::render()
-	 */
+
 	function render($route = null, $vars = null, $contentOnly = null) {
 		$retval = '';
 		if ($contentOnly == null) {

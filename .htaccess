@@ -1,6 +1,7 @@
 Options -Indexes  -Multiviews
 #for acunnetix web scanner
 #php_value auto_prepend_file D:\e1\wamp\acu\PHP\acu_phpaspect.php
+#php_value auto_prepend_file D:\e1\cgaf\cgafinit.php
 AddType application/opensearchdescription+xml osd
 AddType text/cache-manifest manifest
 # Configure ETags
@@ -85,7 +86,6 @@ AddType text/cache-manifest manifest
 	RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
 	RewriteRule .* - [F]
 	RewriteRule .*\.git/.* - [F]
-	
 	RewriteCond %{REQUEST_FILENAME}   !robots\.txt
 	RewriteCond %{REQUEST_FILENAME}   !sitemap\.xml
 	RewriteCond %{REQUEST_FILENAME} !-f

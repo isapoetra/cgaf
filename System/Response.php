@@ -2,8 +2,17 @@
 use System\Exceptions\SystemException;
 final class Response {
 	private static $_initialized = false;
+  /**
+   * @var IResponse
+   */
 	private static $_instance = null;
 	private static $_flushed = false;
+
+  /**
+   * @static
+   * @return IResponse
+   * @throws System\Exceptions\SystemException
+   */
 	public static function getInstance() {
 		if (self::$_instance == null) {
 			//using('System.'.CGAF_CONTEXT.".Response");

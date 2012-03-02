@@ -25,9 +25,9 @@ class WebControl extends \Control implements \IRenderable {
 	}
 	function addStyle($name, $value = null) {
 		$old = parent::getProperty('style',array());
-		
+
 		$n = HTMLUtils::mergeStyle($old, is_array($name) ? $name : array(
-				$name => $value));		
+				$name => $value));
 		return parent::setProperty('style',$n);
 	}
 	function add($c) {
@@ -42,6 +42,7 @@ class WebControl extends \Control implements \IRenderable {
 	function setClass($c) {
 		$this->setProperties('class',$c);
 	}
+
 	function addClass($c) {
 		if (!is_array($c)) {
 			$c = explode(' ',$c);
@@ -51,7 +52,7 @@ class WebControl extends \Control implements \IRenderable {
 			if (!in_array($c,$current)) {
 				$current[]= $a;
 			}
-		} 
+		}
 		$this->setProperties('class', implode(' ',$current));
 	}
 	function removeClass($c) {
@@ -88,8 +89,8 @@ class WebControl extends \Control implements \IRenderable {
 						$current[]= $v;
 					}
 				}
-				$current =  trim(implode(' ',$current)); 
-				return $this->setProperties('class',$current);				
+				$current =  trim(implode(' ',$current));
+				return $this->setProperties('class',$current);
 		}
 		return parent::setProperty($propertyName,$value);
 	}
@@ -119,6 +120,15 @@ class WebControl extends \Control implements \IRenderable {
 	}
 	function setConfig($attName, $Value = null) {
 		return $this->setProperty($attName, $Value);
+	}
+	/**
+	 *
+	 * @param array $values
+	 * @deprecated
+	 */
+	function setAttrs( $values){
+
+		return $this->setAttr($values);
 	}
 	function setAttr($attName, $Value = null) {
 		if (!is_array($attName) && empty($Value)) {
@@ -168,9 +178,7 @@ class WebControl extends \Control implements \IRenderable {
 	protected function renderEndLabel() {
 		return ($this->_title ? "</label>" : "");
 	}
-	/**
-	 * @deprecated
-	 */
+
 	protected function prepareRender() {
 		$this->_renderPrepared = true;
 		//$this->prepareRender ();

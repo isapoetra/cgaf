@@ -4,6 +4,9 @@ use System\Exceptions\SystemException;
 
 use \System;
 use \Utils;
+/**
+ * Base class for Console Application
+ */
 class ConsoleApplication extends AbstractApplication {
 	function __construct($appPath, $appName) {
 		parent::__construct($appPath, $appName);
@@ -18,5 +21,9 @@ class ConsoleApplication extends AbstractApplication {
 	function getAssetPath($data, $prefix = null) {
 		// TODO Auto-generated method stub
 	}
+
+  function assetToLive($asset) {
+    // TODO: Implement assetToLive() method.
+  }
 }
 ?>

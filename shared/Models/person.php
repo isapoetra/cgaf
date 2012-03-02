@@ -1,36 +1,78 @@
 <?php
 namespace System\Models;
+use System\ACL\ACLHelper;
 use System\MVC\Model;
-use \CGAF;
-class PersonData extends \Object{
-	public $person_id;
-	public $first_name;
-	public $middle_name;
-	public $last_name;
-	public $birth_date;
-	public $email;
-	public function getFullName() {
-		return sprintf('%s %s %s',$this->first_name,$this->middle_name,$this->last_name);
-	}
-}
-class Person extends Model {
-	public $person_id;
-	public $first_name;
-	public $middle_name;
-	public $last_name;
-	public $birth_date;
-	function __construct($connection) {
-		parent::__construct(CGAF::getDBConnection(),'persons','person_id');
-	}
+use CGAF;
 
-	function getPersonByUser($id) {
-		$this->setAlias('p')
-		->clear()
-		->select("p.*")
-		->join(CGAF::getDBConnection()->quoteTable('users',true),"u","u.person_id=p.person_id",'inner',true)
-		->where("u.user_id=".(int)$id);
-		$o = $this->loadObject(new PersonData());
-		return $o;
-	}
+class Person extends Model {
+  /**
+   * @FieldIsPrimaryKey true
+   * @FieldExtra        NOT NULL AUTO_INCREMENT
+   * @var int
+   */
+  public $person_id;
+  /**
+   * @FieldDefaultValue -1
+   * @var int
+   */
+  public $person_owner;
+  /**
+   * @FieldLength 150
+   * @var string
+   */
+  public $first_name;
+  /**
+   * @FieldLength 150
+   * @var string
+   */
+  public $middle_name;
+  /**
+   * @FieldLength 150
+   * @var string
+   */
+  public $last_name;
+  /**
+   * @FieldType DateTime
+   * @var \DateTime
+   */
+  public $birth_date;
+
+  function __construct($connection) {
+    parent::__construct(CGAF::getDBConnection(), 'persons', 'person_id', false, \CGAF::isInstalled() === false);
+  }
+
+  function loadObjects($class = null, $page = -1, $rowPerPage = -1) {
+    $o = parent::loadObjects(null, $page, $rowPerPage);
+    if (!$class) {
+      $retval = null;
+      if ($o) {
+        $retval = array();
+        foreach ($o as $a) {
+          $p = new \PersonData($this);
+          $p->Assign($a);
+          $retval[] = $p;
+        }
+      }
+    }
+    return $retval;
+  }
+
+  function getPersonByUser($id) {
+    $this
+      ->setAlias('p')
+      ->clear()
+      ->select("p.*");
+    $this->join(
+      CGAF::getDBConnection()
+        ->quoteTable('users', true), "u", "u.user_id=p.person_owner", 'inner', true
+    );
+    $this->where("p.person_owner=" . $this->quote($id));
+    $this->where('p.isprimary=true');
+    $pdata = new \PersonData ($this);
+    $pdata = $this->loadObject($pdata);
+    $pdata->user_id = $id;
+    return $pdata;
+  }
 }
+
 ?>

@@ -6,6 +6,7 @@ use System\DB\DBQuery;
 use System\Exceptions\AccessDeniedException;
 use System\Exceptions\SystemException;
 use System\ACL\ACLHelper;
+use System\DB\DB;
 class ModuleManager {
 	private static $_moduleList;
 	private static $_instance = array();
@@ -100,7 +101,7 @@ class ModuleManager {
 			$clist = CacheFactory::get ( "module-list-$appId", "module", true, true );
 			if ($clist) {
 				self::$_moduleList = unserialize ( $clist );
-				if (count ( $list ) == 0) {
+				if (count ( $clist ) == 0) {
 					self::$_moduleList = false;
 				}
 			}
@@ -150,7 +151,7 @@ class ModuleManager {
 				}
 			}
 			self::$_moduleList = $tmp;
-			CacheManager::putString ( serialize ( $tmp ), "module-list", "module", true, true );
+      CacheFactory::putString ( serialize ( $tmp ), "module-list", "module", true, true );
 		}
 		//ppd($list);
 		$retval = false;

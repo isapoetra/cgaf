@@ -1,6 +1,7 @@
 <?php
 $mode = isset($mode) ? $mode : Request::get('mode', 'full');
 $rows = isset($rows) ? $rows : array();
+$lang = $appOwner->getLocale ()->getLocale ();
 if ($mode == 'full') {
 	echo '<h3>';
 	echo __('locale.list', 'List of installed Locale');

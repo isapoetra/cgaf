@@ -2,7 +2,7 @@
 namespace System\Compressor;
 use System\Configurations\Configuration;
 
-abstract class AbstractCompressor extends \Object {
+abstract class AbstractCompressor extends \BaseObject {
 	protected $_config;
 	protected $_currentPath;
 	function __construct() {

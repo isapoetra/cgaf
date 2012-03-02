@@ -458,21 +458,8 @@ abstract class Utils {
 		return self::ToDirectory ( CGAF::getConfig ( "System.LiveTempPath", SITE_PATH . DS . "tmp" . DS . $base . DS . basename ( $f ) ) );
 	}
 	public static function ToDirectory($dir, $replaceSpace = false) {
-		if (is_array ( $dir )) {
-			$retval = array ();
-			foreach ( $dir as $k => $v ) {
-				$retval [$k] = self::ToDirectory ( $v, $replaceSpace );
-			}
-			return $retval;
-		}
-		$dir = str_replace ( "\\", DS, $dir );
-		$dir = str_replace ( "\\", DS, $dir );
-		$dir = str_replace ( "/", DS, $dir );
-		$dir = str_replace ( DS . DS, DS, $dir );
-		if (DS == "/" && $replaceSpace) {
-			$dir = str_replace ( " ", "\\ ", $dir );
-		}
-		return $dir;
+		
+		return \CGAF::toDirectory($dir,$replaceSpace);
 	}
 	public static function getFileName($fname, $includeExt = false) {
 		$retval = basename ( $fname );

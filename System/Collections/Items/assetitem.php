@@ -4,7 +4,7 @@ use System\Assets\AssetHelper;
 use AppManager;
 use Utils;
 use Logger;
-class AssetItem extends \Object implements \IRenderable, \IItem {
+class AssetItem extends \BaseObject implements \IRenderable, \IItem {
 	private $_resource;
 	private $_liveResource = false;
 	private $_group = null;

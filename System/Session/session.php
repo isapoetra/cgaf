@@ -5,6 +5,9 @@ if (!defined("CGAF"))
 use \CGAF as CGAF;
 
 abstract class Session {
+  /**
+   * @var \ISession
+   */
 	private static $_instance;
 	const STATE_EXPIRED = 'expired';
 	const STATE_ERROR = 'error';
@@ -15,7 +18,7 @@ abstract class Session {
 	/**
 	 * get Session Instance
 	 *
-	 * @return \ISession
+	 * @return \ISession|\IEventDispatcher
 	 */
 	public static function getInstance() {
 		if (self::$_instance == null) {
@@ -62,6 +65,7 @@ abstract class Session {
 		if (self::$_instance) {
 			return self::getInstance()->set($name, $value);
 		}
+    return $value;
 	}
 	public static function remove($varname) {
 		return self::getInstance()->remove($varname);
@@ -74,7 +78,6 @@ abstract class Session {
 		return self::getInstance()->Start();
 	}
 	public static function reStart() {
-		$instance = self::getInstance();
 		return self::getInstance()->reStart();
 	}
 	public static function getId() {

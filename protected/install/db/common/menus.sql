@@ -2,7 +2,7 @@ insert into `#__menus` values (1, '__cgaf', 'Home', 'footer', 0, '#appurl#', 0, 
 insert into `#__menus` values (2, '__cgaf', 'About CGII', 'footer', 2, 'about', 2, '', NULL, 1, NULL, 0, NULL, NULL);
 insert into `#__menus` values (3, '__cgaf', 'Applications', 'footer', 2, 'app', 1, NULL, NULL, 1, NULL, 0, NULL, NULL);
 insert into `#__menus` values (4, '__cgaf', 'user.profile', 'user-menu', 1, 'user/profile', 0, NULL, NULL, 1, NULL, 9, NULL, NULL);
-insert into `#__menus` values (5, '__cgaf', 'auth.logout', 'user-menu', 1, 'auth/logout', 2, NULL, NULL, 1, '__confirm', 9, NULL, NULL);
+insert into `#__menus` values (5, '__cgaf', 'auth.logout', 'user-menu', 1, 'auth/logout', 2, NULL, NULL, 1, null, 9, NULL, NULL);
 insert into `#__menus` values (6, '__cgaf', '-', 'user-menu', -1, NULL, 1, NULL, NULL, 1, NULL, 9, NULL, NULL);
 insert into `#__menus` values (7, '__cgaf', 'auth.login.title', 'user-menu', 1, 'auth/login', 0, NULL, NULL, 1, NULL, 0, NULL, NULL);
 insert into `#__menus` values (8, '__cgaf', 'user.register', 'user-menu', 1, 'user/register', 1, NULL, NULL, 1, NULL, 0, NULL, NULL);
