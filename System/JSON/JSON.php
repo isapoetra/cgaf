@@ -120,7 +120,6 @@ abstract class JSON {
 			$quote = $ignorestr;
 		}
 		$retval = $json->encode($var, $quote);
-		//$retval = substr($retval,1,strlen($retval)-2);
 		return $retval;
 	}
 
@@ -169,43 +168,43 @@ abstract class JSON {
 		for ($c = 0; $c < $len; $c++) {
 			$char = $json[$c];
 			switch ($char) {
-			case '{':
-			case '[':
-				if (!$in_string) {
-					$new_json .= $char . "\n" . str_repeat($tab, $indent_level + 1);
-					$indent_level++;
-				} else {
+				case '{':
+				case '[':
+					if (!$in_string) {
+						$new_json .= $char . "\n" . str_repeat($tab, $indent_level + 1);
+						$indent_level++;
+					} else {
+						$new_json .= $char;
+					}
+					break;
+				case '}':
+				case ']':
+					if (!$in_string) {
+						$indent_level--;
+						$new_json .= "\n" . str_repeat($tab, $indent_level) . $char;
+					} else {
+						$new_json .= $char;
+					}
+					break;
+				case ',':
+					if (!$in_string) {
+						$new_json .= ",\n" . str_repeat($tab, $indent_level);
+					} else {
+						$new_json .= $char;
+					}
+					break;
+				case ':':
+					if (!$in_string) {
+						$new_json .= ': ';
+					} else {
+						$new_json .= $char;
+					}
+					break;
+				case '"':
+					$in_string = !$in_string;
+				default:
 					$new_json .= $char;
-				}
-				break;
-			case '}':
-			case ']':
-				if (!$in_string) {
-					$indent_level--;
-					$new_json .= "\n" . str_repeat($tab, $indent_level) . $char;
-				} else {
-					$new_json .= $char;
-				}
-				break;
-			case ',':
-				if (!$in_string) {
-					$new_json .= ",\n" . str_repeat($tab, $indent_level);
-				} else {
-					$new_json .= $char;
-				}
-				break;
-			case ':':
-				if (!$in_string) {
-					$new_json .= ': ';
-				} else {
-					$new_json .= $char;
-				}
-				break;
-			case '"':
-				$in_string = !$in_string;
-			default:
-				$new_json .= $char;
-				break;
+					break;
 			}
 		}
 		return $new_json;

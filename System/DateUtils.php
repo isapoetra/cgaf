@@ -25,15 +25,24 @@ abstract class DateUtils {
 		if (is_object($date)) {
 			return $date;
 		}
-		$dt = explode("/", $date);
-		if (count($dt) >= 3) {
+		$time = '00:00:00';
+		$dt = explode(" ", $date);
+		if (count($dt)>1) {
+			$time = $dt[1];
+			$dt=$dt[0];
+		}else{
+			$dt=$date;
+		}
+		
+		$dt = explode("/", $dt);
+		$time =explode(' ',$time);
+		if (is_array($dt) && count($dt) >= 3) {
 			$date = new CDate();
-			try {
-				$date->setDayMonthYear($dt[0], $dt[1], $dt[2]);
-			}
-			catch (Exception $e) {
-				$date->setDayMonthYear($dt[1], $dt[0], $dt[2]);
-			}
+				
+			
+				
+			$date->setDate($dt[2], $dt[1], $dt[0]);
+			$date->setTime($time[0], $time[1],$time[2]);
 		} else {
 			$date = new CDate($date);
 		}
@@ -42,17 +51,17 @@ abstract class DateUtils {
 	public static function add($date, $long, $mode = 'day', $format = FMT_TIMESTAMP) {
 		$date = new CDate($date);
 		switch ($mode) {
-		case 'd':
-		case 'day':
-			$date->addDays($long);
-			break;
-		case 'month':
-		case 'M':
-			$date->addMonths($long);
-			break;
-		default:
-			throw new \Exception('Unknown Mode ' . $mode);
-			break;
+			case 'd':
+			case 'day':
+				$date->addDays($long);
+				break;
+			case 'month':
+			case 'M':
+				$date->addMonths($long);
+				break;
+			default:
+				throw new \Exception('Unknown Mode ' . $mode);
+				break;
 		}
 		return $date->format($format);
 	}
@@ -126,7 +135,7 @@ abstract class DateUtils {
 		$format = str_replace('yy', 'Y', $format);
 		$format = str_replace('dd', 'd', $format);
 		/*pp($date);
-		ppd($format);*/
+		 ppd($format);*/
 		return $date->format($format);
 	}
 	public static function DateToUnixTime($time) {
@@ -139,6 +148,12 @@ abstract class DateUtils {
 			$unix_time = mktime(0, 0, 0, $pieces[2], $pieces[3], $pieces[1]);
 		}
 		return $unix_time;
+	}
+	public static function split($date,$format) {
+		if (!$date) {
+			return null;
+		}
+		ppd($date);
 	}
 	public static function gmFormat($format) {
 		return str_replace('%', '', $format);
@@ -157,7 +172,7 @@ abstract class DateUtils {
 		$format = __('client.dateFormat');
 		if ($long) {
 			$format = __('client.dateLongFormat');
-		}		
+		}
 		return $date->format($format);
 	}
 	public static function fromJS($date, $format, $asString = false) {

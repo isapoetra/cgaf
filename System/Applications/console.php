@@ -25,5 +25,13 @@ class ConsoleApplication extends AbstractApplication {
   function assetToLive($asset) {
     // TODO: Implement assetToLive() method.
   }
+
+	/**
+	 * perform application check
+	 *
+	 */
+	public function performCheck() {
+		// TODO: Implement performCheck() method.
+	}
 }
 ?>

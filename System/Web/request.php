@@ -3,18 +3,20 @@ namespace System\Web;
 use System\Web\Utils\HTMLUtils;
 
 use \CGAF as CGAF, \Utils as Utils;
+
 class Request implements \IRequest {
 	protected $_secure = array();
 	private $input;
 	private $_filters = array();
 	private $_inputbyplace;
+
 	function __construct($order = null) {
 		$order = $order ? $order : CGAF::getConfig("request_method", "fgpc");
 		$places = array(
-				'f' => '_FILES',
-				"g" => "_GET",
-				"p" => "_POST",
-				"c" => "_COOKIE");
+			'f' => '_FILES',
+			"g" => "_GET",
+			"p" => "_POST",
+			"c" => "_COOKIE");
 		$order = preg_split('//', $order, -1, PREG_SPLIT_NO_EMPTY);
 		foreach ($order as $current) {
 			if (!array_key_exists($current, $places))
@@ -57,15 +59,18 @@ class Request implements \IRequest {
 			unset($this->input["__url"]);
 		}
 	}
+
 	public function getOrigin() {
 		return \URLHelper::add(APP_URL, (isset($_REQUEST['__url']) ? $_REQUEST['__url'] : ''));
 	}
+
 	public function __get($varname) {
 		if (isset($this->input[$varname])) {
 			return $this->input[$varname];
 		}
 		return null;
 	}
+
 	/**
 	 * Magic PHP Function to unset a variable
 	 *
@@ -77,6 +82,7 @@ class Request implements \IRequest {
 			unset($this->input[$varname]);
 		}
 	}
+
 	function get($varName, $default = null, $secure = true, $place = null) {
 		if (!is_array($varName)) {
 			$r = null;
@@ -114,6 +120,7 @@ class Request implements \IRequest {
 
 		return $this->_secure[$varName] !== null ? $this->_secure[$varName] : $default;
 	}
+
 	function getSecure($varName, $default = null) {
 		return isset($this->_secure[$varName]) ? $this->_secure[$varName] : $this->getSec($varName, $default);
 	}
@@ -131,6 +138,7 @@ class Request implements \IRequest {
 		$this->$varName = $value;
 		return $this;
 	}
+
 	function gets($place = null, $secure = true, $ignoreEmpty = false) {
 		if (is_array($place)) {
 			$r = array();
@@ -147,6 +155,9 @@ class Request implements \IRequest {
 			}
 			return $retval;
 		} elseif ($place !== null) {
+			if (!isset($this->_inputbyplace[$place])) {
+				return array();
+			}
 			if ($secure) {
 				$p = $this->_inputbyplace[$place];
 				$retval = array();
@@ -164,13 +175,16 @@ class Request implements \IRequest {
 			return $retval;
 		} else {
 			$retval = array();
-			foreach ($this->input as $k => $v) {
-				if (empty($v) && $ignoreEmpty)
-					continue;
-				$retval[$k] = $v;
+			if ($this->input) {
+				foreach ($this->input as $k => $v) {
+					if (empty($v) && $ignoreEmpty)
+						continue;
+					$retval[$k] = $v;
+				}
 			}
 		}
 		return $retval;
 	}
 }
+
 ?>

@@ -6,190 +6,205 @@ use \System\DB\IDBAware;
  * Core Application Interface
  */
 interface IApplication extends IDBAware {
-  /**
-   * Run Application
-   */
-  public function Run();
+	/**
+	 * Run Application
+	 */
+	public function Run();
 
-  /**
-   * Get Applicaton content
-   *
-   * @param string $position
-   */
-  public function getContent($position = null);
+	/**
+	 * Get Applicaton content
+	 *
+	 * @param string $position
+	 */
+	public function getContent($position = null);
 
-  /**
-   * Get Application Path
-   *
-   * @return string
-   */
-  public function getAppPath();
+	/**
+	 * Get Application Path
+	 *
+	 * @return string
+	 */
+	public function getAppPath();
 
-  /**
-   * Authentification request
-   *
-   * @return boolean
-   */
-  public function Authenticate();
+	/**
+	 * Authentification request
+	 *
+	 * @return boolean
+	 */
+	public function Authenticate();
 
-  /**
-   * Check if user is authentificated
-   *
-   * @return boolean
-   */
-  public function isAuthentificated();
+	/**
+	 * Check if user is authentificated
+	 *
+	 * @return boolean
+	 */
+	public function isAuthentificated();
 
-  /**
-   * Check if application is initialized
-   *
-   * @return boolean
-   */
-  public function isInitialized();
+	/**
+	 * Check if application is initialized
+	 *
+	 * @return boolean
+	 */
+	public function isInitialized();
 
-  /**
-   * @abstract
-   * @return boolean
-   */
-  public function Initialize();
+	/**
+	 * @abstract
+	 * @return boolean
+	 */
+	public function Initialize();
 
-  /**
-   *
-   * Enter description here ...
-   *
-   * @param string $data
-   * @deprecated use IApplication->getLiveAsset
-   */
-  public function getLiveData($data);
+	/**
+	 *
+	 * Enter description here ...
+	 *
+	 * @param string $data
+	 * @deprecated use IApplication->getLiveAsset
+	 */
+	public function getLiveData($data);
 
-  /**
-   *
-   * Enter description here ...
-   *
-   * @param string $data
-   */
-  public function getLiveAsset($data);
+	/**
+	 *
+	 * Enter description here ...
+	 *
+	 * @param string $data
+	 */
+	public function getLiveAsset($data);
 
-  /**
-   * @return String
-   * @deprecated
-   */
-  function getSharedPath();
+	/**
+	 * @return String
+	 * @deprecated
+	 */
+	function getSharedPath();
 
-  /**
-   * @abstract
-   * @param $cat
-   * @param $msg
-   * @param $success
-   */
-  function Log($cat, $msg, $success);
+	/**
+	 * @abstract
+	 * @param $cat
+	 * @param $msg
+	 * @param $success
+	 */
+	function Log($cat, $msg, $success);
 
-  /**
-   * @abstract
-   *
-   */
-  function Shutdown();
+	/**
+	 * @abstract
+	 *
+	 */
+	function Shutdown();
 
-  /**
-   *
-   * @return boolean
-   */
-  function Install();
+	/**
+	 *
+	 * @return boolean
+	 */
+	function Install();
 
-  /**
-   * @return \System\Cache\Engine\ICacheEngine
-   */
-  function getCacheManager();
+	/**
+	 * @return \System\Cache\Engine\ICacheEngine
+	 */
+	function getCacheManager();
 
-  /**
-   * @return \System\ACL\IACL
-   */
-  function getACL();
+	/**
+	 * @return \System\ACL\IACL
+	 */
+	function getACL();
 
-  /**
-   *
-   * @return \System\IAuthentificator
-   */
-  function getAuthentificator();
+	/**
+	 *
+	 * @return \System\IAuthentificator
+	 */
+	function getAuthentificator();
 
-  /**
-   *
-   * get user configuration
-   *
-   * @param string $configName
-   * @param mixed  $def
-   */
-  function getUserConfig($configName, $def = null);
+	/**
+	 *
+	 * get user configuration
+	 *
+	 * @param string $configName
+	 * @param mixed  $def
+	 */
+	function getUserConfig($configName, $def = null);
 
-  function setUserConfig($configName, $value = null, $uid = null);
+	function setUserConfig($configName, $value = null, $uid = null);
 
-  function getAppId();
+	function getAppId();
 
-  /**
-   *
-   * Enter description here ...
-   *
-   * @return \System\Locale\Locale
-   */
-  function getLocale();
+	/**
+	 *
+	 * Enter description here ...
+	 *
+	 * @return \System\Locale\Locale
+	 */
+	function getLocale();
 
-  /**
-   *
-   * Internal storage path
-   *
-   * @param string  $path
-   * @param boolean $create
-   */
-  function getInternalStorage($path, $create = false);
+	/**
+	 *
+	 * Internal storage path
+	 *
+	 * @param string  $path
+	 * @param boolean $create
+	 */
+	function getInternalStorage($path, $create = false);
 
-  /**
-   * Handle application error
-   *
-   * @param \Exception $ex
-   */
-  function handleError(\Exception $ex);
-  function unhandledNameSpace($namespace);
-  /**
-   * @return Authin
-   *
-   */
-  public function getAuthInfo();
+	/**
+	 * Handle application error
+	 *
+	 * @param \Exception $ex
+	 */
+	function handleError(\Exception $ex);
 
-  public function getConfig($string1, $def = null);
+	function unhandledNameSpace($namespace);
 
-  function addClientAsset($assetName, $group = null);
+	/**
+	 * @return Authin
+	 *
+	 */
+	public function getAuthInfo();
 
-  function getAppInfo();
+	public function getConfig($string1, $def = null);
 
-  /**
-   * @abstract
-   * @return \System\Cache\Engine\ICacheEngine
-   */
-  public function getInternalCache();
-  /**
-   *
-   * @param bool $sessionBased
-   * @return string
-   */
-  function getLivePath($sessionBased = false);
+	function addClientAsset($assetName, $group = null);
 
-  public function getClassNameFor($base, $suffix, $ns=null);
+	function getAppInfo();
 
-  public function setAppInfo($appInfo);
+	/**
+	 * @abstract
+	 * @return \System\Cache\Engine\ICacheEngine
+	 */
+	public function getInternalCache();
 
-  public function getAppName();
-  /**
-   * @abstract
-   * @return bool
-   */
-  public function Uninstall();
-  /**
-   * @abstract
-   * @return \System\Configurations\IConfiguration
-   */
-  public function getConfigInstance();
-  public function getClassPath();
-  //Asset Related
-  function getAsset($data, $prefix = null);
+	/**
+	 *
+	 * @param bool $sessionBased
+	 * @return string
+	 */
+	function getLivePath($sessionBased = false);
 
-  public function getTemporaryPath();
+	public function getClassNameFor($base, $suffix, $ns = null);
+
+	public function setAppInfo($appInfo);
+
+	public function getAppName();
+
+	/**
+	 * @abstract
+	 * @return bool
+	 */
+	public function Uninstall();
+
+	/**
+	 * @abstract
+	 * @return \System\Configurations\IConfiguration
+	 */
+	public function getConfigInstance();
+
+	public function getClassPath();
+
+	//Asset Related
+	function getAsset($data, $prefix = null);
+
+	public function getTemporaryPath();
+
+	/**
+	 * perform application check
+	 *
+	 * @abstract
+	 */
+	public function performCheck();
+	function getAssetCachePath();
 }

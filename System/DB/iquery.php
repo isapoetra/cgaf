@@ -18,6 +18,7 @@ interface IQuery {
 	/**
 	 * @param $field
 	 * @param $value
+	 * @param bool $func
 	 * @return IQuery
 	 */
 	function addInsert($field,$value=null,$func=false);
@@ -35,8 +36,12 @@ interface IQuery {
 	 * @return IQuery
 	 */
 	function Where($where, $next = 'AND');
+
 	/**
 	 *
+	 * @param null $class
+	 * @param int $page
+	 * @param $rowPerPage
 	 * @return Array<Object>
 	 */
 	function loadObjects($class=null,$page=0,$rowPerPage =-1);

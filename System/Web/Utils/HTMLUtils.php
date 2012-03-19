@@ -1,5 +1,6 @@
 <?php
 namespace System\Web\Utils;
+use \System\Captcha\Captcha;
 use System\Web\UI\Controls\Button;
 use System\Web\WebUtils;
 use System\JSON\JSON;
@@ -61,7 +62,7 @@ abstract class HTMLUtils {
 		}
 		/*
 		 * $attr = "<span class=\"test test test\" id=\"ss1\"/>";
-		 */
+		*/
 		$attr = self::explodeAttr ( $attr );
 		$val = self::explodeAttr ( $val );
 		$retval = $attr;
@@ -129,7 +130,7 @@ abstract class HTMLUtils {
 		// application/x-www-form-urlencoded
 		$retval = '<form method="post" action="' . $action . '" ' . ($multipart ? 'enctype="multipart/form-data"' : "") . ' ' . self::renderAttr ( $attr ) . '>';
 		if ($showMessage) {
-			$retval .= '<div id="error-message" class="On" style="' . ($msg ? 'display:block' : 'display:none') . '">' . ($msg ? $msg : '&nbsp;') . '</div>';
+			$retval .= '<div id="error-message" class="label label-important On" style="' . ($msg ? 'display:block' : 'display:none') . '">' . ($msg ? $msg : '&nbsp;') . '</div>';
 		}
 		return $retval;
 	}
@@ -144,12 +145,12 @@ abstract class HTMLUtils {
 		return $btn->render ( true );
 	}
 	public static function renderFormAction() {
-		$retval = '<div class="formAction">';
+		$retval = '<div class="form-actions">';
 		$retval .= self::renderButton ( 'reset', __ ( 'reset', 'Reset' ), __ ( 'reset.descr', 'Reset this form' ), array (
-				'class' => 'reset button'
+				'class' => 'btn'
 		), true, 'reset.png' );
 		$retval .= self::renderButton ( 'submit', __ ( 'submit', 'Submit' ), __ ( 'submit.descr', 'Submit this form' ), array (
-				'class' => 'submit button'
+				'class' => 'btn btn-primary'
 		), true, 'submit.png' );
 		$retval .= '</div>';
 		return $retval;
@@ -178,24 +179,24 @@ abstract class HTMLUtils {
 		}
 		$retval .= "</form>";
 		$id = self::$_lastForm;
-    if ($js) {
-		$ajaxConfig = $ajaxConfig ? $ajaxConfig : array ();
-		if (! $ajaxmode) {
-			$ajaxConfig ['ajaxmode'] = false;
-		}
-		$ajaxConfig = JSON::encodeConfig ( $ajaxConfig, array (
-				'beforeSend',
-				'complete',
-				'error',
-				'success'
-		) );
-		$ajaxConfig = str_replace ( '\n', "\n", $ajaxConfig );
-		$ajaxConfig = str_replace ( '\t', "\t", $ajaxConfig );
-		$js = <<< JS
+		if ($js) {
+			$ajaxConfig = $ajaxConfig ? $ajaxConfig : array ();
+			if (! $ajaxmode) {
+				$ajaxConfig ['ajaxmode'] = false;
+			}
+			$ajaxConfig = JSON::encodeConfig ( $ajaxConfig, array (
+					'beforeSend',
+					'complete',
+					'error',
+					'success'
+			) );
+			$ajaxConfig = str_replace ( '\n', "\n", $ajaxConfig );
+			$ajaxConfig = str_replace ( '\t', "\t", $ajaxConfig );
+			$js = <<< JS
 				$('#$id').gform($ajaxConfig);
 JS;
-		AppManager::getInstance ()->addClientScript ( $js );
-    }
+			AppManager::getInstance ()->addClientScript ( $js );
+		}
 		return $retval;
 	}
 	public static function renderScript($script) {
@@ -203,9 +204,9 @@ JS;
 		return $retval;
 	}
 	public static function renderCaptcha($captchaId = "__captcha", $attr = null, $showlabel = true) {
-		$capt = AppManager::getInstance ()->getController ( 'captcha' );
+		$capt = Captcha::getInstance(\AppManager::getInstance());
 		if ($capt) {
-			return $capt->renderContainer ( $captchaId, $attr, $showlabel );
+			return $capt->Render(true);
 		} else {
 			return null;
 		}
@@ -303,31 +304,39 @@ JS;
 	// return $retval;
 	// }
 	/*
-	 * public static function cssRegexCallback($matches) { $f = str_replace (
-	 * "'", '', $matches [1] ); $f = str_replace ( "\"", '', $f ); $fname =
-	 * null; $nval = AppManager::getInstance ()->getLiveData ( $f ); $retval =
-	 * ''; if ($nval) { $retval = "url('$nval')"; } else { $fname =
-	 * self::$_lastCSS . Utils::ToDirectory ( $f ); if (is_readable ( $fname ))
+	* public static function cssRegexCallback($matches) { $f = str_replace (
+			* "'", '', $matches [1] ); $f = str_replace ( "\"", '', $f ); $fname =
+	* null; $nval = AppManager::getInstance ()->getLiveData ( $f ); $retval =
+	* ''; if ($nval) { $retval = "url('$nval')"; } else { $fname =
+	* self::$_lastCSS . Utils::ToDirectory ( $f ); if (is_readable ( $fname ))
 	 * { $retval = 'url(\'' . Utils::PathToLive ( $fname ) . '\')'; } else {
-	 * $retval = 'url(\'' . Utils::PathToLive ( $fname ) . '\')';
-	 * Logger::Warning ( 'resource not found ' . $fname . ' for ' .
-	 * self::$_lastCSS ); } } return $retval . ' ' . $matches [2] . $matches
-	 * [3]; }
-	 */
+	* $retval = 'url(\'' . Utils::PathToLive ( $fname ) . '\')';
+	* Logger::Warning ( 'resource not found ' . $fname . ' for ' .
+			* self::$_lastCSS ); } } return $retval . ' ' . $matches [2] . $matches
+	* [3]; }
+	*/
 	public static function renderTextArea($title, $id, $value, $attr = null, $editMode = true) {
 		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "textarea" );
 	}
-	public static function renderDateInput($title, $id, $value, $attr = null, $editMode = true) {
+	public static function renderDateInput($title, $id, $value=null, $attr = null, $editMode = true,$message =null) {
 		$attr = HTMLUtils::mergeAttr ( $attr, array (
 				'autocomplete' => 'off',
 				'class' => 'input-xlarge',
 				'data-input' => 'date'
 		) );
+		$groupClass = null;
+		if ($message) {
+			$groupClass = 'error';
+			$message = '<span class="help-inline">'.\Convert::toString($message).'</span>';
+		}
+
 		if ($value) {
+
 			$value = new \CDate ( $value );
 			$value = $value->format ( __ ( 'client.dateFormat' ) );
 		}
-		return self::renderFormField ( $title, $id, $value, $attr, $editMode, 'text' );
+
+		return self::renderFormField ( $title, $id, $value, $attr, $editMode, 'text' ,null,null,$groupClass,$message);
 	}
 	public static function renderTextBox($title, $id, $value = '', $attr = null, $editMode = true) {
 		$attr = self::mergeAttr ( $attr, array (
@@ -335,11 +344,11 @@ JS;
 		) );
 		return self::renderFormField ( $title, $id, $value, $attr, $editMode );
 	}
-	public static function renderPassword($title, $id, $value = '', $attr = null, $editMode = true) {
+	public static function renderPassword($title, $id, $value = '', $attr = null, $editMode = true,$add=null) {
 		$attr = HTMLUtils::mergeAttr ( $attr, array (
 				'autocomplete' => 'off'
 		) );
-		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "password" );
+		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "password" ,'left','controls',null,$add);
 	}
 	public static function renderCheckbox($title, $id, $value, $attr = null, $editMode = true) {
 		if ($value) {
@@ -372,11 +381,14 @@ JS;
 		}
 		return $retval;
 	}
-	public static function renderFormField($title, $id, $value, $attr = null, $editMode = false, $type = "text", $labelPosition = 'left',$containerClass='controls') {
+	public static function renderFormField($title, $id, $value, $attr = null, $editMode = false, $type = "text", $labelPosition = 'left',$containerClass='controls',$groupClass='control-group',$additional=null) {
 		$renderlabel = true;
 		$retval = "";
 		$prefix = null;
 		$suffix = null;
+		$labelPosition = $labelPosition ? $labelPosition : 'left';
+		$containerClass=$containerClass ? $containerClass:'controls';
+		$groupClass='control-group '.$groupClass;
 		switch ($type) {
 			case "checkbox" :
 				if ($value) {
@@ -438,12 +450,14 @@ JS;
 		if ($renderlabel) {
 			$lbl = self::renderLabel ( $id, $title );
 			if (self::$_formMode === self::FORM_MODE_NORMAL) {
-				$s = "<div class=\"control-group $id\" id=\"$id-container\">";
+				$s = "<div class=\"$groupClass $id\" id=\"$id-container\">";
 				$s .= ($labelPosition === 'left' ? $lbl : '');
 				$s .= '<div class="'.$containerClass.'">';
 				$s .= $retval;
+				$s .= $additional;
 				$s .= '</div>';
 				$s .= ($labelPosition === 'right' ? $lbl : '');
+
 				$s .= '</div>';
 				$retval = $s;
 			} else {
@@ -522,7 +536,7 @@ JS;
 			}elseif ($title){
 				$retval .='</div>';
 			}
-      //ppd($retval);
+			//ppd($retval);
 		} else {
 			$val = self::getSelectValue ( $items, $selected );
 			$retval .= self::renderHiddenField ( $id, $selected );
@@ -612,6 +626,14 @@ JS;
 	public static function renderError($msg) {
 		if (! $msg) {
 			return '';
+		}
+		if (is_array($msg)) {
+			$retval = '<div class="alert">';
+			foreach($msg as $m) {
+				$retval .= self::renderError($m);
+			}
+			$retval .= '</div>';
+			return $retval;
 		}
 		return '<div class="label label-important">' . $msg . '</div>';
 	}
@@ -780,9 +802,9 @@ EOT;
 	private static function _optimizeHTML($html) {
 		/*
 		 * CGAF::loadLibs("HTMLPurifier"); $config =
-		 * HTMLPurifier_Config::createDefault(); $purifier = new
-		 * HTMLPurifier($config); return $purifier->purify($html);
-		 */
+		* HTMLPurifier_Config::createDefault(); $purifier = new
+		* HTMLPurifier($config); return $purifier->purify($html);
+		*/
 		$h1count = preg_match_all ( '/(<script.*>)(.*)(<\/script>)/imxsU', $html, $patterns );
 		$html = preg_replace ( '/(<script.*>)(.*)(<\/script>)/imxsU', '', $html );
 		$direct = '';
@@ -818,7 +840,21 @@ EOT;
 			}
 			return $retval;
 		}
-		return \Utils::toString ( $o );
+		return \Convert::toString ( $o );
+	}
+	public static function renderDateRange($configs) {
+		$retval = '<div >';
+		$retval .= self::renderTextBox($configs['start']['title'], $configs['start']['id'], $configs['start']['value'],array(
+				'data-input'=>'daterange',
+				'data-end-date'=>$configs['end']['id']
+		));
+		$retval .= self::renderTextBox($configs['end']['title'], $configs['end']['id'], $configs['start']['value'],array(
+				'data-input'=>'daterange',
+				'data-start-date'=>$configs['end']['id']
+		));
+		$retval .='</div>';
+		//ppd($configs);
+		return $retval;
 	}
 	public static function renderConfig($title, $id, $config) {
 		$content = '';
@@ -830,6 +866,7 @@ EOT;
 	public static function removeTag($input) {
 		return lx_externalinput_clean::basic ( $input );
 	}
+
 	public static function attributeToArray($attr) {
 		if (is_array ( $attr )) {
 			return $attr;
@@ -979,5 +1016,6 @@ class lx_externalinput_clean {
 			return false;
 		}
 	}
+
 }
 ?>

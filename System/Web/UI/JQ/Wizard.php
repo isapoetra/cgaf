@@ -4,14 +4,13 @@ use System\Web\UI\Controls\WebControl;
 
 class Wizard extends Scrollable {
 	private $_steps;
-	function __construct($id, $template, $steps) {
-		parent::__construct ( $id, $template );
-		// $this->setAttr("class","wizard");
+	function __construct($id,  $steps) {
+		parent::__construct ( $id, null );
+		$this->setAttr("class","ui-wizzard tabbable  tabs-left");
 		$this->setConfig ( "size", 1 );
 		$this->setConfig ( "clickable", false );
 		$this->_jsObj = "tabs";
 		$this->_steps = $steps;
-		$this->setAttr ( 'class', 'ui-wizzard' );
 	}
 	function getClientId() {
 		return $this->getId () . '-wizzard-content';
@@ -24,55 +23,42 @@ class Wizard extends Scrollable {
 		$ul = new WebControl ( "ul" );
 		$ul->setId ( $this->getId () . "-wizard-navigation" );
 		
-		$ul->setAttr ( 'class', 'ui-widget-header ui-wizzard-navigation' );
+		$ul->setAttr ( 'class', 'nav nav-tabs' );
 		
 		// $ul->setAttr("class","navigation");
 		$i = 1;
 		foreach ( $this->_steps as $k => $step ) {
 			$s = new WebControl ( "li" );
-			$s->setText ( "<a href=\"" . ($this->_ajaxMode ? "" : "#" . $this->getId () . "-wizzard-item-$k") . "\">" . $step ["title"] . "</a>" );
+			$elemid = $this->getId () . '-wizzard-item-'.$k;
+			$s->setText ('<a href="' . ($this->_ajaxMode ? '' :  					 
+					(isset($step['url']) ? '#' : '#'. $elemid))
+					. '" data-toggle="tab"'
+					.(isset($step['url']) ? ' onclick="$(this).addClass(\'active\');$(\'#'.$elemid.'\').show().load(\''.\URLHelper::add($step['url'],'?__step='.$k).'\')"': '') 
+					.'>' . $step ["title"] . '</a>' );
 			$ul->add ( $s );
 			$i ++;
 		}
 		
 		$this->add ( $ul );
-		
 		$rc = new WebControl ( "div" );
 		$rc->setId ( $this->getId () . "-wizzard-content" );
-		$rc->setAttr ( "class", "wizzard-content" );
-		$ul = new WebControl ( "ul" );
-		$i = 1;
-		$base = $this->getConfig ( 'base_url' );
-		foreach ( $this->_steps as $k => $step ) {
-			$s = new WebControl ( "li" );
-			$v = array (
-					'_step' => $k, 
-					'__t' => time (), 
-					'__ajax' => 1 
-			);
-			$s->setText ( "<a href=\"" . (isset ( $step ['url'] ) || $base ? (isset ( $step ['url'] ) ? \URLHelper::addParam ( $step ['url'], $v ) : \URLHelper::addParam ( $base, $v )) : "#" . $this->getId () . "-wizzard-item-$k") . "\">" . $step ["title"] . "</a>" );
-			$ul->add ( $s );
-			$i ++;
-		}
-		$rc->add ( $ul );
+		$rc->setAttr ( "class", "tab-content" );
 		
 		$r = new WebControl ( "div" );
-		// $r->setId ( $this->getId () . "-wizzard-items" );
-		// $r->setAttr ( "class", "items" );
+		$r->setClass('tab-content');
+		
 		$i = 1;
 		foreach ( $this->_steps as $k => $step ) {
 			$step ["content"] = isset ( $step ["content"] ) ? $step ["content"] : null;
 			$s = new WebControl ( "div" );
 			$s->setId ( $this->getId () . "-wizzard-item-$k" );
-			$s->setAttr ( "class", "item" );
-			// $s->setText ( "<h3>" . $step ["title"] . "</h3>" . $step
-			// ["content"] );
+			$s->setAttr ( "class", "tab-pane" );
 			$rc->Add ( $s );
 			$i ++;
 		}
 		// $rc->add ( $r );
 		$this->add ( $rc );
-		$this->getTemplate ()->addCSSFile ( 'ui/ui-wizzard.css' );
+		$this->getAppOwner()->addClientAsset('cgaf/css/ui/wizzard.css' );
 		// $this->add($r);
 	}
 	

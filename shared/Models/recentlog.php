@@ -2,6 +2,7 @@
 namespace System\Models;
 use System\MVC\Models\ExtModel;
 use System\MVC\Model;
+
 class recentlogModel extends ExtModel {
 	/**
 	 * @FieldExtra NOT NULL AUTO_INCREMENT
@@ -9,6 +10,12 @@ class recentlogModel extends ExtModel {
 	 * @var int
 	 */
 	public $id;
+	/**
+	 * @FieldLength 50
+	 * @var string
+	 */
+	public $app_id;
+
 	/**
 	 * @FieldLength 150
 	 *
@@ -21,7 +28,8 @@ class recentlogModel extends ExtModel {
 	 * @var string
 	 */
 	public $descr;
+
 	function __construct() {
-		parent::__construct ( \CGAF::getDBConnection (), 'recentlog', 'id', true, \CGAF::isInstalled () === false );
+		parent::__construct(\CGAF::getDBConnection(), 'recentlog', 'id', true, \CGAF::isInstalled() === false);
 	}
 }

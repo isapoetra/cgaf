@@ -27,7 +27,10 @@ class Application extends Model implements \IApplicationInfo {
 	 */
 	public $app_name;
 	/**
-	 * @FieldType boolean
+	 * do not use field type bit/boolean
+	 *
+	 * @FieldType tinyint
+	 * @FieldLength 1
 	 *
 	 * @var boolean
 	 */

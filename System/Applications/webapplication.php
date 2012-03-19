@@ -163,8 +163,9 @@ class WebApplication extends Application implements IWebApplication {
 					//ppd(Utils::changeFileExt ( $data, 'min.' . $ext ));
 					if ($min && ! $this->isDebugMode ()) {
 						return $min;
-					}				
-					$retval = parent::getAsset ( $data, $prefix );					
+					}
+					$retval = parent::getAsset ( $data, $prefix );
+					//pp($data.'->'.$retval.'->'.Utils::changeFileExt ( $data, 'min.' . $ext ));
 					return $retval ? $retval : $min;
 			}
 		}
@@ -356,9 +357,9 @@ class WebApplication extends Application implements IWebApplication {
 	}
   protected function handleRequest() {
     $retval = parent::handleRequest();
-    if (is_string($retval) && (Request::isDataRequest() || Request::isAJAXRequest())) {
-      $retval .= CGAFJS::Render($this->getClientScript());
-    }
+    //if (is_string($retval) && (Request::isDataRequest() || Request::isAJAXRequest())) {
+      //$retval .= CGAFJS::Render($this->getClientScript());
+    //}
     return $retval;
   }
 	public function handleCommetRequest() {
@@ -471,6 +472,7 @@ EOT;
 				$this->addClientAsset ( 'cgaf/css/cgaf-bootstrap-responsive.css' );
 				$this->addClientAsset ( 'bootstrap/js/bootstrap.js' );
 				$plugins = $this->getConfigs ( 'js.bootstrap.plugins', array () );
+
 				foreach ( $plugins as $p ) {
 					$this->addClientAsset ( 'bootstrap/js/' . $p );
 				}

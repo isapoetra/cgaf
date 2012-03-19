@@ -27,12 +27,11 @@ abstract class DBConnection implements IDBConnection {
     return $this->_database ? $this->_database : $this->getArg('database');
   }
 
-  /**
-   * @param
-   *          Exception
-   *
-   * @return void
-   */
+	/**
+	 * @param \Exception $ex
+	 *
+	 * @return void
+	 */
   protected function throwError(\Exception $ex) {
     $this->_lastError = $ex->getMessage() . ' SQL:' . $this->getLastSQL();
     if (CGAF_DEBUG) {
@@ -169,7 +168,6 @@ abstract class DBConnection implements IDBConnection {
   public abstract function getAffectedRow();
 
   public abstract function createDBObjectFromClass($classInstance, $objecttype, $objectName);
-
   protected function toResultList() {
     $r = null;
     if ($this->_result) {

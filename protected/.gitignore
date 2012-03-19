@@ -1,2 +1,5 @@
 /db/
 userconfig
+.cache
+persons/
+log/

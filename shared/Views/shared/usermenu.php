@@ -17,11 +17,12 @@ $replacer = array();
 
 if ($appOwner->isAuthentificated()) {
 	$auth = $appOwner->getAuthInfo();
-	$pi = $appOwner->getModel('person')->getPersonByUser($auth->getUserId());
-	if ($pi) {
+	$pi = $appOwner->getModel('person')->getPersonByUser($auth->getUserId());		
+	if ($pi && $pi->person_id) {
 		$replacer['FullName'] = $pi->FullName;
 	} else {
 		$pi = $auth->getUserInfo();
+		
 		$replacer['FullName'] = $pi->user_name;
 	}
 	if (!$replacer['FullName']) {

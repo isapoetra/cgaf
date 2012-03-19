@@ -41,6 +41,10 @@ final class FileInfo extends \BaseObject {
 			return $this->_infos;
 		}
 		clearstatcache (true,$this->_file);
+		if (!is_readable($this->_file)) {
+			$this->_infos = array();
+			return null;
+		}
 		$this->_infos = array ();
 		$this->_infos ['is_exist'] = false;
 		$ss = stat ( $this->_file );

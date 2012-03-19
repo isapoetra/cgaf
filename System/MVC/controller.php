@@ -15,6 +15,7 @@ use System\Exceptions\SystemException;
 use System\Exceptions\InvalidOperationException;
 use System\JSON\JSONResult;
 use URLHelper;
+
 /**
  *
  */
@@ -23,459 +24,494 @@ interface IController {
 	 * Enter description here .
 	 * ..
 	 *
-	 * @param $route mixed
-	 * @param $vars mixed
+	 * @param $route       mixed
+	 * @param $vars        mixed
 	 * @param $contentOnly boolean
 	 */
 	function render($route = null, $vars = null, $contentOnly = null);
 }
+
 /**
  *
  */
 abstract class Controller extends \BaseObject implements IController, \ISearchProvider {
-  /**
-   * @var Application
-   */
+	/**
+	 * @var Application
+	 */
 	private $_appOwner;
 	//private $_viewPath;
 	//private $_tpl;
 	protected $_vars;
-  /**
-   * @var string
-   */
+	/**
+	 * @var string
+	 */
 	private $_routeName;
 	protected $_clientContentId = "#maincontent";
-  /**
-   * @var Model
-   */
+	/**
+	 * @var Model
+	 */
 	protected $_model;
 	protected $_initialized = false;
 	protected $_warning = null;
 	protected $_renderInternalAction = true;
 	protected $_actionAttr = null;
 	private $_currentAction;
-  /**
-   * @param Application $appOwner
-   * @param null $routeName
-   */
+
+	/**
+	 * @param Application $appOwner
+	 * @param null        $routeName
+	 */
 	function __construct(Application $appOwner, $routeName = null) {
 		$this->_appOwner = $appOwner;
 		$this->_routeName = $routeName;
-		if (! $this->Initialize ()) {
-			throw new SystemException ( 'unable to initialize controller %s', $this->getControllerName () );
+		if (!$this->Initialize()) {
+			throw new SystemException ('unable to initialize controller %s', $this->getControllerName());
 		}
 	}
+
 	protected function isFromHome() {
-		return $this->getAppOwner ()->isFromHome ();
+		return $this->getAppOwner()->isFromHome();
 	}
-  /**
-   * @param $controller
-   * @param bool $throw
-   * @return Controller
-   */
+
+	/**
+	 * @param      $controller
+	 * @param bool $throw
+	 * @return Controller
+	 */
 	protected function getController($controller, $throw = true) {
-		if ($controller === $this->getControllerName ()) {
+		if ($controller === $this->getControllerName()) {
 			return $this;
 		}
-		return $this->getAppOwner ()->getController ( $controller, $throw );
+		return $this->getAppOwner()->getController($controller, $throw);
 	}
-  /**
-   * @param $a
-   * @param null $param
-   */
+
+	/**
+	 * @param      $a
+	 * @param null $param
+	 */
 	protected function redirect($a, $param = null) {
-		\Response::Redirect ( \URLHelper::add ( APP_URL, $this->getControllerName () . '/' . $a, $param ) );
+		\Response::Redirect(\URLHelper::add(APP_URL, $this->getControllerName() . '/' . $a, $param));
 	}
-  /**
-   * @param null $o
-   * @param null $id
-   * @param null $route
-   * @return string
-   */
+
+	/**
+	 * @param null $o
+	 * @param null $id
+	 * @param null $route
+	 * @return string
+	 */
 	public function renderActions($o = null, $id = null, $route = null) {
-		$actions = $this->getAction ( $o, $id, $route );
-		return $this->render ( 'actions', array (
-				'actions' => $actions
-		), true );
+		$actions = $this->getAction($o, $id, $route);
+		return $this->render('actions', array(
+		                                     'actions' => $actions
+		                                ), true);
 	}
-  /**
-   * @param $o string|Table
-   * @param null $id
-   * @param null $route
-   * @return array
-   */
+
+	/**
+	 * @param      $o string|Table
+	 * @param null $id
+	 * @param null $route
+	 * @return array
+	 */
 	protected function getAction($o, $id = null, $route = null) {
-		$retval = array ();
-		if (! $this->_renderInternalAction)
+		$retval = array();
+		if (!$this->_renderInternalAction)
 			return $retval;
-		$route = $route ? $route : $this->getControllerName ();
-		if (is_array ( $route )) {
+		$route = $route ? $route : $this->getControllerName();
+		if (is_array($route)) {
 			$croute = $route;
 		} else {
-			$r = MVCHelper::getRoute ();
-			$croute = array (
-					'_a' => $r ['_a'],
-					'_c' => $route
+			$r = MVCHelper::getRoute();
+			$croute = array(
+				'_a' => $r ['_a'],
+				'_c' => $route
 			);
 		}
-		$url = \URLHelper::add ( APP_URL, $route );
-		if ($this->isAllow ( ACLHelper::ACCESS_MANAGE )) {
+		$url = \URLHelper::add(APP_URL, $route);
+		if ($this->isAllow(ACLHelper::ACCESS_MANAGE)) {
 			if ($o) {
-				if (! $id) {
+				if (!$id) {
 					if ($o instanceof Table) {
-						$id = $o->getPKValue ();
-					} elseif (is_object ( $o )) {
-						$id = $this->getModel ()->getPKValue ( false, $o );
+						$id = $o->getPKValue();
+					} elseif (is_object($o)) {
+						$id = $this->getModel()->getPKValue(false, $o);
 					} else {
-						$id = Request::get ( 'id' );
+						$id = Request::get('id');
 					}
 				}
 			} else {
 				if ($croute ['_a'] !== 'aed') {
-					$retval [] = HTMLUtils::renderLink ( \URLHelper::Add ( $url, 'aed' ), __ ( 'action.add' ), $this->_actionAttr );
+					$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'aed'), __('action.add'), $this->_actionAttr);
 				}
-				if ($this->isAllow ( 'manage' )) {
-					$retval [] = HTMLUtils::renderLink ( \URLHelper::Add ( $url, 'manage' ), __ ( 'action.manage' ), $this->_actionAttr );
+				if ($this->isAllow('manage')) {
+					$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'manage'), __('action.manage'), $this->_actionAttr);
 				}
 			}
 		}
 		if ($id) {
-			if ($this->isAllow ( 'detail' ) && $croute ['_a'] !== 'detail') {
-				$retval [] = HTMLUtils::renderLink ( \URLHelper::Add ( $url, 'detail', 'id=' . $id ), __ ( 'action.detail' ), $this->_actionAttr );
+			if ($this->isAllow('detail') && $croute ['_a'] !== 'detail') {
+				$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'detail', 'id=' . $id), __('action.detail'), $this->_actionAttr);
 			}
-			if ($this->isAllow ( 'edit' )) {
-				$retval [] = HTMLUtils::renderLink ( \URLHelper::Add ( $url, 'aed', 'id=' . $id ), __ ( 'action.edit' ), $this->_actionAttr );
+			if ($this->isAllow('edit')) {
+				$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'aed', 'id=' . $id), __('action.edit'), $this->_actionAttr);
 			}
-			if ($this->isAllow ( 'delete' )) {
-				$retval [] = HTMLUtils::renderLink ( \URLHelper::Add ( $url, 'del', 'id=' . $id ), __ ( 'action.delete' ), $this->_actionAttr );
+			if ($this->isAllow('delete')) {
+				$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'del', 'id=' . $id), __('action.delete'), $this->_actionAttr);
 			}
 		}
 		// ppd($retval);
 		return $retval;
 	}
-  /**
-   * @param $stateName
-   * @param $value
-   */
+
+	/**
+	 * @param $stateName
+	 * @param $value
+	 */
 	function setState($stateName, $value) {
-		$stid = $this->getAppOwner ()->getAppId () . '-' . $this->getControllerName ();
-		return Session::setState ( $stid, $stateName, $value );
+		$stid = $this->getAppOwner()->getAppId() . '-' . $this->getControllerName();
+		return Session::setState($stid, $stateName, $value);
 	}
-  /**
-   * @param $stateName
-   * @param null $default
-   */
+
+	/**
+	 * @param      $stateName
+	 * @param null $default
+	 */
 	function getState($stateName, $default = null) {
-		$stid = $this->getAppOwner ()->getAppId () . '-' . $this->getControllerName ();
-		return Session::getState ( $stid, $stateName, $default );
+		$stid = $this->getAppOwner()->getAppId() . '-' . $this->getControllerName();
+		return Session::getState($stid, $stateName, $default);
 	}
-  /**
-   * @return string
-   */
+
+	/**
+	 * @return string
+	 */
 	function name() {
 		return $this->_routeName;
 	}
+
 	protected function addClientAsset($asset, $group = null) {
-		return $this->getAppOwner ()->addClientAsset ( $asset, $group );
+		return $this->getAppOwner()->addClientAsset($asset, $group);
 	}
+
 	protected function _getControllerMenu(Model $m, $row) {
-		$retval = array ();
-		$url = BASE_URL . $this->getControllerName ();
-		$r = MVCHelper::getRoute ();
-		$rid = $m->getPKValue ( false, $row );
-		if ($this->isAllow ( 'view' )) {
-			$retval [] = array (
-					'title' => 'Index',
-					'url' => $url,
-					'icon' => 'home-small.png'
+		$retval = array();
+		$url = BASE_URL . $this->getControllerName();
+		$r = MVCHelper::getRoute();
+		$rid = $m->getPKValue(false, $row);
+		if ($this->isAllow('view')) {
+			$retval [] = array(
+				'title' => 'Index',
+				'url' => $url,
+				'icon' => 'home-small.png'
 			);
 		}
-		switch (strtolower ( $r ['_a'] )) {
+		switch (strtolower($r ['_a'])) {
 			case 'edit' :
 			case 'aed' :
 				if ($rid !== null) {
-					if ($this->isAllow ( ACLHelper::ACCESS_VIEW )) {
-						$retval [] = array (
-								'title' => 'View',
-								'url' => $url . '/detail/?id=' . $rid,
-								'icon' => 'view-small.png'
+					if ($this->isAllow(ACLHelper::ACCESS_VIEW)) {
+						$retval [] = array(
+							'title' => 'View',
+							'url' => $url . '/detail/?id=' . $rid,
+							'icon' => 'view-small.png'
 						);
 					}
 				}
 				break;
 			default :
-				if ($this->isAllow ( ACLHelper::ACCESS_UPDATE )) {
-					$retval [] = array (
-							'title' => 'Edit',
-							'url' => $url . '/edit/?id=' . $rid,
-							'icon' => 'edit-small.png'
+				if ($this->isAllow(ACLHelper::ACCESS_UPDATE)) {
+					$retval [] = array(
+						'title' => 'Edit',
+						'url' => $url . '/edit/?id=' . $rid,
+						'icon' => 'edit-small.png'
 					);
 				}
-				if ($this->isAllow ( ACLHelper::ACCESS_MANAGE )) {
-					$retval [] = array (
-							'title' => 'Delete',
-							'url' => $url . '/del/?id=' . $rid,
-							'icon' => 'del-small.png',
-							'descr' => __ ( 'delete.confirm', 'Delete this data' ),
-							'attr' => array (
-									'rel' => '#confirm'
-							)
+				if ($this->isAllow(ACLHelper::ACCESS_MANAGE)) {
+					$retval [] = array(
+						'title' => 'Delete',
+						'url' => $url . '/del/?id=' . $rid,
+						'icon' => 'del-small.png',
+						'descr' => __('delete.confirm', 'Delete this data'),
+						'attr' => array(
+							'rel' => '#confirm'
+						)
 					);
 				}
 				break;
 		}
 		return $retval;
 	}
+
 	function renderModules($position) {
-		return $this->renderContent ( $position );
+		return $this->renderContent($position);
 	}
+
 	protected function getLiveData($data) {
-		return $this->getAppOwner ()->getLiveAsset ( $data );
+		return $this->getAppOwner()->getLiveAsset($data);
 	}
+
 	protected function getInternalPath($o = null, $create = true) {
-		return $this->getAppOwner ()->getInternalStorage ( $this->getControllerName () . DS . $o, $create );
+		return $this->getAppOwner()->getInternalStorage('Data/'.$this->getControllerName() . $o, $create);
 	}
+
 	protected function setModel($model) {
-		if (is_string ( $model )) {
-			$model = $this->getAppOwner ()->getModel ( $model );
+		if (is_string($model)) {
+			$model = $this->getAppOwner()->getModel($model);
 		}
 		$this->_model = $model;
 	}
+
 	protected function getConfig($configName, $def = null) {
-		return $this->getAppOwner ()->getConfig ( $this->getControllerName () . '.' . $configName, $def );
+		return $this->getAppOwner()->getConfig($this->getControllerName() . '.' . $configName, $def);
 	}
-	protected function getUserConfig($configName,$def=null) {
-		return $this->getAppOwner ()->getUserConfig ( $this->getControllerName () . '.' . $configName, $def );
+
+	protected function getUserConfig($configName, $def = null) {
+		return $this->getAppOwner()->getUserConfig($this->getControllerName() . '.' . $configName, $def);
 	}
+
 	function _changeApp() {
 	}
+
 	protected function getManageAction() {
 		if ($this->_currentAction == null) {
-			$this->_currentAction = strtolower ( Request::get ( "_gridAction", Request::get ( "action", Request::get ( "__a", Request::get ( "oper" ) ) ) ) );
+			$this->_currentAction = strtolower(Request::get("_gridAction", Request::get("action", Request::get("__a", Request::get("oper")))));
 		}
 		return $this->_currentAction;
 	}
+
 	protected function getWarningText($li = true) {
-		if (! $this->_warning) {
+		if (!$this->_warning) {
 			return '';
 		}
 		$retval = $li ? '<ul class="warning">' : '';
-		foreach ( $this->_warning as $w ) {
+		foreach ($this->_warning as $w) {
 			$retval .= $li ? '<li>' . $w . '</li>' : "$w\n";
 		}
 		$retval .= $li ? '</ul>' : '';
 		return $retval;
 	}
+
 	function detail($args = null, $return = null) {
-		$args = $args ? $args : array ();
-		$id = Request::get ( 'id', isset ( $args ['id'] ) ? $args ['id'] : null );
-		$m = $this->getModel ();
-		if (! $m) {
-			throw new SystemException ( 'unable to get model on controller' . $this->getControllerName () );
+		$args = $args ? $args : array();
+		$id = Request::get('id', isset ($args ['id']) ? $args ['id'] : null);
+		$m = $this->getModel();
+		if (!$m) {
+			throw new SystemException ('unable to get model on controller' . $this->getControllerName());
 		}
 		if ($id !== null) {
-			$row = $m->reset ()->whereId ( $id )->loadObject ();
+			$row = $m->reset()->whereId($id)->loadObject();
 			$args ['row'] = $row;
 		} else {
-			throw new InvalidOperationException ( 'Invalid ID' );
+			throw new InvalidOperationException ('Invalid ID');
 		}
-		$menus = $this->renderControllerMenu ( $m, $row );
-		$args = array_merge ( array (
-				'menus' => $menus
-		), $args );
-		return $this->render ( array (
-				'_a' => 'detail'
-		), $args, $return );
+		$menus = $this->renderControllerMenu($m, $row);
+		$args = array_merge(array(
+		                         'menus' => $menus
+		                    ), $args);
+		return $this->render(array(
+		                          '_a' => 'detail'
+		                     ), $args, $return);
 	}
+
 	function undel($id = null) {
-		if (! $this->isAllow ( ACLHelper::ACCESS_MANAGE )) {
+		if (!$this->isAllow(ACLHelper::ACCESS_MANAGE)) {
 			throw new AccessDeniedException ();
 		}
-		if (is_array ( $id ) && ! count ( $id )) {
+		if (is_array($id) && !count($id)) {
 			$id = null;
 		}
-		$id = $id !== null ? $id : Request::get ( 'id' );
-		if (! $id) {
-			throw new InvalidOperationException ( 'Invalid Id' );
+		$id = $id !== null ? $id : Request::get('id');
+		if (!$id) {
+			throw new InvalidOperationException ('Invalid Id');
 		}
-		$m = $this->getModel ();
-		$m->setPKValue ( $id );
-		$m->whereId ( $id );
-		if ($m->undel ()) {
-			return new JSONResult ( true, 'data.restored' );
+		$m = $this->getModel();
+		$m->setPKValue($id);
+		$m->whereId($id);
+		if ($m->undel()) {
+			return new JSONResult (true, 'data.restored');
 		} else {
-			return new JSONResult ( false, $m->getLastError () );
+			return new JSONResult (false, $m->getLastError());
 		}
 	}
+
 	function del($id = null) {
-		if (! $this->isAllow ( ACLHelper::ACCESS_MANAGE )) {
+		if (!$this->isAllow(ACLHelper::ACCESS_MANAGE)) {
 			throw new AccessDeniedException ();
 		}
-		if (is_array ( $id ) && ! count ( $id )) {
+		if (is_array($id) && !count($id)) {
 			$id = null;
 		}
-		$id = $id !== null ? $id : Request::get ( 'id' );
-		if (! $id) {
-			throw new InvalidOperationException ( 'Invalid Id' );
+		$id = $id !== null ? $id : Request::get('id');
+		if (!$id) {
+			throw new InvalidOperationException ('Invalid Id');
 		}
-		$m = $this->getModel ();
-		$m->setPKValue ( $id );
-		$m->whereId ( $id );
-		if ($m->delete ()) {
-			return new JSONResult ( true, 'data.removed' );
+		$m = $this->getModel();
+		$m->setPKValue($id);
+		$m->whereId($id);
+		if ($m->delete()) {
+			return new JSONResult (true, 'data.removed');
 		} else {
-			return new JSONResult ( false, $m->getLastError () );
+			return new JSONResult (false, $m->getLastError());
 		}
 	}
+
 	function store() {
-		$m = $this->getModel ();
-		if (! $m) {
-			throw new SystemException ( 'Invalid Model' );
+		$m = $this->getModel();
+		if (!$m) {
+			throw new SystemException ('Invalid Model');
 		}
-		$retval = new JSONResult ( false, 'data.storefailed' );
-		if ($this->getAppOwner ()->isValidToken ()) {
-			$m->bind ( Request::gets ( null ) );
-			$warning = $this->getWarningText ();
-			$warning = $warning ? array (
-					'content' => $warning
+		$retval = new JSONResult (false, 'data.storefailed');
+		if ($this->getAppOwner()->isValidToken()) {
+			$m->bind(Request::gets(null));
+			$warning = $this->getWarningText();
+			$warning = $warning ? array(
+				'content' => $warning
 			) : '';
 			try {
-				if ($m->store ()) {
-					$msg = __ ( 'data.stored' );
-					if ($this->isAllow ( 'detail' )) {
-						$msg .= '<br/>Click <a href="' . BASE_URL . $this->getControllerName () . '/detail/?id=' . $m->getPKValue ( false, $m ) . '">Here</a> to view data';
+				if ($m->store()) {
+					$msg = __('data.stored');
+					if ($this->isAllow('detail')) {
+						$msg .= '<br/>Click <a href="' . BASE_URL . $this->getControllerName() . '/detail/?id=' . $m->getPKValue(false, $m) . '">Here</a> to view data';
 					}
-					$retval = new JSONResult ( true, $msg, null, $warning );
+					$retval = new JSONResult (true, $msg, null, $warning);
 				} else {
-					$retval = new JSONResult ( false, $m->getLastError (), null, $warning );
+					$retval = new JSONResult (false, $m->getLastError(), null, $warning);
 				}
-			} catch ( \Exception $e ) {
-				$retval = new JSONResult ( false, $e->getMessage (), null, $warning );
+			} catch (\Exception $e) {
+				$retval = new JSONResult (false, $e->getMessage(), null, $warning);
 			}
 		} else {
-			throw new SystemException ( 'Invalid Token' );
+			throw new SystemException ('Invalid Token');
 		}
 		return $retval; // ;
 	}
+
 	function edit($row = null) {
-		return $this->aed ( $row );
+		return $this->aed($row);
 	}
+
 	function add() {
-		return $this->aed ();
+		return $this->aed();
 	}
+
 	function aed($row = null, $action = 'aed', $args = array()) {
 		$action = $action ? $action : 'aed';
-		$m = $this->getModel ();
-		if (! $m) {
-			throw new SystemException ( 'Invalid Model for controller ' . $this->getControllerName () );
+		$m = $this->getModel();
+		if (!$m) {
+			throw new SystemException ('Invalid Model for controller ' . $this->getControllerName());
 		}
-		if (is_object ( $row )) {
-			$id = $this->getModel ()->getPKValue ( false, $row );
-		} elseif ($row !== null && ! is_array ( $row )) {
+		if (is_object($row)) {
+			$id = $this->getModel()->getPKValue(false, $row);
+		} elseif ($row !== null && !is_array($row)) {
 			$id = $row;
 		} else {
-			$id = Request::get ( 'id' );
+			$id = Request::get('id');
 		}
-		$allow = $this->isAllow ( $id ? ACLHelper::ACCESS_UPDATE : ACLHelper::ACCESS_WRITE );
-		if (! $allow) {
+		$allow = $this->isAllow($id ? ACLHelper::ACCESS_UPDATE : ACLHelper::ACCESS_WRITE);
+		if (!$allow) {
 			throw new AccessDeniedException ();
 		}
-		$row = $id !== null ? $m->load ( $id ) : $m;
-		if (! $row && $id !== null) {
-			throw new InvalidOperationException ( 'Editing data with ID ' . $id . ' not allowed by system' );
+		$row = $id !== null ? $m->load($id) : $m;
+		if (!$row && $id !== null) {
+			throw new InvalidOperationException ('Editing data with ID ' . $id . ' not allowed by system');
 		}
-		$def = array (
-				'id' => $id,
-				'editForm' => 'add_edit',
-				'msg' => null,
-				'editmode' => $id !== null,
-				'formAction' => URLHelper::addParam ( APP_URL, '__c=' . $this->getControllerName () . '&__a=store&id=' . $id ),
-				'formAttr' => array (
-						'id' => 'frm-aed-' . $this->getControllerName ()
-				),
-				'controller' => $this,
-				'row' => $row,
-				'menus' => $this->renderControllerMenu ( $m, $row )
+		$def = array(
+			'id' => $id,
+			'editForm' => 'add_edit',
+			'msg' => null,
+			'editmode' => $id !== null,
+			'formAction' => URLHelper::addParam(APP_URL, '__c=' . $this->getControllerName() . '&__a=store&id=' . $id),
+			'formAttr' => array(
+				'id' => 'frm-aed-' . $this->getControllerName()
+			),
+			'controller' => $this,
+			'row' => $row,
+			'menus' => $this->renderControllerMenu($m, $row)
 		);
-		$args = \Utils::arrayMerge ( $def, $args );
-		return $this->render ( array (
-				'_a' => $action
-		), $args );
+		$args = \Utils::arrayMerge($def, $args);
+		return $this->render(array(
+		                          '_a' => $action
+		                     ), $args);
 	}
+
 	protected function renderControllerMenu($m, $row) {
-		$items = $this->_getControllerMenu ( $m, $row );
-		return HTMLUtils::renderLinks ( $items, array (
-				'class' => 'controller-menu'
-		) );
+		$items = $this->_getControllerMenu($m, $row);
+		return HTMLUtils::renderLinks($items, array(
+		                                           'class' => 'controller-menu'
+		                                      ));
 	}
+
 	function manage($vars = null, $newroute = null, $return = false) {
-		$action = $this->getManageAction ();
+		$action = $this->getManageAction();
 		// ppd($action);
-		$vars = $vars ? $vars : array ();
-		if (! isset ( $vars ['title'] )) {
-			$vars ['title'] = __ ( $this->getControllerName () . '.' . $action . '.title', ucwords ( $action . ' ' . $this->getControllerName () ) );
+		$vars = $vars ? $vars : array();
+		if (!isset ($vars ['title'])) {
+			$vars ['title'] = __($this->getControllerName() . '.' . $action . '.title', ucwords($action . ' ' . $this->getControllerName()));
 		}
-		$row = $this->getModel ();
+		$row = $this->getModel();
 		if ($row) {
-			$row->reset ();
+			$row->reset();
 		}
-		if ($action && ! isset ( $newroute ['_a'] )) {
+		if ($action && !isset ($newroute ['_a'])) {
 			$newroute ["_a"] = $action;
 		}
-		$this->Assign ( $vars, null );
+		$this->Assign($vars, null);
 		switch ($action) {
 			case 'add' :
 			case "edit" :
-				return $this->edit ();
+				return $this->edit();
 				break;
 			case "store" :
-				return $this->store ();
+				return $this->store();
 				break;
 			case "detail" :
 			case "add" :
-				$retval = $this->add ();
+				$retval = $this->add();
 				if ($retval) {
 					return $retval;
 				}
 				break;
 			case 'del' :
 			case "delete" :
-				$this->Assign ( $vars );
-				return $this->del ();
+				$this->Assign($vars);
+				return $this->del();
 				break;
 			default :
-				$vars ['openGridEditInOverlay'] = isset ( $vars ['openGridEditInOverlay'] ) ? $vars ['openGridEditInOverlay'] : false;
-				if (! isset ( $vars ['gridConfigs'] )) {
-					$vars ['gridConfigs'] = array (
-							'addurl' => \URLHelper::add ( APP_URL, $this->getControllerName () . '/aed/' )
+				$vars ['openGridEditInOverlay'] = isset ($vars ['openGridEditInOverlay']) ? $vars ['openGridEditInOverlay'] : false;
+				if (!isset ($vars ['gridConfigs'])) {
+					$vars ['gridConfigs'] = array(
+						'addurl' => \URLHelper::add(APP_URL, $this->getControllerName() . '/aed/')
 					);
 				}
 		}
-		if (! isset ( $vars ['row'] )) {
+		if (!isset ($vars ['row'])) {
 			$vars ['row'] = $row;
 		}
-		return $this->render ( $newroute, $vars, $return );
+		return $this->render($newroute, $vars, $return);
 	}
+
 	function renderContent($position, $params = null) {
-		return $this->getAppOwner ()->renderContent ( $position, $this->getControllerName (), false, true, $params );
+		return $this->getAppOwner()->renderContent($position, $this->getControllerName(), false, true, $params);
 	}
+
 	function isAllowItem($itemid, $access = "view") {
 		// special
-		if ($this->isAllow ( ACLHelper::ACL_EXT_1 )) {
+		if ($this->isAllow(ACLHelper::ACL_EXT_1)) {
 			return true;
 		}
-		return $this->getAppOwner ()->getACL ()->isAllow ( $itemid, $this->getControllerName (), $access );
+		return $this->getAppOwner()->getACL()->isAllow($itemid, $this->getControllerName(), $access);
 	}
+
 	public function handleAccessDenied($action) {
 		return false;
 	}
+
 	/**
 	 * check for security
 	 *
 	 * @param $access string
+	 * @return bool
 	 */
 	public function isAllow($access = 'view') {
-		switch (strtolower ( $access )) {
+		switch (strtolower($access)) {
 			case ACLHelper::ACCESS_VIEW :
 			case 'view' :
 			case 'applist' :
@@ -494,172 +530,185 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			default :
 				break;
 		}
-		$retval = $this->getAppOwner ()->isAllow ( $this->getControllerName (), "controller", $access );
+		$retval = $this->getAppOwner()->isAllow($this->getControllerName(), "controller", $access);
 		if ($access !== 'view') {
-			$retval = $retval && (Session::get ( 'fromhome' ) || $this->getAppOwner ()->isAuthentificated ());
+			$retval = $retval && (Session::get('fromhome') || $this->getAppOwner()->isAuthentificated());
 		}
 		return $retval;
 	}
+
 	function applist() {
-		$this->getTemplate ()->clear ( 'js' );
-		return $this->render ( array (
-				'_c' => 'shared',
-				'_a' => __FUNCTION__
-		), array (
-				'rows' => \AppManager::getInstalledApp ()
-		) );
+		$this->getTemplate()->clear('js');
+		return $this->render(array(
+		                          '_c' => 'shared',
+		                          '_a' => __FUNCTION__
+		                     ), array(
+		                             'rows' => \AppManager::getInstalledApp()
+		                        ));
 	}
+
 	public function checkAccess($access) {
-		$allow = $this->isAllow ( $access );
-		if (! $allow) {
-			if (Request::isAJAXRequest ()) {
-				throw new AccessDeniedException ( "Access $access denied. to Controller " . $this->getRouteName () );
+		$allow = $this->isAllow($access);
+		if (!$allow) {
+			if (Request::isAJAXRequest()) {
+				throw new AccessDeniedException ("Access $access denied. to Controller " . $this->getRouteName());
 			} else {
-				\Response::RedirectToLogin ( "Access $access denied. to Controller " . $this->getRouteName () );
+				\Response::RedirectToLogin("Access $access denied. to Controller " . $this->getRouteName());
 			}
 		}
 		return true;
 	}
+
 	function search($s, $config) {
 	}
+
 	function getDbConnection() {
-		return $this->getAppOwner ()->getDBConnection ();
+		return $this->getAppOwner()->getDBConnection();
 	}
+
 	function getControllerName() {
 		if ($this->_routeName == null) {
-			$cl = Utils::removeNameSpace ( get_class ( $this ) );
-			if (Strings::BeginWith ( $cl, CGAF_CLASS_PREFIX )) {
-				$r = str_ireplace ( "Controller", "", substr ( $cl, strlen ( CGAF_CLASS_PREFIX ) ) );
+			$cl = Utils::removeNameSpace(get_class($this));
+			if (Strings::BeginWith($cl, CGAF_CLASS_PREFIX)) {
+				$r = str_ireplace("Controller", "", substr($cl, strlen(CGAF_CLASS_PREFIX)));
 			} else {
-				$r = str_ireplace ( "Controller", "", $cl );
+				$r = str_ireplace("Controller", "", $cl);
 			}
-			$cp = $this->getAppOwner ()->getClassPrefix ();
-			if (substr ( $r, 0, strlen ( $cp ) ) === $cp) {
-				$r = substr ( $r, strlen ( $cp ) );
+			$cp = $this->getAppOwner()->getClassPrefix();
+			if (substr($r, 0, strlen($cp)) === $cp) {
+				$r = substr($r, strlen($cp));
 			}
-			$this->_routeName = strtolower ( $r );
+			$this->_routeName = strtolower($r);
 		}
 		return $this->_routeName;
 	}
+
 	/**
 	 * Enter description here .
 	 * ..
 	 *
 	 * @deprecated please use getControllerName
-   * @return string
+	 * @return string
 	 */
 	function getRouteName() {
-		return $this->getControllerName ();
+		return $this->getControllerName();
 	}
+
 	/**
 	 *
 	 * @return \System\ACL\IACL
 	 */
 	protected function getACL() {
-		return $this->getAppOwner ()->getACL ();
+		return $this->getAppOwner()->getACL();
 	}
+
 	protected function getManageMenu() {
-		$items = $this->geMenuItems ( 'manage', 0, '/manage', true );
-		$acl = $this->getACL ();
-		$manage = array ();
-		foreach ( $items as $v ) {
-			$act = ($v instanceof MenuItem ? ($v->real_menuaction ? $v->real_menuaction : $v->getMenuAction ()) : $v->menu_action);
-			if ($acl->isAllow ( $act, 'manage' )) {
+		$items = $this->geMenuItems('manage', 0, '/manage', true);
+		$acl = $this->getACL();
+		$manage = array();
+		foreach ($items as $v) {
+			$act = ($v instanceof MenuItem ? ($v->real_menuaction ? $v->real_menuaction : $v->getMenuAction()) : $v->menu_action);
+			if ($acl->isAllow($act, 'manage')) {
 				$manage [] = $v;
 			}
 		}
 		return $manage;
 	}
+
 	public function geMenuItems($position, $parent = 0, $actionPrefix = null, $showIcon = true) {
-		$rows = $this->getAppOwner ()->getMenuItems ( $position, $parent, $actionPrefix, $showIcon );
-		$filtered = array ();
-		if (count ( $rows )) {
-			$route = $this->getAppOwner ()->getRoute ();
+		$rows = $this->getAppOwner()->getMenuItems($position, $parent, $actionPrefix, $showIcon);
+		$filtered = array();
+		if (count($rows)) {
+			$route = $this->getAppOwner()->getRoute();
 			$rname = $route ["_c"];
 			$a = $route ['_a'];
-      /**
-       * @var $row MenuItem
-       */
-			foreach ( $rows as $row ) {
-				$action = $row->getAction ();
+			/**
+			 * @var $row MenuItem
+			 */
+			foreach ($rows as $row) {
+				$action = $row->getAction();
 				$row->real_menuaction = $action;
 				if ($actionPrefix) {
-					$row->setAction($row->getAction() . $actionPrefix );
+					$row->setAction($row->getAction() . $actionPrefix);
 				}
-				$row->setShowIcon ( $showIcon );
-				if (($row->getActionType () == 1 || $row->getActionType () == null)) {
-					$action = explode ( '/', $action );
-					if (isset ( $action [1] ) && $action [0] === $rname && $action [1] === $a) {
-						$row->setSelected ( true );
-					} elseif (! isset ( $action [1] ) && $action [0] === $rname && $a === 'index') {
-						$row->setSelected ( true );
+				$row->setShowIcon($showIcon);
+				if (($row->getActionType() == 1 || $row->getActionType() == null)) {
+					$action = explode('/', $action);
+					if (isset ($action [1]) && $action [0] === $rname && $action [1] === $a) {
+						$row->setSelected(true);
+					} elseif (!isset ($action [1]) && $action [0] === $rname && $a === 'index') {
+						$row->setSelected(true);
 					}
 				}
-				$row->childs = array ();
-				if ($row->getId () !== $parent) {
-					$row->childs = $this->geMenuItems ( $position, $row->getId (), $actionPrefix, $showIcon );
+				$row->childs = array();
+				if ($row->getId() !== $parent) {
+					$row->childs = $this->geMenuItems($position, $row->getId(), $actionPrefix, $showIcon);
 				}
 				$filtered [] = $row;
 			}
 		}
 		return $filtered;
 	}
+
 	function menu($return = false, $params) {
-		$params = $params ? $params : array ();
-		$params ['position'] = isset ( $params ['position'] ) ? $params ['position'] : $this->getControllerName() ;
-		$params ['style'] = isset ( $params ['style'] ) ? $params ['position'] : $this->getControllerName () . '-menu';
-		return $this->renderMenu ( $params ['position'], $params ['style'] );
+		$params = $params ? $params : array();
+		$params ['position'] = isset ($params ['position']) ? $params ['position'] : $this->getControllerName();
+		$params ['style'] = isset ($params ['style']) ? $params ['position'] : $this->getControllerName() . '-menu';
+		return $this->renderMenu($params ['position'], $params ['style']);
 	}
+
 	function renderMenu($position, $ulclass = null, $showIcon = false, $replacer = array()) {
-		if (is_array ( $position )) {
+		if (is_array($position)) {
 			$filtered = $position;
 			$position = "custom";
 		} else {
-			$filtered = $this->geMenuItems ( $position, 0, null, $showIcon );
+			$filtered = $this->geMenuItems($position, 0, null, $showIcon);
 		}
-		if ($position == 'menu-bar' && ! \Request::isMobile ()) {
-			$r = $this->getAppOwner ()->getRoute ();
-			$home = new MenuItem ( 'home', 'Home', APP_URL, $r ['_c'] === $this->getAppOwner ()->getDefaultController (), 'home.descr' );
-			$home->setShowIcon ( true );
-			$home->setIcon ( 'appicon.png' );
-			$home->setClass ( 'home' );
-			$filtered = array_merge ( array (
-					$home
-			), $filtered );
+		if ($position == 'menu-bar' && !\Request::isMobile()) {
+			$r = $this->getAppOwner()->getRoute();
+			$home = new MenuItem ('home', 'Home', APP_URL, $r ['_c'] === $this->getAppOwner()->getDefaultController(), 'home.descr');
+			$home->setShowIcon(true);
+			$home->setIcon('appicon.png');
+			$home->setClass('home');
+			$filtered = array_merge(array(
+			                             $home
+			                        ), $filtered);
 		}
 		$retval = "<div class=\"menu-container\" id='menu-container-$position'>";
-		if (! count ( $filtered ) && $position != "menu-bar") {
+		if (!count($filtered) && $position != "menu-bar") {
 			if (CGAF_DEBUG) {
-				$retval .= "<div class=\"warning\">Menu not found for position $position @" . $this->getControllerName() ;
-        $retval .=  " app : " . $this->getAppOwner ()->getAppId () . "</div>";
+				$retval .= "<div class=\"warning\">Menu not found for position $position @" . $this->getControllerName();
+				$retval .= " app : " . $this->getAppOwner()->getAppId() . "</div>";
 			}
 		}
-		$retval .= HTMLUtils::renderMenu ( $filtered, null, $ulclass . " menu-$position", $replacer, 'menu-' . $position );
+		$retval .= HTMLUtils::renderMenu($filtered, null, $ulclass . " menu-$position", $replacer, 'menu-' . $position);
 		$retval .= "</div>";
 		return $retval;
 	}
+
 	protected function Initialize() {
 		if ($this->_initialized) {
 			return true;
 		}
 		// $this->getAppOwner()->getRequestAction()
-		if (! $this->isAllow ()) {
-			throw new AccessDeniedException ( "Access denied to Controller %s", $this->getControllerName () );
+		if (!$this->isAllow()) {
+			throw new AccessDeniedException ("Access denied to Controller %s", $this->getControllerName());
 			//return false;
 		}
 		try {
-      if ($this->getControllerName () !=='home') {
-        if (! $this->_model) {
-          $this->setModel ( $this->getControllerName () );
-        }
-      }
-		} catch ( \Exception $e ) {
+			if ($this->getControllerName() !== 'home') {
+				if (!$this->_model) {
+					$this->setModel($this->getControllerName());
+				}
+			}
+		} catch (\Exception $e) {
 
 		}
-		$this->Assign ( "baseurl", BASE_URL );
-		$this->Assign ( "content", null );
+		$this->Assign("baseurl", BASE_URL);
+		$this->Assign("content", null);
 		return true;
 	}
+
 	/**
 	 * get Application Owner
 	 *
@@ -668,11 +717,12 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	function getAppOwner() {
 		return $this->_appOwner;
 	}
+
 	function Assign($var, $val = null) {
-		if (is_array ( $var ) && $val == null) {
-			foreach ( $var as $k => $v ) {
+		if (is_array($var) && $val == null) {
+			foreach ($var as $k => $v) {
 				if ($v === null) {
-					unset ( $this->_vars [$k] );
+					unset ($this->_vars [$k]);
 				} else {
 					$this->_vars [$k] = $v;
 				}
@@ -680,53 +730,59 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			return $this;
 		}
 		if ($val === null) {
-			unset ( $this->_vars [$var] );
+			unset ($this->_vars [$var]);
 		} else {
 			$this->_vars [$var] = $val;
 		}
 		return $this;
 	}
+
 	protected function getVars($varname = null, $default = null) {
 		if ($varname === null) {
 			return $this->_vars;
 		}
-		return isset ( $this->_vars [$varname] ) ? $this->_vars [$varname] : $default;
+		return isset ($this->_vars [$varname]) ? $this->_vars [$varname] : $default;
 	}
+
 	protected function getVar($name) {
-		return isset ( $this->_vars [$name] ) ? $this->_vars [$name] : null;
+		return isset ($this->_vars [$name]) ? $this->_vars [$name] : null;
 	}
+
 	function Index() {
-		return $this->render ( 'index', $this->_vars );
+		return $this->render('index', $this->_vars);
 	}
+
 	function getClassInstance($className, $suffix, $args = null) {
-		return $this->getAppOwner ()->getClassInstance ( $className, $suffix, $args );
+		return $this->getAppOwner()->getClassInstance($className, $suffix, $args);
 	}
+
 	/**
 	 *
 	 * @param
-	 *       	 $modelName
+	 *	        $modelName
 	 * @return \System\MVC\Model|\System\MVC\Models\TreeModel
 	 */
 	function getModel($modelName = null) {
 		if ($modelName == null) {
 			return $this->_model;
 		}
-		return $this->getAppOwner ()->getModel ( $modelName );
+		return $this->getAppOwner()->getModel($modelName);
 	}
+
 	function getFile($viewName, $a, $prefix, $forceThrow = true) {
 		if ($a == null) {
-			$route = $this->getControllerName ();
+			$route = $this->getControllerName();
 			$x = $viewName;
 			$viewName = $route;
 			$a = $x;
 		}
-		$f = $this->getAppOwner ()->findFile ( $a, $prefix . DS . strtolower ( $viewName ) );
+		$f = $this->getAppOwner()->findFile($a, $prefix . DS . strtolower($viewName));
 		if ($f == null) {
-			$f = $this->getAppOwner ()->findFile ( $a, $prefix . DS . "shared" );
+			$f = $this->getAppOwner()->findFile($a, $prefix . DS . "shared");
 			if ($f == null) {
-				$f = $this->getAppOwner ()->findFile ( $a, $prefix . DS );
+				$f = $this->getAppOwner()->findFile($a, $prefix . DS);
 				if ($f == null) {
-					$f = $this->getAppOwner ()->findFile ( $a, $prefix . DS . $this->getAppOwner ()->getDefaultController (), $forceThrow );
+					$f = $this->getAppOwner()->findFile($a, $prefix . DS . $this->getAppOwner()->getDefaultController(), $forceThrow);
 					if ($f == null) {
 					}
 				}
@@ -734,46 +790,49 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		}
 		return $f;
 	}
+
 	public function renderView($viewName, $params = array(), $contentOnly = true) {
-		if (! isset ( $params ['controller'] )) {
+		if (!isset ($params ['controller'])) {
 			$params ['controller'] = $this;
 		}
-		return $this->render ( array (
-				'_c' => $this->getControllerName (),
-				'_a' => $viewName
-		), $params, $contentOnly );
+		return $this->render(array(
+		                          '_c' => $this->getControllerName(),
+		                          '_a' => $viewName
+		                     ), $params, $contentOnly);
 	}
+
 	public function getView($viewName, $a = null, $attr = null, $classOnly = false) {
 		$c = null;
 		try {
 			if ($a) {
-				$c = $this->getClassInstance ( $viewName . $a, 'View', $this );
+				$c = $this->getClassInstance($viewName . $a, 'View', $this);
 			}
-			if (! $c) {
-				$c = $this->getClassInstance ( $viewName, 'View', $this );
+			if (!$c) {
+				$c = $this->getClassInstance($viewName, 'View', $this);
 			}
-		} catch ( \Exception $ex ) {
-			\Logger::Error( $ex );
+		} catch (\Exception $ex) {
+			\Logger::Error($ex);
 		}
 		if ($c) {
 			return $c;
 		} elseif ($classOnly) {
 			return null;
 		} else {
-			Logger::info ( 'View Class Not found %s', $viewName );
+			Logger::info('View Class Not found %s', $viewName);
 		}
 		try {
-			$f = $this->getFile ( strtolower ( $viewName ), $a, 'Views', false );
+			$f = $this->getFile(strtolower($viewName), $a, 'Views', false);
 			if ($f == null) {
-				$f = $this->getFile ( $viewName, 'index', 'Views', false );
+				$f = $this->getFile($viewName, 'index', 'Views', false);
 			}
-			return TemplateHelper::renderFile ( $f, $attr, $this );
-		} catch ( \Exception $e ) {
-			return $e->getMessage ();
+			return TemplateHelper::renderFile($f, $attr, $this);
+		} catch (\Exception $e) {
+			return $e->getMessage();
 		}
 	}
+
 	function preRender($route, $contentOnly = false) {
-		if (! $contentOnly) {
+		if (!$contentOnly) {
 			// $r = $this->getAppOwner()->getRoute();//::get ( "__route" );
 			// if ($r !== null && $route ["_c"] != $r ["_c"] && $route ["_a"] !=
 			// $r ["_a"]) {
@@ -782,18 +841,20 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			// }
 		}
 	}
+
 	function initAction($action, &$params) {
-		if (! Request::isDataRequest ()) {
-			$this->getAppOwner ()->addClientAsset ( $this->getControllerName () . '.css' );
-			$this->getAppOwner ()->addClientAsset ( $this->getControllerName () . '.js' );
+		if (!Request::isDataRequest()) {
+			$this->getAppOwner()->addClientAsset($this->getControllerName() . '.css');
+			$this->getAppOwner()->addClientAsset($this->getControllerName() . '.js');
 		}
-		if (is_array ( $params )) {
-			foreach ( $params as $k => $v ) {
+		if (is_array($params)) {
+			foreach ($params as $k => $v) {
 				$this->_vars [$k] = $v;
 			}
 		}
 		return true;
 	}
+
 	protected function renderContentOnly() {
 		return null;
 	}
@@ -801,38 +862,41 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	function render($route = null, $vars = null, $contentOnly = null) {
 		$retval = '';
 		if ($contentOnly == null) {
-			$contentOnly = Request::isAJAXRequest () || Request::isDataRequest ();
+			$contentOnly = Request::isAJAXRequest() || Request::isDataRequest();
 		}
-		if ($this->getAppOwner ()->getParent ()) {
+		if ($this->getAppOwner()->getParent()) {
 			$contentOnly = true;
 		}
-		$vars = $vars == null ? $this->getVars () : $vars;
-		$vars = array_merge ( $this->_vars, $vars );
-		$approute = $this->_appOwner->getRoute ();
-		if (is_string ( $route )) {
-			$route = array (
-					'_a' => $route
+		$vars = $vars == null ? $this->getVars() : $vars;
+		if (!is_array($vars)) {
+			ppd($vars);
+		}
+		$vars = array_merge($this->_vars, $vars);
+		$approute = $this->_appOwner->getRoute();
+		if (is_string($route)) {
+			$route = array(
+				'_a' => $route
 			);
 		}
-		if ($route == null || ! is_array ( $route )) {
-			$route = array ();
+		if ($route == null || !is_array($route)) {
+			$route = array();
 		}
-		$route ["_c"] = isset ( $route ["_c"] ) ? $route ["_c"] : $this->getControllerName ();
-		$route = array_merge ( $approute, $route );
-		$this->preRender ( $route, $contentOnly );
-		$route ["_a"] = strtolower ( $route ["_a"] );
-		$content = isset ( $vars ['content'] ) ? $vars ['content'] : '';
-		if ($this->getControllerName () !== $route ['_c']) {
-			$ctl = $this->getAppOwner ()->getController ( $route ["_c"] );
-			return $ctl->render ( array (
-					'_a' => $route ['_a']
-			), $vars, $contentOnly );
+		$route ["_c"] = isset ($route ["_c"]) ? $route ["_c"] : $this->getControllerName();
+		$route = array_merge($approute, $route);
+		$this->preRender($route, $contentOnly);
+		$route ["_a"] = strtolower($route ["_a"]);
+		$content = isset ($vars ['content']) ? $vars ['content'] : '';
+		if ($this->getControllerName() !== $route ['_c']) {
+			$ctl = $this->getAppOwner()->getController($route ["_c"]);
+			return $ctl->render(array(
+			                         '_a' => $route ['_a']
+			                    ), $vars, $contentOnly);
 		}
-		$this->initAction ( $route ['_a'], $vars );
-		if (! $content) {
-			$content = $this->getView ( $route ["_c"], $route ["_a"], $vars );
+		$this->initAction($route ['_a'], $vars);
+		if (!$content) {
+			$content = $this->getView($route ["_c"], $route ["_a"], $vars);
 		}
-		$vars ["content"] = (is_object ( $content ) && $content instanceof \IRenderable) ? $content->render ( true ) : $content;
+		$vars ["content"] = (is_object($content) && $content instanceof \IRenderable) ? $content->render(true) : $content;
 		// $this->Assign("content", $vars["content"]);
 		if ($contentOnly) {
 			return $vars ["content"];
@@ -841,44 +905,51 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		}
 		return $retval;
 	}
+
 	public function getActionAlias($action) {
 		return $action;
 	}
+
 	public function prepareRender() {
 	}
+
 	public function handleResult($params) {
-		if (Request::isJSONRequest ()) {
-			return new JSONResult ( 1, '', null, $params );
+		if (Request::isJSONRequest()) {
+			return new JSONResult (1, '', null, $params);
 		}
-		return $this->render ( null, $params );
+		return $this->render(null, $params);
 	}
+
 	protected function getParamForAction($a, $mode = null) {
-		$params = $this->getAppOwner ()->getConfigs ( 'controllers.' . $this->getControllerName () . '.' . $a, array () );
-		$params ['asseturl'] = BASE_URL . 'asset/get/?appId=' . $this->getAppOwner ()->getAppId () . '&q=';
+		$params = $this->getAppOwner()->getConfigs('controllers.' . $this->getControllerName() . '.' . $a, array());
+		$params ['asseturl'] = BASE_URL . 'asset/get/?appId=' . $this->getAppOwner()->getAppId() . '&q=';
 		$params ['baseurl'] = BASE_URL;
 		$params ['appurl'] = APP_URL;
-		$params ['appasseturl'] = ASSET_URL . '/applications/' . $this->getAppOwner ()->getAppId () . '/assets/';
+		$params ['appasseturl'] = ASSET_URL . '/applications/' . $this->getAppOwner()->getAppId() . '/assets/';
 		return $params;
 	}
+
 	protected function getActions($a) {
 	}
+
 	protected function renderStaticConent($a, $f, $template = null) {
-		$params = $this->getParamForAction ( $a );
-		$action = $this->getActions ( $a );
+		$params = $this->getParamForAction($a);
+		$action = $this->getActions($a);
 		$retval = '';
 		if ($action) {
-			$retval = HTMLUtils::renderLinks ( $action, array (
-					'class' => 'actions ' . $a . '-actions'
-			) );
+			$retval = HTMLUtils::renderLinks($action, array(
+			                                               'class' => 'actions ' . $a . '-actions'
+			                                          ));
 		}
-		if (is_file ( $f ) && is_readable ( $f )) {
-			$params ['content'] = TemplateHelper::renderString ( file_get_contents ( $f ), $params, $this, \Utils::getFileExt ( $f, false ) );
+		if (is_file($f) && is_readable($f)) {
+			$params ['content'] = TemplateHelper::renderString(file_get_contents($f), $params, $this, \Utils::getFileExt($f, false));
 		} else {
-			$params ['content'] = 'content file not found ' . ($this->getAppOwner ()->isDebugMode () ? $f : '');
+			$params ['content'] = 'content file not found ' . ($this->getAppOwner()->isDebugMode() ? $f : '');
 		}
-		$tpl = $template ? $this->getFile ( $this->getControllerName (), $template, 'Views' ) : null;
-		$retval .= $tpl ? TemplateHelper::renderFile ( $tpl, $params, $this ) : $params ['content'];
+		$tpl = $template ? $this->getFile($this->getControllerName(), $template, 'Views') : null;
+		$retval .= $tpl ? TemplateHelper::renderFile($tpl, $params, $this) : $params ['content'];
 		return $retval;
 	}
 }
+
 ?>

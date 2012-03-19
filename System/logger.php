@@ -43,17 +43,18 @@ final class Logger {
     if (class_exists("Response", false)) {
       Response::StartBuffer();
     }
-    if (CGAF_DEBUG && function_exists('xdebug_get_function_stack')) {
+    /*if (CGAF_DEBUG && function_exists('xdebug_get_function_stack')) {
       echo '<pre>';
       debug_print_backtrace();
       var_dump(xdebug_get_function_stack());
       echo '</pre>';
-    } else {
-      include dirname(__FILE__) . DS . "error/exception.php";
+    } else {*/
+      include CGAF::getInternalStorage('contents/'). "errors/exception.php";
+      
       if (class_exists("Response", false)) {
         Response::EndBuffer(true);
       }
-    }
+   // }
     CGAF::doExit();
     exit(0);
   }
@@ -102,9 +103,9 @@ final class Logger {
   }
 
   private static function print_backtrace($bt, $showargs = true) {
-    if (function_exists('xdebug_var_dump')) {
-      return xdebug_var_dump($bt);
-    }
+    /*if (function_exists('xdebug_var_dump')) {
+      return '<pre>'. xdebug_var_dump($bt,true).'</pre>';
+    }*/
     $r = "";
     $idx = 1;
     foreach ($bt as $b) {
@@ -165,6 +166,9 @@ final class Logger {
   }
 
   private static function error2string($value) {
+	  if (is_string($value) && !is_numeric($value)) {
+		  return $value;
+	  }
     $level_names = array(
       E_ERROR => 'E_ERROR',
       E_WARNING => 'E_WARNING',
@@ -217,10 +221,8 @@ final class Logger {
   }
 
   public static function write($s, $level = E_NOTICE, $die = null) {
-    static $logPath;
-    if (!$logPath) {
-      $logPath = CGAF::getConfig('errors.error_log', \CGAF::getInternalStorage('log', false, true, 0770) . DS);
-    }
+
+    $logPath = CGAF::getConfig('errors.error_log', \CGAF::getInternalStorage('log', false, true, 0770) . DS);
     $logFile = $logPath . strtolower(self::error2string($level)) . '.log';
     /*$levels = array(
       E_NOTICE => 'Notice',

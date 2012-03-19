@@ -17,10 +17,15 @@ class jQuery extends AbstractJSEngine {
 		$assets = array ();
 		$ui = 'jQuery-UI/' . $this->getConfig ( 'ui.version', '1.8.17' ) . DS;
 		$assets [] = 'jquery-ui.js';
-		$assets [] = 'themes/base/jquery.ui.base.css';
+		$assets [] = 'themes/base/jquery-ui.css';
+
 		$theme = $this->_appOwner->getUserConfig ( 'ui.themes', $this->_appOwner->getConfig ( 'ui.themes', 'ui-lightness' ) );
 		if ($theme) {
 			$assets [] = 'themes/' . $theme . '/jquery-ui.css';
+		}
+
+		if ($this->getConfig ( 'js.bootstrap.enabled', true )) {
+			$asset[] = 'themes/bootstrap/bootstrap.css';
 		}
 		$retval = array ();
 		foreach ( $assets as $asset ) {
@@ -39,7 +44,7 @@ class jQuery extends AbstractJSEngine {
 	protected function getJSAsset() {
 		$prefix = strtolower ( $this->_baseConfig );
 		$assets = array (
-				'jquery-' . $this->_defaultVersion . '.js',
+				'jquery.js',
 				'plugins/jquery.url.js'
 		);
 		$ui = array ();

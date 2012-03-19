@@ -26,12 +26,12 @@ class MySQL extends DBConnection {
 		if ($this->isConnected ()) {
 			return true;
 		}
-		// ppd($this->getArgs());
-		$this->_resource = @mysql_connect ( $this->getArg ( "host", "localhost" ), $this->getArg ( "username", "root" ), $this->getArg ( "password" ), $this->getArg ( "persist", true ) );
+		$this->_resource = mysql_connect ( $this->getArg ( "host", "localhost" ), $this->getArg ( "username", "root" ), $this->getArg ( "password" ), $this->getArg ( "persist", true ) );
 		if (! $this->_resource) {
 			$this->_lastError = mysql_error ();
 		}
 		if ($this->_resource === false) {
+
 			throw new Exception ( $this->_lastError );
 		}
 		if ($this->getArg ( "database" ) !== null) {
@@ -43,41 +43,71 @@ class MySQL extends DBConnection {
 	public function createDBObjectFromClass($classInstance, $objecttype, $objectName) {
 		$r = new DBReflectionClass ( $classInstance );
 		$fields = $r->getFields ();
+		$ref =array();
+		//$objectName.='_test';
 		switch (strtolower ( $objecttype )) {
 			case 'table' :
-				$retval = "create table " . $this->quoteTable ( '#__' . $objectName ) . " ";
-				$retval .= '(';
+				$retval = array();
+				$retval [] = "create table " . $this->quoteTable ( '#__' . $objectName ) . " (";
+				
+				$idx =0;
 				foreach ( $fields as $field ) {
 					$type = $this->phptofieldtype ( $field->fieldtype );
-					$retval .= $this->quoteTable ( $field->fieldname, false ) . ' ' . $type;
+					
+					$fcreate =  $this->quoteTable ( $field->fieldname, false ) . ' ' . $type;
 					if ($field->fieldlength != null) {
-						$retval .= '(' . $field->fieldlength . ')';
+						$fcreate   .= '(' . $field->fieldlength . ')';
 					} elseif (isset ( $this->_defaultFieldLength [strtolower ( $type )] )) {
-						$retval .= '(' . $this->_defaultFieldLength [strtolower ( $type )] . ')';
+						$fcreate .= '(' . $this->_defaultFieldLength [strtolower ( $type )] . ')';
 					}
 					if ($field->isAllowNull () === false) {
-						$retval .= ' NOT NULL';
+						$fcreate .= ' NOT NULL';
 					}
-					if ($field->fielddefaultvalue) {
-						$retval .= ' DEFAULT ' . $this->parseDefaultValue ( $field->fielddefaultvalue );
+					if ($field->fielddefaultvalue!==null) {
+						$fcreate .= ' DEFAULT ' . $this->parseDefaultValue ( $field->fielddefaultvalue );
 					}
-					$retval .= ',';
+					$retval[] = $fcreate.',';
+					if ($field->FieldReference) {
+						$fr = explode(' ',$field->FieldReference);
+						$ref[] = array(
+								'field'=>$field->fieldname,
+								'id'=>$field->FieldReferenceId ? $field->FieldReferenceId : 'fk_'.$objectName.'_'.$idx,
+								'reftable'=>$fr[0],
+								'reffield'=>$fr[1],
+								'delete'=>isset($fr[2]) ? $fr[2] : 'no',
+								'update'=>isset($fr[3]) ? $fr[3] : 'no'
+
+						);
+					}
+					
+					$idx++;
 				}
-				$retval = substr ( $retval, 0, strlen ( $retval ) - 1 );
+
+				//$retval = substr ( $retval, 0, strlen ( $retval ) - 1 );
+				$clast =$retval[count($retval)-1];
+				$retval[count($retval)-1] = substr($clast, 0,strlen($clast)-1);
 				$pk = $r->getPrimaryKey ();
 				if ($pk) {
-					$retval .= ', /* Keys */';
-					$retval .= ' PRIMARY KEY (' . $this->quoteTable ( $pk ) . ')';
+					$retval []= ',PRIMARY KEY (' . $this->quoteTable ( $pk ) . ')';
 				}
-				$retval .= ")";
-				$retval .= ' ENGINE = ' . $this->getArg ( 'table_engine', 'InnoDB' );
+				if ($ref) {
+					foreach($ref as $v) {
+						$retval[] = ',KEY '.$this->quoteTable($v['id']) .'('.$this->quoteTable($v['field']).')';
+						$retval[] = ',CONSTRAINT '.$this->quoteTable($v['id'])
+							.' FOREIGN KEY ('.$this->quoteTable($v['field']).')'
+							.' REFERENCES '.$this->quoteTable($v['reftable']).' ('.$this->quoteTable($v['reffield']).')'
+							.' ON DELETE '.($v['delete'] ==='no' ? 'NO ACTION' : 'CASCADE')
+							.' ON UPDATE '.($v['update'] ==='no' ? 'NO ACTION' : 'CASCADE');
+					}
+				}
+				$retval [] =')  ENGINE = ' . $this->getArg ( 'table_engine', 'InnoDB' );
 				break;
 			default :
 				throw new Exception ( $objecttype );
+					
 		}
-		// ppd($fields);
 		$this->_thows = true;
-		return $this->Exec ( $retval );
+		return $this->Exec ( implode('',$retval) );
 	}
 	private function parseDefaultValue($val) {
 		switch ($val) {
@@ -253,10 +283,10 @@ class MySQL extends DBConnection {
 			$o->Unique = $r->Non_unique == 0;
 			/*
 			 * [Table] => exim [Non_unique] => 0 [Key_name] => PRIMARY
-			 * [Seq_in_index] => 1 [Column_name] => id [Collation] => A
-			 * [Cardinality] => 1 [Sub_part] => [Packed] => [Null] =>
-			 * [Index_type] => BTREE [Comment] => [Index_Comment] =>
-			 */
+			* [Seq_in_index] => 1 [Column_name] => id [Collation] => A
+			* [Cardinality] => 1 [Sub_part] => [Packed] => [Null] =>
+			* [Index_type] => BTREE [Comment] => [Index_Comment] =>
+			*/
 			$retval [] = $o;
 		}
 		return $retval;

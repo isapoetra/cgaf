@@ -10,7 +10,7 @@ class URLHelper {
 	public static function getOrigin() {
 		static $origin;
 		if (!$origin) {
-			$origin = self::addParam(BASE_URL, Request::gets());
+			$origin = self::addParam(BASE_URL, Request::getIgnore(array('CGAFSESS')));
 		}
 		return $origin;
 	}
@@ -227,7 +227,7 @@ class URLHelper {
 		}
 		return $retval;
 	}
-	public static function add($url, $path = null, $param = null, $replacer = null,$encode =true) {
+	public static function add($url, $path = null, $param = null, $replacer = null,$encode =false) {
 		if (!$url) {
 			$url = BASE_URL;
 		}

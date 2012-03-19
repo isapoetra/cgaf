@@ -1,21 +1,17 @@
+#IDE Related
+.*
+ !/.gitignore
+
 #temporary ignore
 /install/
 manifest/
 ogp
-.settings
-.buildpath
 tmp
 tmpl
-.project
-.svn
 thumbs.db
-.cache
-/info.php
-protected/.cache
-/assets/applications/
 daemons/
-.idea/
 /generate.php
+
 #temporary
 log
 sessions
@@ -25,4 +21,3 @@ config.php
 upload.php
 .upload
 userconfig/
-/nbproject/private/

@@ -12,6 +12,7 @@ class Menus extends Model {
 	/**
 	 * @FieldType varchar
 	 * @FieldLength 50
+	 * @FieldReference #__applications app_id no no
 	 *
 	 * @var String
 	 */
@@ -19,7 +20,6 @@ class Menus extends Model {
 	/**
 	 * @FieldType varchar
 	 * @FieldLength 150
-	 *
 	 * @var String
 	 */
 	public $caption;
@@ -83,7 +83,8 @@ class Menus extends Model {
 	public $xtarget;
 	/**
 	 * @FieldType int
-	 * @FieldLength 10
+	 * @FieldLength 11
+	 * @FieldAllowNull false
 	 * @FieldDefaultValue 0
 	 *
 	 * @var int
@@ -92,7 +93,7 @@ class Menus extends Model {
 	/**
 	 * @FieldType varchar
 	 * @FieldLength 45
-	 *
+	 * @FieldAllowNull false
 	 * @var String
 	 */
 	public $menu_class;
@@ -105,13 +106,16 @@ class Menus extends Model {
 	public $menu_tag;
 	function __construct() {
 		parent::__construct ( \CGAF::getDBConnection (), "menus", "menu_id,app_id", true, \CGAF::isInstalled () === false );
+		$this->setThrowOnError(false);
+		//$this->getConnection()->createDBObjectFromClass($this,'table',$this->getTableName(false,false));
 	}
 	function filterACL($o) {
+
 		if (is_object ( $o )) {
 			$acl = $this->getAppOwner ()->getACL ();
 			$type = null;
-		
-				
+			//pp($o);
+
 			$action = explode ( "/", $o->menu_action );
 			if (isset ( $action [1] )) {
 				$url = parse_url ( $action [1] );
@@ -123,7 +127,7 @@ class Menus extends Model {
 					return $o;
 				case 3:
 					$ctl = $this->getAppOwner ()->getController ( trim ( $action [0] ) );
-		
+
 					if ($ctl && $ctl->isAllow ( $access )) {
 						return $ctl->{$action[1]}($o);
 					}
@@ -133,8 +137,8 @@ class Menus extends Model {
 				case 1 :
 				default :
 					$type = "controller";
-					
-					
+						
+						
 					try {
 						$ctl = $this->getAppOwner ()->getController ( trim ( $action [0] ) );
 						if ($ctl && $ctl->isAllow ( $access )) {
@@ -159,7 +163,12 @@ class Menus extends Model {
 		return parent::filterACL ( $o );
 	}
 	function resetgrid($id = null) {
-		$this->setAlias ( 'm' )->reset ()->clear ( 'field' )->select ( 'm.*,st.value status_name' )->join ( 'vw_cms_defaultstatus', 'st', 'st.key=m.menu_state', 'inner', true )->orderby ( 'm.menu_state' );
+		$this->setAlias ( 'm' )
+		->reset ()
+		->clear ( 'field' )
+		->select ( 'm.*,st.value status_name' )
+		->join ( 'vw_cms_defaultstatus', 'st', 'st.key=m.menu_state', 'inner', true )
+		->orderby ( 'm.menu_state' );
 		return $this;
 	}
 }

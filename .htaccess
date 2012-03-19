@@ -82,7 +82,7 @@ AddType text/cache-manifest manifest
 	RewriteEngine On
 	#replace with your base url
 	#RewriteBase /
-	RewriteBase /cgaf/
+	RewriteBase /
 	RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
 	RewriteRule .* - [F]
 	RewriteRule .*\.git/.* - [F]
@@ -90,5 +90,6 @@ AddType text/cache-manifest manifest
 	RewriteCond %{REQUEST_FILENAME}   !sitemap\.xml
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d	
-	RewriteRule ^(.*)$ index.php?__url=$1 [L,QSA]	
+	RewriteRule ^(.*)$ index.php?__url=$1 [L,QSA]
+	RewriteRule .*\shared/.* - [F]
 </IfModule>

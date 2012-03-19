@@ -20,7 +20,7 @@ echo HTMLUtils::beginForm ( \URLHelper::add ( APP_URL, 'auth?__t=' . time (), ($
 		'class' => $cssClass,
 		'id' => 'login'
 ) );
-// echo '<input type="hidden" name="redirect" value="' . $redirect . '">';
+echo '<input type="hidden" name="redirect" value="' . urlencode($redirect) . '">';
 echo HTMLUtils::renderTextBox ( __ ( 'auth.user_name' ), 'username', null, 'class="required"', true ) . '<br/>';
 echo HTMLUtils::renderPassword ( __ ( 'auth.user_password' ), 'password', null, 'required class="required"', true );
 //echo HTMLUtils::renderCheckbox ( __ ( 'auth.remember' ), 'remember', false );
@@ -36,7 +36,7 @@ echo <<< EOT
 </div>
 EOT;
 echo '<div>';
-echo HTMLUtils::renderLink ( BASE_URL . 'user/forget/', __ ( 'auth.forgetpassword' ) );
+echo HTMLUtils::renderLink ( BASE_URL . 'user/forgetpassword/', __ ( 'auth.forgetpassword' ) );
 echo HTMLUtils::renderLink ( BASE_URL . 'user/register/', __ ( 'auth.register' ) );
 echo '</div>';
 echo '</div>';
@@ -64,11 +64,12 @@ if ($providers) {
 		newwindow.onclose = function() {
 			document.location.reload();
 		}
-		if (window.focus) {newwindow.focus()}
-		return false;
-			});
+		if (window.focus) {
+			newwindow.focus()}
+			return false;
+		});
 EOT;
-	$appOwner->addClientScript ( $script );
+	//$appOwner->addClientScript ( $script );
 	echo '<div class="auth-external-container">';
 	echo '<div class="ui-widget-header">' . __ ( 'auth.alternative' ) . '</div>';
 	foreach ( $providers as $provider ) {

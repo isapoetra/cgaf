@@ -36,7 +36,10 @@ class Person extends Model {
    * @var \DateTime
    */
   public $birth_date;
-
+	/**
+	 * @var bool
+	 */
+	public $isprimary=false;
   function __construct($connection) {
     parent::__construct(CGAF::getDBConnection(), 'persons', 'person_id', false, \CGAF::isInstalled() === false);
   }

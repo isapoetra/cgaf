@@ -15,10 +15,9 @@ class  DBReflectionClass extends \ReflectionClass {
 				continue;
 			}
 			$doc =new DBFieldDefs(\PHPDocHelper::parse ( $prop->getDocComment () ));
-			$doc->FieldName = $name;
-
+			$doc->FieldName = $name;			
 			$this->_fields[$name] = $doc;
-
+			
 			//$this->select ( $this->getConnection ()->parseFieldCreate ( $name, $type, $fLength, $defaultValue ) );
 		}
 		if ($argument instanceof Table) {

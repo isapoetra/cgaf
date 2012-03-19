@@ -41,7 +41,7 @@ ac.find('.action button').hide().click(function(e){
 		  	document.location = cgaf.getConfig('baseurl') + 'app/changelog/?appid=' + app;
 		  	break;
 			case 'open':
-				document.location = cgaf.getConfig('baseurl') + '/app/select/?appid=' + app;
+				document.location = cgaf.getConfig('baseurl') + '/?__appId=' + app;
 				break;
 		}
 		console.log(app,a);

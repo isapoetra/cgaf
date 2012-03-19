@@ -9,44 +9,44 @@ use System\DB\DBQuery;
 use System\Applications\WebApplication;
 use System\Session\Session;
 use System\DB\DB;
-
+use System\ACL\ACLHelper;
 
 class Install extends WebApplication {
 	private $_postError = array();
 	private $_steps = array(
-		array(
-			'title' => 'File/Folder Permissions'
-		),
-		array(
-			'title' => 'Database',
-			'defaults' => array(
-				'db_type' => 'mysql',
-				'db_host' => 'localhost',
-				'db_user' => 'root',
-				'db_password' => 'sample',
-				'db_database' => 'cgaf',
-				'db_table_prefix' => ''
+			array(
+					'title' => 'File/Folder Permissions'
+			),
+			array(
+					'title' => 'Database',
+					'defaults' => array(
+							'db_type' => 'mysql',
+							'db_host' => 'localhost',
+							'db_user' => 'root',
+							'db_password' => 'sample',
+							'db_database' => 'cgaf',
+							'db_table_prefix' => ''
+					)
+			),
+			array(
+					'title' => 'Admin User',
+					'defaults' => array(
+							'user_name' => 'admin',
+							'user_password' => ''
+					)
+			),
+			array(
+					'title' => 'Access Controll',
+					'defaults' => array(
+							'acl_public' => true
+					)
+			),
+			array(
+					'title' => 'Confirm'
+			),
+			array(
+					'title' => 'Finish'
 			)
-		),
-		array(
-			'title' => 'Admin User',
-			'defaults' => array(
-				'user_name' => 'admin',
-				'user_password' => ''
-			)
-		),
-		array(
-			'title' => 'Access Controll',
-			'defaults' => array(
-				'acl_public' => true
-			)
-		),
-		array(
-			'title' => 'Confirm'
-		),
-		array(
-			'title' => 'Finish'
-		)
 	);
 
 	function __construct() {
@@ -70,13 +70,13 @@ class Install extends WebApplication {
 			$info = new \stdClass ();
 			$info->app_id = \CGAF::APP_ID;
 			$info->app_descr
-				= 'CGAF Installer';
+			= 'CGAF Installer';
 			$info->app_name = 'CGAFInstaller';
 			$info->app_id =
-				'CGAF Installer';
+			'CGAF Installer';
 			$info->app_version = CGAF_VERSION;
 			$this->_appInfo =
-				$info;
+			$info;
 		}
 		return $this->_appInfo;
 	}
@@ -84,26 +84,68 @@ class Install extends WebApplication {
 	private function isValidStep($step, $defaults) {
 		$post = Session::get('install.postedvalues');
 		$vstep = isset ($post
-		['step_' . $step]) ? $post ['step_' . $step] : array();
+				['step_' . $step]) ? $post ['step_' . $step] : array();
 		$vstep =
-			\Utils::arrayMerge($defaults, $vstep);
+		\Utils::arrayMerge($defaults, $vstep);
 		// $vstep = $defaults;
 		switch (( int )$step) {
 			case 0:
 				$rowner = \System::getCurrentUser();
 				$dirs = array(
-					array(
-						\CGAF::getInternalStorage('.cache', false),
-						'0770',
-						$rowner['username'],
-						$rowner['groups']
-					)
+						array(
+								\CGAF::getConfig('errors.error_log', \CGAF::getInternalStorage('log', false, true, 0770) . DS),
+								'0770',
+								$rowner['username'],
+								$rowner['groups'],
+								'Log Path'
+						),
+						array(
+								CGAF_PATH . 'config.php',
+								'0770',
+								$rowner['username'],
+								$rowner['groups'],
+								'Session Path'
+						),
+						array(
+								Session::getInstance()->getConfig('save_path'),
+								'0770',
+								$rowner['username'],
+								$rowner['groups'],
+								'Session Path'
+						),
+						array(
+								\CGAF::getInternalStorage('.cache', false),
+								'0770',
+								$rowner['username'],
+								$rowner['groups'],
+								'Internal Cache Path'
+						),
+						array(
+								\CGAF::getInternalStorage('persons', false),
+								'0770',
+								$rowner['username'],
+								$rowner['groups'],
+								'Internal Cache Path'
+						),
+						array(
+								CGAF_LIB_PATH.'google/google-api-php-client/src/local_config.php',
+								'0770',
+								$rowner['username'],
+								$rowner['groups'],
+								'Log Path'
+						),
 				);
+				$this->assign('dirs', $dirs);
 				foreach ($dirs as $d) {
 					$p = new FileInfo($d[0]);
 					if ($p->perms['octal2'] !== $d[1]) {
 						$this->_postError['__common'] = isset($this->_postError['__common']) ? $this->_postError['__common'] : '';
-						$this->_postError['__common'] .= $d[0] . ' actual ' . $p->perms['octal2'] . ' required ' . $d[1];
+						if ($this->isValidToken()) {
+							\Utils::changeFileMode($d[0], $d[1], true);
+							$this->_postError['__common'] .= 'unable to change permission please run <i>sudo chmod ' . $d[1] . ' ' . $d[0] . '</i>';
+						}
+
+
 					}
 				}
 				break;
@@ -122,13 +164,13 @@ class Install extends WebApplication {
 				}
 				try {
 					$con = DB::connect(array(
-					                        'host' => $vstep ['db_host'],
-					                        'type' => $vstep ['db_type'],
-					                        'database' => $vstep ['db_database'],
-					                        'username' => $vstep['db_user'],
-					                        'password' => $vstep ['db_password'],
-					                        'table_prefix ' => $vstep ['db_table_prefix']
-					                   ));
+							'host' => $vstep ['db_host'],
+							'type' => $vstep ['db_type'],
+							'database' => $vstep ['db_database'],
+							'username' => $vstep['db_user'],
+							'password' => $vstep ['db_password'],
+							'table_prefix ' => $vstep ['db_table_prefix']
+					));
 				} catch (\Exception $e) {
 					$this->_postError ['__common'] = $e->getMessage();
 				}
@@ -160,11 +202,11 @@ class Install extends WebApplication {
 		if ($_POST) {
 			$cpost = $_POST;
 			\UTIls::arrayRemove($cpost, array(
-			                                 '__token',
-			                                 'nstep',
-			                                 'step',
-			                                 'next'
-			                            ));
+					'__token',
+					'nstep',
+					'step',
+					'next'
+			));
 			$npost = Session::get('install.postedvalues', array());
 			$npost['step_' . $step] = $cpost;
 			Session::set('install.postedvalues', $npost
@@ -173,7 +215,7 @@ class Install extends WebApplication {
 		$isvalid = true;
 		for ($i = 0; $i <= $step; $i++) {
 			if (!$this->isValidStep($i, isset ($steps [$i] ['defaults']) ? $steps
-			[$i] ['defaults'] : array())
+					[$i] ['defaults'] : array())
 			) {
 				$isvalid = false;
 				$step = $i;
@@ -188,7 +230,7 @@ class Install extends WebApplication {
 			if (!isset ($_POST ['__confirm'])) {
 				$this->_postError [] = 'Please Confirm installation';
 				$step = count(
-					$steps) - 2;
+						$steps) - 2;
 			} else {
 				$installConfirm = true;
 			}
@@ -199,10 +241,9 @@ class Install extends WebApplication {
 			$step = 0;
 		}
 		$posted = Session::get('install.postedvalues', array());
-		$posted
-		['step_' . $step] = isset ($posted ['step_' . $step]) ? $posted ['step_' .
-			$step] : (isset ($steps [$step] ['defaults']) ? $steps [$step]
-		['defaults'] : array());
+		$posted['step_' . $step] = isset ($posted ['step_' . $step]) ?
+		$posted ['step_' . $step] :
+		(isset ($steps [$step] ['defaults']) ? $steps [$step]	['defaults'] : array());
 		$this->assign('cstep', $step);
 		$this->assign('nstep', $step + 1);
 		$this->assign('posterror', $this->_postError);
@@ -216,7 +257,7 @@ class Install extends WebApplication {
 				$spost = isset ($posted ['step_' . $k]) ? $posted ['step_' . $k] : array();
 				if ($spost) {
 					switch ($k) {
-						case 0 :
+						case 1 :
 							$db = array();
 							foreach ($spost as $kk => $vv) {
 								$db [substr($kk, 3)] = $vv;
@@ -230,26 +271,26 @@ class Install extends WebApplication {
 			$con = DB::Connect($gconf->getConfigs('db'));
 			$installlog [] = 'Installing Default Model';
 			$init = array(
-				'session' => 'session',
-				'applications' => 'application',
-				'roles' => 'roles',
-				'persons' => 'person',
-				'user_external' => 'userexternal',
-				'companies' => 'companies',
-				'user_companies' => 'usercompanies',
-				'lookup' => 'lookup',
-				'users' => 'user',
-				'user_roles' => 'userroles',
-				'role_privs' => 'roleprivs',
-				'user_privs' => 'userprivs',
-				'menus' => 'menus',
-				'syskeys' => 'syskeys',
-				'sysvals' => 'sysvals',
-				'comment' => 'comment',
-				'contents' => 'contents',
-				'modules' => 'modules',
-				'recentlog' => 'recentlog',
-				'modules' => 'modules'
+					'session' => 'session',
+					'applications' => 'application',
+					'roles' => 'roles',
+					'persons' => 'person',
+					'user_external' => 'userexternal',
+					'companies' => 'companies',
+					'user_companies' => 'usercompanies',
+					'lookup' => 'lookup',
+					'users' => 'user',
+					'user_roles' => 'userroles',
+					'role_privs' => 'roleprivs',
+					'user_privs' => 'userprivs',
+					'menus' => 'menus',
+					'syskeys' => 'syskeys',
+					'sysvals' => 'sysvals',
+					'comment' => 'comment',
+					'contents' => 'contents',
+					'modules' => 'modules',
+					'recentlog' => 'recentlog',
+					'modules' => 'modules'
 			);
 			$q = new DBQuery (CGAF::getDBConnection());
 			foreach ($init as $k => $v) {
@@ -262,18 +303,21 @@ class Install extends WebApplication {
 				}
 			}
 
-			$s = $posted ['step_1'];
+			$s = $posted ['step_2'];
 			$sql = array();
-			$sql [] = 'INSERT INTO   `#__users` (`user_id`,`user_name`,`user_password`,`person_id`,`user_status`,`user_state`) VALUES (' . $q->quote('1')
-				. ',' . $q->quote($s ['user_name']) . ',' . $q->quote($this->getAuthentificator()->encryptPassword($s['user_password']))
-				. ',1,1,1)';
-			$sql [] = 'INSERT INTO `#__user_roles`     			VALUES (3, ' . $q->quote(\CGAF::APP_ID) . ', 1, 1)';
-			$sql [] = 'INSERT INTO `#__persons` (`person_id`,`first_name`) VALUES (1, ' . $q->quote('Administrators') . ')';
+			$sql [] = 'INSERT INTO   `#__users` (`user_id`,`user_name`,`user_password`,`user_status`,`user_state`) VALUES (' . $q->quote('1')
+			. ',' . $q->quote($s ['user_name']) . ',' . $q->quote($this->getAuthentificator()->encryptPassword($s['user_password']))
+			. ',1,1)';
+			//TODO Configurable from install, Default as developer
+			$sql [] = 'INSERT INTO `#__user_roles`     			VALUES (2,' . $q->quote(\CGAF::APP_ID) . ', 1, 1)';
+			$sql [] = 'INSERT INTO `#__persons` (`person_id`,`first_name`,person_owner,isprimary) VALUES (1, ' . $q->quote('Administrators') . ',1,true)';
 			$q->exec($sql);
 			$this->assign('installlog', $installlog);
-			Session::remove('install.postedvalues');
+
 			$gconf->setConfig('cgaf.installed', true);
-			$gconf->save(CGAF_PATH . 'config.php');
+			if ($gconf->save(CGAF_PATH . 'config.php')) {
+				Session::remove('install.postedvalues');
+			}
 			\Response::Redirect(\URLHelper::add(BASE_URL, null, '__appId=' . \CGAF::APP_ID));
 		}
 		return parent::RUN();

@@ -1,48 +1,48 @@
 <?php
-namespace System\Captcha;
-use System\Documents\Image;
 
-abstract class AbstractCaptcha extends Image implements ICaptchaRenderer {
-	protected $_container;
-	protected $_image;
-	private $_code;
-	function __destruct() {
-		if ($this->_image) {
-			@imagedestroy($this->_image);
-		}
-	}
-	function __construct(ICaptchaContainer $container) {
-		$this->_container = $container;
+/**
+ * AbstractCaptcha.php
+ * User: e1
+ * Date: 3/16/12
+ * Time: 12:13 AM
+ */
+namespace System\Captcha;
+use \System\Configurations\Configuration;
+use System\Applications\IApplication;
+
+abstract class AbstractCaptcha extends \BaseObject implements ICaptcha {
+	/**
+	 * @var \System\Applications\IApplication
+	 */
+	protected $_appOwner;
+	/**
+	 * @var Configuration $_configs;
+	 */
+	private $_configs;
+	private $_prefix;
+	protected $_errorMessage = null;
+	private $_defaultConfigs;
+	function __construct($prefix, IApplication $appOwner,$defaultConfig = array()) {
+		$this->_appOwner = $appOwner;
+		$this->_prefix = $prefix;
+		$this->_defaultConfigs = $defaultConfig;
 		$this->_initialize();
 	}
+
 	protected function _initialize() {
-	}
-	protected function getOptions() {
-		return $this->_container->getConfigs();
-	}
-	/**
-	 * @param unknown_type $code
-	 */
-	public function setCode($code) {
-		$this->_code = $code;
+		$configs = $this->_appOwner->getConfigInstance()->getConfigs('captcha.' . $this->_prefix, $this->_defaultConfigs);
+		if (!$configs) {
+			$configs = \CGAF::getConfigs('captcha.' . $this->_prefix, array());
+		}
+		$this->_configs = new Configuration($configs, false);
 	}
 
-	protected function getCode() {
-		return $this->_code;
-	}
-	function __get($name) {
-		$retval = $this->_container->getConfig($name);
-		return $retval == null ? parent::__get($name) : $retval;
-	}
-	function getWidth() {
-		return $this->getConfig('width');
+	function setConfig($configName, $value) {
+		$this->_configs->setConfig($configName, $value);
 	}
 
-	function getHeight() {
-		return $this->getConfig('height');
-	}
+	function getConfig($configName, $default = null) {
 
-	function getConfig($name, $def = null) {
-		return $this->_container->getConfig($name, $def);
+		return $this->_configs->getConfig($configName, $default);
 	}
 }

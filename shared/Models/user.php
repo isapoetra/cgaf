@@ -87,9 +87,10 @@ class User extends ExtModel {
 		$this->clear ( 'all' );
 		$this->select ( 'vw.*' );
 		$this->addTable ( 'vw_userinfo', 'vw', true );
-		$this->where ( 'vw.user_state=1' );
+		if (!$this->getAppOwner()->getACL()->isInRole(\System\ACL\ACLHelper::DEV_GROUP)) {
+			$this->where ( 'vw.user_state=1' );
+		}
 		$this->where ( 'vw.user_id = ' . $this->quote ( $id ) );
-		// ppd($this->getSQL());
 		return $this->loadObject ();
 	}
 	function reset($mode = null, $id = null) {
@@ -133,6 +134,14 @@ class User extends ExtModel {
 		// true);
 		$this->where ( 'u.user_name=' . $this->quote ( $id ) );
 		return $this->loadObject ();
+	}
+	function loadByExternalId($id,$ext) {
+		$this->setAlias ( 'u' );
+		$this->clear ();
+		$this->join('user_external','ux','u.user_id=ux.userid')
+		->Where('ux.extid='.$this->quote($id))
+		->where('ux.exttype='.$this->quote($ext));
+		return $this->loadObject();
 	}
 	function loadListEmail() {
 		$this->setAlias ( 'u' );

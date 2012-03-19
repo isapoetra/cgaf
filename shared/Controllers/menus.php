@@ -1,11 +1,23 @@
 <?php
 namespace System\Controllers;
 use System\MVC\Controller;
-class MenusController extends Controller {
+
+/**
+ * Menus Controller
+ */
+class Menus extends Controller {
+	/**
+	 * @return bool
+	 */
 	function Initialize() {
-		parent::Initialize();
-		$this->setModel('menus');
+		if (parent::Initialize()) {
+			$this->setModel('menus');
+		}
+		return true;
 	}
+	/**
+	 * @return string
+	 */
 	function Index() {
 		return parent::render();
 	}

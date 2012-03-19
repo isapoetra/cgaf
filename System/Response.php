@@ -1,18 +1,20 @@
 <?php
+use System\MVC\MVCHelper;
+
 use System\Exceptions\SystemException;
 final class Response {
 	private static $_initialized = false;
-  /**
-   * @var IResponse
-   */
+	/**
+	 * @var IResponse
+	 */
 	private static $_instance = null;
 	private static $_flushed = false;
 
-  /**
-   * @static
-   * @return IResponse
-   * @throws System\Exceptions\SystemException
-   */
+	/**
+	 * @static
+	 * @return IResponse
+	 * @throws System\Exceptions\SystemException
+	 */
 	public static function getInstance() {
 		if (self::$_instance == null) {
 			//using('System.'.CGAF_CONTEXT.".Response");
@@ -57,6 +59,23 @@ final class Response {
 		return self::getInstance()->forceContentExpires();
 	}
 	public static function Redirect($url = null) {
+		$parsed =MVCHelper::parse($url);
+		$instance =AppManager::getInstance();
+		try {
+			$c = $instance->getController($parsed['_c']);
+			if (!$c->isAllow($parsed['_a'])) {
+				if (!$c->isAllow('index')) {
+					$parsed['_a'] = 'index';
+				}else{
+					$parsed['_c'] = 'home';
+					$parsed['_a'] = 'index';
+				}
+			}
+		}catch(\Exception $e){
+			$parsed['_c'] = 'home';
+			$parsed['_a'] = 'index';
+		}
+		$url=MVCHelper::toCGAFUrl($parsed);
 		return self::getInstance()->Redirect($url);
 	}
 	public static function JSON($code, $message, $redirect = null) {

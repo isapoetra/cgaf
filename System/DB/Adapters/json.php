@@ -45,7 +45,7 @@ class JSON extends DBConnection {
     }
     $path = \Utils::toDirectory($this->getArg('host') . $this->getArg('database') . DS);
     if (!is_dir($path)) {
-      $this->throwError(new DBException ('Host Not Foudn'));
+      throw new DBException ('Host Not Found ' .(CGAF_DEBUG ? " [$path]" : ''));
     }
     $this->_path = $path;
   }

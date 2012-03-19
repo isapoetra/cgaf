@@ -4,7 +4,7 @@ use System\Web\JS\JSUtils;
 use System\MVC\Application;
 use Utils, CGAF, Request, System\Web\JS\CGAFJS;
 use System\Exceptions\AssetException;
-use System\Applications\IWebApplication;
+use System\Applications\IApplication;
 abstract class AbstractJSEngine implements \IJSEngine {
 	protected $_appOwner;
 	protected $_info;
@@ -13,7 +13,7 @@ abstract class AbstractJSEngine implements \IJSEngine {
 	protected $_searchPath;
 	protected $_useui;
 	protected $_defaultVersion;
-	function __construct(Application $appOwner, $baseConfig, $defaultVersion, $defaultCompat = null) {
+	function __construct(IApplication $appOwner, $baseConfig, $defaultVersion, $defaultCompat = null) {
 		$this->_appOwner = $appOwner;
 		$this->_baseConfig = $baseConfig;
 		$this->_defaultVersion = $defaultVersion;
@@ -92,7 +92,7 @@ abstract class AbstractJSEngine implements \IJSEngine {
 	}
 	protected function initJQuery() {
 	}
-	function initialize(IWebApplication &$app) {
+	function initialize(IApplication &$app) {
 		if (Request::isAJAXRequest ())
 			return;
 		//$appOwner = $this->_appOwner;

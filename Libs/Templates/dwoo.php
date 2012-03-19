@@ -1,4 +1,6 @@
 <?php
+use System\Applications\IApplication;
+
 defined("CGAF") or die("Restricted Access");
 require "dwoo/Dwoo.php";
 
@@ -12,7 +14,7 @@ class DwooCGAF extends dwoo implements ITemplate {
 	 *
 	 * @param IApplication $appOwner
 	 */
-	function __construct($appOwner) {
+	function __construct(IApplication $appOwner) {
 		parent::__construct();
 		$this->_appOwner = $appOwner;
 		$this->initialize();
@@ -129,7 +131,24 @@ class DwooCGAF extends dwoo implements ITemplate {
 	}
 
 
-}
+	/**
+	 *
+	 * Enter description here ...
+	 *
+	 * @param string $dir
+	 */
+	public function setCompileDir($dir) {
+		// TODO: Implement setCompileDir() method.
+	}
+
+	/**
+	 *
+	 * Enter description here ...
+	 * @param string $dir
+	 */
+	public function setCacheDir($dir) {
+		// TODO: Implement setCacheDir() method.
+	}}
 
 function dwooAutoload($class) {
 	if (String::BeginWith($class, 'Dwoo_')) {

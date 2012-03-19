@@ -16,7 +16,7 @@ class TWebHTML implements IRenderable {
 		Response::write($this->_tag, $this, $this->attr);
 	}
 
-	function Render () {
+	function Render($return=true)  {
 		$this->RenderBeginTag();
 	}
 }

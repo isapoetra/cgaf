@@ -1,14 +1,17 @@
 <?php
 namespace System\Auth\Providers;
-use System\Session\Session;
 use System\Auth\BaseAuthProvider;
 use System\Auth\Auth;
+use System\Applications\IApplication;
 using ( 'Libs.Google' );
 class Google extends BaseAuthProvider {
 	private $_client;
 	private $_oauth;
-	private $_remoteUser;
+	function __construct(IApplication $appOwner) {
+		parent::__construct($appOwner,'google');
+	}
 	function Initialize() {
+		parent::Initialize();
 		if (! function_exists ( 'curl_init' )) {
 			\System::loadExtenstion ( 'php_curl' );
 			if (! function_exists ( 'curl_init' )) {
@@ -16,43 +19,60 @@ class Google extends BaseAuthProvider {
 				return false;
 			}
 		}
+
 		// https://code.google.com/apis/console/
-		$this->_client = $client = \GoogleAPI::getAuthInstance ();
-		$this->_oauth = $oauth2 = \GoogleAPI::getOAuth2Instance ( $this->_client );
+		$client = \GoogleAPI::getAuthInstance ();	
+		
+		$auth =\GoogleAPI::getOAuth2Instance();
+		//$token = $this->getFromSession('token');
+		
+		
+		//$plus = \GoogleAPI::getPlusService();
 		if (isset ( $_GET ['code'] )) {
 			try {
 				$client->authenticate ();
-				Session::set ( 'auth.google.token', $this->_client->getAccessToken () );
-				$this->setState ( Auth::NEED_CONFIRM_LOCAL_STATE );
-			} catch ( \Exception $e ) {
+				$this->setToSession('token', $client->getAccessToken());	
+				\Response::Redirect(\URLHelper::add(APP_URL,'/auth/external?id=google'));			
+			} catch ( \Exception $e ) {				
+				$this->setState(Auth::ERROR_STATE);
 				$this->setLastError ( $e->getMessage () );
-				return false;
 			}
 			return true;
-		}
-		$token = Session::get ( 'auth.google.token' );
+		}	
+		$token = $this->getFromSession('token');
 		if ($token) {
-			$this->_client->setAccessToken ( $token );
+			$client->setAccessToken($token);
 			$this->setState ( Auth::NEED_CONFIRM_LOCAL_STATE );
-		} else {
-			$this->_client->authenticate ();
+		}		
+		if ($client->getAccessToken()) {
+			$this->setToSession('token', $client->getAccessToken());
+		}else{
+			$client->authenticate();
 		}
 		return true;
 	}
 	function getRemoteUser() {
-		if ($this->_client->getAccessToken ()) {
-			$user = $this->_oauth->userinfo->get ();
-			$retval = new \stdClass ();
-			$retval->id = $user ['id'];
-			$retval->profilelink = $user ['link'];
-			$retval->name = $user ['name'];
-			$retval->birth_date = $user ['birthday'];
-			$retval->email = $user ['email'];
-			$retval->gender = $user ['gender'];
-			return $retval;
+		$token = \GoogleAPI::getAuthInstance ()->getAccessToken();
+		if ($token) {
+			if (!$this->_remoteUser) {
+				$user = \GoogleAPI::getOAuth2Instance()->userinfo->get ();
+				$retval = new \stdClass ();
+				$retval->__ori = $user;
+				$retval->id = $user ['id'];
+				$retval->profilelink = $user ['link'];
+				$retval->name = $user ['name'];
+				$retval->birth_date = $user ['birthday'];
+				$retval->email = $user ['email'];
+				$retval->gender = $user ['gender'];
+				$retval->first_name=$user['given_name'];
+				$retval->last_name = $user['family_name'];
+				parent::setRemoteUser($retval);
+			}
 		}
+		return $this->_remoteUser;
 	}
+
 	function getLogoutUrl() {
-		return $this->_client->createAuthUrl ();
+		return  \GoogleAPI::getAuthInstance ()->createAuthUrl ();
 	}
 }

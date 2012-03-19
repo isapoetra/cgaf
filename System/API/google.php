@@ -1,6 +1,9 @@
 <?php
 namespace System\API;
 // TODO move to System.Web.JS.API
+using ( 'Libs.Google' );
+use System\Auth\Auth;
+
 use System\Web\JS\CGAFJS;
 use System\Web\Utils\HTMLUtils;
 use System\JSON\JSON;
@@ -12,6 +15,31 @@ class google extends PublicApi {
 		$this->_apijs = array (
 				'plusone' => \URLHelper::getCurrentProtocol () . '://apis.google.com/js/plusone.js'
 		);
+	}
+	function getUserInfo($id) {
+		$retval = new \stdClass();
+		$retval->valid=true;
+		$instance = Auth::getProviderInstance('google');
+		$client = \GoogleAPI::getAuthInstance();
+		$retval->loginURL= $client->createAuthUrl();
+		
+		if ($client->getAccessToken()) {
+			$plus = \GoogleAPI::getPlusService();	
+			try {		
+				$people =new \stdClass();  
+				\Utils::toObject($plus->people->get($id),$people);
+				$retval->displayName =  $people->displayName;
+				$retval->profileURL = $people->url;				
+				$retval->imageURL = ($people->image ?$people->image['url'] : null);
+				//$retval->activities = $plus->activities->listActivities('me', 'public');
+			}catch (\Exception $e) {
+				$retval->valid=false;
+				$retval->_error = $e->getMessage();
+			}
+		}else{
+			$retval->valid = false;
+		}		
+		return $retval;
 	}
 	public function plusOne($size = 'small') {
 		$size = $size ? $size : 'small';

@@ -1,12 +1,16 @@
 <?php
+defined('CGAF') or die();
+using ( "Libs.PDF.*" );
 using ( "Libs.Zend" );
 using ( 'zend.Pdf' );
+if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
+	define('K_TCPDF_EXTERNAL_CONFIG',true);
+}
 class PDF extends Zend_Pdf  {
 	private $_fname;
 	function __construct($fname,$edit=false) {
 		$this->_fname = $fname;
 		parent::__construct($fname,null,true);
-
 	}
 	/**
 	 *

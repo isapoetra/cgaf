@@ -10,6 +10,11 @@
 								"title" : "Manage Applications",
 								"action" : "app/manage",
 								"icon" : "icons/manage/user.png"
+						},
+						{
+								"title" : "Manage Menus",
+								"action" : "menus/manage",
+								"icon" : "icons/manage/menus.png"
 						}
 				]
 }

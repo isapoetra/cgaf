@@ -21,7 +21,7 @@ class DBFieldDefs {
 				}
 			}
 		
-		}
+		}		
 	}
 	function __set($name, $value) {
 		$name = strtolower ( $name );

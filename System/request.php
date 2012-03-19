@@ -26,8 +26,14 @@ abstract class Request {
 		}
 		return self::$_instance;
 	}
-	public static function gets($place = null, $secure = true, $ignoreEmpty = false) {
-		return self::getInstance()->gets($place, $secure, $ignoreEmpty);
+	public static function gets($place = null, $secure = true, $ignoreEmpty = false,$outArray=true) {
+		$retval =self::getInstance()->gets($place, $secure, $ignoreEmpty);
+		if ($outArray) {
+			return $retval;
+		}
+		$o= new \stdClass();
+		\Convert::toObject($retval, $o,true);
+		return $o;
 	}
 	public static function getIgnore($ignored, $secure = true, $place = null) {
 		$req = self::gets($place, $secure, true);

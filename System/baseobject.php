@@ -163,6 +163,7 @@ class BaseObject extends \stdClass implements IObject, IEventDispatcher {
 
   protected function setLastError($value) {
     $this->_lastError = $value;
+	  return false;
   }
 
   public function getLastError() {

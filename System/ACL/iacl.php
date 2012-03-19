@@ -12,9 +12,9 @@ interface IACL {
 	function isAllow($id, $group, $access = "view", $userid = null);
 	/**
 	 * Enter description here ...
-	 * @param unknown_type $o
-	 * @param unknown_type $aclgroup
-	 * @param unknown_type $field
+	 * @param string $o
+	 * @param string $aclgroup
+	 * @param mixed $field
 	 * @return array
 	 */
 	function filter($o, $aclgroup, $field);
@@ -26,5 +26,7 @@ interface IACL {
   function clearCache();
   function getUserId();
   public function isInRole($role);
+	function assignRole($uid, $roleId) ;
+	function revokeFromRole($objectId,$objectGroup,$appId,$roleId,$access='view');
 }
 ?>

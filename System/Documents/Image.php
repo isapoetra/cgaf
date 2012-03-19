@@ -1,8 +1,10 @@
 <?php
 namespace System\Documents;
+use \System\Exceptions\IOException;
 use System\Exceptions\SystemException;
 
 use \Utils;
+
 class Image extends \BaseObject {
 	private $_file;
 	private $_watermark;
@@ -12,98 +14,156 @@ class Image extends \BaseObject {
 	private $_outputHeight;
 	private $_overwrite = false;
 	private $_watermarkConfig = array(
-			'sizePercent' => 20,
-			'top' => null,
-			'left' => null,
-			'position' => 'bottom-right');
-	function __construct($f) {
+		'sizePercent' => 20,
+		'top' => null,
+		'left' => null,
+		'position' => 'bottom-right');
+
+	function __construct($f=null) {
+		\System::loadExtenstion('gd');
 		$this->_file = $f;
 	}
+
 	function setOverwrite($value) {
 		$this->_overwrite = $value;
 	}
+
 	function addWatermark($p) {
 		$this->_watermark = Utils::ToDirectory($p);
 		return $this;
 	}
+
 	function setWatermarkSizePercent($value) {
 		$this->_watermarkConfig['sizePercent'] = $value;
 	}
+
 	function setWatermarkPosition($pos) {
 		$this->_watermarkConfig['position'] = $pos;
 	}
+
 	function setWatermarkLocation($top, $left) {
 		$this->_watermarkConfig['top'] = $top;
 		$this->_watermarkConfig['left'] = $top;
 	}
-	function getImage($file) {
+
+	function getImage($file,$w=0,$h=0) {
 		$ext = Utils::getFileExt($file, false);
+		$exists = is_file($file);
 		switch ($ext) {
-		case 'png':
-			$im = @imagecreatefrompng($file);
-			break;
-		case 'jpeg':
-		case 'jpg':
-			$im = @imagecreatefromjpeg($file);
-			break;
-		case 'gif':
-			$im = imagecreatefromgif($file);
-			break;
-		default:
-			ppd($ext);
+			case 'png':
+				if ($exists) {
+					$im = @imagecreatefrompng($file);
+				}elseif($w && $h) {
+					$im = imagecreatetruecolor($w,$h);
+					$transparent = imagecolorallocatealpha($im, 0, 0, 0, 127);
+					//imagealphablending($im, true);
+					imagesavealpha($im, true);
+					imagefill($im, 0, 0, $transparent);
+				}
+
+				break;
+			case 'jpeg':
+			case 'jpg':
+				$im = @imagecreatefromjpeg($file);
+				break;
+			case 'gif':
+				$im = imagecreatefromgif($file);
+				break;
+			default:
+				ppd($ext);
 		}
 		if (!$im) {
 			throw new SystemException('unable to open image' . $file);
 		}
-		imagealphablending($im, true);
 		return $im;
 	}
-	function ImageCopyResampleBicubic(&$dst_img, &$src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h) {
-		ImagePaletteCopy($dst_img, $src_img);
-		$rX = $src_w / $dst_w;
-		$rY = $src_h / $dst_h;
-		$w = 0;
-		for ($y = $dst_y; $y < $dst_h; $y++) {
-			$ow = $w;
-			$w = round(($y + 1) * $rY);
-			$t = 0;
-			for ($x = $dst_x; $x < $dst_w; $x++) {
-				$r = $g = $b = 0;
-				$a = 0;
-				$ot = $t;
-				$t = round(($x + 1) * $rX);
-				for ($u = 0; $u < ($w - $ow); $u++) {
-					for ($p = 0; $p < ($t - $ot); $p++) {
-						$c = ImageColorsForIndex($src_img, ImageColorAt($src_img, $ot + $p, $ow + $u));
-						$r += $c['red'];
-						$g += $c['green'];
-						$b += $c['blue'];
-						$a++;
-					}
+
+	function imageCopyResampleBicubic(&$dst_img, &$src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h) {
+		$scaleX = ($src_w - 1) / $dst_w;
+		$scaleY = ($src_h - 1) / $dst_h;
+
+		$scaleX2 = $scaleX / 2.0;
+		$scaleY2 = $scaleY / 2.0;
+
+		$tc = imageistruecolor($src_img);
+
+		for ($y = $src_y; $y < $src_y + $dst_h; $y++)
+		{
+			$sY = $y * $scaleY;
+			$siY = (int)$sY;
+			$siY2 = (int)$sY + $scaleY2;
+
+			for ($x = $src_x; $x < $src_x + $dst_w; $x++)
+			{
+				$sX = $x * $scaleX;
+				$siX = (int)$sX;
+				$siX2 = (int)$sX + $scaleX2;
+
+				if ($tc) {
+					$c1 = imagecolorat($src_img, $siX, $siY2);
+					$c2 = imagecolorat($src_img, $siX, $siY);
+					$c3 = imagecolorat($src_img, $siX2, $siY2);
+					$c4 = imagecolorat($src_img, $siX2, $siY);
+
+					$r = (($c1 + $c2 + $c3 + $c4) >> 2) & 0xFF0000;
+					$g = ((($c1 & 0xFF00) + ($c2 & 0xFF00) + ($c3 & 0xFF00) + ($c4 & 0xFF00)) >> 2) & 0xFF00;
+					$b = ((($c1 & 0xFF) + ($c2 & 0xFF) + ($c3 & 0xFF) + ($c4 & 0xFF)) >> 2);
+
+					imagesetpixel($dst_img, $dst_x + $x - $src_x, $dst_y + $y - $src_y, $r + $g + $b);
 				}
-				ImageSetPixel($dst_img, $x, $y, ImageColorClosest($dst_img, $r / $a, $g / $a, $b / $a));
+				else
+				{
+					$c1 = imagecolorsforindex($src_img, imagecolorat($src_img, $siX, $siY2));
+					$c2 = imagecolorsforindex($src_img, imagecolorat($src_img, $siX, $siY));
+					$c3 = imagecolorsforindex($src_img, imagecolorat($src_img, $siX2, $siY2));
+					$c4 = imagecolorsforindex($src_img, imagecolorat($src_img, $siX2, $siY));
+
+					$r = ($c1['red'] + $c2['red'] + $c3['red'] + $c4['red']) << 14;
+					$g = ($c1['green'] + $c2['green'] + $c3['green'] + $c4['green']) << 6;
+					$b = ($c1['blue'] + $c2['blue'] + $c3['blue'] + $c4['blue']) >> 2;
+
+					imagesetpixel($dst_img, $dst_x + $x - $src_x, $dst_y + $y - $src_y, $r + $g + $b);
+				}
 			}
 		}
 	}
+
 	private function _outputImage($img, $fout, $q) {
 		$ext = Utils::getFileExt($fout, false);
 		switch (strtolower($ext)) {
-		case 'png':
-		//imagealphablending($img,FALSE);
-			return imagepng($img, $fout, ($q - 100) / 11.111111);
-		case 'gif':
-			return imagegif($img, $fout);
-		case 'jpeg':
-		case 'jpg':
-			return imagejpeg($img, $fout, $q);
+			case 'png':
+				imagealphablending($img, FALSE);
+				return imagepng($img, $fout, ($q - 100) / 11.111111);
+			case 'gif':
+				return imagegif($img, $fout);
+			case 'jpeg':
+			case 'jpg':
+				return imagejpeg($img, $fout, $q);
 		}
 		return false;
 	}
+
+	function resize($size, $f) {
+
+		if (strpos($size, 'x') !== false) {
+			$s = explode('x', $size);
+			$w = $s[0];
+			$h = $s[1];
+		} else {
+
+			//TODO Validate
+			return null;
+		}
+		return $this->resizeImage($this->_file, $f, $w, $h);
+	}
+
+
 	function resizeImage($file, $out, $w, $h) {
 		$source = $this->getImage($file);
 		$ori = getimagesize($file);
 		$ws = $ori[0];
 		$hs = $ori[1];
+
 		\Utils::makeDir(dirname($out));
 		if ($ws > $w && $hs > $h) {
 			$aspect = $ws / $hs;
@@ -138,81 +198,90 @@ class Image extends \BaseObject {
 				}
 			} else {
 				$dest = imagecreatetruecolor($ws, $hs);
-				imagecopy($dest, $source, 0, 0, 0, 0, $ws, $hs);
+				imagecopy($dest, $source, 0, 0, 0, 0, $ws, $hs );
 			}
 			imagedestroy($source);
 			$destrs = imagecreatetruecolor($wd, $hd);
 			$this->ImageCopyResampleBicubic($destrs, $dest, 0, 0, 0, 0, $wd, $hd, round($ws / $Z), round($hs / $Z));
-			if ($out) {
-				$this->_outputImage($destrs, $out, 100);
-			}
-			return $dest;
+		} else {
+			//just move to center
+			$destrs = $this->getImage(time().\Utils::getFileExt($file),$w, $h);
+			$x =  ($w/2)-($ws/2);
+			$y =  ($h/2)-($hs/2);
+			imagecopyresized($destrs,$source,0,0,0,0,$w,$h,$ws,$hs);
+		}
+		if ($out) {
+			return $this->_outputImage($destrs, $out, 100);
 		}
 		return $source;
 	}
+
 	function setOutputQuality($value) {
 		$this->_outputQuality = $value;
 	}
+
 	function setOutputSize($width, $height) {
 		if ($width > 0 && $height > 0) {
 			$this->_outputWidth = $width;
 			$this->_outputHeight = $height;
 		}
 	}
+
 	private function calculateWatermarkPosition($imageSource, $imgWater) {
 		switch ($this->_watermarkConfig['position']) {
-		case 'top-left':
-			$x = 0;
-			$y = 0;
-			break;
-		case 'top-center':
-			$x = (imagesx($imageSource) / 2) - (imagesx($imgWater) / 2);
-			$y = 0;
-			break;
-		case 'top-right':
-			$x = imagesx($imageSource) - imagesx($imgWater);
-			;
-			$y = 0;
-			break;
-		case 'center-left':
-			$x = 0;
-			$y = (imagesy($imageSource) / 2) - (imagesy($imgWater) / 2);
-			break;
-		case 'center-center':
-			$x = (imagesx($imageSource) / 2) - (imagesx($imgWater) / 2);
-			$y = (imagesy($imageSource) / 2) - (imagesy($imgWater) / 2);
-			break;
-		case 'center-right':
-			$x = imagesx($imageSource) - imagesx($imgWater);
-			$y = (imagesy($imageSource) / 2) - (imagesy($imgWater) / 2);
-			break;
-		case 'bottom-left':
-			$x = 0; //imagesx($imageSource) -  imagesx($imgWater);
-			$y = imagesy($imageSource) - imagesy($imgWater);
-			break;
-		case 'bottom-center':
-			$x = (imagesx($imageSource) / 2) - (imagesx($imgWater) / 2);
-			$y = imagesy($imageSource) - imagesy($imgWater);
-			break;
-		case 'bottom-right':
-			$x = imagesx($imageSource) - imagesx($imgWater);
-			$y = imagesy($imageSource) - imagesy($imgWater);
-			break;
-		case 'absolute':
-			$x = $this->_watermarkConfig['top'];
-			$y = $this->_watermarkConfig['left'];
-			break;
-		case 'bottom-right':
-		default:
-			$x = (imagesx($imageSource) - (imagesx($imgWater))) - 5;
-			$y = (imagesy($imageSource)) - (imagesy($imgWater)) - 5;
-			break;
+			case 'top-left':
+				$x = 0;
+				$y = 0;
+				break;
+			case 'top-center':
+				$x = (imagesx($imageSource) / 2) - (imagesx($imgWater) / 2);
+				$y = 0;
+				break;
+			case 'top-right':
+				$x = imagesx($imageSource) - imagesx($imgWater);
+				;
+				$y = 0;
+				break;
+			case 'center-left':
+				$x = 0;
+				$y = (imagesy($imageSource) / 2) - (imagesy($imgWater) / 2);
+				break;
+			case 'center-center':
+				$x = (imagesx($imageSource) / 2) - (imagesx($imgWater) / 2);
+				$y = (imagesy($imageSource) / 2) - (imagesy($imgWater) / 2);
+				break;
+			case 'center-right':
+				$x = imagesx($imageSource) - imagesx($imgWater);
+				$y = (imagesy($imageSource) / 2) - (imagesy($imgWater) / 2);
+				break;
+			case 'bottom-left':
+				$x = 0; //imagesx($imageSource) -  imagesx($imgWater);
+				$y = imagesy($imageSource) - imagesy($imgWater);
+				break;
+			case 'bottom-center':
+				$x = (imagesx($imageSource) / 2) - (imagesx($imgWater) / 2);
+				$y = imagesy($imageSource) - imagesy($imgWater);
+				break;
+			case 'bottom-right':
+				$x = imagesx($imageSource) - imagesx($imgWater);
+				$y = imagesy($imageSource) - imagesy($imgWater);
+				break;
+			case 'absolute':
+				$x = $this->_watermarkConfig['top'];
+				$y = $this->_watermarkConfig['left'];
+				break;
+			case 'bottom-right':
+			default:
+				$x = (imagesx($imageSource) - (imagesx($imgWater))) - 5;
+				$y = (imagesy($imageSource)) - (imagesy($imgWater)) - 5;
+				break;
 		}
 		return array(
-				$x,
-				$y);
+			$x,
+			$y);
 		;
 	}
+
 	function ImageRectangleWithRoundedCorners(&$im, $x1, $y1, $x2, $y2, $radius, $color) {
 		// Draw rectangle without corners
 		ImageFilledRectangle($im, $x1 + $radius, $y1, $x2 - $radius, $y2, $color);
@@ -223,6 +292,7 @@ class Image extends \BaseObject {
 		ImageFilledEllipse($im, $x1 + $radius, $y2 - $radius, $radius * 2, $radius * 2, $color);
 		ImageFilledEllipse($im, $x2 - $radius, $y2 - $radius, $radius * 2, $radius * 2, $color);
 	}
+
 	protected function alpha_blending($dest, $source, $dest_x, $dest_y) {
 		for ($y = 0; $y < imagesy($source); $y++) {
 			for ($x = 0; $x < imagesx($source); $x++) {
@@ -254,6 +324,7 @@ class Image extends \BaseObject {
 			}
 		}
 	}
+
 	private function renderWatermark(&$imageSource) {
 		if ($this->_watermark) {
 			//$this->ImageRectangleWithRoundedCorners($imageSource, 0, imagesy($imageSource) - 10, imagesx($imageSource), imagesy($imageSource), 2, imagecolorallocatealpha($imageSource, 0, 0, 0, 20));
@@ -272,6 +343,7 @@ class Image extends \BaseObject {
 		}
 		return $imageSource;
 	}
+
 	function toOutput() {
 		if ($this->_file && is_file($this->_file)) {
 			list($oriW, $oriH) = getimagesize($this->_file);
@@ -294,27 +366,33 @@ class Image extends \BaseObject {
 		}
 		return $retval ? $this->_outputFile : null;
 	}
+
 	function blur(&$image) {
 		$gaussian = array(
-				array(
-						1.0,
-						2.0,
-						1.0),
-				array(
-						2.0,
-						4.0,
-						2.0),
-				array(
-						1.0,
-						2.0,
-						1.0));
+			array(
+				1.0,
+				2.0,
+				1.0),
+			array(
+				2.0,
+				4.0,
+				2.0),
+			array(
+				1.0,
+				2.0,
+				1.0));
 		imageconvolution($image, $gaussian, 16, 0);
 		return;
 	}
+
 	protected function frand() {
 		return 0.0001 * rand(0, 9999);
 	}
+
 	protected function drawRandomLines($image, $level, $lcolor = null) {
+		if (is_object($lcolor)) {
+			$lcolor = imagecolorallocate($image,$lcolor->r,$lcolor->g,$lcolor->b);
+		}
 		$width = imagesx($image);
 		$height = imagesy($image);
 		for ($i = 0; $i < $level; $i++) {
@@ -349,6 +427,7 @@ class Image extends \BaseObject {
 			}
 		}
 	}
+
 	function saveTo($file) {
 		$this->_outputFile = $file;
 		if (is_file($this->_outputFile)) {
@@ -361,4 +440,5 @@ class Image extends \BaseObject {
 		return $this->toOutput();
 	}
 }
+
 ?>

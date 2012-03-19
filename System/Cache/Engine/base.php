@@ -1,5 +1,6 @@
 <?php
 namespace System\Cache\Engine;
+use \System\Exceptions\IOException;
 use CGAF;
 use Utils;
 class Base implements ICacheEngine {
@@ -8,8 +9,9 @@ class Base implements ICacheEngine {
 	private $_cachePath;
 	private $_mcache = array ();
 	function __construct() {
-		$this->_cacheTimeOut = (CGAF_DEBUG ? 5 : 60);
-		$this->setCachePath ( CGAF::getTempPath () . DS . "cache" . DS );
+		$this->_cacheTimeOut = (CGAF_DEBUG ? 5 : 120);
+		$this->setCachePath ( \CGAF::getInternalStorage('.cache',true));
+
 	}
 	function clear($sessionOnly = true) {
 		$path = $this->getCachePath ();
@@ -39,6 +41,7 @@ class Base implements ICacheEngine {
 		$fname = $this->getFileName ( $id, $group, $ext );
 		if (is_readable ( $fname )) {
 			if ($force || ! $this->isCacheValid ( $fname )) {
+				\Logger::write('removing file '.$fname,'cache') ;
 				@unlink ( $fname );
 			}
 			return true;
@@ -56,6 +59,7 @@ class Base implements ICacheEngine {
 	function putString($s, $id, $group = 'common', $ext = null, $append = false) {
 		$fname = $this->getFileName ( $id, $group, $ext );
 		Utils::makeDir ( dirname ( $fname ) );
+
 		if ($append) {
 			file_put_contents ( $fname, $s, FILE_APPEND );
 		} else {
@@ -108,7 +112,9 @@ class Base implements ICacheEngine {
 			if (! is_string ( $o )) {
 				$o = serialize ( $o );
 			}
-			file_put_contents ( $fname, $o, $add ? FILE_APPEND : null );
+			if (!@file_put_contents ( $fname, $o, $add ? FILE_APPEND : null )) {
+				return false;
+			}
 			return $fname;
 		}
 		return null;

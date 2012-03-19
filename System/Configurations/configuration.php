@@ -144,9 +144,12 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable 
 				} elseif (is_array ( $v ) && ! $overwrite) {
 					$x = array_keys ( $v );
 					foreach ( $x as $vv ) {
-						if (is_object ( $_configs )) {
+						if (is_numeric($vv)) {
+							$this->setConfig($k,$v);
+
+						}elseif (is_object ( $_configs )) {
 							$this->setConfig ( $k . ".$vv", $_configs->$k = $vv );
-						} else {
+						}else{
 							$this->setConfig ( $k . ".$vv", $_configs [$k] [$vv] );
 						}
 					}

@@ -1,10 +1,10 @@
 <?php
-use System\Applications\IWebApplication;
+use System\Applications\IApplication;
 interface IJSEngine {
   /**
    * @abstract
-   * @param System\Applications\IWebApplication $app
+   * @param System\Applications\IApplication $app
    * @return bool
    */
-  public function initialize(IWebApplication &$app);
+  public function initialize(IApplication &$app);
 }

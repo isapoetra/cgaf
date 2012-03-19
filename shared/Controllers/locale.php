@@ -24,11 +24,13 @@ class LocaleController extends Controller {
 		}
 		$c = $this->getAppOwner()->getLocale()->getLocale();
 		$rows = $this->getAppOwner()->getLocale()->getInstalledLocale();
-		$item = new MenuItem($o->menu_id,__('locale.'.$c,$c),\URLHelper::add(APP_URL,'/locale/select/'));
+		$ori = \URLHelper::getOrigin();
+		$redir = $ori !==BASE_URL ? '__redir='.urlencode($ori) : '';
+		$item = new MenuItem($o->menu_id,__('locale.'.$c,$c),\URLHelper::add(APP_URL,'/locale/select/?'.$redir));
 		$item->addClass('locale-select '.$c);
 		foreach($rows as $r) {
       if ($r==$c) continue;
-			$i = new MenuItem($o->menu_id,__('locale.'.$r,$r),\URLHelper::add(APP_URL,'/locale/select/?id='.$r));
+			$i = new MenuItem($o->menu_id,__('locale.'.$r,$r),\URLHelper::add(APP_URL,'/locale/select/?id='.$r.'&'.$redir));
 			$i->addClass('locale-select '.$r);
 			$item->addChild($i);
 		}
@@ -36,9 +38,10 @@ class LocaleController extends Controller {
 	}
 	function select() {
 		$id = \Request::get('id',null,true);
+		$redir = urldecode(\Request::get('__redir',null));
 		if ($id) {
 			$this->getAppOwner()->getLocale()->setLocale($id);
-			\Response::Redirect(\Request::get('redirect'));
+			\Response::Redirect($redir);
 		}
 		return $this->Index();
 	}

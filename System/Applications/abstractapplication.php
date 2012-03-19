@@ -418,7 +418,10 @@ abstract class AbstractApplication extends \BaseObject implements IApplication {
 
   function getDBConnection() {
     if ($this->_dbConnection == null) {
-      $this->_dbConnection = DB::Connect($this->getConfigs("db"));
+	    $configs = $this->getConfigs("db");
+	    $cconfigs = \CGAF::getConfiguration()->getConfigs('db');
+	    $configs = array_merge($cconfigs,$configs);
+      $this->_dbConnection = DB::Connect($configs);
     }
     return $this->_dbConnection;
   }
@@ -970,6 +973,9 @@ abstract class AbstractApplication extends \BaseObject implements IApplication {
   }
 
   abstract function assetToLive($asset);
+	function getAssetCachePath() {
+		return ASSET_PATH . '.cache/' . $this->getAppId() . '/assets/';
+	}
 }
 
 ?>

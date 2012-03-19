@@ -11,14 +11,14 @@ if (!$items) {
 if (isset ( $items->center )) {
 	echo '<ul class="thumbnails">';
 	foreach ( $items->center as $v ) {
-		echo '<li class="span2">';
+		echo '<li class="span1">';
 		$action = BASE_URL . $v->action;
 		$icon = null;
 		if ($v->icon) {
 			$icon = $appOwner->getLiveAsset ( $v->icon );
 		}
 		if (! $icon) {
-			$icon = 'http://placehold.it/140x100';
+			$icon = \URLHelper::add(ASSET_URL,'images/').'gear.png';
 		}
 		echo '<a class="thumbnail" href="' . $action . '">';
 		echo '<img src="' . $icon . '">';

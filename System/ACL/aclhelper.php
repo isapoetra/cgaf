@@ -138,5 +138,53 @@ class ACLHelper {
 		}
 		return \Utils::fixFileName($file);
 	}
+
+	public static function revokePrivs($realAccess, $access='view') {
+		$access = self::stringToAccess($access);
+		return $realAccess ^ $access;
+	}
+	public static function isAllowAccess($access,$access2='view') {
+		$access2 = self::stringToAccess($access2);
+		if ($access===null || $access ===0) {
+			return false;
+		}
+		$retval  =false;
+		if (is_array($access)) {
+			foreach ($access as $p) {
+				if (is_numeric($access2) && is_numeric($p)) {
+					$retval =(int) ($p & $access2) === (int)$p;
+					break;
+				} elseif (is_string($access2) && $p === $access2) {
+					$retval = true;
+					break;
+				}
+
+			}
+			return $retval;
+		}elseif (is_numeric($access2) && is_numeric($access)) {
+			$retval = ($access & $access2) === $access;
+		} elseif (is_string($access2) && $access === $access2) {
+			$retval = true;
+		}
+
+		return $retval ;
+
+	}
+	public static function stringToAccess($access) {
+		if (!is_numeric($access)) {
+			$enum = ACLHelper::$ACCESS_ACCESSENUM;
+			$access = strtolower($access);
+			$access = isset ($enum [$access]) ? $enum [$access] : ACLHelper::ACL_VIEW;
+		}
+		return $access;
+	}
+
+	public static function grantAccess($ori, $access) {
+		$access =self::stringToAccess($access);
+		if (is_string($access)) {
+			return $access;
+		}
+		return $ori | $access;
+	}
 }
 ?>

@@ -14,7 +14,13 @@ final class CGAFJS {
 	private static $_css = array ();
 	private static $_plugins = array ();
 	private static $_toolbars = array ();
+	/**
+	 * @var \System\MVC\Application
+	 */
 	private static $_appOwner;
+	/**
+	 * @var jQuery
+	 */
 	private static $_jq;
 	private static $_pluginsLoader = array ();
 	private static $_initialized;
@@ -42,8 +48,6 @@ final class CGAFJS {
 		);
 		if (! Request::isDataRequest ()) {
 			$info = $jq->getInfo ();
-			// self::setConfig('appurl',
-			// Utils::PathToLive($appOwner->getLivePath(null)));
 			self::setConfig ( 'asseturl', ASSET_URL );
 			self::setConfig ( 'jq.version', $info ['version'] );
 			self::setConfig ( 'jq.compat', $info ['compat'] );
@@ -107,13 +111,14 @@ final class CGAFJS {
 	}
 	public static function addJQAsset($asset) {
 		if (! self::$_appOwner) {
-			return;
+			return null;
 		}
 		$asset = self::$_jq->getAsset ( $asset );
 		return self::$_appOwner->addClientAsset ( $asset );
 	}
 	public static function loadUI() {
 		if (self::$_jq) {
+
 			self::$_jq->loadUI ();
 		}
 	}
@@ -195,6 +200,7 @@ final class CGAFJS {
 		// $s = CGAF_DEBUG ? $s : JSUtils::Pack($s);
 		$json = JSON::encode ( self::getJSToLoad () );
 		$config = null;
+
 		if (count ( self::$_configs )) {
 			$config = self::_JSInstance . '.setConfig(' . JSON::encode ( self::$_configs ) . ');';
 		}

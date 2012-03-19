@@ -1,13 +1,11 @@
 insert into `#__menus` values (1, '__cgaf', 'Home', 'footer', 0, '#appurl#', 0, '', NULL, 1, '', 0, NULL, NULL);
 insert into `#__menus` values (2, '__cgaf', 'About CGII', 'footer', 2, 'about', 2, '', NULL, 1, NULL, 0, NULL, NULL);
 insert into `#__menus` values (3, '__cgaf', 'Applications', 'footer', 2, 'app', 1, NULL, NULL, 1, NULL, 0, NULL, NULL);
+insert into `#__menus` values (4, '__cgaf', 'user.dashboard', 'user-menu', 1, 'user/dashboard', 0, NULL, NULL, 1, NULL, 9, NULL, NULL);
 insert into `#__menus` values (4, '__cgaf', 'user.profile', 'user-menu', 1, 'user/profile', 0, NULL, NULL, 1, NULL, 9, NULL, NULL);
 insert into `#__menus` values (5, '__cgaf', 'auth.logout', 'user-menu', 1, 'auth/logout', 2, NULL, NULL, 1, null, 9, NULL, NULL);
 insert into `#__menus` values (6, '__cgaf', '-', 'user-menu', -1, NULL, 1, NULL, NULL, 1, NULL, 9, NULL, NULL);
 insert into `#__menus` values (7, '__cgaf', 'auth.login.title', 'user-menu', 1, 'auth/login', 0, NULL, NULL, 1, NULL, 0, NULL, NULL);
 insert into `#__menus` values (8, '__cgaf', 'user.register', 'user-menu', 1, 'user/register', 1, NULL, NULL, 1, NULL, 0, NULL, NULL);
 insert into `#__menus` values (9, '__cgaf', '#FullName#', 'user-menu', 1, 'user/profile', 1, '', NULL, 1, NULL, 0, NULL, NULL);
-insert into `#__menus` values (10, '__cgaf', 'locale.select', 'user-menu', 1, 'locale/select', 3, '', '', 1, '', 0, NULL, NULL);
-insert into `#__menus` values (11, '__cgaf', 'locale.en', 'user-menu', 1, 'locale/select/?id=en', 0, NULL, NULL, 1, '', 10, NULL, NULL);
-insert into `#__menus` values (12, '__cgaf', 'locale.id', 'user-menu', 1, 'locale/select/?id=id', 0, '', '', 1, NULL, 10, NULL, NULL);
-insert into `#__menus` values (13, '__cgaf', 'Manage System', 'menu-bar', 1, 'manage', 999, NULL, NULL, 1, NULL, 0, NULL, NULL);
+insert into `#__menus` values (10, '__cgaf', 'locale.select', 'user-menu',3, 'locale/selectItems', 99, '', '', 1, '', 0, NULL, NULL);

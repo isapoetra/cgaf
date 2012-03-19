@@ -507,7 +507,7 @@ class Table extends DBQuery {
   }
 
   public function drop() {
-    return parent::drop($this->getTableName());
+    return parent::drop($this->getTableName(false,false));
   }
 
   public function delete() {
@@ -582,8 +582,14 @@ class Table extends DBQuery {
         $retval[$field] = $fi;
       }
     } else {
+	    if ($this->getLastError()) {
+		    throw new DBException($this->getLastError());
+	    }
       $fields = $this->getFields();
       foreach ($fields as $field) {
+	      if (!is_string($field)) {
+		      ppd($field);
+	      }
         $retval[$field] = array(
           "value" => "#{$field}#");
       }
