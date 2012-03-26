@@ -59,10 +59,6 @@ class MailHelper {
 			$o->title = __ ( $subject );
 			$o->base_url = BASE_URL;
 			$msg = Utils::parseDBTemplate ( file_get_contents ( $tpl ), $o );
-			/*$headers  = 'MIME-Version: 1.0' . "\r\n";
-			 $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-			$headers .= 'To: '.$m->fullname.'<'.$m->email.'>'. "\r\n";
-			$headers .= 'From: '.$app->getconfig('mail.'.$template.'.from'). "\r\n";;*/
 			$e=new MailObject();
 			$e->to = $mail;
 			$e->subject = $subject;
@@ -74,54 +70,7 @@ class MailHelper {
 			throw new SystemException ( 'mail.template.notfound'.$tpl );
 		}
 	}
-	function send($mail,$subject,$msg,$html=false,$cc=array()) {
-		$headers  = 'MIME-Version: 1.0' . "\r\n";
-		$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-
-		// Additional headers
-		$headers .= 'To: Mary <mary@example.com>, Kelly <kelly@example.com>' . "\r\n";
-		$headers .= 'From: Birthday Reminder <birthday@example.com>' . "\r\n";
-		$headers .= 'Cc: birthdayarchive@example.com' . "\r\n";
-		$headers .= 'Bcc: birthdaycheck@example.com' . "\r\n";
-
-	}
-	/*
-	 public static function send($recipient,$subject,$content,$html=true) {
-	PEAR::load('Mail');
-	PEAR::load('Mail.mime');
-	$app = AppManager::getInstance();
-	$crlf = "\n";
-	$sender = $app->getconfig('mail.sender','admin@localhost');
-	$headers = array(
-			'From'          => $sender,
-			'Return-Path'   => $sender,
-			'Subject'       => $subject
-	);
-	// Creating the Mime message
-	$mime = new Mail_mime($crlf);
-	// Setting the body of the email
-	$mime->setTXTBody($content);
-	if ($html) {
-	$mime->setHTMLBody($content);
-	}
-
-	// Set body and headers ready for base mail class
-	$body = $mime->get();
-	$headers = $mime->headers($headers);
-	$engine = $app->getConfig('mail.engine','smtp');
-	$params = $app->getConfig('mail.'.$engine.'.params',$app->getConfig('mail.params'));
-
-	// Sending the email using smtp
-	$mail = Mail::factory($engine, $params);
-	$result = 0;
-	try {
-	$result = $mail->send($recipient, $headers, $body);
-	}catch(Exception $e) {
-	return false;
-	}
-
-	return $result == 1;
-	}*/
+	
 }
 
 ?>

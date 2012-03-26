@@ -21,3 +21,4 @@ config.php
 upload.php
 .upload
 userconfig/
+/sql/

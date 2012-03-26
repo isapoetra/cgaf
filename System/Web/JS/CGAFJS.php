@@ -178,6 +178,12 @@ final class CGAFJS {
 			ppd ( self::$_plugins );
 			return;
 		}
+		if (is_array($plugin)) {
+			foreach($plugin as $p) {
+				self::loadPlugin($p,$direct);
+			}
+			return;
+		}
 		if (isset ( self::$_pluginsLoader [$plugin] )) {
 			$assets = self::$_pluginsLoader [$plugin] ['assets'];
 			if ($direct) {
@@ -187,6 +193,7 @@ final class CGAFJS {
 		}
 		if ($direct) {
 			$plugin = self::getPluginURL ( $plugin );
+			
 			self::$_appOwner->addClientAsset ( $plugin );
 			return;
 		}
