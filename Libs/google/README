@@ -1,6 +1,0 @@
-DIRECTORY Content
-
-google-api-php-client
-	Download from : http://code.google.com/p/google-api-php-client/
-	command : svn checkout http://google-api-php-client.googlecode.com/svn/trunk/ google-api-php-client
-	

@@ -13,7 +13,7 @@ abstract class ODF extends \BaseObject {
     $instance =null;
 		if (is_file($f)) {
 			$ext = strtolower($ext ? $ext : \Utils::getFileExt($f, false));
-			$c = __NAMESPACE__ . '\\ODF\\';
+			$c = 'Dio\\';
 			switch ($ext) {
 			case 'ods':
 				$c .= 'SpreadSheet';
