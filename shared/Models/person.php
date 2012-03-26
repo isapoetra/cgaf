@@ -74,6 +74,9 @@ class Person extends Model {
     $pdata = new \PersonData ($this);
     $pdata = $this->loadObject($pdata);
     $pdata->user_id = $id;
+    if (!$pdata->person_id) {
+    	return null;
+    }
     return $pdata;
   }
 }

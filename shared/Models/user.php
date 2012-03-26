@@ -62,6 +62,7 @@ class User extends ExtModel {
 	 * @var unknown_type
 	 */
 	public $states;
+	public $user_email;
 	function __construct($connection = null) {
 		parent::__construct ( CGAF::getDBConnection (), "users", "user_id", false, \CGAF::isInstalled () === false );
 		if ($connection instanceof Application) {
@@ -108,7 +109,7 @@ class User extends ExtModel {
 		$this->clear ();
 		$this->select ( 'w.*' );
 		$this->join ( 'vw_userinfo', 'w', 'w.user_id=u.user_id', 'inner', true );
-		$this->where ( 'w.email=' . $this->quote ( $email ) );
+		$this->where ( 'w.user_email=' . $this->quote ( $email ) );
 		return $this->loadObject ();
 	}
 	function delete() {

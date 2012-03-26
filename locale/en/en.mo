@@ -56,3 +56,4 @@ home.descr=Application Frontpage
 
 action.add=Add
 action.manage=Manage
+search.placeholder=Enter text to search...

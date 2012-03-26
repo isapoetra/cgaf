@@ -6,7 +6,7 @@ $redirect = isset ( $redirect ) ? $redirect : URLHelper::addParam ( BASE_URL, ar
 		'__t' => time ()
 ) );
 $providers = isset ( $providers ) ? $providers : array();
-$msg = isset ( $msg ) ? $msg : Request::get ( 'msg' );
+$msg =\Strings::unHTML(isset ( $__msg ) ? $__msg : Request::get ( '__msg' ),ENT_NOQUOTES);
 ?>
 <table class="table table-bordered login-form">
 	<tr>

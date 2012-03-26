@@ -180,7 +180,7 @@ EOT;
 				$redir = null;
 			}
 			if (isset($u['query_params']['__c'])) {
-				$a = $u['query_params']['__a'] ? $u['query_params']['__a'] : 'index';
+				$a = isset($u['query_params']['__a']) ? $u['query_params']['__a'] : 'index';
 				if ($u['query_params']['__c'] === $this->getControllerName() && $a === 'index') {
 					$redir = null;
 				}
@@ -200,16 +200,17 @@ EOT;
 				if (!$msg && !$retval) {
 					$msg = $this->getAppOwner()->getAuthentificator()->getLastError();
 				}
-
+				
 				if ($retval) {
 					$redir = \URLHelper::addParam($redir, array(
 							'__t' => time()
 					));
 				} else {
-					$redir = \URLHelper::addParam(BASE_URL . '/auth/local/', array(
+					$redir = \URLHelper::addParam(BASE_URL . '/auth/', array(
 							'__t' => time(),
-							'__msg' => $msg
+							'__msg' => urlencode($msg)
 					));
+					;
 				}
 				if (Request::isJSONRequest()) {
 					if (!$retval) {
@@ -224,7 +225,6 @@ EOT;
 						));
 					}
 				} elseif ($redir) {
-
 					\Response::Redirect($redir);
 				}
 			} elseif (Request::get('__token')) {
@@ -254,7 +254,7 @@ EOT;
 		$retval = parent::render('form/login', array(
 				'providers' => $providers,
 				'redirect' => $redir,
-				'msg' => $msg
+				'__msg' => $msg
 		), true);
 		return $retval;
 	}

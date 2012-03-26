@@ -160,8 +160,9 @@ abstract class MVCHelper {
 				'_c'=>'home',
 				'_a'=>'index');
 		if ($url['path']) {
-			$path = $url['path'];
-			ppd($path);
+			$retval['_c'] = array_shift($url['path']);
+			$retval['_a'] = array_shift($url['path']);	
+			$retval['path'] =$url['path'];		
 		}
 		if (isset($url['query_params']['__c'])) {
 			$retval['_c'] = $url['query_params']['__c'];
@@ -179,11 +180,12 @@ abstract class MVCHelper {
 		$params='';
 		if (isset($u['params'])) {
 			foreach($u['params'] as $k=>$v) {
-				$params.= $k.'='.urlencode($v).'&';
+				$params.= $k.'='.htmlspecialchars($v).'&';
 			}
 			
 		}
-		$retval = $u['scheme'].'://'.$u['host'].'/'.($u['_c']==='home'  ? '' : $u['_c']).($u['_a'] ==='index'? '' :'/'.$u['_a']).($params ? '?'.$params : '');
+		$retval = $u['scheme'].'://'.$u['host'].'/'.($u['_c']==='home'  ? '' : $u['_c']).($u['_a'] ==='index'? '' :'/'.$u['_a']).(isset($u['path'])?implode('/',$u['path']).'/':'').($params ? '?'.$params : '');
+
 		return $retval;
 	}
 }

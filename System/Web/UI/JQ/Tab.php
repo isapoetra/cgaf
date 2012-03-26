@@ -5,8 +5,8 @@ use System\JSON\JSON;
 class Tab extends Control {
 	private $_tabs;
 	public $DisplayHeaderContent = true;
-	function __construct($id, $template = null, $tabs = array()) {
-		parent::__construct ( $id, $template );
+	function __construct($id,  $tabs = array()) {
+		parent::__construct ( $id, 'tabs' );
 		$this->_tabs = $tabs;
 	}
 	function addTab($tab) {

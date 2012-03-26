@@ -295,6 +295,34 @@ class Locale extends \BaseObject {
 		}
 		return $date->format ( $retval );
 	}
+	function getDayNames($loc = null) {
+		$loc = $loc ? $loc : $this->getLocale ();
+		return array (
+				$this->_ ( 'day.sunday.short', null, null, $loc ) => $this->_ ( 'day.sunday.long', null, null, $loc ),
+				$this->_ ( 'day.monday.short', null, null, $loc ) => $this->_ ( 'day.monday.long', null, null, $loc ),
+				$this->_ ( 'day.tuesday.short', null, null, $loc ) => $this->_ ( 'day.tuesday.long', null, null, $loc ),
+				$this->_ ( 'day.wednesday.short', null, null, $loc ) => $this->_ ( 'day.wednesday.long', null, null, $loc ),
+				$this->_ ( 'day.thursday.short', null, null, $loc ) => $this->_ ( 'day.thursday.long', null, null, $loc ),
+				$this->_ ( 'day.friday.short', null, null, $loc ) => $this->_ ( 'day.friday.long', null, null, $loc ),
+				$this->_ ( 'day.saturday.short', null, null, $loc ) => $this->_ ( 'day.saturday.long', null, null, $loc )
+		);
+	}
+	function getMonthNames($loc=null) {
+		return array (
+				$this->_ ( 'month.january.short', null, null, $loc ) => $this->_ ( 'month.january.long', null, null, $loc ),
+				$this->_ ( 'month.february.short', null, null, $loc ) => $this->_ ( 'month.february.long', null, null, $loc ),
+				$this->_ ( 'month.march.short', null, null, $loc ) => $this->_ ( 'month.march.long', null, null, $loc ),
+				$this->_ ( 'month.april.short', null, null, $loc ) => $this->_ ( 'month.april.long', null, null, $loc ),
+				$this->_ ( 'month.may.short', null, null, $loc ) => $this->_ ( 'month.may.long', null, null, $loc ),
+				$this->_ ( 'month.june.short', null, null, $loc ) => $this->_ ( 'month.june.long', null, null, $loc ),
+				$this->_ ( 'month.july.short', null, null, $loc ) => $this->_ ( 'month.july.long', null, null, $loc ),
+				$this->_ ( 'month.august.short', null, null, $loc ) => $this->_ ( 'month.august.long', null, null, $loc ),
+				$this->_ ( 'month.september.short', null, null, $loc ) => $this->_ ( 'month.september.long', null, null, $loc ),
+				$this->_ ( 'month.october.short', null, null, $loc ) => $this->_ ( 'month.october.long', null, null, $loc ),
+				$this->_ ( 'month.november.short', null, null, $loc ) => $this->_ ( 'month.november.long', null, null, $loc ),
+				$this->_ ( 'month.december.short', null, null, $loc ) => $this->_ ( 'month.december.long', null, null, $loc )
+		);
+	}
 	function formatDate($date, $long = true, $oriFormat = 'Y-m-d H:i:s', $loc = null) {
 		if (! $date) {
 			return '';
@@ -302,29 +330,8 @@ class Locale extends \BaseObject {
 		$loc = $loc ? $loc : $this->getLocale ();
 		try {
 			$format = $long ? $this->_ ( 'date.format.long', '%D,  %M %d %Y %h:%i:%s', null, $loc ) : $this->_ ( 'date.format.short', '%M %d %Y', null, $loc );
-			$days = array (
-					$this->_ ( 'day.sunday.short', null, null, $loc ) => $this->_ ( 'day.sunday.long', null, null, $loc ),
-					$this->_ ( 'day.monday.short', null, null, $loc ) => $this->_ ( 'day.monday.long', null, null, $loc ),
-					$this->_ ( 'day.tuesday.short', null, null, $loc ) => $this->_ ( 'day.tuesday.long', null, null, $loc ),
-					$this->_ ( 'day.wednesday.short', null, null, $loc ) => $this->_ ( 'day.wednesday.long', null, null, $loc ),
-					$this->_ ( 'day.thursday.short', null, null, $loc ) => $this->_ ( 'day.thursday.long', null, null, $loc ),
-					$this->_ ( 'day.friday.short', null, null, $loc ) => $this->_ ( 'day.friday.long', null, null, $loc ),
-					$this->_ ( 'day.saturday.short', null, null, $loc ) => $this->_ ( 'day.saturday.long', null, null, $loc )
-			);
-			$months = array (
-					$this->_ ( 'month.january.short', null, null, $loc ) => $this->_ ( 'month.january.long', null, null, $loc ),
-					$this->_ ( 'month.february.short', null, null, $loc ) => $this->_ ( 'month.february.long', null, null, $loc ),
-					$this->_ ( 'month.march.short', null, null, $loc ) => $this->_ ( 'month.march.long', null, null, $loc ),
-					$this->_ ( 'month.april.short', null, null, $loc ) => $this->_ ( 'month.april.long', null, null, $loc ),
-					$this->_ ( 'month.may.short', null, null, $loc ) => $this->_ ( 'month.may.long', null, null, $loc ),
-					$this->_ ( 'month.june.short', null, null, $loc ) => $this->_ ( 'month.june.long', null, null, $loc ),
-					$this->_ ( 'month.july.short', null, null, $loc ) => $this->_ ( 'month.july.long', null, null, $loc ),
-					$this->_ ( 'month.august.short', null, null, $loc ) => $this->_ ( 'month.august.long', null, null, $loc ),
-					$this->_ ( 'month.september.short', null, null, $loc ) => $this->_ ( 'month.september.long', null, null, $loc ),
-					$this->_ ( 'month.october.short', null, null, $loc ) => $this->_ ( 'month.october.long', null, null, $loc ),
-					$this->_ ( 'month.november.short', null, null, $loc ) => $this->_ ( 'month.november.long', null, null, $loc ),
-					$this->_ ( 'month.december.short', null, null, $loc ) => $this->_ ( 'month.december.long', null, null, $loc )
-			);
+			$days = $this->getDayNames($loc = null);
+			$months = $this->getMonthNames($loc);
 			if (! ($date instanceof \DateTime)) {
 				$date = \DateTime::createFromFormat ( $oriFormat, $date );
 			}

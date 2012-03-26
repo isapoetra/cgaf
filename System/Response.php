@@ -60,9 +60,11 @@ final class Response {
 	}
 	public static function Redirect($url = null) {
 		$parsed =MVCHelper::parse($url);
+
 		$instance =AppManager::getInstance();
 		try {
 			$c = $instance->getController($parsed['_c']);
+			if (!$parsed['_a']) $parsed['_a'] ='index';
 			if (!$c->isAllow($parsed['_a'])) {
 				if (!$c->isAllow('index')) {
 					$parsed['_a'] = 'index';

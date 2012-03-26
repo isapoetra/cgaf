@@ -6,7 +6,7 @@ if (!defined('CGAF'))
 define ('FMT_DATEISO', '%Y%m%dT%H%M%S');
 define ('FMT_DATELDAP', '%Y%m%d%H%M%SZ');
 /**
- * 
+ *
  * @var string
  * @deprecated Please Use \CDate::FMT_DATETIME_MYSQL
  */
@@ -103,7 +103,7 @@ class CDate extends \DateTime {
 			$ret[] = $diff->y . ' Year(s)';
 		}
 		if ($diff->m > 0) {
-			$ret[] = $diff->d . ' Month(s)';
+			$ret[] = $diff->m . ' Month(s)';
 		}
 		if ($diff->d > 0) {
 			$ret[] = $diff->d . ' Day(s)';
@@ -349,7 +349,7 @@ class CDate extends \DateTime {
 		$duration += $s->isWorkingDay() ? min($dwh, abs($e->hour - $cal_day_start)) : 0;
 		return $duration * $sgn;
 	}
-	
+
 	function workingDaysInSpan($e) {
 		global $AppUI;
 		// assume start is before end and set a default signum for the duration
@@ -369,7 +369,10 @@ class CDate extends \DateTime {
 		}
 		return $wd;
 	}
-
+	public function isFuture() {
+		$now = new CDate();
+		return  $now->getTimestamp() > $this->getTimestamp();
+	}
 	public static function Current($fmt = DATE_ISO8601) {
 		$dt = new CDate ();
 		return $dt->format(DATE_ISO8601);

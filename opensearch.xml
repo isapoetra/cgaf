@@ -9,9 +9,6 @@
 	<Url type="text/html" method="get"
 		template="http://www.cgaf.com:80/search/opensearch/">
 		<Param Name="pw" value="{startPage}" />
-
-
-
 		<Param Name="q" value="{searchTerms}" />
 		<Param name="format" value="rss" />
 	</Url>

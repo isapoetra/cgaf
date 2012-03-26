@@ -56,18 +56,36 @@ final class CGAFJS {
 		}
 		$assets = array ();
 		if (! \Request::isMobile ()) {
-			// cgaf::getConfig('js.cdn.modernizr', 'modernizr.js'),
-			// cgaf::getConfig('js.cdn.jquery', 'jquery.js'),
-			// CGAF_DEBUG ? 'plugins/jquery.lint.js' : '',
-			$assets = array (
-					'cgaf/cgaf.js',
-					'cgaf/cgaf-jq.js'
-			);
-			Utils::arrayMerge ( $assets, $jq->loadUI ( false ) );
+			$assets =array();
+			if ($appOwner->getConfig ( 'js.bootstrap.enabled', true )) {
+				$assets[]= 'bootstrap/css/bootstrap.css';
+				$assets[]= 'cgaf/css/cgaf-bootstrap.css';
+				$assets[]= 'bootstrap/js/bootstrap.js';
+				$plugins = $appOwner->getConfigs ( 'js.bootstrap.plugins', array () );					
+				foreach ( $plugins as $p ) {
+					$assets[]= 'bootstrap/js/' . $p ;
+				}
+			}
+			
+			$assets[] = 'cgaf/cgaf.js';
+			$assets[] = 'cgaf/cgaf-jq.js';
 			if (CGAF_DEBUG) {
 				$assets [] = 'cgaf/debug.js';
 				$assets [] = 'cgaf/css/debug.css';
 			}
+
+			/*$pref = 'js.' . $this->getConfig ( 'js.engine', 'jQuery' ) . '.plugins';
+			 $plugins = $appOwner->getConfigs ( $pref );
+			if ($plugins) {
+			$pref = str_replace ( '.', DS, $pref );
+			foreach ( $plugins as $k => $v ) {
+			$plugins [$k] = $pref . DS . $v;
+			}
+			$assets[]=$plugins;
+			}
+			*/
+			
+
 
 			$plugins = CGAF::getConfigs ( 'cgaf.js.plugins' );
 			if ($plugins) {
@@ -77,19 +95,19 @@ final class CGAFJS {
 		} else {
 			$assets = array (
 					'cgaf/mobile/cgaf.js',
-					// 'jQuery/jQuery-Mobile/jquery.mobile.splitview.js',
 					'jQuery/jQuery-Mobile/jquery.mobile.structure-1.0rc2.css',
 					'jQuery/jQuery-Mobile/themes/default/jquery.mobile.theme.css',
-					// 'jQuery/jQuery-Mobile/jquery.easing.1.3.js',
-					// '/jQuery/jQuery-Mobile/jquery.mobile.scrollview.js',
-					// 'cgaf/mobile/cgaf-' .
-					// strtolower(\Request::getClientPlatform()) . '.js',
 					'cgaf/css/cgaf-mobile.css'
 			);
+			if ($appOwner->getConfig ( 'js.bootstrap.enabled', true )) {
+				$assets[]= 'bootstrap/css/bootstrap-responsive.css';
+				$assets[] = 'cgaf/css/cgaf-bootstrap-responsive.css' ;
+			}
 		}
 		$jq->initialize ( $appOwner );
 		try {
-			self::$_appOwner->addClientAsset ( $jq->getAsset ( $assets ) );
+			Utils::arrayMerge ( $assets, $jq->loadUI ( false ) );					
+			self::$_appOwner->addClientAsset ( $jq->getAsset ( $assets ) );			
 		}catch (\Exception $e){
 			ppd($e);
 			if (CGAF_DEBUG) {

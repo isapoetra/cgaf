@@ -139,7 +139,7 @@ abstract class AbstractTemplate extends \BaseObject implements \ITemplate, IConf
 			$fname = null;
 			foreach ($search as $f) {
 				$f = Utils::ToDirectory($f);
-				if ($f && is_file($f)) {
+				if ($f && is_file($f) && (isset($this->_lastRenderFile[0]) && $this->_lastRenderFile[0] !== $f)) {
 					$fname = $f;
 					break;
 				}

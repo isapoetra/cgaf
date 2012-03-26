@@ -339,32 +339,34 @@ class UserController extends Controller {
 		if ($this->getAppOwner()->isValidToken()) {
 			$capt = Captcha::getInstance(\AppManager::getInstance());
 			
-			if ($capt->validateRequest() && $login) {
+			if (CGAF_DEBUG || ($capt->validateRequest() && $login)) {
 				$m = $this->getModel("user")->clear();
 				//$date =\DateUtils::toDate(Request::get('birth_date').' 00:00:00')->format(\CDate::FMT_DATETIME_MYSQL);
 				//->Where('birth_date='.$m->quote($date))//
 				$o = $m->where("user_name=" . $m->quote($login))			
 				->loadObject();
-				ppd($o);
+			
 				if ($o) {
 					if ($o->user_state == 0) {
 						throw new SystemException ('user.notactive');
+					}
+					
+					if (!$o->user_email) {
+						throw new SystemException ('user.hasnoemail');
 					}
 					$generated = \Utils::generatePassword();
 					$o->activation_key = $this->generateActivationKey();
 					$o->user_password = $this->getAppOwner()->getAuthentificator()->encryptpassword($generated);
 					$m->bind($o);
+					
 					if ($m->store()) {
-						$o = $m->getUserByEmail($login);
-						$o->generatedPassword = $generated;
+						$o->generatedPassword = $generated;						
 						\MailHelper::sendMail($o, "forgetpassword", 'user.passwordreminder.emailtitle');
-						return new JSONResult (true, 'user.passwordreminder.ok');
+						return new JSONResult (true, 'user.passwordreminder.ok',APP_URL);
 					}
-				}else{
-					$params['error'][] ='Invalid Username or birth date';
 				}
 			}else{
-				$params['error'][] ='Invalid Username or birth date';
+				$params['error'][] ='Invalid Username';
 			}
 		}
 

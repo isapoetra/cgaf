@@ -2462,6 +2462,111 @@ $.format = $.validator.format;
             this.self.resize();
         }
     });
+})(jQuery);(function($) {
+	"use strict"
+	var popupDialog = function(element, options) {
+		options = options || $.fn.popupDialog.defaults;
+		if (element) {
+			this.init('popupDialog', element, options);
+			if (options.contentEl) {
+				this.show();
+				this.hide();
+			}
+		} else {
+			this.options = options;
+		}
+		return this;
+	}
+
+	popupDialog.prototype = $.extend({}, $.fn.popover.Constructor.prototype, {
+		constructor : popupDialog,
+		setContent: function () {
+			$.fn.popover.Constructor.prototype.setContent.call(this);
+			if (!this.getTitle()) {
+				this.tip().find('.popover-title').hide();
+			} 
+		},
+		getContent : function(el) {
+			var content = this.tip().find('.popover-content').css({
+				paddingLeft : '0px'
+			});
+			if (this.options.contentEl) {
+				return this.options.contentEl;
+			}
+			var dc = content.data('data-content');
+			if (!dc) {
+				if (this.options.url) {
+					content.data('onload', true);
+					var me = this;
+					$.ajax({
+						url : this.options.url,
+						success : function(data) {
+							content.data('data-content', data);
+							$(me.$tip.find('.popover-inner')).width($(data).width());
+							me.show();
+							content.data('data-content', null);
+						},
+						error : function() {
+							content.data('data-content', null);
+							me.show();
+						}
+					});
+				}
+				return 'loading...';
+			} else {
+				return dc;
+			}
+
+		},
+		show: function () {
+			$.fn.popover.Constructor.prototype.show.call(this);
+			var me = this;
+			//hook
+			this.tip().find('.close').click(function(){
+				me.hide();
+				$(me).trigger('close');
+			});
+		},
+		
+		setElement : function(e) {
+			this.init('popupDialog', e, this.defaults);
+		},
+		setTitle : function(title) {
+			this.options.title = title;
+		},
+		showEvent : function(o) {
+			if (o.title)
+				this.options.title = o.title;
+			this.show();
+
+			var me = this;
+			if (o.url) {
+				this.options.url = o.url;
+			}
+			this.show();
+			// console.log(arguments);
+		}
+	});
+
+	$.fn.popupDialog = function(option, arg) {
+		return this.each(function() {
+			var $this = $(this), data = $this.data('popupdialog'), options = typeof option == 'object' && option
+			if (!data)
+				$this.data('popupdialog', (data = new popupDialog(this, options)))
+			if (typeof option == 'string')
+				data[option](arg)
+		})
+	}
+	$.popupDialog = popupDialog;
+	$.fn.popupDialog.Constructor = popupDialog;
+	$.fn.popupDialog.defaults = $.extend({}, $.fn.popover.defaults, {
+		placement : function() {
+			//TODO Recalculate based on content
+			return 'bottom';
+		},
+		trigger : 'manual',
+		template : '<div class="popover"><div class="arrow"></div><div class="popover-inner"><div class="icon icon-remove close" style="position:absolute;top:20px;right:20px"/><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
+	})
 })(jQuery);(function () {
     $.fn.scrollbar = function (options) {
         options = $.extend({

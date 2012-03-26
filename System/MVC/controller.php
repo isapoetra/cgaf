@@ -102,8 +102,8 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	public function renderActions($o = null, $id = null, $route = null) {
 		$actions = $this->getAction($o, $id, $route);
 		return $this->render('actions', array(
-		                                     'actions' => $actions
-		                                ), true);
+				'actions' => $actions
+		), true);
 	}
 
 	/**
@@ -122,8 +122,8 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		} else {
 			$r = MVCHelper::getRoute();
 			$croute = array(
-				'_a' => $r ['_a'],
-				'_c' => $route
+					'_a' => $r ['_a'],
+					'_c' => $route
 			);
 		}
 		$url = \URLHelper::add(APP_URL, $route);
@@ -198,9 +198,9 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		$rid = $m->getPKValue(false, $row);
 		if ($this->isAllow('view')) {
 			$retval [] = array(
-				'title' => 'Index',
-				'url' => $url,
-				'icon' => 'home-small.png'
+					'title' => 'Index',
+					'url' => $url,
+					'icon' => 'home-small.png'
 			);
 		}
 		switch (strtolower($r ['_a'])) {
@@ -209,9 +209,9 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 				if ($rid !== null) {
 					if ($this->isAllow(ACLHelper::ACCESS_VIEW)) {
 						$retval [] = array(
-							'title' => 'View',
-							'url' => $url . '/detail/?id=' . $rid,
-							'icon' => 'view-small.png'
+								'title' => 'View',
+								'url' => $url . '/detail/?id=' . $rid,
+								'icon' => 'view-small.png'
 						);
 					}
 				}
@@ -219,20 +219,20 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			default :
 				if ($this->isAllow(ACLHelper::ACCESS_UPDATE)) {
 					$retval [] = array(
-						'title' => 'Edit',
-						'url' => $url . '/edit/?id=' . $rid,
-						'icon' => 'edit-small.png'
+							'title' => 'Edit',
+							'url' => $url . '/edit/?id=' . $rid,
+							'icon' => 'edit-small.png'
 					);
 				}
 				if ($this->isAllow(ACLHelper::ACCESS_MANAGE)) {
 					$retval [] = array(
-						'title' => 'Delete',
-						'url' => $url . '/del/?id=' . $rid,
-						'icon' => 'del-small.png',
-						'descr' => __('delete.confirm', 'Delete this data'),
-						'attr' => array(
-							'rel' => '#confirm'
-						)
+							'title' => 'Delete',
+							'url' => $url . '/del/?id=' . $rid,
+							'icon' => 'del-small.png',
+							'descr' => __('delete.confirm', 'Delete this data'),
+							'attr' => array(
+									'rel' => '#confirm'
+							)
 					);
 				}
 				break;
@@ -249,7 +249,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	}
 
 	protected function getInternalPath($o = null, $create = true) {
-		return $this->getAppOwner()->getInternalStorage('Data/'.$this->getControllerName() . $o, $create);
+		return $this->getAppOwner()->getInternalStorage('data/'.$this->getControllerName().DS. $o, $create);
 	}
 
 	protected function setModel($model) {
@@ -304,11 +304,11 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		}
 		$menus = $this->renderControllerMenu($m, $row);
 		$args = array_merge(array(
-		                         'menus' => $menus
-		                    ), $args);
+				'menus' => $menus
+		), $args);
 		return $this->render(array(
-		                          '_a' => 'detail'
-		                     ), $args, $return);
+				'_a' => 'detail'
+		), $args, $return);
 	}
 
 	function undel($id = null) {
@@ -363,7 +363,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			$m->bind(Request::gets(null));
 			$warning = $this->getWarningText();
 			$warning = $warning ? array(
-				'content' => $warning
+					'content' => $warning
 			) : '';
 			try {
 				if ($m->store()) {
@@ -414,29 +414,29 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			throw new InvalidOperationException ('Editing data with ID ' . $id . ' not allowed by system');
 		}
 		$def = array(
-			'id' => $id,
-			'editForm' => 'add_edit',
-			'msg' => null,
-			'editmode' => $id !== null,
-			'formAction' => URLHelper::addParam(APP_URL, '__c=' . $this->getControllerName() . '&__a=store&id=' . $id),
-			'formAttr' => array(
-				'id' => 'frm-aed-' . $this->getControllerName()
-			),
-			'controller' => $this,
-			'row' => $row,
-			'menus' => $this->renderControllerMenu($m, $row)
+				'id' => $id,
+				'editForm' => 'add_edit',
+				'msg' => null,
+				'editmode' => $id !== null,
+				'formAction' => URLHelper::addParam(APP_URL, '__c=' . $this->getControllerName() . '&__a=store&id=' . $id),
+				'formAttr' => array(
+						'id' => 'frm-aed-' . $this->getControllerName()
+				),
+				'controller' => $this,
+				'row' => $row,
+				'menus' => $this->renderControllerMenu($m, $row)
 		);
 		$args = \Utils::arrayMerge($def, $args);
 		return $this->render(array(
-		                          '_a' => $action
-		                     ), $args);
+				'_a' => $action
+		), $args);
 	}
 
 	protected function renderControllerMenu($m, $row) {
 		$items = $this->_getControllerMenu($m, $row);
 		return HTMLUtils::renderLinks($items, array(
-		                                           'class' => 'controller-menu'
-		                                      ));
+				'class' => 'controller-menu'
+		));
 	}
 
 	function manage($vars = null, $newroute = null, $return = false) {
@@ -478,7 +478,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 				$vars ['openGridEditInOverlay'] = isset ($vars ['openGridEditInOverlay']) ? $vars ['openGridEditInOverlay'] : false;
 				if (!isset ($vars ['gridConfigs'])) {
 					$vars ['gridConfigs'] = array(
-						'addurl' => \URLHelper::add(APP_URL, $this->getControllerName() . '/aed/')
+							'addurl' => \URLHelper::add(APP_URL, $this->getControllerName() . '/aed/')
 					);
 				}
 		}
@@ -540,11 +540,11 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	function applist() {
 		$this->getTemplate()->clear('js');
 		return $this->render(array(
-		                          '_c' => 'shared',
-		                          '_a' => __FUNCTION__
-		                     ), array(
-		                             'rows' => \AppManager::getInstalledApp()
-		                        ));
+				'_c' => 'shared',
+				'_a' => __FUNCTION__
+		), array(
+				'rows' => \AppManager::getInstalledApp()
+		));
 	}
 
 	public function checkAccess($access) {
@@ -560,6 +560,13 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	}
 
 	function search($s, $config) {
+		$s = $s ? $s : \Request::get('q');
+		$row = \Request::gets('p',true,false,false);
+		$rows= array();
+		if ($s && $m=$this->getModel()) {
+			$rows = $m->search($s,isset($config['field']) ? $config['field'] : null,$config);
+		}
+		return $this->renderView('search-result',array('rows'=>$rows,'row'=>$row));
 	}
 
 	function getDbConnection() {
@@ -671,8 +678,8 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			$home->setIcon('appicon.png');
 			$home->setClass('home');
 			$filtered = array_merge(array(
-			                             $home
-			                        ), $filtered);
+					$home
+			), $filtered);
 		}
 		$retval = "<div class=\"menu-container\" id='menu-container-$position'>";
 		if (!count($filtered) && $position != "menu-bar") {
@@ -796,9 +803,9 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			$params ['controller'] = $this;
 		}
 		return $this->render(array(
-		                          '_c' => $this->getControllerName(),
-		                          '_a' => $viewName
-		                     ), $params, $contentOnly);
+				'_c' => $this->getControllerName(),
+				'_a' => $viewName
+		), $params, $contentOnly);
 	}
 
 	public function getView($viewName, $a = null, $attr = null, $classOnly = false) {
@@ -875,7 +882,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		$approute = $this->_appOwner->getRoute();
 		if (is_string($route)) {
 			$route = array(
-				'_a' => $route
+					'_a' => $route
 			);
 		}
 		if ($route == null || !is_array($route)) {
@@ -889,8 +896,8 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		if ($this->getControllerName() !== $route ['_c']) {
 			$ctl = $this->getAppOwner()->getController($route ["_c"]);
 			return $ctl->render(array(
-			                         '_a' => $route ['_a']
-			                    ), $vars, $contentOnly);
+					'_a' => $route ['_a']
+			), $vars, $contentOnly);
 		}
 		$this->initAction($route ['_a'], $vars);
 		if (!$content) {
@@ -938,8 +945,8 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		$retval = '';
 		if ($action) {
 			$retval = HTMLUtils::renderLinks($action, array(
-			                                               'class' => 'actions ' . $a . '-actions'
-			                                          ));
+					'class' => 'actions ' . $a . '-actions'
+			));
 		}
 		if (is_file($f) && is_readable($f)) {
 			$params ['content'] = TemplateHelper::renderString(file_get_contents($f), $params, $this, \Utils::getFileExt($f, false));

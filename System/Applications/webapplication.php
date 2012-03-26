@@ -20,9 +20,9 @@ class WebApplication extends Application implements IWebApplication {
 	private $_script = '';
 	private $_scripts = array ();
 	private $_directSript = '';
- /**
-  * @var \IJSEngine
-  */
+	/**
+	 * @var \IJSEngine
+	 */
 	private $_jsEngine;
 	private $_clientScripts = array ();
 	private $_clientDirectScripts = array ();
@@ -33,15 +33,15 @@ class WebApplication extends Application implements IWebApplication {
 	//private $_isDebugMode;
 	//private $_assetCached = array ();
 	/**
-	 * Constructor
-	 *
-	 * @param $appPath string
-	 * @param $appName string
-	 */
+	* Constructor
+	*
+	* @param $appPath string
+	* @param $appName string
+	*/
 	function __construct($appPath, $appName) {
-    if (!\System::isWebContext()) {
-      throw new SystemException('please run from web');
-    }
+		if (!\System::isWebContext()) {
+			throw new SystemException('please run from web');
+		}
 		parent::__construct ( $appPath, $appName );
 	}
 	/**
@@ -50,13 +50,13 @@ class WebApplication extends Application implements IWebApplication {
 	public function clearClient() {
 		/*
 		 * static $first; if ($first === null) { $first = true; }
-		 */
+		*/
 		$this->_clientAssets->clear ();
 		$this->_clientScripts = array ();
 		$this->_clientDirectScripts = array ();
 		/*
 		 * if (!$first) { ppd('clear'); } $first = false;
-		 */
+		*/
 	}
 	/**
 	 * Enter description here .
@@ -143,14 +143,14 @@ class WebApplication extends Application implements IWebApplication {
 	}
 	protected function initRun() {
 		parent::initRun ();
-    if (Request::get('__generateManifest') == '1') {
-      $this->getAppManifest(true);
-    }
-    if (Request::get("__init")) {
-      Session::set("hasinit", true);
-      $mode = Request::get("__js") == "true" ? true : false;
-      Session::set("__jsmode", $mode);
-    }
+		if (Request::get('__generateManifest') == '1') {
+			$this->getAppManifest(true);
+		}
+		if (Request::get("__init")) {
+			Session::set("hasinit", true);
+			$mode = Request::get("__js") == "true" ? true : false;
+			Session::set("__jsmode", $mode);
+		}
 	}
 	function getAsset($data, $prefix = null) {
 
@@ -206,29 +206,29 @@ class WebApplication extends Application implements IWebApplication {
 	public function getAgentSuffix() {
 		return Utils::getAgentSuffix ();
 	}
-/**
- * @param $assetName
- * @return array|mixed|null
- */
+	/**
+	 * @param $assetName
+	 * @return array|mixed|null
+	 */
 	public function getAssetAgent($assetName) {
 		$fname = Utils::getFileName ( $assetName );
 		$assetAgent = Utils::changeFileName ( $assetName, $fname . $this->getAgentSuffix () );
 		return $this->getAsset ( $assetAgent );
 	}
-  function Authenticate() {
-    if ($this->getConfig('auth.usecaptcha', false)) {
-      if (!$this->isValidCaptcha("__captcha", true)) {
-        throw new SystemException ('error.invalidcaptcha');
-      }
-    }
-    return parent::Authenticate();
-  }
-  protected function isValidCaptcha($c,$a) {
+	function Authenticate() {
+		if ($this->getConfig('auth.usecaptcha', false)) {
+			if (!$this->isValidCaptcha("__captcha", true)) {
+				throw new SystemException ('error.invalidcaptcha');
+			}
+		}
+		return parent::Authenticate();
+	}
+	protected function isValidCaptcha($c,$a) {
 
-  }
+	}
 	/**
-   * @return \IJSEngine
-   */
+	 * @return \IJSEngine
+	 */
 	public function getJSEngine() {
 		if (! $this->_jsEngine) {
 			$c = 'System\\Web\JS\Engine\\' . $this->getConfig ( 'js.engine', 'jQuery' );
@@ -237,10 +237,10 @@ class WebApplication extends Application implements IWebApplication {
 		}
 		return $this->_jsEngine;
 	}
-  /**
-   * @return array
-   * @deprecated
-   */
+	/**
+	 * @return array
+	 * @deprecated
+	 */
 	protected function getDefaultTemplateParam() {
 		return array (
 				"baseurl" => BASE_URL,
@@ -286,8 +286,8 @@ class WebApplication extends Application implements IWebApplication {
 			header ( "Content-Type: application/json, text/javascript;charset=UTF-8", true );
 			if (! is_string ( $s )) {
 				if (is_object ( $s ) && $s instanceof \IRenderable) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $s = $s->Render ( true );
+					/** @noinspection PhpUndefinedMethodInspection */
+					$s = $s->Render ( true );
 				}
 				if (! is_string ( $s )) {
 					return JSON::encode ( $s );
@@ -355,13 +355,13 @@ class WebApplication extends Application implements IWebApplication {
 	public function clearCrumbs() {
 		$this->_crumbs = array ();
 	}
-  protected function handleRequest() {
-    $retval = parent::handleRequest();
-    //if (is_string($retval) && (Request::isDataRequest() || Request::isAJAXRequest())) {
-      //$retval .= CGAFJS::Render($this->getClientScript());
-    //}
-    return $retval;
-  }
+	protected function handleRequest() {
+		$retval = parent::handleRequest();
+		//if (is_string($retval) && (Request::isDataRequest() || Request::isAJAXRequest())) {
+		//$retval .= CGAFJS::Render($this->getClientScript());
+		//}
+		return $retval;
+	}
 	public function handleCommetRequest() {
 		\Response::write ( "halooo" );
 		return true;
@@ -425,68 +425,48 @@ EOT;
 			foreach ( $metas as $value ) {
 				$this->addMetaHeader ( $value );
 			}
-      $_crumbs = array();
-      $route = $this->getRoute();
-      if ($route ['_c'] !== 'home') {
-        $_crumbs [] = array(
-          'url' => APP_URL,
-          'title' => ucwords(__('home')),
-          'class' => 'home'
-        );
-      }
-      if ($route ['_c'] !== 'home') {
-        $_crumbs [] = array(
-          'title' => __('app.route.' . $route ['_c'] . '.title', ucwords($route ['_c'])),
-          'url' => URLHelper::add(APP_URL, $route ['_c'])
-        );
-      }
-      if ($route ['_a'] !== 'index') {
-        $_crumbs [] = array(
-          'title' => ucwords(__($route ['_c'] . '.' . $route ['_c'], $route ['_a'])),
-          'url' => URLHelper::add(APP_URL, $route ['_c'] . '/' . $route ['_a'])
-        );
-      }
-      // Session::set('app.isfromhome', false);
-      if ($route ['_c'] === 'home') {
-        Session::set('app.isfromhome', true);
-      }
+			$_crumbs = array();
+			$route = $this->getRoute();
+			if ($route ['_c'] !== 'home') {
+				$_crumbs [] = array(
+						'url' => APP_URL,
+						'title' => ucwords(__('home')),
+						'class' => 'home'
+				);
+			}
+			if ($route ['_c'] !== 'home') {
+				$_crumbs [] = array(
+						'title' => __('app.route.' . $route ['_c'] . '.title', ucwords($route ['_c'])),
+						'url' => URLHelper::add(APP_URL, $route ['_c'])
+				);
+			}
+			if ($route ['_a'] !== 'index') {
+				$_crumbs [] = array(
+						'title' => ucwords(__($route ['_c'] . '.' . $route ['_c'], $route ['_a'])),
+						'url' => URLHelper::add(APP_URL, $route ['_c'] . '/' . $route ['_a'])
+				);
+			}
+			// Session::set('app.isfromhome', false);
+			if ($route ['_c'] === 'home') {
+				Session::set('app.isfromhome', true);
+			}
 
-      if (!\Request::isDataRequest()) {
-        CGAFJS::initialize($this);
-      }
+			if (!\Request::isDataRequest()) {
+				CGAFJS::initialize($this);
+			}
 
-      $this->addCrumbs($_crumbs);
+			$this->addCrumbs($_crumbs);
 		}
 
-    parent::initRequest();
+		parent::initRequest();
 	}
 	protected function initAsset() {
 		$route = $this->getRoute ( );
 		if (! Request::isDataRequest ()) {
 			if ($route ['_c'] === 'asset' && $route ['_a'] === 'get')
 				return;
-			if ($this->getConfig ( 'js.bootstrap.enabled', true )) {
-				$this->addClientAsset ( 'bootstrap/css/bootstrap.css' );
-				$this->addClientAsset ( 'bootstrap/css/bootstrap-responsive.css' );
-				$this->addClientAsset ( 'cgaf/css/cgaf-bootstrap.css' );
-				$this->addClientAsset ( 'cgaf/css/cgaf-bootstrap-responsive.css' );
-				$this->addClientAsset ( 'bootstrap/js/bootstrap.js' );
-				$plugins = $this->getConfigs ( 'js.bootstrap.plugins', array () );
-
-				foreach ( $plugins as $p ) {
-					$this->addClientAsset ( 'bootstrap/js/' . $p );
-				}
-			}
-			$pref = 'js.' . $this->getConfig ( 'js.engine', 'jQuery' ) . '.plugins';
-			$plugins = $this->getConfigs ( $pref );
-			if ($plugins) {
-				$pref = str_replace ( '.', DS, $pref );
-				foreach ( $plugins as $k => $v ) {
-					$plugins [$k] = $pref . DS . $v;
-				}
-				$this->addClientAsset ( $plugins );
-			}
-      $maset = $this->getConfig('app.mainasset',$this->getAppPath(false));
+			
+			$maset = $this->getConfig('app.mainasset',$this->getAppPath(false));
 			$this->addClientAsset ( $maset.'.js' );
 			$this->addClientAsset ( $maset.'.css' );
 
@@ -506,104 +486,104 @@ EOT;
 	}
 
 	/*public function Run() {
-    parent::Run();
-		$a = Request::get ( "__url" );
-		$a = explode ( "/", $a );
-		if ($a [0] == "_appList") {
-			\Response::StartBuffer ();
-			include Utils::ToDirectory ( $this->getSharedPath () . "Views/applist.php" );
-			return \Response::EndBuffer ( false );
-		}
-		return false;
+	 parent::Run();
+	$a = Request::get ( "__url" );
+	$a = explode ( "/", $a );
+	if ($a [0] == "_appList") {
+	\Response::StartBuffer ();
+	include Utils::ToDirectory ( $this->getSharedPath () . "Views/applist.php" );
+	return \Response::EndBuffer ( false );
+	}
+	return false;
 	}*/
-  protected function cacheCSS($css, $target, $force = false) {
-    if (!$target && is_string($css)) {
-      $fname = Utils::getFileName($css);
-      $target = Utils::changeFileName($css, $fname . $this->getAgentSuffix());
-    }
-    $fname = $this->getCacheManager()->get($target, 'css');
-    // pp($fname);
-    if (!$fname || $force) {
-      if ($fname && is_file($fname)) {
-        unlink($fname);
-      }
-      $parsed = array();
-      if (is_array($css)) {
-        foreach ($css as $v) {
-          $parsed [] = $this->getAsset($v ['url']);
-          $ta = $this->getAssetAgent($v ['url']);
-          if ($ta) {
-            $parsed [] = $ta;
-          }
-        }
-      } else {
-        $tcss = $this->getAsset($css);
-        if ($tcss) {
-          $parsed [] = $tcss;
-        }
-        $tcss = $this->getAssetAgent($css);
-        if ($tcss) {
-          $parsed [] = $tcss;
-        }
-      }
-      if (count($parsed)) {
-        $content = WebUtils::parseCSS($parsed, $fname, $this->isDebugMode() == false);
-        $fname = $this->getCacheManager()->putString($content, $target, 'css');
-      }
-    }
-    if ($fname) {
-      return $this->getLiveAsset($fname);
-    }
-    return null;
-  }
-  function assetToLive($asset, $sessionBased = false) {
-    if (is_array($asset)) {
-      $retval = array();
-      foreach ($asset as $ff) {
-        if (!$ff)
-          continue;
-        $file = $this->assetToLive($ff, $sessionBased);
-        if ($file) {
-          if (!in_array($file, $retval)) {
-            $retval [] = $file;
-          }
-        } elseif ($this->isDebugMode()) {
-          Logger::Warning($ff);
-        }
-      }
-      return $retval;
-    }
-    if (strpos($asset, '://') !== false) {
-      return $asset;
-    }
-    if (!$this->isAllowToLive($asset)) {
-      return null;
-    }
-    $asset = Utils::toDirectory($asset);
-    if (!is_file($asset)) {
-      return null;
-    }
-    $ext = Utils::getFileExt($asset, FALSE);
-    switch ($ext) {
-      case 'assets' :
-        return $this->assetToLive($asset);
-        break;
-      default :
-        ;
-        break;
-    }
-    $apath = \Utils::ToDirectory($this->getAppPath() . $this->getConfig('livedatapath', 'assets') . '/');
-    if (\Strings::BeginWith($asset, $apath)) {
-      $asset = \Strings::Replace($apath, '', $asset);
-      return URLHelper::add($this->getAppUrl(), 'asset/get', array(
-                                                                  'q' => $asset
-                                                             ));
-    }
-    return CGAF::assetToLive($asset);
-  }
-  function Run() {
-    $retval = parent::Run();
-    return $this->prepareOutput($retval);
-  }
+	protected function cacheCSS($css, $target, $force = false) {
+		if (!$target && is_string($css)) {
+			$fname = Utils::getFileName($css);
+			$target = Utils::changeFileName($css, $fname . $this->getAgentSuffix());
+		}
+		$fname = $this->getCacheManager()->get($target, 'css');
+		// pp($fname);
+		if (!$fname || $force) {
+			if ($fname && is_file($fname)) {
+				unlink($fname);
+			}
+			$parsed = array();
+			if (is_array($css)) {
+				foreach ($css as $v) {
+					$parsed [] = $this->getAsset($v ['url']);
+					$ta = $this->getAssetAgent($v ['url']);
+					if ($ta) {
+						$parsed [] = $ta;
+					}
+				}
+			} else {
+				$tcss = $this->getAsset($css);
+				if ($tcss) {
+					$parsed [] = $tcss;
+				}
+				$tcss = $this->getAssetAgent($css);
+				if ($tcss) {
+					$parsed [] = $tcss;
+				}
+			}
+			if (count($parsed)) {
+				$content = WebUtils::parseCSS($parsed, $fname, $this->isDebugMode() == false);
+				$fname = $this->getCacheManager()->putString($content, $target, 'css');
+			}
+		}
+		if ($fname) {
+			return $this->getLiveAsset($fname);
+		}
+		return null;
+	}
+	function assetToLive($asset, $sessionBased = false) {
+		if (is_array($asset)) {
+			$retval = array();
+			foreach ($asset as $ff) {
+				if (!$ff)
+					continue;
+				$file = $this->assetToLive($ff, $sessionBased);
+				if ($file) {
+					if (!in_array($file, $retval)) {
+						$retval [] = $file;
+					}
+				} elseif ($this->isDebugMode()) {
+					Logger::Warning($ff);
+				}
+			}
+			return $retval;
+		}
+		if (strpos($asset, '://') !== false) {
+			return $asset;
+		}
+		if (!$this->isAllowToLive($asset)) {
+			return null;
+		}
+		$asset = Utils::toDirectory($asset);
+		if (!is_file($asset)) {
+			return null;
+		}
+		$ext = Utils::getFileExt($asset, FALSE);
+		switch ($ext) {
+			case 'assets' :
+				return $this->assetToLive($asset);
+				break;
+			default :
+				;
+				break;
+		}
+		$apath = \Utils::ToDirectory($this->getAppPath() . $this->getConfig('livedatapath', 'assets') . '/');
+		if (\Strings::BeginWith($asset, $apath)) {
+			$asset = \Strings::Replace($apath, '', $asset);
+			return URLHelper::add($this->getAppUrl(), 'asset/get', array(
+					'q' => $asset
+			));
+		}
+		return CGAF::assetToLive($asset);
+	}
+	function Run() {
+		$retval = parent::Run();
+		return $this->prepareOutput($retval);
+	}
 }
 ?>

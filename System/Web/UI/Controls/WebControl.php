@@ -100,7 +100,7 @@ class WebControl extends \Control implements \IRenderable {
 		}
 		return $this->getProperty("id");
 	}
-	function setId($value) {
+	function setId($value) {		
 		$this->setProperty("id", $value);
 	}
 	function setAutoCloseTag($value) {

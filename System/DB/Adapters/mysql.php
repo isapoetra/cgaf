@@ -64,7 +64,10 @@ class MySQL extends DBConnection {
 						$fcreate .= ' NOT NULL';
 					}
 					if ($field->fielddefaultvalue!==null) {
-						$fcreate .= ' DEFAULT ' . $this->parseDefaultValue ( $field->fielddefaultvalue );
+						$fcreate .= ' DEFAULT ' . $this->parseDefaultValue ( $field->fielddefaultvalue,$field->fieldtype );
+					}
+					if ($field->isAutoIncrement()) {
+						$fcreate.=' AUTO_INCREMENT';
 					}
 					$retval[] = $fcreate.',';
 					if ($field->FieldReference) {
@@ -109,11 +112,18 @@ class MySQL extends DBConnection {
 		$this->_thows = true;
 		return $this->Exec ( implode('',$retval) );
 	}
-	private function parseDefaultValue($val) {
+	private function parseDefaultValue($val,$type=null) {
 		switch ($val) {
 			case '#CURRENT_USER#' :
 				$val = ACLHelper::getUserId ();
 				break;
+			default:
+				switch ($type) {
+					case 'string':
+					case 'text':
+					case 'varchar':
+						return $this->quote($val);											
+				}
 		}
 		return $val;
 	}

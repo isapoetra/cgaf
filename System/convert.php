@@ -72,16 +72,16 @@ abstract class Convert {
 			}
 		}
 	}
-	public static function toString($o) {
+	public static function toString($o,$delim='') {
 		if (is_string($o)) {
 			return $o;
 		}
 		if (($o instanceof \System\Collections\Collection) || is_array($o)) {
-			$r = "";
+			$r = array();
 			foreach ($o as $k => $v) {
-				$r .= self::toString($v, true);
+				$r[]= self::toString($v, true);
 			}
-			return $r;
+			return implode($delim,$r);
 		} elseif ($o instanceof \IRenderable) {
 			return $o->Render(true);
 		} elseif (is_object($o)) {

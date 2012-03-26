@@ -67,11 +67,17 @@ class Strings extends stdClass {
 	}
 	public static function Replace($search, $replace, $subject = null, $case = true, $count = null, $prefix = '', $suffix = '', $encode = false) {
 		$retval = $subject;
-		if (is_array($search) || is_object($search)) {
+		if($replace===null && is_array($search)){
+			$retval = $subject;
+			foreach ($search as $k => $v) {				
+				$retval = self::Replace($k, $v, $retval, $case, $count, $prefix, $suffix, $encode);
+			}
+		}elseif (is_array($search) || is_object($search)) {
 			$retval = $subject;
 			foreach ($search as $k => $v) {
 				$retval = self::Replace($v, $replace, $retval, $case, $count, $prefix, $suffix, $encode);
 			}
+			ppd($retval);
 		} elseif (is_array($replace) || is_object($replace)) {
 			$retval = $search;
 
@@ -132,6 +138,11 @@ class Strings extends stdClass {
 			$first = false;
 		}
 		return $retval;
+	}
+	public static function unHTML($s) {
+		return self::Replace(array(
+				'%20'=>' '
+		), null,$s);
 	}
 }
 ?>

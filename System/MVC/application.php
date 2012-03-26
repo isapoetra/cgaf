@@ -19,7 +19,6 @@ use System\Web\Utils\HTMLUtils;
 use URLHelper;
 use ModuleManager;
 use System\Template\TemplateHelper;
-use System\Web\JS\CGAFJS;
 use Response;
 use \System\Applications\AbstractApplication;
 
@@ -604,6 +603,7 @@ abstract class Application extends AbstractApplication {
 				$ctl = $this->getController('auth');
 				$content = $ctl->renderView('shared/header');
 				$content .= $ctl->Index();
+				$content .= $ctl->renderView('shared/footer');
 			}
 		}
 		if (Request::isDataRequest()) {

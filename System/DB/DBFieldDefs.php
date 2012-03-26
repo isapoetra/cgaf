@@ -45,6 +45,12 @@ class DBFieldDefs {
 		}
 		return (( string ) $this->_vars ['fieldallownull'] === 'true');
 	}
+	function isAutoIncrement() {
+
+
+		$extra = isset($this->_vars['fieldextra']) ? (stripos($this->_vars['fieldextra'],'auto_increment') !==false ? true :false) : false;
+		return isset($this->_vars['fieldautoinrement']) ? (bool) $this->_vars['fieldautoinrement'] : $extra;
+	}
 	function isPrimaryKey() {
 		return ( bool ) $this->fieldisprimarykey === true;
 	}

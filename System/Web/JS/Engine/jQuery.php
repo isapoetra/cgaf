@@ -19,18 +19,20 @@ class jQuery extends AbstractJSEngine {
 		$assets [] = 'jquery-ui.js';
 		$assets [] = 'themes/base/jquery-ui.css';
 
-		$theme = $this->_appOwner->getUserConfig ( 'ui.themes', $this->_appOwner->getConfig ( 'ui.themes', 'ui-lightness' ) );
-		if ($theme) {
-			$assets [] = 'themes/' . $theme . '/jquery-ui.css';
-		}
+		
 
 		if ($this->getConfig ( 'js.bootstrap.enabled', true )) {
-			$asset[] = 'themes/bootstrap/bootstrap.css';
+			//$assets[] = 'themes/bootstrap/bootstrap.css';			
+		}else{
+			$theme = $this->_appOwner->getUserConfig ( 'ui.themes', $this->_appOwner->getConfig ( 'ui.themes', 'ui-lightness' ) );
+			if ($theme) {
+				$assets [] = 'themes/' . $theme . '/jquery-ui.css';
+			}
 		}
 		$retval = array ();
 		foreach ( $assets as $asset ) {
 			$r = $this->getAsset ( $ui . $asset, null, true );
-			if (! $r) {
+			if (! $r) {				
 				$r = $this->getAsset ( $asset, null );
 			}
 			$retval [] = $r;

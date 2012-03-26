@@ -293,7 +293,15 @@ abstract class System {
 		}
 		return $u;
 	}
-
+	public static function iniset($set,$value=null) {
+		if (is_array($set) || is_object($set)) {
+			foreach($set as $k=>$v) {
+				ini_set($k, $v);
+			}
+			return;
+		}
+		ini_set($set, $value);
+	}
 	public static function getTempDir() {
 		$path = '';
 		if (!function_exists('sys_get_temp_dir')) {
