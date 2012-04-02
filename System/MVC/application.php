@@ -37,15 +37,15 @@ abstract class Application extends AbstractApplication {
 		parent::__construct($appPath, $appName);
 	}
 
-	function uninstall() {	
+	function uninstall() {
 		if (\CGAF::isAllow('manage', 'system', ACLHelper::ACCESS_MANAGE)) {
 			$appId = $this->getAppId();
 			$f = CGAF::getInternalStorage('db', false, true) . '/uninstall-app.sql';
 			if (is_file($f)) {
 				DBUtil::execScript(
-					$f, CGAF::getDBConnection(), array(
-					                                  'app_id' => $appId
-					                             )
+						$f, CGAF::getDBConnection(), array(
+								'app_id' => $appId
+						)
 				);
 			}
 		} else {
@@ -60,13 +60,13 @@ abstract class Application extends AbstractApplication {
 		foreach ($path as $p) {
 			$fname = Utils::getFileName($p, false);
 			if ($this
-				->getACL()
-				->isAllow($fname, 'controller', $for)
+					->getACL()
+					->isAllow($fname, 'controller', $for)
 			) {
 				$retval [] = array(
-					'key' => $fname,
-					'value' => ucfirst($fname),
-					'descr' => __('controller.' . $fname . '.descr')
+						'key' => $fname,
+						'value' => ucfirst($fname),
+						'descr' => __('controller.' . $fname . '.descr')
 				);
 			}
 		}
@@ -140,10 +140,10 @@ abstract class Application extends AbstractApplication {
 			$ap = $this->getConfig('livedatapath', 'assets');
 			$retval = array();
 			$spath = array(
-				$this->getLivePath(false),
-				$this->getAppPath(),
-				CGAF_SHARED_PATH,
-				SITE_PATH
+					$this->getLivePath(false),
+					$this->getAppPath(),
+					CGAF_SHARED_PATH,
+					SITE_PATH
 			);
 			foreach ($spath as $v) {
 				foreach ($search as $value) {
@@ -180,10 +180,10 @@ abstract class Application extends AbstractApplication {
 		}
 		if ($fname) {
 			return $this
-				->getCacheManager()
-				->putString(
-				"\n" . $content, $this->isDebugMode() ? basename($fname) : $target, 'js', null,
-				$this->isDebugMode() ? false : true
+			->getCacheManager()
+			->putString(
+					"\n" . $content, $this->isDebugMode() ? basename($fname) : $target, 'js', null,
+					$this->isDebugMode() ? false : true
 			);
 		}
 		return null;
@@ -199,8 +199,8 @@ abstract class Application extends AbstractApplication {
 		if (!$live) {
 			$target = basename($target);
 			$jsname = $this
-				->getCacheManager()
-				->get($target, 'js');
+			->getCacheManager()
+			->get($target, 'js');
 			if ($force || !$jsname) {
 				if (is_array($arr)) {
 					foreach ($arr as $f) {
@@ -294,23 +294,23 @@ abstract class Application extends AbstractApplication {
 	}
 
 	/*
-* function contentCallback($rpath, $content, $id, $group) { $ext =
-* Utils::getFileExt ( $id, false ); if (! $ext || is_numeric ( $ext ))
-* { $ext = $group; } switch (trim ( $ext )) { case "js" : $paths =
-* $rpath; if (is_array ( $rpath )) { $paths = array (); foreach (
-* $rpath as $v ) { if (is_array ( $v )) { if (isset ( $v ['url'] )) {
-* $paths [] = $v ['url']; } } else { $paths [] = $v; } } $rpath =
-* $paths; } return $this->cacheJS ( $rpath, $id ); break; case 'css' :
-* if (is_array ( $rpath )) { return $this->cacheCSS ( $rpath, $id ); }
-* else { return $this->cacheCSS ( $rpath, null ); } break; case 'xml' :
-* if (is_file ( $id )) { $asset = $id; } else { $asset =
-* $this->getAsset ( $id, $group ); } if ($asset) { $retval =
-* ProjectManager::build ( $asset ); return Utils::LocalToLive (
-* $retval, '' ); } else { pp ( $id ); } break; default : if (is_string
-* ( $rpath ) && Utils::isLive ( $rpath )) { return $rpath; } throw new
-* SystemException ( 'unhandled data type ' . $ext . " on class " .
-* get_class ( $this ) . pp ( $rpath, true ) ); } return $content; }
-*/
+	 * function contentCallback($rpath, $content, $id, $group) { $ext =
+	* Utils::getFileExt ( $id, false ); if (! $ext || is_numeric ( $ext ))
+		* { $ext = $group; } switch (trim ( $ext )) { case "js" : $paths =
+	* $rpath; if (is_array ( $rpath )) { $paths = array (); foreach (
+			* $rpath as $v ) { if (is_array ( $v )) { if (isset ( $v ['url'] )) {
+	* $paths [] = $v ['url']; } } else { $paths [] = $v; } } $rpath =
+	* $paths; } return $this->cacheJS ( $rpath, $id ); break; case 'css' :
+	* if (is_array ( $rpath )) { return $this->cacheCSS ( $rpath, $id ); }
+	* else { return $this->cacheCSS ( $rpath, null ); } break; case 'xml' :
+	* if (is_file ( $id )) { $asset = $id; } else { $asset =
+	* $this->getAsset ( $id, $group ); } if ($asset) { $retval =
+	* ProjectManager::build ( $asset ); return Utils::LocalToLive (
+			* $retval, '' ); } else { pp ( $id ); } break; default : if (is_string
+					* ( $rpath ) && Utils::isLive ( $rpath )) { return $rpath; } throw new
+	* SystemException ( 'unhandled data type ' . $ext . " on class " .
+			* get_class ( $this ) . pp ( $rpath, true ) ); } return $content; }
+	*/
 	protected function initRequest() {
 		$controller = null;
 		try {
@@ -322,10 +322,10 @@ abstract class Application extends AbstractApplication {
 		if (!Request::isDataRequest() && !$this->getVars('title')) {
 			$title = $this->getConfig($rname . '.title', ucwords(__($rname . '.site.title', $rname)));
 			$deftitle = $this->getAppId() === \CGAF::APP_ID
-				? \CGAF::getConfig('cgaf.description')
-				: $this->getConfig(
+			? \CGAF::getConfig('cgaf.description')
+			: $this->getConfig(
 					'app.title', $this->getAppName()
-				);
+			);
 			$this->Assign('title', $this->getConfig('app.title', $deftitle) . ' ::: ' . $title);
 		}
 		$this->initAsset();
@@ -386,8 +386,8 @@ abstract class Application extends AbstractApplication {
 			$libs = $this->getConfig('apps.libs');
 			$path = $this->getAppPath();
 			$this->_searchPath = array(
-				$path,
-				CGAF_SHARED_PATH
+					$path,
+					CGAF_SHARED_PATH
 			);
 			CGAF::addClassPath($this->getAppName(), $path . DS . 'classes' . DS);
 			CGAF::addClassPath('System', $path . DS, false);
@@ -429,9 +429,9 @@ abstract class Application extends AbstractApplication {
 		}
 		if (!in_array($value, $this->_searchPath)) {
 			$this->_searchPath = array_merge(
-				array(
-				     $value
-				), $this->_searchPath
+					array(
+							$value
+					), $this->_searchPath
 			);
 		}
 	}
@@ -532,7 +532,7 @@ abstract class Application extends AbstractApplication {
 	}
 
 	public function getMenuItems(
-		$position, $parent = 0, $actionPrefix = null, $showIcon = true, $loadChild = false, $includecgaf = null) {
+			$position, $parent = 0, $actionPrefix = null, $showIcon = true, $loadChild = false, $includecgaf = null) {
 		//TODO double check (problem database field type int , param string. mysql converted to int and the result is 0, so recurive :((
 		//
 		if (!is_numeric($parent)) {
@@ -545,7 +545,7 @@ abstract class Application extends AbstractApplication {
 		$model->where("menu_state=1");
 		$model->where("(menu_parent=" . $model->quote($parent) . ' and menu_id != ' . $model->quote($parent) . ')');
 		$includecgaf = $includecgaf === null ? $this->getConfig(
-			'app.ui.menu.' . $position . '.includecgafui', $this->getConfig('app.ui.menu.includecgafui', true)
+				'app.ui.menu.' . $position . '.includecgafui', $this->getConfig('app.ui.menu.includecgafui', true)
 		) : $includecgaf;
 		if ($includecgaf) {
 			$model->where("(app_id='__cgaf' or app_id=" . $model->quote($this->getAppId()) . ")");
@@ -635,8 +635,8 @@ abstract class Application extends AbstractApplication {
 				$id = Request::get('id');
 				if ($id) {
 					$this
-						->getLocale()
-						->setLocale($id);
+					->getLocale()
+					->setLocale($id);
 					Response::Redirect(BASE_URL);
 				} else {
 					$this->_route ['_c'] = 'locale';
@@ -655,19 +655,19 @@ abstract class Application extends AbstractApplication {
 	function performCheck() {
 		$rowner = \System::getCurrentUser();
 		$paths = array(
-			array(
-				CGAF::getInternalStorage('db'),
-				'0770',
-				$rowner['username'],
-				$rowner['groups'],
-				'Internal Database Storage'),
-			array(
-				$this->getInternalData('.cache', true),
-				'0770',
-				$rowner['username'],
-				$rowner['groups'],
-				'Internal Cache'
-			)
+				array(
+						CGAF::getInternalStorage('db'),
+						'0770',
+						$rowner['username'],
+						$rowner['groups'],
+						'Internal Database Storage'),
+				array(
+						$this->getInternalData('.cache', true),
+						'0770',
+						$rowner['username'],
+						$rowner['groups'],
+						'Internal Cache'
+				)
 		);
 		$error = array();
 		try {
@@ -851,8 +851,8 @@ abstract class Application extends AbstractApplication {
 	function renderMenu($position, $controller = true, $selected = null, $class = null, $renderdiv = true) {
 		if ($controller) {
 			$retval = $this
-				->getController()
-				->renderMenu($position);
+			->getController()
+			->renderMenu($position);
 		} else {
 			$items = $this->getMenuItems($position);
 			$retval = "";
@@ -903,7 +903,118 @@ abstract class Application extends AbstractApplication {
 			return \URLHelper::add(APP_URL, $ctl->getControllerName() . '/' . $action, $params);
 		}
 	}
-
+	function renderContentItem($row,$params=null) {
+		$class = null;
+		$dbparams = Utils::DBDataToParam($row->params, $params);
+		$rparams = \Utils::arrayMerge($dbparams, $params);
+		$ctl = null;
+		$hcontent = null;
+		$content = null;
+		$menus=array();
+		$haction = null;
+		/*
+		 * 1 	: view handled by initAction method on controller 2 	:
+		* direct access to controller 3	: Direct link 4	: render menu
+		* 5	: direct access to controller with no title
+		*/
+		switch ($row->content_type) {
+			case 5 :
+			case 2 :
+				// direct action to controller
+				try {
+					$ctl = $this->getController($row->controller);
+					if ($ctl) {
+						$row->actions = $ctl->getActionAlias($row->actions);
+						if ($this->getConfig('content.rendercontentaction')) {
+							$row->actions = $row->actions ? $row->actions : "index";
+							if ($ctl->isAllow(ACLHelper::ACCESS_MANAGE)) {
+								$haction [] = HTMLUtils::renderLink(
+										URLHelper::addParam(
+												$this->getAppUrl(), array(
+														'__c' => $row->controller,
+														'__a' => 'aed'
+												)
+										), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png',
+										__($row->controller . '.add.descr', 'Add Data')
+								);
+							}
+						}
+						if (method_exists($ctl, $row->actions) && $ctl->isAllow($row->actions)) {
+							$class = $row->controller . '-' . $row->actions;
+							$cparams = $rparams;
+							if (isset ($rparams [$row->controller])) {
+								$cparams = $rparams [$row->controller];
+							}
+							$hcontent = $ctl->{$row->actions} ($cparams);
+						} elseif (!method_exists($ctl, $row->actions) && $this->isDebugMode()) {
+							$hcontent = HTMLUtils::renderError(
+									'method [' . $row->actions . '] not found in class ' . $row->controller
+							);
+						}
+					} else {
+						$hcontent = HTMLUtils::renderError(' Controller [' . $row->controller . '] not found ');
+					}
+				} catch (\Exception $e) {
+					if ($this->isDebugMode()) {
+						$hcontent = HTMLUtils::renderError($e->getMessage());
+					} else {
+						continue;
+					}
+				}
+				break;
+			case 3 :
+				try {
+					$ctl = $this->getController($row->controller);
+				} catch (\Exception $e) {
+					$ctl = null;
+				}
+				$url = $this->parseAction($row, $ctl, $params);
+				if ($url) {
+					// cek security by internal controller
+					$menus [] = HTMLUtils::renderLink($url, __($row->content_title));
+				}
+				break;
+			case 4 :
+				// renderMenu
+				try {
+					$ctl = $this->getController($row->controller);
+				} catch (\Exception $e) {
+					$ctl = null;
+				}
+				if ($ctl) {
+					$hcontent = $ctl->renderMenu($row->actions);
+				}
+				break;
+			case 1 :
+			default :
+				try {
+					if ($row->controller !== null && $this->isAllow($row->controller, "controller")) {
+						$ctl = $this->getClassInstance($row->controller, "Controller", $this);
+					}
+				} catch (\Exception $e) {
+					$ctl = null;
+				}
+				if ($ctl !== null) {
+					$hcontent = null;
+					$row->__content = "";
+					$action = $row->actions ? $row->actions : "index";
+					$params = $row->params ? unserialize($row->params) : array();
+					$params ["_position"] = $location;
+					// if (is_callable(array($ctl,$action))) {
+					// $hcontent = $ctl->$action($params);
+					// }else
+					if ($ctl->initAction($action, $params)) {
+						$hcontent = $ctl->render(
+								array(
+										"_a" => $action
+								), $params, true
+						);
+					}
+				}
+		}
+		unset ($ctl);
+		return array('hcontent'=>$hcontent,'menus'=>$menus,'actions'=>$haction);
+	}
 	function renderContents($rows, $location, $params = null, $tabmode = false) {
 		if (!count($rows)) {
 			return null;
@@ -911,8 +1022,8 @@ abstract class Application extends AbstractApplication {
 		$retval = array();
 		$menus = array();
 		$controller = $this
-			->getController()
-			->getControllerName();
+		->getController()
+		->getControllerName();
 		foreach ($rows as $midx => $row) {
 			$class = null;
 			$dbparams = Utils::DBDataToParam($row->params, $params);
@@ -922,10 +1033,10 @@ abstract class Application extends AbstractApplication {
 			$content = null;
 			$haction = null;
 			/*
-* 1 	: view handled by initAction method on controller 2 	:
-* direct access to controller 3	: Direct link 4	: render menu
-* 5	: direct access to controller with no title
-*/
+			 * 1 	: view handled by initAction method on controller 2 	:
+			* direct access to controller 3	: Direct link 4	: render menu
+			* 5	: direct access to controller with no title
+			*/
 			switch ($row->content_type) {
 				case 5 :
 				case 2 :
@@ -938,13 +1049,13 @@ abstract class Application extends AbstractApplication {
 								$row->actions = $row->actions ? $row->actions : "index";
 								if ($ctl->isAllow(ACLHelper::ACCESS_MANAGE)) {
 									$haction [] = HTMLUtils::renderLink(
-										URLHelper::addParam(
-											$this->getAppUrl(), array(
-											                         '__c' => $row->controller,
-											                         '__a' => 'aed'
-											                    )
-										), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png',
-										__($row->controller . '.add.descr', 'Add Data')
+											URLHelper::addParam(
+													$this->getAppUrl(), array(
+															'__c' => $row->controller,
+															'__a' => 'aed'
+													)
+											), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png',
+											__($row->controller . '.add.descr', 'Add Data')
 									);
 								}
 							}
@@ -957,7 +1068,7 @@ abstract class Application extends AbstractApplication {
 								$hcontent = $ctl->{$row->actions} ($cparams);
 							} elseif (!method_exists($ctl, $row->actions) && $this->isDebugMode()) {
 								$hcontent = HTMLUtils::renderError(
-									'method [' . $row->actions . '] not found in class ' . $row->controller
+										'method [' . $row->actions . '] not found in class ' . $row->controller
 								);
 							}
 						} else {
@@ -1014,9 +1125,9 @@ abstract class Application extends AbstractApplication {
 						// }else
 						if ($ctl->initAction($action, $params)) {
 							$hcontent = $ctl->render(
-								array(
-								     "_a" => $action
-								), $params, true
+									array(
+											"_a" => $action
+									), $params, true
 							);
 						}
 					}
@@ -1024,9 +1135,9 @@ abstract class Application extends AbstractApplication {
 			if ($hcontent) {
 				$content .= "<div class=\"$location-item {$row->controller} {$class} clearfix\">";
 				if (( int )$row->content_type !== 5
-					&& $this->getConfig(
-						'content.' . $controller . '.' . $location . '.header', true
-					)
+						&& $this->getConfig(
+								'content.' . $controller . '.' . $location . '.header', true
+						)
 				) {
 					if ($row->content_title && !$tabmode) {
 						$content .= "	<h4>" . __($row->content_title) . "</h4>";
@@ -1056,13 +1167,8 @@ abstract class Application extends AbstractApplication {
 		}
 		return $retval;
 	}
-
-	function renderContent($location, $controller = null, $returnori = false, $return = true, $params = null, $tabMode = false, $appId = null) {
-		if ($controller === null) {
-			$controller = $this
-				->getController()
-				->getControllerName();
-		}
+	function getItemContents($location,$controller,$appId=null) {
+		$appId = $appId ? $appId  :  $this->getAppId();
 		$m = $this->getModel("content");
 		$m->clear();
 		if ($appId) {
@@ -1075,7 +1181,16 @@ abstract class Application extends AbstractApplication {
 		$m->where("(content_controller=" . $m->quote($controller) . ' or content_controller=\'__all\')');
 		$m->where("position=" . $m->quote($location));
 		$m->orderBy('idx');
-		$rows = $m->loadAll();
+		return $m->loadAll();
+	}
+	function renderContent($location, $controller = null, $returnori = false, $return = true, $params = null, $tabMode = false, $appId = null) {
+		if ($controller === null) {
+			$controller = $this
+			->getController()
+			->getControllerName();
+		}
+
+		$rows = $this->getItemContents($location,$controller,$appId);
 		$retOri = array();
 		$content = '';
 		$rcontent = $this->renderContents($rows, $location, $params, $tabMode);
@@ -1086,8 +1201,8 @@ abstract class Application extends AbstractApplication {
 			foreach ($rows as $midx => $row) {
 				if (isset($rcontent[$midx])) {
 					$content
-						.= '<li' . ($midx === 0 ? ' class="active"' : '') . '><a href="#tab-' . $midx . '" data-toggle="tab">' . __(
-						$row->content_title
+					.= '<li' . ($midx === 0 ? ' class="active"' : '') . '><a href="#tab-' . $midx . '" data-toggle="tab">' . __(
+							$row->content_title
 					) . '</a></li>';
 				}
 			}
@@ -1139,9 +1254,9 @@ abstract class Application extends AbstractApplication {
 
 	function renderControllerMenu($position = "top") {
 		return $this
-			->getController()
-			->renderMenu(
-			$this
+		->getController()
+		->renderMenu(
+				$this
 				->getController()
 				->getRouteName() . "-$position", "menu2ndlevel"
 		);
@@ -1155,7 +1270,7 @@ abstract class Application extends AbstractApplication {
 	function removeSession($sid) {
 		if ($sid !== session_id()) {
 			Session::getInstance()
-				->destroy($sid);
+			->destroy($sid);
 			$this->onSessionEvent(new SessionEvent (null, SessionEvent::DESTROY), $sid);
 			return __('session.destroyed', 'Killed');
 		} else {
@@ -1169,10 +1284,6 @@ abstract class Application extends AbstractApplication {
 		}
 		$this->_userInfo [$id] = new \CGAFUserInfo ($this, $id);
 		return $this->_userInfo [$id];
-	}
-
-	function onSessionEvent(SessionEvent $event, $sid = null) {
-		// ppd($_SESSION);
 	}
 }
 

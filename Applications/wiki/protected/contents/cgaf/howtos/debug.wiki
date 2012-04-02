@@ -1,9 +1,0 @@
-to debug cgaf
-
-<ul>
-    <li>set configuration cgaf.debugmode to true</li>
-    <li>set configuration cgaf.devtoken to to random value</li>
-    <li>Open URL /cgaf/cgaf/?__devtoken=[devtoken value]</li>
-    <li>cgaf running in debug mode for specific host</li>
-    <li>to allow debug on your host please set configuration `cgaf.allowedebughost` to your host (delimited with comma)</li>
-</ul>

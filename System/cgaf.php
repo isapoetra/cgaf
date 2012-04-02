@@ -414,14 +414,14 @@ final class CGAF {
 		}
 		self::$_isDebugMode = CGAF_DEBUG;
 		if (CGAF_DEBUG === false) {
-			error_reporting(E_ERROR | E_WARNING | E_PARSE);
+			error_reporting(E_ERROR | E_WARNING | E_PARSE ^ E_STRICT);
 			set_error_handler("CGAF::error_handler");
 			set_exception_handler("CGAF::exception_handler");
 			if (function_exists('xdebug_disable')) {
 				xdebug_disable();
 			}
 		} else {
-			error_reporting(E_ALL);
+			error_reporting(E_ALL | E_STRICT);
 			ini_set('display_errors', 1);
 		}
 		set_exception_handler("CGAF::exception_handler");

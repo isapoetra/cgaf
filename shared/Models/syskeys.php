@@ -35,13 +35,13 @@ class SysKeys extends Model {
 	public $syskey_type;
 	/**
 	 * @FieldLength 2
-	 * @FieldDefaultValue '\r\n'
+	 * @FieldDefaultValue PHP_EOL
 	 * var string
 	 */
 	public $syskey_sep1;
 	/**
 	 * @FieldLength 2
-	 * @FieldDefaultValue '|'
+	 * @FieldDefaultValue |
 	 *
 	 * @var string
 	 */

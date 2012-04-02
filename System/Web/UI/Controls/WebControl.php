@@ -40,7 +40,7 @@ class WebControl extends \Control implements \IRenderable {
 		$this->_text = $text;
 	}
 	function setClass($c) {
-		$this->setProperties('class',$c);
+		parent::setProperties('class',$c);
 	}
 
 	function addClass($c) {
@@ -60,7 +60,7 @@ class WebControl extends \Control implements \IRenderable {
 			$c = explode(' ',$c);
 		}
 		$current  = explode(' ',$this->getProperty('class',''));
-		$rc = $current;
+		$rc = array();
 		foreach($current as $k=>$v) {
 			if (empty($v)) continue;
 			if (!in_array($v,$c)) {

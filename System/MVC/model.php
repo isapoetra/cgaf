@@ -37,6 +37,8 @@ class Model extends Table {
             }
             throw new \Exception('Error While Loading file ' . $tname . implode("\n", $msgs));
           }
+        }else{
+        	throw new \Exception('Error While Loading file ' . $tname);
         }
       }
       $this->clear();

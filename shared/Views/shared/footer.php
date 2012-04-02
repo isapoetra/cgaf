@@ -29,7 +29,7 @@ echo $appOwner->renderClientAsset ( "js" );
 if (Request::get ( '__msg' )) {
 	echo '$("#sysmessage").html(\'' . Request::get ( '__msg' ) . '\').show(\'slow\'); ';
 }
-echo '</script>';
+//echo '</script>';
 echo JSUtils::renderJSTag ( $appOwner->getClientDirectScript (), false );
 echo CGAFJS::Render ( $appOwner->getClientScript () );
 echo '</body>';

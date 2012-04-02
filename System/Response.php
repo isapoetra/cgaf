@@ -59,6 +59,9 @@ final class Response {
 		return self::getInstance()->forceContentExpires();
 	}
 	public static function Redirect($url = null) {
+		if (!$url) {
+			$url = APP_URL;
+		}
 		$parsed =MVCHelper::parse($url);
 
 		$instance =AppManager::getInstance();

@@ -5,7 +5,7 @@ use System\Exceptions\SystemException;
 
 use \Utils;
 
-class Image extends \BaseObject {
+class Image extends \BaseObject implements IDocument {
 	private $_file;
 	private $_watermark;
 	private $_outputFile;
@@ -163,7 +163,9 @@ class Image extends \BaseObject {
 		$ori = getimagesize($file);
 		$ws = $ori[0];
 		$hs = $ori[1];
-
+		if ($w==$ws && $h==$hs) {
+			return $source;
+		}
 		\Utils::makeDir(dirname($out));
 		if ($ws > $w && $hs > $h) {
 			$aspect = $ws / $hs;
@@ -343,30 +345,51 @@ class Image extends \BaseObject {
 		}
 		return $imageSource;
 	}
-
-	function toOutput() {
+	function loadFile($f) {
+		$this->_file=$f;
+	}
+	function Render($return=false) {
+		return $this->toOutput($return);
+	}
+	function toOutput($returnSource=false) {
 		if ($this->_file && is_file($this->_file)) {
 			list($oriW, $oriH) = getimagesize($this->_file);
 			if (!$this->_outputWidth) {
 				$this->_outputWidth = $oriW;
 			}
 			if (!$this->_outputHeight) {
-				$this->_outputWidth = $oriH;
+				$this->_outputHeight = $oriH;
 			}
 		}
 		//$this->_outputWidth = $oriW;
 		//$this->_outputWidth = $oriH;
-		$tmpFile = tempnam('', 'img') . '.jpg';
-		$imageSource = $this->resizeImage($this->_file, $tmpFile, $this->_outputWidth, $this->_outputHeight);
+		$tmpFile = tempnam('', 'img') . \Utils::getFileExt($this->_file,true);
+		$imageSource = $this->resizeImage($this->_file, null, $this->_outputWidth, $this->_outputHeight);
 		$this->renderWaterMark($imageSource);
-		$retval = $this->_outputImage($imageSource, $this->_outputFile, $this->_outputQuality);
+		$retval = $this->_outputImage($imageSource, $this->_outputFile ? $this->_outputFile : $tmpFile, $this->_outputQuality);
+		if ($returnSource) {
+			return $imageSource;
+		}
 		imagedestroy($imageSource);
 		if (is_readable($tmpFile)) {
 			unlink($tmpFile);
 		}
 		return $retval ? $this->_outputFile : null;
 	}
-
+	function toBase64() {
+		/*$ou = $this->getImage($this->_file);
+		ppd($this->_file);
+		if ($ou) {
+			ob_start ();
+			imagepng ($ou);
+			$image_data = ob_get_contents ();
+			ob_end_clean ();
+			imagedestroy($ou);
+			
+		}
+		ppd($ou);*/
+		return 'data:image/'.\Utils::getFileExt($this->_file,false).';base64,'.base64_encode (file_get_contents($this->_file));
+	}
 	function blur(&$image) {
 		$gaussian = array(
 			array(

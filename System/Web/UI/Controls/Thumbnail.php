@@ -40,7 +40,7 @@ class ThumbnailItem extends WebControl {
 		$cap = new WebControl ( 'div', false, array (
 				'class' => 'caption'
 		) );
-		if ($this->_title) $cap->AddChild('<h5>'.$this->_title.'</h5>');
+		if ($this->_stitle) $cap->AddChild('<h5>'.$this->_stitle.'</h5>');
 		if ($this->_description) $cap->addChild('<div>'.$this->_description.'</div>');
 		if ($this->_actions) $cap->addChild('<div class="actions">'.\Utils::toString($this->_actions).'</div>');
 		if ($cap->hasChild()) $this->addChild ( $cap );

@@ -162,6 +162,7 @@ class WebApplication extends Application implements IWebApplication {
 					$min = parent::getAsset ( Utils::changeFileExt ( $data, 'min.' . $ext ), $prefix );
 					//ppd(Utils::changeFileExt ( $data, 'min.' . $ext ));
 					if ($min && ! $this->isDebugMode ()) {
+						ppd($min);
 						return $min;
 					}
 					$retval = parent::getAsset ( $data, $prefix );
@@ -327,9 +328,11 @@ class WebApplication extends Application implements IWebApplication {
 		}
 		return $stemp;
 	}
-	public function getCrumbs() {
+	public function &getCrumbs() {
 		return $this->_crumbs;
 	}
+
+	
 	/**
 	 * Enter description here .
 	 * ..
@@ -357,9 +360,6 @@ class WebApplication extends Application implements IWebApplication {
 	}
 	protected function handleRequest() {
 		$retval = parent::handleRequest();
-		//if (is_string($retval) && (Request::isDataRequest() || Request::isAJAXRequest())) {
-		//$retval .= CGAFJS::Render($this->getClientScript());
-		//}
 		return $retval;
 	}
 	public function handleCommetRequest() {

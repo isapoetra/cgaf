@@ -19,7 +19,7 @@ class ExtModel extends Model {
 	/**
 	 * @FieldType TIMESTAMP
 	 * @FieldDefaultValue CURRENT_TIMESTAMP
-	 *
+	 * @fieldallownull false
 	 * @var \DateTime Date Created
 	 */
 	public $date_created;

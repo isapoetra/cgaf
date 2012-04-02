@@ -117,12 +117,14 @@ class MySQL extends DBConnection {
 			case '#CURRENT_USER#' :
 				$val = ACLHelper::getUserId ();
 				break;
+			case 'PHP_EOL':
+				return $this->quote(PHP_EOL);
 			default:
 				switch ($type) {
 					case 'string':
 					case 'text':
 					case 'varchar':
-						return $this->quote($val);											
+						return $this->quote($val);
 				}
 		}
 		return $val;

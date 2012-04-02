@@ -31,7 +31,7 @@ interface ISession extends IObject,IConfigurable {
 
   public function getId();
 
-  public function registerState($stateGroup);
+  public function &registerState($stateGroup);
 
   public function unregisterState($stateGroup);
 
@@ -39,7 +39,7 @@ interface ISession extends IObject,IConfigurable {
 
   function &setStates(\System\Session\sessionStateHandler $state);
 
-  public function getStates();
+  public function &getStates();
 
   public function getState($stateGroup, $stateName, $default = null);
 }

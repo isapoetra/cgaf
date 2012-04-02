@@ -23,6 +23,7 @@ class PersonData extends \BaseObject {
 	private $_friends;
 
 	function __construct(Person $p) {
+
 		$privs = <<< EOP
 {
 	"fullname": {
@@ -65,6 +66,11 @@ EOP;
 		if (!$this->_currentPerson) {
 			$cuid = ACLHelper::getUserId();
 			$this->_currentPerson = $this->_person->getPersonByUser($cuid);
+			if (!$this->_currentPerson) {
+				$dummy = new stdClass();
+				$dummy->person_id=-1;
+				$this->_currentPerson = $dummy;
+			}
 		}
 		return $this->_currentPerson;
 	}
@@ -96,32 +102,31 @@ EOP;
 		$a = null;
 		if (!$this->canView('images', $a)) {
 			return null;
+		}else{
+			if ($name === null) {
+				//TODO get from default image configuration
+				$name = 'profile/default.png';
+			}
+			$f = $this->getStorePath('images') . $name;
+			if (!is_file($f)) {
+				$f = CGAF_PATH . 'assets/images/anonymous.png';
+			}
+			return $this->getCachedImage($f, $size);
 		}
-		if ($name === null) {
-			//TODO get from default image configuration
-			$name = 'profile/default.png';
-		}
-		$f = $this->getStorePath('images') . $name;
-		if (!is_file($f)) {
-			$f = CGAF_PATH . 'assets/images/anonymous.png';
-		}
-		return $this->getCachedImage($f, $size);
 	}
 	function isMe() {
 		return $this->person_owner === ACLHelper::getUserId();
 	}
 	private function isCan($p) {
 		
-		if (!$this->_currentPerson) {
-			$cuid = ACLHelper::getUserId();
-			$this->_currentPerson = $this->_person->getPersonByUser($cuid);
-		}
+		$this->getCurrentPerson();
 		if ($this->isMe()) {
 			return true;
 		}
 		$ok = false;
 		$isfriend = $this->isFriend();
 		$isfriendOf = $this->isFriendOf();
+		
 		if ((PersonACL::PUBLIC_ACCESS & $p) === PersonACL::PUBLIC_ACCESS) {
 			$ok = true;
 		} elseif (((PersonACL::PRIVATE_ACCESS & $p) === PersonACL::PRIVATE_ACCESS) && $this->person_id === $this->_currentPerson->person_id) {

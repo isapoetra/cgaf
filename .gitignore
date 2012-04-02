@@ -1,7 +1,7 @@
 #IDE Related
 .*
- !/.gitignore
-
+!/.gitignore
+!/.gitmodules
 #temporary ignore
 /install/
 manifest/

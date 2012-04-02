@@ -269,7 +269,7 @@ abstract class BaseACL extends \BaseObject implements IACL {
 			return $cache[$group][$id];
 		}
 	}
-	protected function getUserPrivs($userid, $id, $group, $appId, $force = false) {
+	protected function getUserPrivs($userid, $id,  $appId, $force = false) {
 		$cache = $this->getCache($userid, $appId);
 		return $cache;
 	}

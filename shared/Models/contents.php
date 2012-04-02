@@ -3,7 +3,6 @@ namespace System\Models;
 use System\MVC\Model;
 class Contents extends Model {
 	/**
-	 * @FieldExtra NOT NULL AUTO_INCREMENT
 	 *
 	 * @var int
 	 */
@@ -67,6 +66,6 @@ class Contents extends Model {
 	 */
 	public $content_title;
 	function __construct() {
-		parent::__construct ( \CGAF::getDBConnection (), 'contents', 'content_id', true, \CGAF::isInstalled () === false );
+		parent::__construct ( \CGAF::getDBConnection (), 'contents', 'content_id,app_id', true, \CGAF::isInstalled () === false );
 	}
 }

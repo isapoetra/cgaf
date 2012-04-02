@@ -12,7 +12,7 @@ class CGAFController extends Controller {
 			case 'view' :
 			case 'reset' :
 			case 'devmode' :
-				return $this->getAppOwner ()->isDebugMode ();
+				return \cgaf::getConfig('cgaf.debugmode');
 		}
 		return parent::isAllow ( $access );
 	}
@@ -41,13 +41,16 @@ class CGAFController extends Controller {
 		}
 	}
 	function devmode() {
-		$dt = \Request::get ( '__devtoken' );
-		if ($dt === \CGAF::getConfig ( 'cgaf.devtoken' )) {
-			setcookie ( '__devtoken', md5 ( $dt ), 0, '/' );
-		} else {
-			setcookie ( '__devtoken', null );
+		if (ACLHelper::isInrole ( ACLHelper::DEV_GROUP )) {
+			$dt = \Request::get ( '__devtoken' );
+			if ($dt === \CGAF::getConfig ( 'cgaf.devtoken' )) {
+				setcookie ( '__devtoken', md5 ( $dt ), 0, '/' );
+			} else {
+				setcookie ( '__devtoken', null );
+			}
 		}
 		\Response::Redirect ();
+
 	}
 }
 ?>

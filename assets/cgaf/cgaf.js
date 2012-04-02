@@ -2280,7 +2280,119 @@ $.format = $.validator.format;
 		}
 	});
 }(jQuery));
-(function ($) {
+(function($){
+	function Dockable(el,options){
+		options = $.extend(this.defaults,options);
+		this.init(el,options)
+		return this;
+	} 
+	Dockable.prototype = {
+			defaults : {
+				location :'left',
+				url:null,
+				renderTo:'body'
+			},
+			location:function(l) {
+				
+			},
+			
+			init : function(el,options) {
+				this.options  =options;
+				if (el) {
+					this.$el = $(el);
+				}else{
+					var tpl = 
+							 '<div class="dockable" id="'+ options.id +'">' 
+							+'	<div class="handle">'
+							+'		<div class="handle-icon-container">'
+							+'			<div class="handle-icon">'
+							+'				<i class="icon"></i>'
+							+'			</div>'
+							+'		</div>'
+							+'		<div class="delim"></div>'
+							+'	</div>'
+							+'	<div class="content"></div>'
+							+'</div>';
+					
+					this.$el=$(tpl).appendTo(options.renderTo);
+					if (options.id) {
+						this.$el.attr('id',options.id);
+					}
+				}
+			
+				this.options = $.extend(options || {},this.defaults || {});
+				this.$title = this.$el.find('.handle .handle-icon');
+				this.$title.click($.proxy(this.toggle,this));
+				this.$content = this.$el.find('.content');
+				this.$delim = this.$el.find('.handle .delim');
+				this.calculatePosition();
+			},
+			width:function() {
+				return this.$el.width();
+			},
+			getPropertyFromAttr : function(prop,def) {
+				var p=this.$el.attr('data-dockable-'+prop);
+				return p ? p : (def ? def :  this.options[prop]);
+			},
+			calculatePosition : function() {
+				var loc= this.getPropertyFromAttr('location');
+				this.$el.addClass(loc);
+				switch (loc) {
+					case 'top':
+						this.$content.remove().prependTo(this.$el);
+						this.$delim.remove().prependTo(this.$el.find('.handle'));
+						break;
+				}
+				
+			},
+			getId:function() {
+				return this.$el.attr('id');
+			},
+			trigger : function(o) {
+				if (this.options.on && this.options.on[o]) {
+					this.options.on[o].call(this,o);
+				}
+			},
+			hide : function() {
+				this.trigger('beforehide');
+				this.$el.removeClass('active');
+				this.trigger('hide');
+			},
+			setContent : function(content) {
+				if (typeof(content)==='function') {
+					content = content.call();
+				} 
+				this.$content.html(content);
+			},
+			show:function() {
+				this.trigger('beforeshow');
+				this.$el.addClass('active');
+				this.trigger('show');
+			},
+			toggle:function() {
+				if (this.$el.hasClass('active')) {
+					this.hide();
+				}else{
+					this.show();
+				}
+				//this.$content.hide();
+			}
+	}
+	//direct creation
+	$.dockable = function(options) {
+		return new Dockable(null, options);
+	};
+	$.fn.dockable = function(option,arg) {
+		return this.each(function(){
+			var $this = $(this), data = $this.data('dockable'), options = typeof option == 'object' && option
+			if (!data)
+				$this.data('dockable', (data = new Dockable(this, options)))
+			if (typeof option == 'string')
+				data[option](arg);
+			return $this.data('dockable');
+		});
+	}
+})(jQuery);(function ($) {
     var expandableData = new Array;
     var defaultConfig = {
         groups:"all",
@@ -2465,88 +2577,172 @@ $.format = $.validator.format;
 })(jQuery);(function($) {
 	"use strict"
 	var popupDialog = function(element, options) {
-		options = options || $.fn.popupDialog.defaults;
+		options = $.extend(options || {}, $.fn.popupDialog.defaults);
+		this.options = options;
 		if (element) {
-			this.init('popupDialog', element, options);
-			if (options.contentEl) {
-				this.show();
-				this.hide();
-			}
-		} else {
-			this.options = options;
+			this.init(element);
 		}
 		return this;
 	}
 
-	popupDialog.prototype = $.extend({}, $.fn.popover.Constructor.prototype, {
+	popupDialog.prototype = {
 		constructor : popupDialog,
-		setContent: function () {
-			$.fn.popover.Constructor.prototype.setContent.call(this);
-			if (!this.getTitle()) {
-				this.tip().find('.popover-title').hide();
-			} 
+		init : function(element, options) {
+			if (!this.initialized) {
+				this.initialized = true;
+				this.$element = $(element);
+				this.enabled = true;
+				this.$container = $('#popup-dialog');
+				if (this.$container.length === 0) {
+					this.$container = $('<div id="popup-dialog" class="popup-dialog">' + this.options.template + '</div>').appendTo('body').hide();
+				}
+				var me = this;
+				this.$container.find('.close').click(function() {
+					me.hide();
+					$(me).trigger('close');
+				});
+			} else {
+				this.$element = $(element);
+			}
+			this.calculatePosition();
+		},
+		setContent : function(o) {
+			this.content = o;
+			this.calculatePosition();
 		},
 		getContent : function(el) {
-			var content = this.tip().find('.popover-content').css({
-				paddingLeft : '0px'
-			});
-			if (this.options.contentEl) {
-				return this.options.contentEl;
+			if (!this.$element) {
+				return '';
 			}
-			var dc = content.data('data-content');
-			if (!dc) {
-				if (this.options.url) {
-					content.data('onload', true);
+			if (this.options.contentEl) {
+				if (typeof (this.options.contentEl) === 'string') {
+					this.options.contentEl = $(this.options.contentEl).show();
+				}
+				$(this.$element).data('data-popup', this.options.contentEl);
+			} else if (this.content) {
+				var content = this.content;
+				if (typeof this.content == 'function') {
+					content = this.content.content.call(this);
+				}
+				$(this.$element).data('data-popup', content);
+			} else if (this.options.url) {
+				var dc = $(this.$element).data('data-popup');
+				if (!dc) {
 					var me = this;
 					$.ajax({
 						url : this.options.url,
 						success : function(data) {
-							content.data('data-content', data);
-							$(me.$tip.find('.popover-inner')).width($(data).width());
-							me.show();
-							content.data('data-content', null);
+							$(me.$element).data('data-popup', data);
+							me.calculatePosition();
 						},
 						error : function() {
-							content.data('data-content', null);
-							me.show();
+							$(me.$element).data('data-popup', 'error');
+							me.calculatePosition();
 						}
 					});
+					return '<span>Loading...</span>';
 				}
-				return 'loading...';
 			} else {
-				return dc;
+				return '<span></span>';
 			}
-
+			return $(this.$element).data('data-popup');
 		},
-		show: function () {
-			$.fn.popover.Constructor.prototype.show.call(this);
-			var me = this;
-			//hook
-			this.tip().find('.close').click(function(){
-				me.hide();
-				$(me).trigger('close');
+
+		calculatePosition : function() {
+			var content, placement, inside, tp, pos, actualWidth, actualHeight;
+			content = this.getContent();
+			if (this.options.title) {
+				this.$container.find('.title')[$.type(this.options.title) == 'object' ? 'append' : 'html'](this.options.title).show();
+			} else {
+				this.$container.find('.title').hide();
+			}
+			this.$container.find('.content').empty().html(content);
+			var arrow = this.$container.find('.arrow');
+			placement = typeof this.options.placement == 'function' ? this.options.placement.call(this, this.$container, this.$element[0]) : this.options.placement;
+			inside = /in/.test(placement);
+
+			//calculate based on Content;
+			content = $(content);
+			actualWidth = content.width() ? content.width() : this.options.defaultWidth;
+			actualHeight = content.height() ? content.height() : this.options.defaultHeight;
+			//makesure container has valid width
+			this.$container.css({
+				width : actualWidth + 'px',
+				height : actualHeight + 'px'
+			});
+			pos = this.$element.offset();
+			pos.height = this.$element[0].offsetHeight;
+			pos.width = this.$element[0].offsetWidth;
+			this.updatePosition(placement, pos, actualWidth, actualHeight);
+		},
+		updatePosition : function(placement, pos, actualWidth, actualHeight) {
+			var inside = /in/.test(placement);
+			var tp = {
+				width : actualWidth,
+				height : actualHeight
+			};
+			switch (inside ? placement.split(' ')[1] : placement) {
+				case 'bottom':
+					tp.top = pos.top + pos.height, tp.left = pos.left + pos.width / 2 - actualWidth / 2
+					break;
+				case 'top':
+					tp.top = pos.top - actualHeight, tp.left = pos.left + pos.width / 2 - actualWidth / 2;
+					break
+				case 'left':
+					tp.top = pos.top + pos.height / 2 - actualHeight / 2;
+					tp.left = pos.left - actualWidth;
+					break
+				case 'right':
+					tp.top = pos.top + pos.height / 2 - actualHeight / 2;
+					tp.left = pos.left + pos.width;
+
+					break
+			}
+			//Reupdate Position
+			this.$container.addClass(placement).css(tp).addClass('in');
+			var inner = this.$container.find('.inner');
+			if (this.$container.find('.title').is(':visible')) {
+				//inner.find('.content').height(actualHeight - (this.$container.find('.title').height() + 30));
+			}
+			inner.css({
+				width : actualWidth,
+				height : actualHeight
 			});
 		},
-		
-		setElement : function(e) {
-			this.init('popupDialog', e, this.defaults);
+		setOptions : function(o) {
+			if ($.type(o) === 'object') {
+				if (o.url && (this.options.url !== o.url)) {
+					//force reupdate content from remote
+					$(this).data('data-content', null);
+				}
+				if (o.element) {
+					this.init(o.element);
+				}
+				this.options = $.extend(this.options, o);
+			}
+		},
+		show : function(o) {
+
+			this.calculatePosition();
+			this.$element.addClass('active');
+			this.$container.show();
+		},
+		hide : function() {
+			this.$element.removeClass('active');
+			this.$container.hide();
+		},
+		toggle : function() {
+			if (!this.$container.is(":visible")) {
+				this.show();
+			} else {
+				this.hide();
+			}
 		},
 		setTitle : function(title) {
 			this.options.title = title;
-		},
-		showEvent : function(o) {
-			if (o.title)
-				this.options.title = o.title;
-			this.show();
-
-			var me = this;
-			if (o.url) {
-				this.options.url = o.url;
-			}
-			this.show();
-			// console.log(arguments);
+			this.update();
 		}
-	});
+	};
 
 	$.fn.popupDialog = function(option, arg) {
 		return this.each(function() {
@@ -2554,19 +2750,19 @@ $.format = $.validator.format;
 			if (!data)
 				$this.data('popupdialog', (data = new popupDialog(this, options)))
 			if (typeof option == 'string')
-				data[option](arg)
-		})
+				data[option](arg);
+			return $this.data('popupdialog');
+		});
 	}
 	$.popupDialog = popupDialog;
 	$.fn.popupDialog.Constructor = popupDialog;
-	$.fn.popupDialog.defaults = $.extend({}, $.fn.popover.defaults, {
-		placement : function() {
-			//TODO Recalculate based on content
-			return 'bottom';
-		},
+	$.fn.popupDialog.defaults = {
+		placement : 'bottom',
+		defaultWidth : '150',
+		defaultHeight : '150',
 		trigger : 'manual',
-		template : '<div class="popover"><div class="arrow"></div><div class="popover-inner"><div class="icon icon-remove close" style="position:absolute;top:20px;right:20px"/><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
-	})
+		template : '<div class="arrow"></div><div class="inner"><div class="icon icon-remove close"/><h3 class="title"></h3><div class="content"><p></p></div></div>'
+	}
 })(jQuery);(function () {
     $.fn.scrollbar = function (options) {
         options = $.extend({
@@ -3056,6 +3252,7 @@ $.format = $.validator.format;
                 if (loadedCSS.hasOwnProperty(url))
                     return;
                 loadedCSS[url] = true;
+                console.log(url);
                 $("head").append($('<link rel="stylesheet" type="text/css" />').attr("href", url))
             },
             loadJQPlugin:function (jq, callback) {

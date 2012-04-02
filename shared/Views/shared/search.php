@@ -34,8 +34,8 @@ EOS;
 <div class="control-group">
 	<div class="controls">
 		<div class="input-append">
-			<input class="span2 search-text" id="q" name="q" type="text"
-				placeholder="<?php echo $placeholder;?>" value="<?php echo @$row->q;?>">
+			<input class="span2 search-text required" id="q" name="q" type="text"
+				placeholder="<?php echo $placeholder;?>" value="<?php echo @$q ? $q : @$row->q;?>">
 			<?php if ($moreAction) {?>
 
 			<button class="btn more" data-toggle="button">

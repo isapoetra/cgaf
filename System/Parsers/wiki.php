@@ -15,21 +15,21 @@ class Wiki implements \IParser {
 	const LS_UNORDERED = 2;
 	// definitions for the list open and close tags
 	private static $LT_OPEN = array(
-			LS_ORDERED => "<ol>",
-			LS_UNORDERED => "<ul>"
+			Wiki::LS_ORDERED => "<ol>",
+			Wiki::LS_UNORDERED => "<ul>"
 	);
 	private static $LT_CLOSE = array(
-			LS_ORDERED => "</ol>",
-			LS_UNORDERED => "</ul>"
+			Wiki::LS_ORDERED => "</ol>",
+			Wiki::LS_UNORDERED => "</ul>"
 	);
 	// constants for defining preformatted code state
 	const CS_NONE = 0;
 	const CS_CODE = 1;
 	/*
 	 * These rules contain the conversion from Wiki text to HTML
-	 * described as regular expressions. The first part matches
-	 * source text, the second part rewrites it as HTML.
-	 */
+	* described as regular expressions. The first part matches
+	* source text, the second part rewrites it as HTML.
+	*/
 	private static $RULES = array(
 			'/^= (.*) =$/' => '<h1>\1</h1>',
 			'/^== (.*) ==$/' => '<h2>\1</h2>',
@@ -46,6 +46,17 @@ class Wiki implements \IParser {
 			'/`(.+?)`/' => '<tt>\1</tt>',
 			'/^----$/' => '<hr />'
 	);
+	function reset() {
+
+	}
+	function setController($controller) {
+
+	}
+	function assign() {
+
+	}
+
+
 	/**
 	 * Converts a Wiki text input string to HTML.
 	 *
@@ -54,16 +65,17 @@ class Wiki implements \IParser {
 	 * @return	array	An array of strings containing the output
 	 * 			in HTML.
 	 */
-	public static function parseString($input) {
+	public function parseString($input) {
+
 		// output array
 		$output = array();
 		// reset initial list states
-		$liststate = LS_NONE;
+		$liststate = self::LS_NONE;
 		$listdepth = 1;
 		$prevliststate = $liststate;
 		$prevlistdepth = $listdepth;
 		// preformatted code state
-		$codestate = CS_NONE;
+		$codestate = self::CS_NONE;
 		// loop through the input
 		foreach ($input as $in) {
 			// read, htmlify and right-trim each input line
@@ -77,27 +89,27 @@ class Wiki implements \IParser {
 			$prevliststate = $liststate;
 			$prevlistdepth = $listdepth;
 			switch (substr(ltrim($in), 0, 1)) {
-			case '1':
-				$liststate = LS_ORDERED;
-				$listdepth = strpos($in, '1');
-				break;
-			case '*':
-				$liststate = LS_UNORDERED;
-				$listdepth = strpos($in, '*');
-				break;
-			default:
-				$liststate = LS_NONE;
-				$listdepth = 1;
-				break;
+				case '1':
+					$liststate = self::LS_ORDERED;
+					$listdepth = strpos($in, '1');
+					break;
+				case '*':
+					$liststate = self::LS_UNORDERED;
+					$listdepth = strpos($in, '*');
+					break;
+				default:
+					$liststate = self::LS_NONE;
+					$listdepth = 1;
+					break;
 			}
 			// check if list state has changed
 			if ($liststate != $prevliststate) {
 				// close old list
-				if (LS_NONE != $prevliststate) {
+				if (self::LS_NONE != $prevliststate) {
 					$output[] = self::$LT_CLOSE[$prevliststate];
 				}
 				// start new list
-				if (LS_NONE != $liststate) {
+				if (self::LS_NONE != $liststate) {
 					$output[] = self::$LT_OPEN[$liststate];
 				}
 			}
@@ -108,11 +120,11 @@ class Wiki implements \IParser {
 				// open or close tags based on difference
 				if ($listdepth > $prevlistdepth) {
 					for ($i = 0; $i < $depthdiff; $i++) {
-						$output[] = self::$LT_OPEN[$liststate];
+						$output[] = @self::$LT_OPEN[$liststate];
 					}
 				} else {
 					for ($i = 0; $i < $depthdiff; $i++) {
-						$output[] = self::$LT_CLOSE[$prevliststate];
+						$output[] = @self::$LT_CLOSE[$prevliststate];
 					}
 				}
 			}
@@ -120,18 +132,18 @@ class Wiki implements \IParser {
 			if ('' == $in) {
 			} else if ('{{{' == trim($in)) {
 				$output[] = '<p><pre><code>';
-				$codestate = CS_CODE;
+				$codestate = self::CS_CODE;
 			} else if ('}}}' == trim($in)) {
 				$output[] = '</code></pre></p>';
-				$codestate = CS_NONE;
+				$codestate = self::CS_NONE;
 			} else if ($in[0] != '=' && $in[0] != ' ' && $in[0] != '-') {
 				// only output paragraphs when not in code
-				if (CS_NONE == $codestate) {
+				if (self::CS_NONE == $codestate) {
 					$output[] = '<p>';
 				}
 				$output[] = $out;
 				// only output paragraphs when not in code
-				if (CS_NONE == $codestate) {
+				if (self::CS_NONE == $codestate) {
 					$output[] = '</p>';
 				}
 			} else {
@@ -141,10 +153,16 @@ class Wiki implements \IParser {
 		// return the output
 		return $output;
 	}
+
 	function parseFile($f) {
 		if (!is_file($f)) {
-			return null;
+				
+			return CGAF_DEBUG ? $f : null;
 		}
-		return $this->parseString($s);
+		return $this->parseString(explode(PHP_EOL,file_get_contents($f)));
+	}
+	function renderFile($f) {
+		$out= $this->parseFile($f);
+		return is_array($out) ? implode(PHP_EOL,$out) : $out;
 	}
 }

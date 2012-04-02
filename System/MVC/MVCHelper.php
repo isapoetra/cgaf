@@ -151,7 +151,8 @@ abstract class MVCHelper {
 			return true;
 		}
 	}
-	public static function parse($url) {
+	public static function parse($url=null) {
+		if (!$url) $url = \URLHelper::getOrigin();
 		$url = \URLHelper::explode($url);
 		$retval =array(
 				'scheme'=>$url['scheme'],

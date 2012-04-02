@@ -1,0 +1,71 @@
+'''Project team builder''' (sometimes abbreviated as PTB) is a [[project management simulation]] tool developed for training and teaching the concepts of [[project management]]. A number of published books and academic papers are based on the PTB and its predecessors. The PTB won the [[Project Management Institute]] Professional Development Product of the Year Award.<ref name="pmi_award">Project Management Institute "Project Management Institute Honors The Technion-Israel Institute of Technology", October 20, 2008 [http://www.pmi.org/en/About-Us/Press-Releases/Honors-The-Technion-Israel-Institute-of-Technology.aspx]
+</ref>
+The PTB is used in universities and business organizations around the world. The simulator is based on an approach that separates the [[simulation]] engine from the scenario editor and allows each user (or teacher) to simulate any project. The simulation engine simulates the dynamic stochastic nature of modern projects. 
+The design of the PTB supports the [[system engineering]] approach to [[Problem solving]] as each scenario presents the requirements, the alternatives that can be selected and the constraints imposed on the solution. The user has to trade off the cost, schedule, risk, and benefits to the stake holders and to find a feasible, robust, good solution for the scenario. The solution is then simulated by the simulation engine while the trainee exercises monitoring and control throughout the execution. Another characteristic of the simulator is the ability to save points in the history of each run for future analysis or even for testing a different solution from any of the points saved. 
+
+== History ==
+The simulator was initially developed in the early nineties as the project management trainer at the [[Technion]].
+It was used to train students at the Technion and project teams from the [[Israel Electric Corporation]]. Based on extensive research on [[simulation-based training]] the Technion team expanded the PTB to include history mechanisms and a scenario builder with which the trainee can import real project files and simulate these projects.
+In 2008 the PTB won the Project Management Institute ''Product of the Year'' award <ref name="pmi_award"/>. 
+
+== Software ==
+The PTB allows the user to to create their own projects or to load predefined projects and simulate the planning and execution of those projects. The user starts by creating a plan for the project by choosing different modes of execution, assigning task start times, managing resources, etc. After the plan is ready the user can advance the simulation time. The PTB engine randomly generates different parameters to simulate the [[stochastic]] nature of real projects. The user has to continuously monitor the project and react to the non-deterministic events. The project fails if the cash flow runs negative. Once the user completes the project a final score is presented based on benefits and costs of the solution.
+The topics covered by the PTB are:
+* [[Project planning]]
+* [[Scope]] and [[requirements management]]
+* [[Cost–benefit analysis]]
+* Project monitoring
+* Project control
+* [[Resource management]]
+* Cash management
+* [[Risk management]]
+* [[Scheduling]]
+
+== Publications ==
+The book "Project Management Simulation with PTB Project Team Builder"<ref> Shtub Avraham, "Project Management Simulation with PTB Project Team Builder", [[Springer Science+Business Media]], 2012, May, [[ISBN]]  978-1-4419-6462-5</ref>
+is scheduled to be published by [[Springer Science+Business Media]] in May 2012.
+ 
+Research based on the PTB was conducted at the [[Technion]], [[Pennsylvania State University]], [[Drexel University]] and [[Australian National University]]. Some of this research was published in scientific Journals: 
+* "Simulation-based Learning: The Learning-Forgetting-Relearning Process and Impact of Learning History"  <ref>Davidovitch, L., A. Parush and A. Shtub, April, 2008, Computers & Education, Vol. 50, No. 3, 866–880 
+</ref> – this study focused on the development and application of History mechanisms for [[Simulation Based Training]]. Different types of such mechanisms were tested in a controlled experiment and evaluated based on their effectiveness as [[Training]] tools.
+* "The Impact of Functional Fidelity in Simulator based Learning of Project Management" <ref>Davidovitch, L., A. Parush and A. Shtub, March, 2009, [http://www.ijee.ie/ ''International Journal of Engineering Education''], Vol. 25, No. 2, 333–340(8)
+</ref> – this study focused on the importance of flexibility in generating scenarios for [[Simulation Based Training]]. As a result of this study the simulation engine and the scenario editor were separated to allow the trainee to develop the scenario that fits his needs in the best possible way. 
+* "Comparing Competitive and Cooperative Strategies for Learning Project Management" <ref>Nembhard, D., K. Yip and A. Shtub, April, 2009, [http://www.jee.org/2009/april/8.pdf ''International Journal of Engineering Education''], 181–192
+</ref> – this study compared teaching strategies in [[Simulation Based Training]] environments. A controlled [[Experiment]] revealed that a mixed strategy is preferred starting with individual training and moving to [[Teamwork]] where weak students work with strong performers as teams.  
+* "Guest Editorial: The Use of Simulation in Learning and Teaching" <ref>Shtub, A., A. Parush and T. Hewett, March, 2009, [http://www.ijee.ie/contents/c250209.htmlf ''International Journal of Engineering Education''], Vol. 25, No. 2, 206–209
+</ref> – this special issue focused on the use of [[Simulation Based Training]] for [[Engineering education]]. A large variety of applications is present along with some important insight for future development.
+* "Simulator-based Team Training to Share Resources in a Matrix Structure Organization" <ref>Parush, A., L. Davidovitch and A. Shtub, May, 2010, IEEE Transactions on Engineering Management', Vol. 57, No. 2, 288–300
+</ref> – this study  focused on the use of [[Simulation Based Training]] for team training by simulation in the [[Matrix organization]]. Communication issues and planning issues were investigated in a controlled [[Experiment]]. 
+* "Adding Value to Earned Value Analysis" <ref>Vanhoucke, M. and A. Shtub, January, 2011, [http://www.pmworldtoday.net/featured_papers/2011/jan/Adding-Value-Earned.html ''PM World Today''],(featured paper), Vol. XIII, Issue I
+</ref> – this study focused on the use of [[Simulation Based Training]] for training in [[Earned Value Analysis]].  This monitoring and control aspect of [[Project management]] is hard to teach in a regular lecture and [[Simulation Based Training]] provides an ideal setting for training and analysis.
+* "Managing Projects in a Matrix Organization: Simulation Based Training" <ref>Davidovitch, L., A. Shtub and A. Parush, April, 2008, PMS 2008, Istanbul, Turkey
+</ref> – this paper focuses on the training of project managers in matrix organizations and the need to share resources among projects that are performed simultaneously.
+* "Teaching Project Management with PTB Project Team Builder" <ref>Shtub, A., April, 2011, POMS 22nd Annual Conference Reno, Nevada, U.S.A
+</ref> – this paper focuses on the recommended application of PTB in training of project managers and project teams.
+
+== See also ==
+* [[Simulation]]
+* [[Project Management]]
+* [[Project Management Simulator]]
+* [[Training simulation]]
+* [[Business simulation]]
+* [[System Engineering]]
+* [[Business game]]
+* [[Serious game]]
+* [[Gamification]]
+
+== References ==
+<!--- See http://en.wikipedia.org/wiki/Wikipedia:Footnotes on how to create references using <ref></ref> tags which will then appear here automatically -->
+{{Reflist}}
+
+== External links ==
+* [http://www.pmi.org/ PMI – Project Management Institute website]
+* [http://www.technion.ac.il/ Technion – Israel Institute Of Technology website]
+* [http://www.springer.com/engineering/production+eng/book/978-1-4419-6462-5 "Project Management Simulation with PTB Project Team Builder" Springer book]
+* [http://www.sandboxmodel.com/Solutions.html SandboxModel] - PTB Product page
+
+<!--- Categories --->
+[[Category:Project management]]
+[[Category:Management]]
+[[Category:Business simulation games]]
+

@@ -28,11 +28,16 @@ define ('SEC_HOUR', 3600);
 define ('SEC_DAY', 86400);
 class CDate extends \DateTime {
 	const FMT_DATETIME_MYSQL='Y-m-d H:i:s';
-	function __construct($date = null, DateTimeZone $timeZone = null, $format = DATE_ISO8601) {
+	function __construct($date = null, DateTimeZone $timeZone = null) {
+		if (!$timeZone) {
+			$tz = date_default_timezone_get();
+			$timeZone =new DateTimeZone($tz);
+		}
 		if ($date) {
 			if (is_string($date)) {
 				if (is_numeric($date)) { // treat as timestamp
 					$date = new \DateTime (date('Y-m-d H:i:s', $date), $timeZone);
+						
 				} else {
 					$date = new \DateTime ($date, $timeZone);
 					// ppd ( $date );
@@ -100,22 +105,22 @@ class CDate extends \DateTime {
 
 
 		if ($diff->y > 0) {
-			$ret[] = $diff->y . ' Year(s)';
+			$ret[] = $diff->y . ' '. __('date.diff.years','Year(s)');
 		}
 		if ($diff->m > 0) {
-			$ret[] = $diff->m . ' Month(s)';
+			$ret[] = $diff->m .  ' '. __('date.diff.months','Month(s)');
 		}
 		if ($diff->d > 0) {
-			$ret[] = $diff->d . ' Day(s)';
+			$ret[] = $diff->d . ' '. __('date.diff.days','Day(s)');
 		}
 		if ($diff->h > 0) {
-			$ret[] = $diff->h . ' Hour(s)';
+			$ret[] = $diff->h . ' '. __('date.diff.hours','Hour(s)');
 		}
 		if ($diff->i > 0) {
-			$ret[] = $diff->i . ' Minute(s)';
+			$ret[] = $diff->i . ' '. __('date.diff.minutes','Minute(s)');
 		}
 		if ($diff->s > 0) {
-			$ret[] = $diff->s . ' Seconds(s)';
+			$ret[] = $diff->s . ' '. __('date.diff.seconds','Second(s)');
 		}
 		if ($diff->invert) {
 			$ret[] = 'ago';

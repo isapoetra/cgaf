@@ -14,6 +14,10 @@ abstract class StaticContentController extends Controller {
 	 * @var string
 	 */
 	protected $_fileExt = 'html';
+	function __construct(Application $appOwner, $routeName = null,$extension ='html') {
+		parent::__construct($appOwner,$routeName);
+		$this->_fileExt = $extension;
+	}
 	public function getContentPath() {
 		return $this->getAppOwner()->getInternalData('contents/' . $this->getControllerName() . '/', true);
 	}
@@ -45,7 +49,9 @@ abstract class StaticContentController extends Controller {
 			}
 
 		}
-		ppd($s);
+		if (CGAF_DEBUG) {
+			pp($s);
+		}
 	}
 	/**
 	 * Enter description here ...
@@ -61,7 +67,7 @@ abstract class StaticContentController extends Controller {
 	 */
 	function Index($a = null) {
 		$route = MVCHelper::getRoute();
-		$a = $a ? $a : $route['_a'];
+		$a = $this->getActionAlias($a ? $a : $route['_a']);
 		/*switch (strtolower($a)) {
 		case 'index':
 		    return parent::Index();*/
@@ -73,14 +79,10 @@ abstract class StaticContentController extends Controller {
 		$f = $this->getContentFile($a, true);
 		
 		if ($f && is_file($f)) {
-			
 			return $this->renderFile($a, $f);
 		} elseif ($route['_a'] !=='index') {
-		
-			return "Content not found";
-		} elseif (CGAF_DEBUG) {
-			pp('content file not found' . $a);
-		}
+			return "Content not found".$route['_a'];
+		} 
 		//}
 		return parent::Index();
 	}

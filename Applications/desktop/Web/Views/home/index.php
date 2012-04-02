@@ -87,7 +87,7 @@ $owner->AddClientScript($js);
         </ul>
       </div>
     </div>
-    <div class="" id="app-info-container">
+    <div id="app-info-container">
       <div class="content"></div>
       <ul class="nav nav-pills well action">
         <li>

@@ -1,5 +1,7 @@
 <?php
 namespace System\Web\UI\Controls;
+use System\Web\UI\JQ\Control;
+
 use System\Web\UI\Items\CarouselItem;
 
 use System\Web\UI\Controls\WebControl;
@@ -22,18 +24,19 @@ use System\Web\UI\Controls\WebControl;
  href="#myCarousel" data-slide="next">&rsaquo;</a>
  </div>
  */
-class Carousel extends WebControl {
+class Carousel extends Control {
 	private $_inner;
 	private $_control;
 	private $_selectedIndex=0;
 	function __construct() {
-		parent::__construct('div',false,array('class'=>'carousel'));
+		
+		parent::__construct(null,'carousel');
+		//'div',false,array('class'=>'carousel slide'));
+		$this->setClass('carousel slide');
 		$this->_inner = new WebControl('div',false,array(
 				'class'=>'carousel-inner'
 		));
-		$this->_control = '<a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>'
-		.'<a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>';
-
+		
 	}
 	function add($c) {
 		if (is_array($c)) {
@@ -48,6 +51,13 @@ class Carousel extends WebControl {
 		$this->_selectedIndex=$index;
 	}
 	function prepareRender() {
+		if ($this->_renderPrepared) {
+			return;
+		}
+		parent::prepareRender();
+		$this->_control = '<a class="carousel-control left" href="#'.$this->getId().'" data-slide="prev">&lsaquo;</a>'
+		.'<a class="carousel-control right" href="#'.$this->getId().'" data-slide="next">&rsaquo;</a>';
+		
 		$ch= $this->_inner->getChilds();
 		foreach($ch as $k=>$v) {
 			$ch[$k]->setSelected(false);

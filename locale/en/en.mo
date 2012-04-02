@@ -13,6 +13,7 @@ religion.budhist=Budhist
 client.dateFormat=m/d/Y
 dateLongFormat=m/d/Y h:i:s
 data.stored=Data Stored
+date.format.short=m D,Y
 day.monday.short=Mon
 day.monday.long=Monday
 day.tuesday.short=Tue

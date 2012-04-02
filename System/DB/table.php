@@ -262,7 +262,7 @@ class Table extends DBQuery {
 		$this->_appOwner = $owner;
 	}
 
-	protected function prepare() {
+	protected function prepare($type = null) {
 		if ($this->_includeAppId) {
 			if ($this->_appOwner === null) {
 				try {
@@ -506,8 +506,14 @@ class Table extends DBQuery {
 	protected function onDelete($id) {
 	}
 
-	public function drop() {
-		return parent::drop($this->getTableName(false,false));
+	/**
+	 * Unused parameter,just for compatibility with E_STRICT
+	 * (non-PHPdoc)
+	 * @see System\DB.DBQuery::drop()
+	 * 
+	 */
+	public function drop($object=null, $what = "table") {
+		return parent::drop($this->getTableName(false,false),'table');
 	}
 
 	public function delete() {

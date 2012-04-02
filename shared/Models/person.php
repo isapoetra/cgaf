@@ -59,7 +59,17 @@ class Person extends Model {
     }
     return $retval;
   }
-
+  function loadObject($o=null) {
+  	$r	= parent::loadObject();
+  	if (!$o) {
+	  	$o = new \PersonData($this);
+  	}
+  	if (!$r) {
+  		return null;
+  	}
+  	$o->Assign($r);
+  	return $o;
+  }
   function getPersonByUser($id) {
     $this
       ->setAlias('p')
@@ -72,7 +82,9 @@ class Person extends Model {
     $this->where("p.person_owner=" . $this->quote($id));
     $this->where('p.isprimary=true');
     $pdata = new \PersonData ($this);
-    $pdata = $this->loadObject($pdata);
+    if ($r = $this->loadObject($pdata)) {
+    	$pdata->assign($r);
+    }
     $pdata->user_id = $id;
     if (!$pdata->person_id) {
     	return null;

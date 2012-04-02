@@ -22,7 +22,7 @@ HEAD;
 foreach ($dirs as $d) {
 	$p = new \FileInfo($d[0]);
 	$owner =$p->owner;
-	$c = $p->perms['octal2'] === $d[1];
+	$c = $p->permEqual($d[1]);
 	$w = $owner['user_posix']['name'] === $d[2] && $owner['group_posix']['name'] ===$d[3];
 	echo '<tr>';
 	echo '<td style="text-align:center;background-color:'.($c ? ($w ? 'green' :'yellow') : 'red').'"><i class="'.($c ? 'icon-ok' : 'icon-remove-circle').'"></i></td>';

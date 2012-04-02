@@ -38,7 +38,6 @@ abstract class DBConnection implements IDBConnection {
       $ex = new \Exception ($this->_lastError);
     }
     Logger::write('SQL Error : ' . $this->_lastError, 'sql', false);
-    // Logger::Warning ( 'DB::' . $this->_lastError . $this->_lastSQL );
     if ($this->_thows) {
       throw $ex;
     }

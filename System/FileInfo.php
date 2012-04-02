@@ -130,7 +130,17 @@ final class FileInfo extends \BaseObject {
 		);
 		return $this->_infos;
 	}
-	
+	public function permEqual($p,$checkOther =true) {
+		if ($checkOther) {
+			return $this->perms['octal2'] !== $p;
+		}else{
+			if (strlen($p) === 3) {
+				$p = substr($p,2);
+			}
+			$rp = substr($this->perms['octal2'],0,2);
+			return $p===$rp;
+		}
+	}
 	public static function getMimeFromExt($fileext) {
 		
 		if (! isset ( self::$_Mimecache [$fileext] )) {

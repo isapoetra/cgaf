@@ -34,13 +34,13 @@ class DBQuery extends \BaseObject implements IQuery {
 	private $_unions = array();
 	public $_throwOnError = true;
 	private $_validModes = array(
-		DBQuery::MODE_SELECT,
-		DBQuery::MODE_UPDATE,
-		DBQuery::MODE_DROP,
-		DBQuery::MODE_INSERT,
-		DBQuery::MODE_DELETE,
-		DBQuery::MODE_DIRECT,
-		DBQuery::MODE_CREATE_TABLE
+			DBQuery::MODE_SELECT,
+			DBQuery::MODE_UPDATE,
+			DBQuery::MODE_DROP,
+			DBQuery::MODE_INSERT,
+			DBQuery::MODE_DELETE,
+			DBQuery::MODE_DIRECT,
+			DBQuery::MODE_CREATE_TABLE
 	);
 
 	function setThrowOnError($value) {
@@ -90,6 +90,13 @@ class DBQuery extends \BaseObject implements IQuery {
 	 * @return string
 	 */
 	function quote($str, $pref = true) {
+		if (is_array($str)) {
+			$retval = array();
+			foreach($str as $k=>$s) {
+				$retval[$k] = $this->quote($s); 
+			}
+			return $retval;
+		}
 		return $this->getConnection()->quote($str, $pref);
 	}
 
@@ -167,9 +174,9 @@ class DBQuery extends \BaseObject implements IQuery {
 	function Update($field, $value, $ope = "=", $func = false) {
 		$this->_type = "update";
 		$this->_update [$field] = array(
-			$ope,
-			$value,
-			$func
+				$ope,
+				$value,
+				$func
 		);
 		return $this;
 	}
@@ -203,8 +210,8 @@ class DBQuery extends \BaseObject implements IQuery {
 				$ob = $o [1];
 			}
 			$this->_orderby [] = array(
-				'field' => $o [0],
-				'order' => $ob
+					'field' => $o [0],
+					'order' => $ob
 			);
 		}
 		return $this;
@@ -232,8 +239,8 @@ class DBQuery extends \BaseObject implements IQuery {
 			}
 		}
 		$this->_where [] = array(
-			$where,
-			$next
+				$where,
+				$next
 		);
 		return $this;
 	}
@@ -270,18 +277,18 @@ class DBQuery extends \BaseObject implements IQuery {
 
 	function loadSQLFile($file) {
 		/*
-* if (is_readable ( $f )) { $query = file_get_contents ( $f, FILE_TEXT
-* ) . "\n"; if ($query && trim ( $query ) !== '') { $this->clear ();
-* $sql = ""; $multiSQL = "/('[^']*'|\"[^\"]*\"|[^;'\"])*;/"; ini_set (
-* 'pcre.backtrack_limit', 10000 ); preg_match_all ( $multiSQL,
-* "$query;\n", $aSQL ); for($i = sizeof ( $aSQL = $aSQL [0] ); $i --;)
-* { if (! ($trim = trim ( substr ( $aSQL [$i], 0, - 1 ) ))) { unset (
-* $aSQL [$i] ); } else { $aSQL [$i] = "$trim;"; } } foreach ( $aSQL as
-* $sql ) { $this->addSQL ( $sql ); } $this->_type = "direct"; if (count
-* ( $aSQL ) > 0) { return $this; } return false; } return false; } else
-* { throw new \Exception ( "File Not Found" . Logger::WriteDebug ( $f )
-* ); } return $this;
-*/
+		 * if (is_readable ( $f )) { $query = file_get_contents ( $f, FILE_TEXT
+		 		* ) . "\n"; if ($query && trim ( $query ) !== '') { $this->clear ();
+		* $sql = ""; $multiSQL = "/('[^']*'|\"[^\"]*\"|[^;'\"])*;/"; ini_set (
+				* 'pcre.backtrack_limit', 10000 ); preg_match_all ( $multiSQL,
+						* "$query;\n", $aSQL ); for($i = sizeof ( $aSQL = $aSQL [0] ); $i --;)
+			* { if (! ($trim = trim ( substr ( $aSQL [$i], 0, - 1 ) ))) { unset (
+					* $aSQL [$i] ); } else { $aSQL [$i] = "$trim;"; } } foreach ( $aSQL as
+							* $sql ) { $this->addSQL ( $sql ); } $this->_type = "direct"; if (count
+									* ( $aSQL ) > 0) { return $this; } return false; } return false; } else
+			* { throw new \Exception ( "File Not Found" . Logger::WriteDebug ( $f )
+					* ); } return $this;
+		*/
 		//original sourcecode http://stackoverflow.com/questions/1883079/best-practice-import-mysql-file-in-php-split-queries
 		$delimiter = ';';
 		set_time_limit(0);
@@ -350,8 +357,8 @@ class DBQuery extends \BaseObject implements IQuery {
 				$value = "null";
 			}
 			$this->_inserts [$field] = array(
-				'value' => $value,
-				'func' => $func
+					'value' => $value,
+					'func' => $func
 			);
 		}
 		return $this;
@@ -375,13 +382,13 @@ class DBQuery extends \BaseObject implements IQuery {
 				Utils::arrayRemoveValue($this->_fields, $field);
 			}
 			$this->_fields [$alias] = array(
-				'field' => $field,
-				'func' => $func
+					'field' => $field,
+					'func' => $func
 			);
 		} else {
 			$this->_fields [] = array(
-				'field' => $field,
-				'func' => $func
+					'field' => $field,
+					'func' => $func
 			);
 		}
 		return $this;
@@ -545,9 +552,9 @@ class DBQuery extends \BaseObject implements IQuery {
 		if (!isset ($this->_table [0])) {
 			$key = array_keys($this->_table);
 			$tbl = array(
-				'_table' => $key [0],
-				'alias' => $key [0],
-				'expr' => false
+					'_table' => $key [0],
+					'alias' => $key [0],
+					'expr' => false
 			);
 		} else {
 			$tbl = $this->_table [0];
@@ -790,9 +797,9 @@ class DBQuery extends \BaseObject implements IQuery {
 	function addTable($table, $alias = null, $expr = false) {
 		if (!in_array($table, $this->_table)) {
 			$this->_table [$table] = array(
-				'_table' => $table,
-				'alias' => $alias,
-				'expr' => $expr
+					'_table' => $table,
+					'alias' => $alias,
+					'expr' => $expr
 			);
 		}
 		return $this;
@@ -808,11 +815,11 @@ class DBQuery extends \BaseObject implements IQuery {
 	 */
 	function join($table, $alias, $expr, $m = "inner", $vw = false) {
 		$this->_join [] = array(
-			"table" => $table,
-			"alias" => $alias,
-			"expr" => $expr,
-			"type" => $m,
-			'view' => $vw
+				"table" => $table,
+				"alias" => $alias,
+				"expr" => $expr,
+				"type" => $m,
+				'view' => $vw
 		);
 		return $this;
 	}
@@ -836,13 +843,15 @@ class DBQuery extends \BaseObject implements IQuery {
 		return $this->join($table, $alias, $expr, $m);
 	}
 
-	function drop($object, $what = "table") {
-		$this->clear();
-		$this->_drops [] = array(
-			$what,
-			$object
-		);
-		$this->_type = self::MODE_DROP;
+	function drop($object=null, $what = "table") {
+		if ($object) {
+			$this->clear();
+			$this->_drops [] = array(
+					$what,
+					$object
+			);
+			$this->_type = self::MODE_DROP;
+		}
 		return $this;
 	}
 }

@@ -487,7 +487,9 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		}
 		return $this->render($newroute, $vars, $return);
 	}
-
+	function getItemContents($position) {
+		return $this->getAppOwner()->getItemContents($position,  $this->getControllerName());
+	}
 	function renderContent($position, $params = null) {
 		return $this->getAppOwner()->renderContent($position, $this->getControllerName(), false, true, $params);
 	}

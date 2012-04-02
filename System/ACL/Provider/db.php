@@ -161,7 +161,7 @@ class Db extends BaseACL {
 		return parent::getUserPriv($userid, $id, $group, $appId, $force);
 	}
 
-	protected function getUserPrivs($userid, $id, $appId, $force = false) {
+	protected function getUserPrivs($userid, $id,  $appId, $force = false) {
 		if (!$force) {
 			if ($retval = parent::getUserPrivs($userid, $id, $appId, false)) {
 				return $retval;

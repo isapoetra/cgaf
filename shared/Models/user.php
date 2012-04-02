@@ -112,7 +112,7 @@ class User extends ExtModel {
 		$this->where ( 'w.user_email=' . $this->quote ( $email ) );
 		return $this->loadObject ();
 	}
-	function delete() {
+	function delete($id = null) {
 		$o = $this->load ();
 		if (( int ) $o->user_status === 999) {
 			throw new InvalidOperationException ( 'unable to delete internal user' );

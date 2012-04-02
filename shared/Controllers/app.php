@@ -114,7 +114,7 @@ class AppController extends Controller {
 
 	function uninstall() {
 		$id = \Request::get('id');
-
+		//ppd($this->getModel('recentlog'));
 		if (\AppManager::isAppInstalled($id, false)) {
 			\AppManager::uninstall($id);
 		}

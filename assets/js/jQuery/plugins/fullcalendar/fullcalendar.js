@@ -11,7 +11,7 @@
  * Dual licensed under the MIT and GPL licenses, located in
  * MIT-LICENSE.txt and GPL-LICENSE.txt respectively.
  *
- * Date: Mon Feb 6 22:40:40 2012 -0800
+ * Date: Mon Mar 26 20:29:25 2012 +0700
  *
  */
  
@@ -351,6 +351,7 @@ function Calendar(element, options, eventSources) {
 			if (oldView) {
 				header.deactivateButton(oldView.name);
 			}
+			this.trigger ? this.trigger('viewChanged',newViewName,oldView) : '';
 			header.activateButton(newViewName);
 			
 			renderView(); // after height has been set, will make absoluteViewElement's position=relative, then set to null

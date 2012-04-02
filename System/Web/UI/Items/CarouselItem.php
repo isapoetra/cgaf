@@ -5,8 +5,10 @@ use System\Web\UI\Controls\WebControl;
 class CarouselItem extends WebControl{
 	public $title;
 	public $descr;
+	public $subdescr;
 	public $image;
 	private $_selected=false;
+	private $_customs=array();
 	function __construct($arg=null) {
 		parent::__construct('div',false);
 		$this->setClass('item');
@@ -23,6 +25,9 @@ class CarouselItem extends WebControl{
 			$this->removeClass('active');
 		}
 	}
+	function addCustom($e) {
+		$this->_customs[]= $e;
+	}
 	function prepareRender() { 
 		parent::prepareRender();
 		$img = new WebControl('img',true);
@@ -37,7 +42,13 @@ class CarouselItem extends WebControl{
 			if ($this->descr) {
 				$c->addChild('<div class="descr">'.$this->descr.'</div>');
 			}
+			if ($this->subdescr) {
+				$this->addChild('<div class="subdescr">'.$this->subdescr.'</div>');
+			}
 			$this->addChild($c);
+		}
+		foreach($this->_customs as $v) {
+			$this->addChild($v);
 		}
 	}
 }

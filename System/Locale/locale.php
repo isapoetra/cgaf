@@ -141,8 +141,9 @@ class Locale extends \BaseObject {
 					CGAF_PATH . DS . 'locale' . DS . $fname
 			);
 			foreach ( $search as $v ) {
-				$v = $v . '.' . $this->_localeExt;
+				$v = \Utils::ToDirectory($v . '.' . $this->_localeExt);
 				if (is_file ( $v )) {
+						
 					return $v;
 				}
 			}
@@ -171,6 +172,7 @@ class Locale extends \BaseObject {
 			// if (is_file())
 			$f = $this->findLocaleFile ( $fname, $ctx, $locale );
 		}
+
 		$this->_loaded[] =  $f;
 		if ($f && is_file ( $f )) {
 			$fp = fopen ( $f, "r" );
@@ -269,28 +271,22 @@ class Locale extends \BaseObject {
 		}
 		return trim ( $w );
 	}
-	private function _parse($date, $format, $days, $months, $paramDelim = '%') {
+	private function _parse($date, $format, $days, $months, $paramDelim = '') {
 		$dk = array_keys ( $days );
 		$mk = array_keys ( $months );
 		$retval = '';
 		for($strpos = 0; $strpos < strlen ( $format ); $strpos ++) {
-			$char = substr ( $format, $strpos, 1 );
-			if ($char == $paramDelim) {
-				$nextchar = substr ( $format, $strpos + 1, 1 );
-				switch ($nextchar) {
-					case 'D' :
-						$retval .= \Utils::addChar ( $days [$dk [$date->format ( 'w' )]], '\\' );
-						break;
-					case 'M' : // short month
-						$retval .= \Utils::addChar ( $months [$mk [$date->format ( 'n' ) - 1]], '\\' );
-						break;
-					default :
-						$retval .= $nextchar;
-						break;
-				}
-				$strpos ++;
-			} else {
-				$retval .= $char;
+			$char =$format[$strpos];
+			switch ($char) {
+				case 'D' :
+					$retval .= \Utils::addChar ( $days [$dk [$date->format ( 'w' )]], '\\' );
+					break;
+				case 'M' : // short month
+					$retval .= \Utils::addChar ( $months [$mk [$date->format ( 'n' ) - 1]], '\\' );
+					break;
+				default :
+					$retval .= $char;
+					break;
 			}
 		}
 		return $date->format ( $retval );
@@ -329,7 +325,7 @@ class Locale extends \BaseObject {
 		}
 		$loc = $loc ? $loc : $this->getLocale ();
 		try {
-			$format = $long ? $this->_ ( 'date.format.long', '%D,  %M %d %Y %h:%i:%s', null, $loc ) : $this->_ ( 'date.format.short', '%M %d %Y', null, $loc );
+			$format = $long ? $this->_ ( 'date.format.long', 'D, M Y h:i:s', null, $loc ) : $this->_ ( 'date.format.short','', null, $loc );
 			$days = $this->getDayNames($loc = null);
 			$months = $this->getMonthNames($loc);
 			if (! ($date instanceof \DateTime)) {

@@ -12,18 +12,16 @@ class RolesModel extends Model {
 	public $role_id;
 	/**
 	 * Application ID
-	 *
+	 * @FieldReference applications app_id
 	 * @var string Application ID
-	 *      @FieldReference table applications app_id
 	 */
 	public $app_id;
 	public $role_name;
 	/**
-	 *
+	 * @FieldType boolean
+	 * @FieldAllowNull false
+	 * @fielddefaultvalue 1
 	 * @var boolean Flag if active
-	 *      @FieldType boolean
-	 *      @FieldAllowNull false
-	 *      @fielddefaultvalue true
 	 */
 	public $active;
 	public $role_parent;

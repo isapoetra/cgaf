@@ -4,7 +4,7 @@ use System\MVC\Model;
 use CGAF;
 class ModulesModel extends Model {
 	/**
-	 * @FieldExtra NOT NULL AUTO_INCREMENT
+	 * @FieldExtra AUTO_INCREMENT
 	 *
 	 * @var int
 	 */
@@ -101,6 +101,6 @@ class ModulesModel extends Model {
 	 */
 	public $mod_controller;
 	function __construct() {
-		parent::__construct ( CGAF::getDBConnection (), 'modules', 'module_id', true, \CGAF::isInstalled () === false );
+		parent::__construct ( CGAF::getDBConnection (), 'modules', 'mod_id', true, \CGAF::isInstalled () === false );
 	}
 }

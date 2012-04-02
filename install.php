@@ -57,7 +57,7 @@ class Install extends WebApplication {
 		return null;
 	}
 
-	function isAllow($id, $group) {
+	function isAllow($id, $group, $access = 'view') {
 		return \CGAF::isInstalled() === false;
 	}
 
@@ -126,23 +126,16 @@ class Install extends WebApplication {
 								$rowner['username'],
 								$rowner['groups'],
 								'Internal Cache Path'
-						),
-						array(
-								CGAF_LIB_PATH.'google/google-api-php-client/src/local_config.php',
-								'0770',
-								$rowner['username'],
-								$rowner['groups'],
-								'Log Path'
-						),
+						)
 				);
 				$this->assign('dirs', $dirs);
 				foreach ($dirs as $d) {
 					$p = new FileInfo($d[0]);
-					if ($p->perms['octal2'] !== $d[1]) {
+					if ($p->permEqual($d[1],false)) {
 						$this->_postError['__common'] = isset($this->_postError['__common']) ? $this->_postError['__common'] : '';
 						if ($this->isValidToken()) {
 							\Utils::changeFileMode($d[0], $d[1], true);
-							$this->_postError['__common'] .= 'unable to change permission please run <i>sudo chmod ' . $d[1] . ' ' . $d[0] . '</i>';
+							$this->_postError['__common'] .= 'unable to change permission please run <i>sudo chmod ' . $d[1] . ' ' . $d[0] . '</i><br/>';
 						}
 
 
@@ -270,6 +263,7 @@ class Install extends WebApplication {
 			\CGAF::reloadConfig();
 			$con = DB::Connect($gconf->getConfigs('db'));
 			$installlog [] = 'Installing Default Model';
+			$drop = array();
 			$init = array(
 					'session' => 'session',
 					'applications' => 'application',
@@ -293,9 +287,12 @@ class Install extends WebApplication {
 					'modules' => 'modules'
 			);
 			$q = new DBQuery (CGAF::getDBConnection());
+			foreach($drop as $k) {
+				$q->exec('drop table if exists ' . $k);
+			}
 			foreach ($init as $k => $v) {
 				try {
-					$q->exec('drop table if exists ' . $k);
+					
 					$installlog [] = 'loading model ' . $v;
 					$this->getModel($v);
 				} catch (\Exception $e) {
