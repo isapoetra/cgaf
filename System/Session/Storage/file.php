@@ -32,7 +32,7 @@ class File extends SessionBase {
 		return unserialize($serialized);
 	}
 
-	private function getFileName($sesid) {
+	protected function getFileName($sesid) {
 		return Utils::ToDirectory($this->_savePath . DS . "sess_$sesid");
 	}
 
@@ -67,10 +67,7 @@ class File extends SessionBase {
 		if (is_readable($sess_file)) {
 			@unlink($sess_file);
 		}
-		if ($sessID && $sessID === $this->getId()) {
-			return parent::destroy($sessID);
-		}
-		return true;
+		return parent::destroy($sessID);;
 	}
 
 	function gc($sessMaxLifeTime) {

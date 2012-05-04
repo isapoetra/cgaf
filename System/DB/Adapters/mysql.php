@@ -49,11 +49,11 @@ class MySQL extends DBConnection {
 			case 'table' :
 				$retval = array();
 				$retval [] = "create table " . $this->quoteTable ( '#__' . $objectName ) . " (";
-				
+
 				$idx =0;
 				foreach ( $fields as $field ) {
 					$type = $this->phptofieldtype ( $field->fieldtype );
-					
+
 					$fcreate =  $this->quoteTable ( $field->fieldname, false ) . ' ' . $type;
 					if ($field->fieldlength != null) {
 						$fcreate   .= '(' . $field->fieldlength . ')';
@@ -82,7 +82,7 @@ class MySQL extends DBConnection {
 
 						);
 					}
-					
+
 					$idx++;
 				}
 
@@ -107,7 +107,7 @@ class MySQL extends DBConnection {
 				break;
 			default :
 				throw new Exception ( $objecttype );
-					
+
 		}
 		$this->_thows = true;
 		return $this->Exec ( implode('',$retval) );
@@ -279,7 +279,7 @@ class MySQL extends DBConnection {
 	}
 	function getTableList() {
 		$this->Open ();
-		$sql = "select table_name,table_type from information_schema.TABLES where table_schema='" . $this->_database . "'";
+		$sql = "select table_name,table_type from information_schema.TABLES where table_schema='" . $this->_database . "' and table_type='BASE_TABLE'";
 		return $this->exec ( $sql );
 	}
 	function getIndexes($table) {

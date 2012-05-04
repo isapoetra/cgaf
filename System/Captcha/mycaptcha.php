@@ -1,5 +1,7 @@
 <?php
 namespace System\Captcha;
+use System\Web\Utils\HTMLUtils;
+
 use \System\Exceptions\SystemException;
 use \System\Session\Session;
 use System\Documents\Image;
@@ -501,7 +503,6 @@ class MyCaptcha extends AbstractCaptcha implements ICaptcha {
 
 	private $_captchaId = '__captcha';
 	private $_captchaCode;
-	private $_lastError = '';
 
 	function  __construct(IApplication $appOwner) {
 
@@ -607,9 +608,10 @@ class MyCaptcha extends AbstractCaptcha implements ICaptcha {
 		$c = file_get_contents($tmpname);
 		imagedestroy($img);
 		$image = '<img src="' . $mime . ';base64,' . base64_encode($c) . '"/>';
+		$error = HTMLUtils::renderError($this->_lastError);
 		$html = <<<EOT
 <div class="captcha mycaptcha">
-	<span class="label label-important">{$this->_lastError}</span>
+	$error
 	<div class="image">
 		$image
 	</div>

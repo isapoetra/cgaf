@@ -1,5 +1,7 @@
 <?php
 namespace System\Web\Utils;
+use System\Web\JS\CGAFJS;
+
 use \System\Captcha\Captcha;
 use System\Web\UI\Controls\Button;
 use System\Web\WebUtils;
@@ -37,7 +39,13 @@ abstract class HTMLUtils {
 		}
 		$r = ' ';
 		foreach ( $attr as $k => $v ) {
+			$v =\Convert::toString($v);
 			switch (strtolower ( $k )) {
+				case 'class':
+					$v=str_replace('[', '', $v);
+					$v=str_replace(']', '', $v);
+					$r .= "$k=\"$v\" ";
+					break;
 				default :
 					$r .= "$k=\"$v\" ";
 			}
@@ -49,6 +57,9 @@ abstract class HTMLUtils {
 			return $attr;
 		}
 		$retval = array ();
+		if (!$attr) {
+			return $retval;
+		}
 		$matches = array ();
 		preg_match_all ( '/\s([A-Za-z][0-9A-Za-z_\:\.-]*)\="([^"]*)"/i', " " . $attr, $matches );
 		foreach ( $matches [1] as $k => $v ) {
@@ -150,6 +161,7 @@ abstract class HTMLUtils {
 				'class' => 'btn'
 		), true, 'reset.png' );
 		$retval .= self::renderButton ( 'submit', __ ( 'submit', 'Submit' ), __ ( 'submit.descr', 'Submit this form' ), array (
+				'data-loading-text'=>'loading...',
 				'class' => 'btn btn-primary'
 		), true, 'submit.png' );
 		$retval .= '</div>';
@@ -350,13 +362,13 @@ JS;
 		) );
 		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "password" ,'left','controls',null,$add);
 	}
-	public static function renderCheckbox($title, $id, $value, $attr = null, $editMode = true) {
+	public static function renderCheckbox($title, $id, $value=false, $attr = null, $editMode = true) {
 		if ($value) {
 			$attr = self::mergeAttr ( $attr, array (
 					'checked' => 'checked'
 			) );
 		}
-		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "checkbox", 'right' );
+		return self::renderFormField ( $title, $id, $value, $attr, $editMode, "checkbox" );
 	}
 	public static function renderHiddenField($id, $value, $attr = null) {
 		return self::renderFormField ( null, $id, $value, $attr, true, 'hidden' );
@@ -380,6 +392,25 @@ JS;
 			$retval .= '</th>';
 		}
 		return $retval;
+	}
+	public static function renderLookup($title,$id,$value=null,$attrs=null) {
+		$attrs = self::mergeAttr($attrs,array(
+				'data-provide'=>'typeahead'));
+
+		return self::renderTextBox($title, $id,$value,$attrs);
+	}
+	public static function renderAutoComplete($title,$id,$srcLookup,$value=null,$attrs=null) {
+		$attrs = self::mergeAttr($attrs,array(
+				'srcLookup'=>$srcLookup,
+				'data-input'=>'autocomplete'));
+
+		return self::renderTextBox($title, $id,$value,$attrs);
+	}
+
+	private static function toClassAttr($v) {
+		$v=str_replace('[', '_', $v);
+		$v=str_replace(']', '', $v);
+		return $v;
 	}
 	public static function renderFormField($title, $id, $value, $attr = null, $editMode = false, $type = "text", $labelPosition = 'left',$containerClass='controls',$groupClass='control-group',$additional=null) {
 		$renderlabel = true;
@@ -427,6 +458,7 @@ JS;
 				}
 				break;
 			case "checkbox" :
+
 				if ($editMode) {
 					$retval .= "<input type=\"$type\" value=\"$value\" id=\"$id\" name=\"$id\" $attr/>";
 				} else {
@@ -450,7 +482,7 @@ JS;
 		if ($renderlabel) {
 			$lbl = self::renderLabel ( $id, $title );
 			if (self::$_formMode === self::FORM_MODE_NORMAL) {
-				$s = "<div class=\"$groupClass $id\" id=\"$id-container\">";
+				$s = "<div class=\"$groupClass ".self::toClassAttr($id)."\" id=\"".self::toClassAttr($id)."-container\">";
 				$s .= ($labelPosition === 'left' ? $lbl : '');
 				$s .= '<div class="'.$containerClass.'">';
 				$s .= $retval;
@@ -500,7 +532,8 @@ JS;
 		if ($title) {
 			if (self::$_formMode == self::FORM_MODE_NORMAL) {
 				$retval .= '<div class="control-group '.(isset($attr['class']) ? $attr['class'] : '').'">';
-				$retval .= '<label class="field" for="' . $id . '">' . $title . '</label>';
+				$retval .= '<label class="control-label field" for="' . $id . '">' . $title . '</label>';
+				$retval .= '<div class="controls">';
 			} elseif (self::$_formMode == self::FORM_MODE_TABLE) {
 				$retval .= '<th class="field" for="' . $id . '">' . $title . '</th>';
 			}
@@ -534,7 +567,7 @@ JS;
 			if (self::$_formMode === self::FORM_MODE_TABLE) {
 				$retval .= '</td>';
 			}elseif ($title){
-				$retval .='</div>';
+				$retval .='</div></div>';
 			}
 			//ppd($retval);
 		} else {
@@ -627,6 +660,7 @@ JS;
 		if (! $msg) {
 			return '';
 		}
+
 		if (is_array($msg)) {
 			$retval = '<div class="alert">';
 			foreach($msg as $m) {
@@ -776,6 +810,7 @@ EOT;
 		if (! $items) {
 			return '';
 		}
+
 		// ppd($items);
 		$menuid = $menuid ? $menuid : Utils::generateId ( 'menu' );
 		$retval = '';
@@ -785,6 +820,7 @@ EOT;
 			if (! ($item instanceof MenuItem)) {
 				$item = new MenuItem ( Utils::bindToObject ( new \stdClass (), $item, true ) );
 			}
+
 			if ($repl) {
 				$item->setReplacer ( $repl );
 			}
@@ -842,18 +878,23 @@ EOT;
 		}
 		return \Convert::toString ( $o );
 	}
-	public static function renderDateRange($configs) {
+	public static function renderDateRange($configs,$includeTime =true) {
 		$retval = '<div >';
 		$retval .= self::renderTextBox($configs['start']['title'], $configs['start']['id'], $configs['start']['value'],array(
 				'data-input'=>'daterange',
+				'data-time'=>$includeTime,
 				'data-end-date'=>$configs['end']['id']
 		));
-		$retval .= self::renderTextBox($configs['end']['title'], $configs['end']['id'], $configs['start']['value'],array(
+		$retval .= self::renderTextBox($configs['end']['title'], $configs['end']['id'], $configs['end']['value'],array(
 				'data-input'=>'daterange',
+				'data-time'=>$includeTime,
 				'data-start-date'=>$configs['end']['id']
 		));
+		//CGAFJS::loadPlugin('daterange/daterange');
+		//CGAFJS::loadPluginAssets('daterange/ui.daterangepicker.css');
 		$retval .='</div>';
-		//ppd($configs);
+		$id1=$configs['start']['id'];
+		$id2 =$configs['end']['id'];
 		return $retval;
 	}
 	public static function renderConfig($title, $id, $config) {
@@ -884,6 +925,75 @@ EOT;
 			}
 		}
 		return $retval;
+	}
+	public static function renderFormImageUpload($id,$server) {
+		$app=\AppManager::getInstance();
+		$app->addClientAsset(array('jquery.ajaxupload.js','cgaf/css/upload.css'));
+$js = <<< EOT
+$.ajaxUploadSettings.name = 'uploads[]';
+$('#dropzone-$id').ajaxUploadPrompt({
+		url : '$server',
+		beforeSend : function () {
+			$('#dropzone-$id, #result').hide();
+		},
+		onprogress : function (e) {
+			if (e.lengthComputable) {
+				var percentComplete = e.loaded / e.total;
+				// Show in progressbar
+				$( "#progressbar" ).progressbar({
+					value: percentComplete*100,
+					complete: function () {
+						$(this).progressbar( "destroy" );
+					}
+				});
+			}
+		},
+		error : function () {
+		},
+		success : function (data) {
+			data = $.parseJSON(data);
+			var html = '';
+			if (data.error) {
+				html += '<h2>Error</h2>';
+				html += '<p>' + data.error + '</p>';
+			}
+			if (data.success) {
+				html += '<h2>Success</h2>';
+				for (var i = 0, len = data.success.length; i < len ; i++) {
+					html += '<p>' + data.success[i].filename + '</p>';
+				}
+			}
+			if (data.failed) {
+				html += '<h2>Failed</h2>';
+				html += '<p>Files failed: ' + data.failed + '</p>';
+			}
+			$("#dropzone-$id, #progressbar" ).progressbar( "destroy" );
+			$("#dropzone-$id, #result").html(html);
+			$("#dropzone-$id, #result").show();
+		}
+	});
+EOT;
+		$app->addClientScript($js);
+		return '<div class="upload-container upload-'.$id.'">'
+		.'<div id="dropzone-'.$id.'" class="drop-zone">'
+		. '  Click here to choose images to upload'
+		.'   <br />'
+		.'   <span>Max 20 files, total 8mb and only image files</span>'
+		. '  <div id="progressbar"></div>'
+		. '  <div id="result"></div>'
+		. '</div><hr class="divider"/>'
+		.'<input type="file" id="'.$id.'" accept="image/gif, image/jpeg, image/png"></div>';
+	}
+	public static function renderMarkitupEditor($title,$id,$value=null,$configs =array(),$type="html") {
+		CGAFJS::loadPlugin('markitup/jquery.markitup');
+		$mark = array(
+				'js/jQuery/plugins/markitup/cgaf/'.(@$row->format ? $row->format :'wiki').'/default/sets.js',
+				'js/jQuery/plugins/markitup/cgaf/'.(@$row->format ? $row->format :'wiki').'/default/style.css'
+		);
+		$appOwner = \AppManager::getInstance();
+		$appOwner->AddClientScript('$(\'#'.$id.'\').markItUp('.JSON::encodeConfig($configs).')');
+		$appOwner->addClientAsset($mark);
+		return self::renderTextArea($title, $id, $value);
 	}
 }
 // +----------------------------------------------------------------------+
@@ -1016,6 +1126,8 @@ class lx_externalinput_clean {
 			return false;
 		}
 	}
+
+
 
 }
 ?>

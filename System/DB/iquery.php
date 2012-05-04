@@ -5,9 +5,11 @@ interface IQuery {
 	/**
 	 *
 	 * @param $field
+	 * @param $alias
+	 * @param $func
 	 * @return IQuery
 	 */
-	function select($field);
+	function select($field, $alias = null, $func = false);
 	/**
 	 *
 	 * @param $sql

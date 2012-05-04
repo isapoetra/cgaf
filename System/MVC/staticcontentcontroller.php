@@ -53,6 +53,7 @@ abstract class StaticContentController extends Controller {
 			pp($s);
 		}
 	}
+	
 	/**
 	 * Enter description here ...
 	 * @param string $a

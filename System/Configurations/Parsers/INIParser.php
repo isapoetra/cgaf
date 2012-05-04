@@ -1,7 +1,7 @@
 <?php
 namespace System\Configurations\Parsers;
 use \Utils;
-class INIParser extends AbstractConfigParser implements IConfigurationParser  {
+class INIParser implements IConfigurationParser  {
 	function parseFile($f) {
 		if (!is_file($f)) {
 			return null;

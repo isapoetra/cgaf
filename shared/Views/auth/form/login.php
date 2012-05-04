@@ -20,6 +20,7 @@ echo HTMLUtils::beginForm ( \URLHelper::add ( APP_URL, 'auth?__t=' . time (), ($
 		'class' => $cssClass,
 		'id' => 'login'
 ) );
+echo HTMLUtils::renderHiddenField('__appId', \CGAF::APP_ID);
 echo '<input type="hidden" name="redirect" value="' . urlencode($redirect) . '">';
 echo HTMLUtils::renderTextBox ( __ ( 'auth.user_name' ), 'username', null, 'class="required"', true ) . '<br/>';
 echo HTMLUtils::renderPassword ( __ ( 'auth.user_password' ), 'password', null, 'required class="required"', true );

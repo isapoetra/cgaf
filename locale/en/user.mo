@@ -21,3 +21,4 @@ last_from=Last Access
 last_access=IP
 last_ip=From
 external=External User
+my.noperson=No Person Registered

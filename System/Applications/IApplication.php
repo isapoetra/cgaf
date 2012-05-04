@@ -207,4 +207,5 @@ interface IApplication extends IDBAware {
 	 */
 	public function performCheck();
 	function getAssetCachePath();
+	function isInstalled();
 }

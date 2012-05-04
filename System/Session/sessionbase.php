@@ -121,7 +121,7 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 		header('P3P: CP="NOI ADM DEV PSAi COM NAV OUR OTRo STP IND DEM"');
 		$id = null;
 		$restart = false;
-		if ($this->_sessionState == 'restart') {
+		if ($this->_sessionState == Session::STATE_RESTART) {
 			$id = $this->_createId();
 			$restart = true;
 		}
@@ -344,38 +344,45 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 	public function destroy($sessID = null) {
 		if ($this->_sessionState === Session::STATE_DESTROYED)
 			return false;
-		$this->_sessionState = Session::STATE_DESTROYED;
+
 		$sessID = $sessID ? $sessID : $this->getId();
-		$this->dispatchEvent(new SessionEvent($this, SessionEvent::DESTROY));
-		// In order to kill the session altogether, like to log the user out, the session id
-		// must also be unset. If a cookie is used to propagate the session id (default behavior),
-		// then the session cookie must be deleted.
-		if (isset($_COOKIE[session_name()])) {
-			$cookie_domain = $this->getConfig('cookie.domain', '');
-			$cookie_path = $this->getConfig('cookie.path', '/');
-			setcookie(session_name(), '', time() - 42000, $cookie_path, $cookie_domain);
+
+		if ($this->getId()===$sessID) {
+			$this->_sessionState = Session::STATE_DESTROYED;
+			$this->dispatchEvent(new SessionEvent($this, SessionEvent::DESTROY));
+			if (isset($_COOKIE[session_name()])) {
+				$cookie_domain = $this->getConfig('cookie.domain', '');
+				$cookie_path = $this->getConfig('cookie.path', '/');
+				setcookie(session_name(), '', time() - 42000, $cookie_path, $cookie_domain);
+			}
+			session_unset();
+			@session_destroy();
+			$this->_started = false;
 		}
-		session_unset();
-		@session_destroy();
-		$this->_started = false;
 		return true;
 	}
 
-	function restart() {
-		$this->destroy();
-		if ($this->_sessionState !== Session::STATE_DESTROYED && $this->_sessionState !== Session::STATE_CLOSED) {
-			return false;
+	function restart($id=null) {
+		if ($id && $id=== $this->getId()) {
+			session_decode($this->read($id));
+		}else{
+			$this->destroy();
+			if ($this->_sessionState !== Session::STATE_DESTROYED && $this->_sessionState !== Session::STATE_CLOSED) {
+				return false;
+			}
+			if (!$id) {
+				$this->_sessionState = Session::STATE_RESTART;
+			}
+			//regenerate session id
+			$id = $id ? $id : $this->_createId(strlen($this->getId()));
+			session_id($id);
+			$this->_started = false;
+			$this->start();
+			$this->_sessionState = Session::STATE_ACTIVE;
+			$this->_validate();
+			$this->_setCounter();
+			return true;
 		}
-		$this->_sessionState = Session::STATE_RESTART;
-		//regenerate session id
-		$id = $this->_createId(strlen($this->getId()));
-		session_id($id);
-		$this->_started = false;
-		$this->start();
-		$this->_sessionState = Session::STATE_ACTIVE;
-		$this->_validate();
-		$this->_setCounter();
-		return true;
 	}
 
 	function gc($sessMaxLifeTime) {

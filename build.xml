@@ -1,0 +1,21 @@
+<project name="cgaf" default="dist">
+	<property file="${cgaf.master}/cgaf.properties" />
+	<import file="${cgaf.master}/cgaf-macro.xml" />
+	<target name="release">
+		<mkdir dir="${asset.path}js/jQuery/jquery-mobile/" />
+		<copy todir="${asset.path}js/jQuery/jquery-mobile/">
+			<fileset dir="${cgaf.master}/js/jQuery/jquery-mobile/compiled" excludes="*.zip">
+			</fileset>
+		</copy>
+		
+	</target>
+	<target name="dist-app">
+		<ant antfile="cgaf-applications.xml"></ant>
+	</target>
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: dist                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="dist" depends="release">
+		<cgaf-rsync /> 
+	</target>
+</project>

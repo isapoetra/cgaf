@@ -1,13 +1,15 @@
 <?php
+use System\Locale\Locale;
+
 defined("CGAF") or die ("Restricted Access");
 use System\ACL\ACLHelper, System\Exceptions\AccessDeniedException;
 
 abstract class Utils {
 	private static $_imagesExt = array(
-		'jpeg',
-		'jpg',
-		'gif',
-		'png'
+			'jpeg',
+			'jpg',
+			'gif',
+			'png'
 	);
 	private static $_agentSuffix;
 
@@ -58,106 +60,106 @@ abstract class Utils {
 		}
 		// now the only remaining whitespace attacks are \t, \n, and \r
 		$ra1 = Array(
-			'javascript',
-			'vbscript',
-			'expression',
-			'applet',
-			'meta',
-			'xml',
-			'blink',
-			'link',
-			'style',
-			'script',
-			'embed',
-			'object',
-			'iframe',
-			'frame',
-			'frameset',
-			'ilayer',
-			'layer',
-			'bgsound',
-			'title',
-			'base'
+				'javascript',
+				'vbscript',
+				'expression',
+				'applet',
+				'meta',
+				'xml',
+				'blink',
+				'link',
+				'style',
+				'script',
+				'embed',
+				'object',
+				'iframe',
+				'frame',
+				'frameset',
+				'ilayer',
+				'layer',
+				'bgsound',
+				'title',
+				'base'
 		);
 		$ra2 = Array(
-			'onabort',
-			'onactivate',
-			'onafterprint',
-			'onafterupdate',
-			'onbeforeactivate',
-			'onbeforecopy',
-			'onbeforecut',
-			'onbeforedeactivate',
-			'onbeforeeditfocus',
-			'onbeforepaste',
-			'onbeforeprint',
-			'onbeforeunload',
-			'onbeforeupdate',
-			'onblur',
-			'onbounce',
-			'oncellchange',
-			'onchange',
-			'onclick',
-			'oncontextmenu',
-			'oncontrolselect',
-			'oncopy',
-			'oncut',
-			'ondataavailable',
-			'ondatasetchanged',
-			'ondatasetcomplete',
-			'ondblclick',
-			'ondeactivate',
-			'ondrag',
-			'ondragend',
-			'ondragenter',
-			'ondragleave',
-			'ondragover',
-			'ondragstart',
-			'ondrop',
-			'onerror',
-			'onerrorupdate',
-			'onfilterchange',
-			'onfinish',
-			'onfocus',
-			'onfocusin',
-			'onfocusout',
-			'onhelp',
-			'onkeydown',
-			'onkeypress',
-			'onkeyup',
-			'onlayoutcomplete',
-			'onload',
-			'onlosecapture',
-			'onmousedown',
-			'onmouseenter',
-			'onmouseleave',
-			'onmousemove',
-			'onmouseout',
-			'onmouseover',
-			'onmouseup',
-			'onmousewheel',
-			'onmove',
-			'onmoveend',
-			'onmovestart',
-			'onpaste',
-			'onpropertychange',
-			'onreadystatechange',
-			'onreset',
-			'onresize',
-			'onresizeend',
-			'onresizestart',
-			'onrowenter',
-			'onrowexit',
-			'onrowsdelete',
-			'onrowsinserted',
-			'onscroll',
-			'onselect',
-			'onselectionchange',
-			'onselectstart',
-			'onstart',
-			'onstop',
-			'onsubmit',
-			'onunload'
+				'onabort',
+				'onactivate',
+				'onafterprint',
+				'onafterupdate',
+				'onbeforeactivate',
+				'onbeforecopy',
+				'onbeforecut',
+				'onbeforedeactivate',
+				'onbeforeeditfocus',
+				'onbeforepaste',
+				'onbeforeprint',
+				'onbeforeunload',
+				'onbeforeupdate',
+				'onblur',
+				'onbounce',
+				'oncellchange',
+				'onchange',
+				'onclick',
+				'oncontextmenu',
+				'oncontrolselect',
+				'oncopy',
+				'oncut',
+				'ondataavailable',
+				'ondatasetchanged',
+				'ondatasetcomplete',
+				'ondblclick',
+				'ondeactivate',
+				'ondrag',
+				'ondragend',
+				'ondragenter',
+				'ondragleave',
+				'ondragover',
+				'ondragstart',
+				'ondrop',
+				'onerror',
+				'onerrorupdate',
+				'onfilterchange',
+				'onfinish',
+				'onfocus',
+				'onfocusin',
+				'onfocusout',
+				'onhelp',
+				'onkeydown',
+				'onkeypress',
+				'onkeyup',
+				'onlayoutcomplete',
+				'onload',
+				'onlosecapture',
+				'onmousedown',
+				'onmouseenter',
+				'onmouseleave',
+				'onmousemove',
+				'onmouseout',
+				'onmouseover',
+				'onmouseup',
+				'onmousewheel',
+				'onmove',
+				'onmoveend',
+				'onmovestart',
+				'onpaste',
+				'onpropertychange',
+				'onreadystatechange',
+				'onreset',
+				'onresize',
+				'onresizeend',
+				'onresizestart',
+				'onrowenter',
+				'onrowexit',
+				'onrowsdelete',
+				'onrowsinserted',
+				'onscroll',
+				'onselect',
+				'onselectionchange',
+				'onselectstart',
+				'onstart',
+				'onstop',
+				'onsubmit',
+				'onunload'
 		);
 		$ra = array_merge($ra1, $ra2);
 		$found = true; // keep replacing as long as the previous round replaced
@@ -241,11 +243,11 @@ abstract class Utils {
 
 		if (!is_dir($pathname)) {
 			if (!@mkdir($pathname, $mode, true)) {
-				/*if (CGAF_DEBUG) {
+				if (CGAF_DEBUG) {
 					echo '<pre>';
 					debug_print_backtrace();
 					die ("Error while creating directory $pathname");
-				}  */
+				}
 				return false;
 			}
 		}
@@ -333,8 +335,8 @@ abstract class Utils {
 		}
 		/*
 		 * if (isset($arr['sysmessage'])) { pp($arr);
-		 * pp('->'.$arr['sysmessage'].'<--'); pp($o->sysmessage); }
-		 */
+		* pp('->'.$arr['sysmessage'].'<--'); pp($o->sysmessage); }
+		*/
 		return $o;
 	}
 
@@ -343,10 +345,10 @@ abstract class Utils {
 	}
 
 	public static function copyFile($source, $dest, $options = array(
-		"overwrite" => false,
-		'folderPermission' => 0755,
-		'removeSoure' => false,
-		'filePermission' => 0755
+			"overwrite" => false,
+			'folderPermission' => 0755,
+			'removeSoure' => false,
+			'filePermission' => 0755
 	), $callback = null, $callbackparam = null) {
 		$overwrite = isset ($options ["overwrite"]) ? $options ["overwrite"] : false;
 		$removeSoure = isset ($options ["removeSoure"]) ? $options ["removeSoure"] : false;
@@ -374,7 +376,7 @@ abstract class Utils {
 			if (!is_file($__dest) || $overwrite) {
 				if ($callback) {
 					$param = array(
-						$__dest
+							$__dest
 					);
 					$param = $callbackparam ? array_merge($param, $callbackparam) : $param;
 					$result = call_user_func_array($callback, $param);
@@ -398,11 +400,11 @@ abstract class Utils {
 		} elseif (is_dir($source)) {
 			/*
 			 * $files = self::getDirFiles($source,null,false); foreach ($files
-			 * as $file) { $dname = $dest . $file ;
-			 * self::copyFile($source.DS.$file, $dname); } $dirs =
-			 * self::getDirList($source); foreach ($dirs as $file) { $dname =
-			 * $dest . $file ; self::copyFile($source.DS.$file, $dname); }
-			 */
+			 		* as $file) { $dname = $dest . $file ;
+			* self::copyFile($source.DS.$file, $dname); } $dirs =
+			* self::getDirList($source); foreach ($dirs as $file) { $dname =
+			* $dest . $file ; self::copyFile($source.DS.$file, $dname); }
+			*/
 			$dirHandle = opendir($source);
 			while ($file = readdir($dirHandle)) {
 				if (substr($file, 0, 1) !== '.') {
@@ -585,12 +587,13 @@ abstract class Utils {
 
 	public static function parseDBTemplate($tpl, $row) {
 		$retval = $tpl;
+		$row->base_url=BASE_URL;
+		$row->app_url=APP_URL;
 		foreach ($row as $k => $v) {
 			if (is_string($v) || is_numeric($v)) {
 				$retval = str_ireplace("#$k#", $v, $retval);
 			}
 		}
-		$retval = str_ireplace("#base_url#", BASE_URL, $retval);
 		return $retval;
 	}
 
@@ -670,15 +673,15 @@ abstract class Utils {
 		// adapted from code at
 		// http://aidanlister.com/repos/v/function.size_readable.php
 		$sizes = array(
-			'B',
-			'kB',
-			'MB',
-			'GB',
-			'TB',
-			'PB',
-			'EB',
-			'ZB',
-			'YB'
+				'B',
+				'kB',
+				'MB',
+				'GB',
+				'TB',
+				'PB',
+				'EB',
+				'ZB',
+				'YB'
 		);
 		if ($retstring === null) {
 			$retstring = '%01.2f %s';
@@ -886,10 +889,14 @@ EOT;
 		}
 	}
 
-	public static function formatCurrency($num) {
-		$cr = CGAF::getLocale()->_('currencyPrefix', '$');
-		$cre = CGAF::getLocale()->_('currencySufix', '');
-		return $cr . ' ' . self::formatNumber($num) . $cre;
+	public static function formatCurrency($num,$locale=null) {
+		$locale= $locale? $locale :  AppManager::getInstance()->getLocale()->getLocale();
+
+		$lc = AppManager::getInstance()->getLocale();
+
+		$cr = $lc->_('currencies.prefix','',null,$locale);
+		$cre =$lc->_('currencies.suffix','',null,$locale);
+		return $cr . ' ' . self::formatNumber($num,2,$locale) . $cre;
 	}
 
 	/**
@@ -900,12 +907,13 @@ EOT;
 	 * @param $decimals unknown_type
 	 * @deprecated moved to Locale
 	 */
-	public static function formatNumber($num, $decimals = 2) {
-		static $c;
-		if (!$c) {
-			$c ['comma'] = __('decimalSeparator');
-			$c ['thousand'] = __('thousandsSeparator');
-		}
+	public static function formatNumber($num, $decimals = 2,$locale=null) {
+		$locale= $locale? $locale :  AppManager::getInstance()->getLocale()->getLocale();
+		$lc = AppManager::getInstance()->getLocale();
+		$c=array(
+				'comma'=>$lc->_('decimalSeparator','',null,$locale),
+				'thousand' => $lc->_('thousandsSeparator','',null,$locale)
+		);
 		// ppd($c);
 		return number_format($num, $decimals, $c ['comma'], $c ['thousand']);
 	}
@@ -1027,15 +1035,15 @@ EOT;
 		static $info;
 		if (!$info) {
 			$info = array(
-				'a' => php_uname('a'),
-				's' => php_uname('s'),
-				'n' => php_uname('n'),
-				'r' => php_uname('r'),
-				'v' => php_uname('v'),
-				'm' => php_uname('m'),
-				'php' => array(
-					'v' => PHP_VERSION
-				)
+					'a' => php_uname('a'),
+					's' => php_uname('s'),
+					'n' => php_uname('n'),
+					'r' => php_uname('r'),
+					'v' => php_uname('v'),
+					'm' => php_uname('m'),
+					'php' => array(
+							'v' => PHP_VERSION
+					)
 			);
 		}
 		return $info;
@@ -1120,15 +1128,15 @@ EOT;
 
 	public static function isUtf8($str) {
 		return ( bool )preg_match('%^(?:
-                  [\x09\x0A\x0D\x20-\x7E]            # ASCII
-                | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
-                |  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
-                | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
-                |  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
-                |  \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
-                | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
-                |  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
-            )*$%xs', $str);
+				[\x09\x0A\x0D\x20-\x7E]            # ASCII
+				| [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+				|  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
+				| [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+				|  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
+				|  \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
+				| [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+				|  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
+		)*$%xs', $str);
 	}
 
 	/**
@@ -1189,7 +1197,7 @@ EOT;
 		}
 		if (is_string($a2)) {
 			$a2 = array(
-				$a2
+					$a2
 			);
 		}
 		if (!is_array($a1)) {
@@ -1325,11 +1333,11 @@ EOT;
 
 	public static function fixFileName($name) {
 		$replacer = array(
-			".." => "",
-			"/" => DS,
-			"//" => DS,
-			"`" => "",
-			DS . DS => DS
+				".." => "",
+				"/" => DS,
+				"//" => DS,
+				"`" => "",
+				DS . DS => DS
 		);
 		foreach ($replacer as $k => $v) {
 			$name = str_ireplace($k, $v, $name);
@@ -1362,8 +1370,8 @@ EOT;
 		if (preg_match('/(.*)&([a-zA-Z0-9])(.*)/', $label, $slices)) {
 			$chk = $slices[2] . $slices[3];
 			$ig = array(
-				'amp;',
-				'middot;');
+					'amp;',
+					'middot;');
 			foreach ($ig as $i) {
 				//ppd(substr($chk,0,strlen($i)-1));
 				if (substr($chk, 0, strlen($i)) === $i) {
@@ -1377,8 +1385,8 @@ EOT;
 		}
 		$label = str_replace('&&', '&', $label);
 		return $clean ? $label : array(
-			$label,
-			$access
+				$label,
+				$access
 		);
 	}
 
@@ -1414,14 +1422,14 @@ EOT;
 				return false;
 			}
 			if ($recurse) {
-			$dh = opendir($path);
-			while (($file = readdir($dh)) !== false) {
-				if ($file != '.' && $file != '..') { // skip self and parent pointing directories
-					$fullpath = $path . '/' . $file;
-					self::changeFileMode($fullpath,$mode,true);
+				$dh = opendir($path);
+				while (($file = readdir($dh)) !== false) {
+					if ($file != '.' && $file != '..') { // skip self and parent pointing directories
+						$fullpath = $path . '/' . $file;
+						self::changeFileMode($fullpath,$mode,true);
+					}
 				}
-			}
-			closedir($dh);
+				closedir($dh);
 			}
 		} else {
 			if (is_link($path)) {

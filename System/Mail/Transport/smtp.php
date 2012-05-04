@@ -8,15 +8,15 @@ class SMTP extends AbstractTransport {
 	function __construct(MailObject $o=null) {
 		$this->_mime_boundary = md5(time());
 		$this->_mailObject=$o;
-		parent::init('smtp');		
-		\System::iniset($this->getConfigs('iniset'),null,'');				
+		parent::init('smtp');
+		\System::iniset($this->getConfigs('iniset'),null,'');
 	}
 	function send(MailObject $o) {
 		$this->_mailObject=$o;
 		$headers = $o->getHeaders();
 		$header = $this->prepareHeader();
 		$message = $o->content;
-		$addOption='-f'.ini_get('sendmail_from');
+		//$addOption='-f'.ini_get('sendmail_from');
 		$attachments = $o->getAttachments();
 		if ($attachments) {
 			$message = "--{$this->_mime_boundary}\n" . "Content-Type: text/plain; charset=\"iso-8859-1\"\n" .
@@ -37,7 +37,7 @@ class SMTP extends AbstractTransport {
 			}
 
 		}
-		return mail($o->to, '=?UTF-8?B?'.base64_encode($o->subject).'?=', $message,$addOption);
+		return mail($o->to, $o->subject, $message,$header);
 
 	}
 
@@ -53,7 +53,7 @@ class SMTP extends AbstractTransport {
 			default:
 				throw new MailException('mail.unhandleimportance',$value);
 		}
-		
+
 		$retval = array();
 		if ($o->getAttachments()) {
 			//Main Idea from Anda comment @ http://php.net/manual/en/function.mail.php

@@ -77,7 +77,6 @@ class Strings extends stdClass {
 			foreach ($search as $k => $v) {
 				$retval = self::Replace($v, $replace, $retval, $case, $count, $prefix, $suffix, $encode);
 			}
-			ppd($retval);
 		} elseif (is_array($replace) || is_object($replace)) {
 			$retval = $search;
 

@@ -10,7 +10,6 @@ class Table extends DBQuery {
 	private $_pk;
 	private $_includeAppId;
 	protected $_notAllowNull = array();
-	private $_errors;
 	private $_infos;
 	private $_appOwner;
 	private $_alias;
@@ -20,7 +19,7 @@ class Table extends DBQuery {
 	private $_filterACL = null;
 	protected $_oldData;
 	protected $_autoCreateTable = false;
-
+	private $_cachedRows;
 	/**
 	 * @param $connection
 	 * @param $tableName
@@ -36,7 +35,7 @@ class Table extends DBQuery {
 			$this->_appOwner = AppManager::getInstance();
 		}
 		if ($autoCreate === null) {
-			$autoCreate = CGAF_DEBUG;
+			$autoCreate = $this->_appOwner->isInstalled() == false;
 		}
 		$this->_autoCreateTable = $autoCreate;
 		$pk = $pk ? $pk : array();
@@ -220,7 +219,7 @@ class Table extends DBQuery {
 	}
 
 	protected function getRowClass() {
-		return 'stdclass';
+		return '\stdclass';
 	}
 
 	/**
@@ -231,7 +230,11 @@ class Table extends DBQuery {
 		if (is_string($id) || is_numeric($id)) {
 			$id = explode(",", $id);
 		}
+
 		foreach ($this->_pk as $k => $pk) {
+			if (!isset($id[$k])) {
+				throw new DBException('error.invalidid',$k);
+			}
 			$this->Where($this->quoteField($pk) . "=" . $this->quote($id[$k]));
 		}
 		return $this;
@@ -249,7 +252,9 @@ class Table extends DBQuery {
 			$this->whereId($id);
 		}
 		$rc = $bindtothis ? $this : $this->getRowClass();
-		return $this->prepareOutput($this->loadObject($rc));
+		$retval = $this->prepareOutput($this->loadObject($rc));
+		$this->_cachedRows[$id] = $retval;
+		return $retval;
 	}
 
 	function loadBy($fieldName, $value) {
@@ -311,7 +316,7 @@ class Table extends DBQuery {
 	}
 
 	public function toFieldString($fieldName, $value) {
-		if ($info = $this->_infos[$fieldName]) {
+		if ($info = $this->getFieldInfo($fieldName)) {
 			return $value !== null ? $info->toString($value) : null;
 		}
 		return $value !== null ? $this->quote($value) : null;
@@ -319,11 +324,11 @@ class Table extends DBQuery {
 
 	protected function isAllowNull($field) {
 		if ($this->_infos != null) {
-			foreach ($this->_infos as $info) {
-				if ($info->field_name === $field) {
-					return $info->allow_null;
-				}
+			$fields = $this->getFieldInfo($field);
+			if (!is_object($fields)) {
+				ppd($field);
 			}
+			return $fields->allow_null;
 		}
 		foreach ($this->_notAllowNull as $v) {
 			if ($v === $field) {
@@ -333,8 +338,14 @@ class Table extends DBQuery {
 		return true;
 	}
 
-	function addError($msg) {
-		$this->_errors[] = __($msg);
+	function addError($msg,$id=null) {
+		if ($id) {
+			$old = isset($this->_lastError[$id]) ? $this->_lastError[$id]  : null;
+			$msg = $old.PHP_EOL.$msg;
+			$this->_lastError[$id]=$msg;
+		}else{
+			$this->_lastError[] = __($msg);
+		}
 	}
 
 	protected function getCheckMode($mode = null) {
@@ -375,7 +386,7 @@ class Table extends DBQuery {
 			default:
 				ppd($mode);
 		}
-		return count($this->_errors) == 0;
+		return count($this->_lastError) == 0;
 	}
 
 	function getPK() {
@@ -394,6 +405,9 @@ class Table extends DBQuery {
 	}
 
 	function getFieldInfo($field) {
+		if (is_object($this->_infos)) {
+			return $this->_infos->getField($field);
+		}
 		return isset($this->_infos[$field]) ? $this->_infos[$field] : null;
 	}
 
@@ -410,7 +424,7 @@ class Table extends DBQuery {
 	}
 
 	function store($throw = true) {
-		$this->_errors = array();
+		$this->_lastError = array();
 		$mode = self::MODE_INSERT;
 		$pks = $this->getPKValue();
 		$this->_oldData = null;
@@ -428,14 +442,14 @@ class Table extends DBQuery {
 				if ($diff) {
 					//ppd($this->sysmessage);
 					foreach ($o as $k => $v) {
-						$f = $this->_infos[$k]->default_value;
+						$f = $this->getFieldInfo($k)->default_value;
 						if ($this->$k === null || $this->$k === $f) {
 							$this->$k = $v ? $v : $f;
 							$diff = true;
 						}
 					}
 				} else {
-					if ($throw) {
+					if ($throw && CGAF_DEBUG) {
 						throw new DBException(__("store.nothingchanged", 'Unable to store unchanged data'));
 					} else {
 						return true;
@@ -446,7 +460,7 @@ class Table extends DBQuery {
 		}
 		if (!$this->check($mode)) {
 			if ($throw) {
-				throw new DBException("store.failed", ',' . implode($this->_errors, " "));
+				throw new DBException("store.failed", ',' . implode($this->_lastError, " "));
 			} else {
 				return false;
 			}
@@ -510,7 +524,7 @@ class Table extends DBQuery {
 	 * Unused parameter,just for compatibility with E_STRICT
 	 * (non-PHPdoc)
 	 * @see System\DB.DBQuery::drop()
-	 * 
+	 *
 	 */
 	public function drop($object=null, $what = "table") {
 		return parent::drop($this->getTableName(false,false),'table');
@@ -568,6 +582,7 @@ class Table extends DBQuery {
 				$this->where($f . ' like \'%' . $this->quote($text,false).'%\'', ' or');
 			}
 		}
+		ppd($this->getSQL());
 		return $this->loadObjects(null, 0, 10);
 	}
 
@@ -596,11 +611,12 @@ class Table extends DBQuery {
 			}
 			$fields = $this->getFields();
 			foreach ($fields as $field) {
-				if (!is_string($field)) {
+				if (is_array($field)) {
 					ppd($field);
+				}else{
+					$retval[$field] = array(
+							"value" => "#{$field}#");
 				}
-				$retval[$field] = array(
-						"value" => "#{$field}#");
 			}
 		}
 		$cw = $this->getGridColsWidth();
@@ -612,7 +628,13 @@ class Table extends DBQuery {
 		}
 		return $retval;
 	}
-
+	public function loadCached($id) {
+		$pk = $this->getPK();
+		if (!isset($this->_cachedRows[$id])) {
+			$this->load($id,false);
+		}
+		return isset($this->_cachedRows[$id]) ? $this->_cachedRows[$id]  : null;
+	}
 	public function quoteField($fields) {
 		if (is_string($fields)) {
 			if (strpos($fields, '.') > 0) {

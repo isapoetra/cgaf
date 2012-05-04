@@ -64,3 +64,7 @@ date.diff.days=Hari
 date.diff.hours=Jam
 date.diff.minutes=Menit
 date.diff.seconds=Detik
+
+action.manage=Atur
+action.add=Tambah
+currencies.prefix=IDR

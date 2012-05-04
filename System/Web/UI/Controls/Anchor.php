@@ -4,12 +4,17 @@ class Anchor extends WebControl implements \IRenderable {
 	private $_link;
 	private $_target;
 	private $_jsMode = true;
-	
+	private $_showLabelIfIcon=true;
 	private $_additionaljs;
 	function __construct($link, $title, $target = null, $tooltip = null, $jsMode = true, $additionaljs = null) {
 		parent::__construct ( 'a', true );
+		if (is_array($target)) {
+			$this->setAttr($target);
+		}else{
+			$this->Target = $target;
+		}
 		$this->Action = $link;
-		$this->Target = $target;
+
 		if ($title) {
 			$this->Text = $title;
 		}
@@ -23,7 +28,7 @@ class Anchor extends WebControl implements \IRenderable {
 	function getTitle() {
 		return $this->getAttr ( 'title' );
 	}
-	
+
 	function setToolTip($value) {
 		if ($value) {
 			$this->setAttr ( 'rel', 'tooltip' );
@@ -46,10 +51,14 @@ class Anchor extends WebControl implements \IRenderable {
 		if ($this->_additionaljs) {
 			ppd ( $this );
 		}
-		$this->setText ( '<span>' . $this->Text . '</span>' );
+
+		if ($c=$this->hasClass('icon-')) {
+			$this->removeClass($c);
+		}
+		$this->setText ( ($c ? '<i class="icon '.$c.'"></i>':'').($this->_showLabelIfIcon ? '<span>' . $this->Text . '</span>' : '') );
 		return parent::prepareRender ();
 	}
-	
+
 	public static function link($link, $title, $target, $tooltip, $jsMode = true, $additionaljs = null) {
 		$link = new Anchor ( $link, $title, $target, $tooltip, $jsMode, $additionaljs );
 		return $link->render ( true );

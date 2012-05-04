@@ -373,6 +373,13 @@ abstract class Application extends AbstractApplication {
 				}
 				break;
 		}
+		switch ($group){
+			case 'controller':
+				if ($this->isAllow($this->getAppId(), 'app',ACLHelper::ACCESS_MANAGE)) {
+					return true;
+				}
+				break;
+		}
 		return parent::isAllow($id, $group, $access);
 	}
 
@@ -381,6 +388,8 @@ abstract class Application extends AbstractApplication {
 			return true;
 		}
 		if (parent::Initialize()) {
+			$first = \AppManager::isAppStarted() === false;
+
 			$this->_route = MVCHelper::getRoute();
 			$this->_action = $this->_route ["_a"];
 			$libs = $this->getConfig('apps.libs');
@@ -390,17 +399,21 @@ abstract class Application extends AbstractApplication {
 					CGAF_SHARED_PATH
 			);
 			CGAF::addClassPath($this->getAppName(), $path . DS . 'classes' . DS);
-			CGAF::addClassPath('System', $path . DS, false);
-			CGAF::addClassPath('Controller', $path . DS . 'Controllers' . DS, false);
-			CGAF::addClassPath('Controllers', $path . DS . 'Controllers' . DS, false);
-			CGAF::addClassPath('Models', $path . DS . 'Models' . DS, false);
-			CGAF::addClassPath('Modules', $path . DS . 'Modules' . DS, false);
+			CGAF::addClassPath('System', $path . DS, $first);
+			CGAF::addClassPath('Controller', $path . DS . 'Controllers' . DS, $first);
+			CGAF::addClassPath('Controllers', $path . DS . 'Controllers' . DS, $first);
+			CGAF::addClassPath('Models', $path . DS . 'Models' . DS, $first);
+			CGAF::addClassPath('Modules', $path . DS . 'Modules' . DS, $first);
 			if ($libs) {
 				using($libs);
+			}
+			if (!$first) {
+				$this->initRequest();
 			}
 			return true;
 		}
 		$this->dispatchEvent(new SessionEvent ($this, SessionEvent::DESTROY));
+
 		return false;
 	}
 
@@ -472,10 +485,10 @@ abstract class Application extends AbstractApplication {
 		return null;
 	}
 
-	function getClassInstance($className, $suffix, $args, $find = true) {
-		$c = CGAF::getClassInstance($className, $suffix, $args, $this->getAppName());
+	function getClassInstance($className, $suffix, $args, $find = true,$newInstance=true) {
+		$c = CGAF::getClassInstance($className, $suffix ? $suffix : $this->getAppName(), $args, $newInstance);
 		if (!$c) {
-			$c = CGAF::getClassInstance($className, $suffix, $args);
+			$c = CGAF::getClassInstance($className, $suffix, $args,$newInstance);
 		}
 		return $c;
 	}
@@ -532,7 +545,7 @@ abstract class Application extends AbstractApplication {
 	}
 
 	public function getMenuItems(
-			$position, $parent = 0, $actionPrefix = null, $showIcon = true, $loadChild = false, $includecgaf = null) {
+			$position, $parent = 0, $actionPrefix = null, $showIcon = true, $loadChild = false, $includecgaf = null,$menu_controller=null) {
 		//TODO double check (problem database field type int , param string. mysql converted to int and the result is 0, so recurive :((
 		//
 		if (!is_numeric($parent)) {
@@ -547,10 +560,14 @@ abstract class Application extends AbstractApplication {
 		$includecgaf = $includecgaf === null ? $this->getConfig(
 				'app.ui.menu.' . $position . '.includecgafui', $this->getConfig('app.ui.menu.includecgafui', true)
 		) : $includecgaf;
+
 		if ($includecgaf) {
 			$model->where("(app_id='__cgaf' or app_id=" . $model->quote($this->getAppId()) . ")");
 		} else {
 			$model->where("app_id=" . $model->quote($this->getAppId()));
+		}
+		if ($menu_controller) {
+			$model->Where('menu_controller='.$model->quote($menu_controller).' or menu_controller is null');
 		}
 		$model->orderBy("menu_index");
 		$rows = $model->loadObjects("System\\Web\\UI\\Items\\MenuItem");
@@ -596,6 +613,11 @@ abstract class Application extends AbstractApplication {
 
 	public function handleError(\Exception $ex) {
 		$content = $ex->getMessage();
+		try {
+			$this->initRequest();
+		}catch (Exception $e) {
+
+		}
 		if ($ex instanceof AccessDeniedException) {
 			if (!Request::isDataRequest()) {
 				\Request::set('msg', rawurlencode($ex->getMessage()));
@@ -856,8 +878,9 @@ abstract class Application extends AbstractApplication {
 		} else {
 			$items = $this->getMenuItems($position);
 			$retval = "";
-			if ($renderdiv)
-				$retval = "<div class=\"menu-container\" id='menu-container-$position'>";
+			if ($renderdiv){
+				$retval = '<div class="menu-container" id="menu-container-'.$position.'" data-role="navbar">';
+			}
 			$menu = new Menu ();
 			if ($position === 'menu-bar') {
 				$route = $this->getRoute();
@@ -922,8 +945,19 @@ abstract class Application extends AbstractApplication {
 			case 2 :
 				// direct action to controller
 				try {
-					$ctl = $this->getController($row->controller);
+					$owner = $this;
+					if ($row->controller_app) {
+						$owner =\AppManager::getInstance($row->controller_app);
+						$ctl = $owner->getController($row->controller);
+					}else{
+						$ctl = $this->getController($row->controller);
+					}
 					if ($ctl) {
+						if ($this->getRoute('_c') !==$ctl->getRouteName()) {
+							$hcontent.= $ctl->renderActions();
+							//ppd($hcontent);
+						}
+
 						$row->actions = $ctl->getActionAlias($row->actions);
 						if ($this->getConfig('content.rendercontentaction')) {
 							$row->actions = $row->actions ? $row->actions : "index";
@@ -945,18 +979,19 @@ abstract class Application extends AbstractApplication {
 							if (isset ($rparams [$row->controller])) {
 								$cparams = $rparams [$row->controller];
 							}
-							$hcontent = $ctl->{$row->actions} ($cparams);
+							$ctl->initAction($row->actions, $rparams);
+							$hcontent .= $ctl->{$row->actions} ($cparams);
 						} elseif (!method_exists($ctl, $row->actions) && $this->isDebugMode()) {
-							$hcontent = HTMLUtils::renderError(
+							$hcontent .= HTMLUtils::renderError(
 									'method [' . $row->actions . '] not found in class ' . $row->controller
 							);
 						}
 					} else {
-						$hcontent = HTMLUtils::renderError(' Controller [' . $row->controller . '] not found ');
+						$hcontent .= HTMLUtils::renderError(' Controller [' . $row->controller . '] not found ');
 					}
 				} catch (\Exception $e) {
 					if ($this->isDebugMode()) {
-						$hcontent = HTMLUtils::renderError($e->getMessage());
+						$hcontent .= HTMLUtils::renderError($e->getMessage());
 					} else {
 						continue;
 					}
@@ -1025,113 +1060,12 @@ abstract class Application extends AbstractApplication {
 		->getController()
 		->getControllerName();
 		foreach ($rows as $midx => $row) {
-			$class = null;
-			$dbparams = Utils::DBDataToParam($row->params, $params);
-			$rparams = \Utils::arrayMerge($dbparams, $params);
-			$ctl = null;
-			$hcontent = null;
+			$r =  $this->renderContentItem($row,$params);
+			$hcontent=$r['hcontent'];
+			$menus=$r['menus'];
 			$content = null;
-			$haction = null;
-			/*
-			 * 1 	: view handled by initAction method on controller 2 	:
-			* direct access to controller 3	: Direct link 4	: render menu
-			* 5	: direct access to controller with no title
-			*/
-			switch ($row->content_type) {
-				case 5 :
-				case 2 :
-					// direct action to controller
-					try {
-						$ctl = $this->getController($row->controller);
-						if ($ctl) {
-							$row->actions = $ctl->getActionAlias($row->actions);
-							if ($this->getConfig('content.rendercontentaction')) {
-								$row->actions = $row->actions ? $row->actions : "index";
-								if ($ctl->isAllow(ACLHelper::ACCESS_MANAGE)) {
-									$haction [] = HTMLUtils::renderLink(
-											URLHelper::addParam(
-													$this->getAppUrl(), array(
-															'__c' => $row->controller,
-															'__a' => 'aed'
-													)
-											), __($row->controller . '.add.title', 'Add'), null, 'icons/add.png',
-											__($row->controller . '.add.descr', 'Add Data')
-									);
-								}
-							}
-							if (method_exists($ctl, $row->actions) && $ctl->isAllow($row->actions)) {
-								$class = $row->controller . '-' . $row->actions;
-								$cparams = $rparams;
-								if (isset ($rparams [$row->controller])) {
-									$cparams = $rparams [$row->controller];
-								}
-								$hcontent = $ctl->{$row->actions} ($cparams);
-							} elseif (!method_exists($ctl, $row->actions) && $this->isDebugMode()) {
-								$hcontent = HTMLUtils::renderError(
-										'method [' . $row->actions . '] not found in class ' . $row->controller
-								);
-							}
-						} else {
-							$hcontent = HTMLUtils::renderError(' Controller [' . $row->controller . '] not found ');
-						}
-					} catch (\Exception $e) {
-						if ($this->isDebugMode()) {
-							$hcontent = HTMLUtils::renderError($e->getMessage());
-						} else {
-							continue;
-						}
-					}
-					break;
-				case 3 :
-					try {
-						$ctl = $this->getController($row->controller);
-					} catch (\Exception $e) {
-						$ctl = null;
-					}
-					$url = $this->parseAction($row, $ctl, $params);
-					if ($url) {
-						// cek security by internal controller
-						$menus [] = HTMLUtils::renderLink($url, __($row->content_title));
-					}
-					break;
-				case 4 :
-					// renderMenu
-					try {
-						$ctl = $this->getController($row->controller);
-					} catch (\Exception $e) {
-						$ctl = null;
-					}
-					if ($ctl) {
-						$hcontent = $ctl->renderMenu($row->actions);
-					}
-					break;
-				case 1 :
-				default :
-					try {
-						if ($row->controller !== null && $this->isAllow($row->controller, "controller")) {
-							$ctl = $this->getClassInstance($row->controller, "Controller", $this);
-						}
-					} catch (\Exception $e) {
-						$ctl = null;
-					}
-					if ($ctl !== null) {
-						$hcontent = null;
-						$row->__content = "";
-						$action = $row->actions ? $row->actions : "index";
-						$params = $row->params ? unserialize($row->params) : array();
-						$params ["_position"] = $location;
-						// if (is_callable(array($ctl,$action))) {
-						// $hcontent = $ctl->$action($params);
-						// }else
-						if ($ctl->initAction($action, $params)) {
-							$hcontent = $ctl->render(
-									array(
-											"_a" => $action
-									), $params, true
-							);
-						}
-					}
-			}
+			$haction=$r['actions'];
+			$class = $row->controller . '-' . $row->actions;
 			if ($hcontent) {
 				$content .= "<div class=\"$location-item {$row->controller} {$class} clearfix\">";
 				if (( int )$row->content_type !== 5
@@ -1163,18 +1097,20 @@ abstract class Application extends AbstractApplication {
 			if ($content) {
 				$retval[$midx] = $content;
 			}
-			unset ($ctl);
 		}
 		return $retval;
 	}
 	function getItemContents($location,$controller,$appId=null) {
-		$appId = $appId ? $appId  :  $this->getAppId();
-		$m = $this->getModel("content");
+		//$appId = $appId ? $appId  :  $this->getAppId();
+		$m = $this->getModel("contents");
+		$m->clear();
+		$m->setIncludeAppId(false);
 		$m->clear();
 		if ($appId) {
-			$m->setIncludeAppId(false);
-			$m->clear();
 			$m->Where('(app_id=' . $m->quote($this->getAppId()) . ' or app_id=' . $m->quote($appId) . ')');
+			$m->orderBy('app_id');
+		}else{
+			$m->Where('(app_id=' . $m->quote($this->getAppId()) . ' or app_id=' . $m->quote(\CGAF::APP_ID) . ')');
 			$m->orderBy('app_id');
 		}
 		$m->where("state=1");
@@ -1277,7 +1213,6 @@ abstract class Application extends AbstractApplication {
 			return __('user.suicide', 'arrrrrrrrrrrrrrrrghhh....');
 		}
 	}
-
 	function getUserInfo($id) {
 		if (isset ($this->_userInfo [$id])) {
 			return $this->_userInfo [$id];
@@ -1285,6 +1220,11 @@ abstract class Application extends AbstractApplication {
 		$this->_userInfo [$id] = new \CGAFUserInfo ($this, $id);
 		return $this->_userInfo [$id];
 	}
-}
-
-?>
+	public function LogUserAction($action,$descr=null,$uid=null) {
+		$m = $this->getModel('userlog');
+		$m->insert('user_id',$uid ===null ? ACLHelper::getUserId() : $uid);
+		$m->insert('action_type',$action);
+		$m->insert('action_descr',serialize($descr));
+		$m->exec();
+	}
+}?>

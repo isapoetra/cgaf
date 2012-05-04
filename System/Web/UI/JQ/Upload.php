@@ -1,15 +1,81 @@
 <?php
 namespace System\Web\UI\JQ;
+use System\Web\JS\JSFunc;
+
 use System\Session\Session;
 
 use System\JSON\JSON;
+/**
+ * Handle file uploads via XMLHttpRequest
+ */
+class qqUploadedFileXhr {
+	/**
+	 * Save the file to the specified path
+	 * @return boolean TRUE on success
+	 */
+	function save($path) {
+		$input = fopen("php://input", "r");
+		$temp = tmpfile();
+		$realSize = stream_copy_to_stream($input, $temp);
+		fclose($input);
+
+		if ($realSize != $this->getSize()){
+			return false;
+		}
+
+		$target = fopen($path, "w");
+		fseek($temp, 0, SEEK_SET);
+		stream_copy_to_stream($temp, $target);
+		fclose($target);
+
+		return true;
+	}
+	function getName() {
+		return $_GET['qqfile'];
+	}
+	function getSize() {
+		if (isset($_SERVER["CONTENT_LENGTH"])){
+			return (int)$_SERVER["CONTENT_LENGTH"];
+		} else {
+			throw new Exception('Getting content length is not supported.');
+		}
+	}
+}
+
+/**
+ * Handle file uploads via regular form post (uses the $_FILES array)
+ */
+class qqUploadedFileForm {
+	/**
+	 * Save the file to the specified path
+	 * @return boolean TRUE on success
+	 */
+	function save($path) {
+		if(!move_uploaded_file($_FILES['qqfile']['tmp_name'], $path)){
+			return false;
+		}
+		return true;
+	}
+	function getName() {
+		return $_FILES['qqfile']['name'];
+	}
+	function getSize() {
+		return $_FILES['qqfile']['size'];
+	}
+}
 
 class Upload extends Control {
-	private $_uploadEngine = 'uploadify/jquery.uploadify.v2.1.0.js';
-	private $_css = 'js/uploadify/uploadify.css';
+	private $_assets = array('cgaf/fileuploader.js','cgaf/uploader.js');
 	private $_scriptdata = array ();
-	function __construct($id, ITemplate $template = null) {
-		parent::__construct ( $id, $template );
+	private $_savePath;
+	private $_allowedExtensions=array('png');
+	private $_sizeLimit = 10485760;
+	private $_destFileName;
+	function __construct($id,$action,$savePath,$destFileName=null) {
+		parent::__construct ( $id );
+		$this->setConfig('action',$action);
+		$this->_savePath=$savePath;
+		$this->_destFileName=$destFileName;
 	}
 	function setCSS($css) {
 		$this->_css = $css;
@@ -21,37 +87,94 @@ class Upload extends Control {
 	function addScriptData($key, $val) {
 		$this->_scriptdata [$key] = $val;
 	}
-	function prepareRender() {
-		$this->getTemplate ()->addAsset ( 'swfobject.js' );
-		$this->_scriptdata = array_merge ( $this->_scriptdata, array (
-				'PHPSESSID' =>Session::getId () 
-		) );
-		$this->addEvent ( 'onComplete', '$.uploadComplete', false );
-		$this->addEvent ( 'onError', '$.uploadError', false );
-		$this->setConfig ( array (
-				'uploader' => BASE_URL . '/Data/js/uploadify/uploadify.swf?PHPSESSID=' . session_id (), 
-				'script' => 'scripts/uploadify.php', 
-				'cancelImg' => $this->getTemplate ()->getAppOwner ()->getLiveData ( 'cancel.png' ), 
-				'scriptData' => $this->_scriptdata, 
-				'folder' => 'uploads', 
-				'queueID' => $this->getId () . 'fileQueue', 
-				'auto' => true, 
-				'multi' => true 
-		), null, false );
+
+
+	private function handleUpload($replaceOldFile = FALSE){
+		$uploadDirectory =$this->_savePath;
+		if (isset($_GET['qqfile'])) {
+			$file = new qqUploadedFileXhr();
+		} elseif (isset($_FILES['qqfile'])) {
+			$file = new qqUploadedFileForm();
+		} else {
+			$file = false;
+		}
+
+		if (!is_writable($uploadDirectory)){
+			return array('error' => "Server error. Upload directory isn't writable.");
+		}
+
+		if (!$file){
+			return array('error' => 'No files were uploaded.');
+		}
+
+		$size = $file->getSize();
+
+		if ($size == 0) {
+			return array('error' => 'File is empty');
+		}
+
+		if ($size > $this->_sizeLimit) {
+			return array('error' => 'File is too large');
+		}
+
+		$pathinfo = pathinfo($file->getName());
+		$filename = $pathinfo['filename'];
+		//$filename = md5(uniqid());
+		$ext = $pathinfo['extension'];
+
+		if($this->_allowedExtensions && !in_array(strtolower($ext), $this->_allowedExtensions)){
+			$these = implode(', ', $this->_allowedExtensions);
+			return array('error' => 'File has an invalid extension, it should be one of '. $these . '.');
+		}
+
+		if(!$this->_destFileName){
+			/// don't overwrite previous files that were uploaded
+			while (file_exists($uploadDirectory . $filename . '.' . $ext)) {
+				$filename .= rand(10, 99);
+			}
+		}
+
+		if ($file->save($uploadDirectory . $this->_destFileName . '.' . $ext)){
+			return array('success'=>true);
+		} else {
+			return array('error'=> 'Could not save uploaded file.' .
+					'The upload was cancelled, or server error encountered');
+		}
+
+	}
+
+	private function save() {
+		$input = fopen("php://input", "r");
+		$temp = tmpfile();
+		$realSize = stream_copy_to_stream($input, $temp);
+		fclose($input);
+
+		if ($realSize != $this->getSize()){
+			return false;
+		}
+
+		$target = fopen($this->_savePath, "w");
+		fseek($temp, 0, SEEK_SET);
+		stream_copy_to_stream($temp, $target);
+		fclose($target);
+	}
+	function renderJSON($return =true) {
+		return $this->handleUpload();
 	}
 	function getContainerId() {
 		return $this->getId () . 'container';
 	}
 	function RenderScript($return = false) {
-		$this->getTemplate ()->addAsset ( $this->_uploadEngine );
-		$this->getTemplate ()->addAsset ( 'uploadify/uploadHandler.js' );
-		if ($this->_css) {
-			$this->getTemplate ()->addCSSFile ( $this->_css );
-		}
-		$id = $this->getId ();
-		$script = "\n$(\"#$id\").uploadify(" . JSON::encodeConfig ( $this->_configs ) . ")";
-		$this->getTemplate ()->addClientScript ( $script );
-		$retval = '<div id="' . $this->getContainerId () . '">' . ' <div id="' . $this->getConfig ( 'queueID' ) . '">&nbsp;</div>' . '<input type="file" name="' . $id . '" id="' . $id . '" />' . '<p><a href="javascript:$(\'#' . $id . '\').uploadifyClearQueue()">Cancel All Uploads</a></p>' . '<div class="preview" style="display:none">&nbsp;</div></div>';
+		$configs = $this->_configs;
+		$configs->setConfig('element',new JSFunc('document.getElementById(\''. $this->getContainerId ().'\')'));
+		$configs->setConfig('allowedExtensions',$this->_allowedExtensions);
+		$configs = JSON::encodeConfig($this->_configs);
+		$js = <<< EOT
+var uploader = new qq.FileUploader($configs);
+EOT;
+		$this->getAppOwner()->addClientScript($js);
+
+		$retval = '<div id="' . $this->getContainerId () . '"></div>';
 		return $retval;
 	}
 }

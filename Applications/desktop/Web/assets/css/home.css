@@ -1,19 +1,33 @@
 #app-info-container {
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 5px;
-    position: relative;
-    float: left;
-    margin-left: 10px;
-    width: 83%;
-
+	border: 1px solid rgba(0, 0, 0, 0.05);
+	padding: 5px;
+	position: relative;
+	float: left;
+	margin-left: 10px;
+	width: 83%;
 }
 
 #app-info-container .content {
-    height: 250px;
-    overflow: auto;
+	height: 250px;
+	overflow: auto;
 }
 
 #app-info-container .action {
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    clear: both;
+	border-top: 1px solid rgba(0, 0, 0, 0.05);
+	clear: both;
+}
+
+#wrapper-inner {
+	position: relative;
+}
+
+#winMask {
+	background-color: rgba(0, 0, 0, 0.5);
+	height: 100%;
+	width: 100%;
+	left: 0px;
+	position: fixed;
+	top: 0px;
+	z-index: 996;
+	visibility: hidden;
 }

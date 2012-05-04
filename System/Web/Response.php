@@ -56,7 +56,6 @@ class Response extends AbstractResponse {
 		if (\Request::isJSONRequest()) {
 			$r = new JSONResult(true, '', $url);
 			$this->write($r->render(true));
-			return;
 		} elseif (\Request::isAJAXRequest()) {
 			echo '<noscript><div class="redirect"><a href="' . $url . '">click here to continue</a></div></noscript>';
 			echo JSUtils::renderJSTag('document.location="' . $url . '";', false);

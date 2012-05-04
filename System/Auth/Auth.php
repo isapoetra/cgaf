@@ -3,8 +3,8 @@ namespace System\Auth;
 use System\Exceptions\SystemException;
 use System\API\PublicApi;
 use System\Web\Utils\HTMLUtils;
-use URLHelper;
-use AppManager;
+use \URLHelper;
+use \AppManager;
 class Auth {
 	const FACEBOOK = 'facebook';
 	const ERROR_STATE = 'state_error';

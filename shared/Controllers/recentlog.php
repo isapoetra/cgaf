@@ -1,5 +1,7 @@
 <?php
 namespace System\Controllers;
+use System\ACL\ACLHelper;
+
 use System\MVC\Controller;
 class RecentLogController extends Controller {
 	function __construct($appOwner) {
@@ -39,6 +41,6 @@ class RecentLogController extends Controller {
 			;
 			break;
 		}
-		return parent::isAllow($access);
+		return ACLHelper::isInrole(ACLHelper::DEV_GROUP);
 	}
 }

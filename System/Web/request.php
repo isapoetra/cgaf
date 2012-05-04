@@ -61,7 +61,7 @@ class Request implements \IRequest {
 	}
 
 	public function getOrigin() {
-		return \URLHelper::add(APP_URL, (isset($_REQUEST['__url']) ? $_REQUEST['__url'] : ''));
+		return \URLHelper::add(defined('APP_URL') ? APP_URL : BASE_URL, (isset($_REQUEST['__url']) ? $_REQUEST['__url'] : $_REQUEST));
 	}
 
 	public function __get($varname) {

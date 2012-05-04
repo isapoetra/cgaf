@@ -29,7 +29,7 @@ a.click(function(e){
 
 	c.addClass('loading').load(cgaf.getConfig('baseurl') + '/about/app/?appid='+ app,function(){
 		$(this).removeClass('loading');
-	});	
+	});
 	ac.find('.action button').show();
 });
 ac.find('.action button').hide().click(function(e){

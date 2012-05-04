@@ -37,19 +37,25 @@ class CDate extends \DateTime {
 			if (is_string($date)) {
 				if (is_numeric($date)) { // treat as timestamp
 					$date = new \DateTime (date('Y-m-d H:i:s', $date), $timeZone);
-						
+
 				} else {
 					$date = new \DateTime ($date, $timeZone);
 					// ppd ( $date );
 				}
+			}elseif (is_numeric($date)) {
+				parent::__construct(null,$timeZone);
+				$this->setTimestamp($date);
+				return;
 			}
-			// php5 support
 			if (is_object($date)) {
 				if ($date instanceof \DateTime) {
 					$format = DATE_ISO8601;
 					$date = $date->format('Y-m-d H:i:s');
 				}
 			}
+		}
+		if (is_object($date)) {
+			ppd($date);
 		}
 		parent::__construct($date, $timeZone);
 	}
@@ -395,6 +401,9 @@ class CDate extends \DateTime {
 		else
 			$adjustment = 0;
 		return ($time + $adjustment);
+	}
+	function getYear() {
+		ppd($this);
 	}
 }
 

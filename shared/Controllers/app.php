@@ -27,7 +27,19 @@ class AppController extends Controller {
 		}
 		return parent::isAllow($access);
 	}
-
+	function dumpdb() {
+		$msg = '';
+		try {
+			$instance = \AppManager::getInstance(\Request::get('id'));
+			$msg= $instance->dumpDB();
+			if ($msg) {
+				$msg= 'Data Dumped to directory '.$msg;
+			}
+		}catch (Exception $e) {
+			$msg=$e->getMessage();
+		}
+		return parent::renderView('manage',array('msg'=>$msg));
+	}
 	function thumb() {
 		$id = \Request::get('id');
 		$img = null;
@@ -39,8 +51,13 @@ class AppController extends Controller {
 			} else {
 				throw new SystemException('Cannot load Application ' . $id);
 			}
+			if (!$app) {
+				throw new SystemException('Cannot load Application ' . $id);
+			}
 		} catch (\Exception $e) {
-
+			if (CGAF_DEBUG) {
+				throw $e;
+			}
 		}
 		$size = \Request::get('size');
 		if (!$img) {
@@ -64,9 +81,9 @@ class AppController extends Controller {
 		$m->Where('app_id=' . $m->quote('appid'));
 		$rows = $m->loadObjects();
 		return parent::renderView(
-			'changelog', array(
-			                  'rows' => $rows,
-			                  'appOwner' => \AppManager::getInstance(\Request::get('appid')))
+				'changelog', array(
+						'rows' => $rows,
+						'appOwner' => \AppManager::getInstance(\Request::get('appid')))
 		);
 	}
 
@@ -128,7 +145,7 @@ class AppController extends Controller {
 				$mode = \Request::get('__mode');
 				$dirs = \Request::get('dir');
 				foreach($dirs as $dir) {
-					   \AppManager::install($dir);
+					\AppManager::install($dir);
 				}
 			}
 			return parent::renderView(__FUNCTION__);

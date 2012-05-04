@@ -1,5 +1,6 @@
 <?php
 namespace System\API;
+use System\Events\Event;
 use System\Collections\Collection;
 use System\Exceptions\SystemException;
 use System\Configurations\Configuration;
@@ -76,7 +77,13 @@ class SMSTools extends \BaseObject {
 	}
 	private function preInit() {
 	}
+	private function log($msg) {
+		$this->dispatchEvent(new Event($this, 'onlog', array(
+						$msg
+				)));
+	}
 	function inbox() {
+		$this->log('Cheking sms inbox');
 		$retval = new SMSCollection();
 		$ipath = \Utils::ToDirectory($this->_config->getConfig('System.incoming') . DS);
 		$files = \Utils::getDirFiles($ipath, $ipath, false);
@@ -102,9 +109,13 @@ class SMSTools extends \BaseObject {
 		$f = $dir . $data->StorageFile;
 		if (is_file($f)) {
 			if (@unlink($f)) {
+				$this->log('Delete success');
 				return true;
 			}
+			$this->log('Deleting file ' . $this->StorageFile . ' Failed');
 			return false;
+		}else{
+			$this->log('Deleting non existing file');
 		}
 	}
 	function sendSMS($id, $to, $text, $setting = null) {

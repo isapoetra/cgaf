@@ -126,9 +126,10 @@ class Menus extends Model {
 				case 0 :
 					return $o;
 				case 3:
-					$ctl = $this->getAppOwner ()->getController ( trim ( $action [0] ) );
+					$ctl = $this->getAppOwner ()->getController ( trim ( $action [0] ) ,false);
 
 					if ($ctl && $ctl->isAllow ( $access )) {
+						$ctl->initAction($action[1],$o);
 						return $ctl->{$action[1]}($o);
 					}
 					break;
@@ -137,8 +138,8 @@ class Menus extends Model {
 				case 1 :
 				default :
 					$type = "controller";
-						
-						
+
+
 					try {
 						$ctl = $this->getAppOwner ()->getController ( trim ( $action [0] ) );
 						if ($ctl && $ctl->isAllow ( $access )) {

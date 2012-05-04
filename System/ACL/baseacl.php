@@ -56,11 +56,11 @@ abstract class BaseACL extends \BaseObject implements IACL {
 					$this,
 					"onAuth"
 			) );
-			$appOwner->addEventListener ( LoginEvent::LOGOUT, array (
-					$this,
-					"onAuth"
-			) );
-			$this->setAppOwner ( $appOwner );
+		$appOwner->addEventListener ( LoginEvent::LOGOUT, array (
+				$this,
+				"onAuth"
+		) );
+		$this->setAppOwner ( $appOwner );
 		}
 		Session::getInstance ()->addEventListener ( SessionEvent::DESTROY, array (
 				$this,
@@ -155,9 +155,9 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		}
 		/*
 		 * if (isset($privs ['manage'] ['system'])) { $privs [$group] [$id] =
-		 * $privs ['manage'] ['system'] ? $privs ['manage'] ['system'] : $privs
-		 * [$group] [$id] ; }
-		 */
+		* $privs ['manage'] ['system'] ? $privs ['manage'] ['system'] : $privs
+		* [$group] [$id] ; }
+		*/
 		if (!isset ($privs [$group] [$id])) {
 			return false;
 		}
@@ -184,7 +184,7 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		}
 		$this->_cacheUserPrivs [$userid][$appId] = $value;
 		$cm = $this->getCacheManager();
-		$id = "acl-$userid";
+		$id = "acl-$userid-".$this->_appId;
 		return $cm->put($id, serialize($value), $this->_cachePath);
 	}
 
@@ -207,7 +207,7 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		}
 
 		$cm = $this->getCacheManager();
-		$id = "acl-$userid";
+		$id = "acl-$userid-".$this->_appId;
 		$this->_cacheUserPrivs [$userid][$appId] = unserialize($cm->getContent($id, 'acl'));
 		return $this->_cacheUserPrivs [$userid][$appId];
 	}
@@ -306,12 +306,14 @@ abstract class BaseACL extends \BaseObject implements IACL {
 			}
 		}
 		$cache = $this->getCache($userid, $this->_appId);
+		//if ($this->_appId !== CGAF::APP_ID) ppd($cache);
 		if ($cache) {
 			$cache = is_string($cache) ? unserialize($cache) : $cache;
 			if (isset ($cache [$group])) {
 				return $this->isAllowPrivs($cache, $id, $group, $access);
 			}
 		}
+
 		return null;
 	}
 
@@ -374,28 +376,28 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		}
 		$access = ACLHelper::stringToAccess($access);
 		$o = $this->_q->clear()->addTable("user_privs")
-			->where("user_id=" . $userid)
-			->where("app_id=" . $this->_q->quote($this->_appId))
-			->where("object_id=" . $this->_q->quote($id))
-			->where("object_type=" . $this->_q->quote($group))
-			->loadObject();
+		->where("user_id=" . $userid)
+		->where("app_id=" . $this->_q->quote($this->_appId))
+		->where("object_id=" . $this->_q->quote($id))
+		->where("object_type=" . $this->_q->quote($group))
+		->loadObject();
 		if ($o) {
 			$o->privs = $o->privs | $access;
 			$this->_q->clear()->addTable("user_privs")
-				->Update("privs", $o->privs, "=", true)
-				->where("user_id=" . ( int )$userid)
-				->where("app_id=" . $this->_q->quote($this->_appId))
-				->where("object_id=" . $this->_q->quote($id))
-				->where("object_type=" . $this->_q->quote($group))
-				->exec();
+			->Update("privs", $o->privs, "=", true)
+			->where("user_id=" . ( int )$userid)
+			->where("app_id=" . $this->_q->quote($this->_appId))
+			->where("object_id=" . $this->_q->quote($id))
+			->where("object_type=" . $this->_q->quote($group))
+			->exec();
 		} else {
 			$this->_q->clear()->addTable("user_privs")
-				->addInsert("user_id", ( int )$userid)
-				->addInsert("app_id", $this->_q->quote($this->_appId))
-				->addInsert("object_id", $this->_q->quote($id))
-				->addInsert("object_type", $this->_q->quote($group))
-				->addInsert("privs", $access)
-				->exec();
+			->addInsert("user_id", ( int )$userid)
+			->addInsert("app_id", $this->_q->quote($this->_appId))
+			->addInsert("object_id", $this->_q->quote($id))
+			->addInsert("object_type", $this->_q->quote($group))
+			->addInsert("privs", $access)
+			->exec();
 		}
 		return true;
 	}
@@ -433,30 +435,6 @@ abstract class BaseACL extends \BaseObject implements IACL {
 			$this->clearUserCache($u->user_id);
 		}
 	}
-	/*
-	 * function &getDeniedItems ($module, $uid = null) { $items = array(); if (!
-	 * is_numeric($module)) { $m = ModuleManager::getModuleInfo($module, false);
-	 * if ($m) { $module = $m->mod_id; } } if (! $uid) { $uid =
-	 * $this->getUserId(); } $acls = $this->getItemACLs($module, $uid); // If we
-	 * get here we should have an array. if (is_array($acls)) { // Grab the item
-	 * values foreach ($acls as $acl) { $acl_entry = $this->get_acl($acl); if
-	 * ($acl_entry['allow'] == false && $acl_entry['enabled'] == true &&
-	 * isset($acl_entry['axo'][$module])) foreach ($acl_entry['axo'][$module] as
-	 * $id) { $items[] = $id; } } } else { CGAF::trace(__FILE__, __LINE__, 2,
-	 * "getDeniedItems($module, $uid) - no ACL's match", "acl"); }
-	 * CGAF::trace(__FILE__, __LINE__, E_NOTICE, "getDeniedItems($module, $uid)
-	 * returning " . count($items) . " items", "acl"); return $items; } // This
-	 * is probably redundant. function &getAllowedItems ($module, $uid = null) {
-	 * $items = array(); if (! $uid) $uid = ACL::getUserID(); $acls =
-	 * $this->getItemACLs($module, $uid); if (is_array($acls)) { foreach ($acls
-	 * as $acl) { $acl_entry = $this->get_acl($acl); if ($acl_entry['allow'] ==
-	 * true && $acl_entry['enabled'] == true &&
-	 * isset($acl_entry['axo'][$module])) { foreach ($acl_entry['axo'][$module]
-	 * as $id) { $items[] = $id; } } } } else { CGAF::trace(__FILE__, __LINE__,
-	 * E_WARNING, "getAllowedItems($module, $uid) - no ACL's match", "acl"); }
-	 * CGAF::trace(__FILE__, __LINE__, E_WARNING, "getAllowedItems($module,
-	 * $uid) returning " . count($items) . " items", "acl"); return $items; }
-	 */
 }
 
 ?>

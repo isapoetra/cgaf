@@ -1,0 +1,16 @@
+<project name="cgaf-applications" default="dist">
+	<property file="${cgaf.master}/cgaf.properties" />
+	<import file="${cgaf.master}/cgaf-macro.xml" />
+
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: dist                      
+        - - - - - - - - - - - - - - - - - -->
+	<target name="dist">
+		<cgaf-rsync-app app="lokalindo" />
+		<cgaf-rsync-app app="opensched" />
+		<cgaf-rsync-app app="mybook" />
+		<cgaf-rsync-app app="rose" />
+		<cgaf-rsync-app app="calpro" dir="/home/cgaf/projects/"/>
+	</target>
+</project>

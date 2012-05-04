@@ -40,6 +40,8 @@ class MenuItem extends WebControl {
 				$this->_actionType = isset ( $id->menu_action_type ) ? ( int ) $id->menu_action_type : $this->_actionType;
 				$this->Tooltip = isset ( $id->tooltip ) ? $id->tooltip : $this->_title;
 				isset ( $id->menu_class ) ? $this->setAttr ( 'style', $id->menu_class ) : null;
+				isset ( $id->attrs) ? $this->setAttr($id->attrs):null;
+				//isset ( $id->attrs) ? ppd($this) : '';
 			}
 		}else {
 			$this->Id = $id;
@@ -96,6 +98,7 @@ class MenuItem extends WebControl {
 		$this->replace ( $link );
 		switch ($this->_actionType) {
 			case "2" :
+				$link=\URLHelper::add (APP_URL,$link);
 				break;
 				// action based on mvc action
 			case "1" :
@@ -148,6 +151,12 @@ class MenuItem extends WebControl {
 			$this->_link->AddClass ( 'dropdown-toggle' );
 			$this->_link->setattr ( 'data-toggle', 'dropdown' );
 			$this->_link->addChild ( '<b class="caret"></b>' );
+		}else{
+			if (!\Request::isMobile()) {
+				$this->_link->setattr2 (array(
+						'rel'=>'external',
+						'data-transition'=>'pop'));
+			}
 		}
 		$title = __ ( $this->_link->Text );
 		$this->replace ( $title );
@@ -174,33 +183,5 @@ class MenuItem extends WebControl {
 			$this->_link->setAttr ( 'rel', 'external' );
 		}
 	}
-	/*
-	 * function Render($return = false) { if ($this->_title === '-') { return
-	* '<li class="divider"></li>'; } $hashChild = count ( $this->_childs ) > 0;
-	* $class = 'menu-item-' . $this->_id . ' menu-item' . ($this->_selected ? "
-			* active" : ""); $action = ""; $class = $class || $this->_css ?
-	* "{$this->_css} $class" : ''; $attrs = HTMLUtils::mergeAttr (
-			* $this->_attrs, array ( 'class' => $this->_css . ' ' . $class .
-					* ($hashChild ? ' dropdown' : '') ) ); $retval = ''; $retval = "<li $action
-	* id=\"{$this->_id}\" " . HTMLUtils::renderAttr ( $attrs ) . '>'; $icon =
-	* null; if ($this->_showIcon && $this->_icon) { $icon =
-	* AppManager::getInstance ()->getLiveAsset ( $this->_icon, 'images' ); if
-	* ($icon) { $icon = "<img src=\"" . $icon . "\"/>"; } elseif ($this->_icon
-			* && \CGAF::isDebugMode ()) { $icon = '<div class="warning"
-	* style="display:none">icon ' . $this->_icon . 'not found</div>'; } }
-	* $title = __ ( $this->_title ); $this->replace ( $title ); $this->replace
-	* ( $this->_tooltip ); $title = \Utils::parseTitle ( $title ); $caption =
-	* $icon . '<span class="tdl ' . ($this->_selected ? "selected " : "") .
-	* '">' . ($this->_showCaption ? '<span>' . $title [0] . '</span>' : "") .
-	* '</span>'; $act = $this->parseLink ( $this->_action ); $r = new Anchor (
-			* $act, $caption, $this->_targetLink, __ ( $this->_tooltip ) ); if
-	* (\Request::isMobile ()) { // full refresh $attrs ['rel'] = 'external'; }
-	* $r->setAttr ( $attrs ); $r->setClass ( $this->_css . ' ' . (count (
-			* $this->_childs ) ? ' menuparent' : '') ); $retval .= $r->Render ( true );
-	* if (count ( $this->childs )) { // $retval .= '<span
-	* class="arrow"></span>'; } $retval .= $this->renderChilds (); $retval .=
-	* "</li>"; if (! $return) { \Response::write ( $retval ); } return $retval;
-	* }
-	*/
 }
 ?>

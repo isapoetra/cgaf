@@ -245,6 +245,7 @@ abstract class DBConnection implements IDBConnection {
   public function getFieldConfig($fieldType = null) {
     return array();
   }
+
 }
 
 ?>

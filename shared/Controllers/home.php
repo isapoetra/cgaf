@@ -18,7 +18,7 @@ class Home extends Controller {
 		}
 		return parent::isAllow ( $view );
 	}
-	function getAction($o, $id = null, $route = null) {
+	function getAction($o, $id = null, $route = null,$params=null) {
 		return null;
 	}
 }

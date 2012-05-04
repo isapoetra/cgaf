@@ -88,7 +88,7 @@ final class Streamer {
 
 		exit();
 	}
-	public static function Stream($file, $mime = null, $downloadmode = false) {
+	public static function Stream($file, $mime = null, $downloadmode = false,$allowCache=true) {
 		if (!is_file($file) ) {
 			CGAF::doExit();
 		}
@@ -101,30 +101,38 @@ final class Streamer {
 		$content = null;
 		$streammode = false;
 		switch ($ext) {
-		case 'css':
-
-			if (!$downloadmode) {
-				if (strpos($file, '.min.css') === false) {
-					$content = WebUtils::parseCSS($file, true, FALSE);
+			case 'jpg':
+			case 'png':
+				if ($allowCache) {
+					$valid=30;
+					header('Cache-Control: public, max-age=' . ($valid * 30 * 24 * 60 * 60));
+					header('Last-Modified:' . gmdate("D, d M Y H:i:s", $finfo->mtime) . ' GMT');
+					header('Expires:' . gmdate("D, d M Y H:i:s", \DateUtils::dateAdd(time(), $valid . ' day')) . ' GMT');
 				}
-			}
-			break;
-		case 'png':
-			break;
-		case 'webm':
-		case 'mp4':
-		case 'mpg':
-			$mime = "video/" . $ext;
-			$streammode = true;
-			break;
-		case 'flv':
-			$streamer = new FLV($file);
-			$streamer->stream();
-			CGAF::doExit();
-			return;
-			break;
-		default:
-			break;
+				break;
+			case 'css':
+				if (!$downloadmode) {
+					if (strpos($file, '.min.css') === false) {
+						$content = WebUtils::parseCSS($file, true, FALSE);
+					}
+				}
+				break;
+			case 'png':
+				break;
+			case 'webm':
+			case 'mp4':
+			case 'mpg':
+				$mime = "video/" . $ext;
+				$streammode = true;
+				break;
+			case 'flv':
+				$streamer = new FLV($file);
+				$streamer->stream();
+				CGAF::doExit();
+				return;
+				break;
+			default:
+				break;
 		}
 		$fsize = filesize($file);
 		//\Response::destroy();

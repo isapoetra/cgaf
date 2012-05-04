@@ -1,4 +1,6 @@
 <?php
+use System\Exceptions\AccessDeniedException;
+
 use System\Session\Session, System\ACL\ACLHelper;
 use System\Exceptions\SystemException;
 use System\DB\DBQuery;
@@ -68,8 +70,8 @@ abstract class AppManager extends \StaticObject {
 			if (self::$_activeApp) {
 				$appId = self::$_activeApp;
 			} else {
-				$appId = Session::get("__appId", self::getDefaultAppId());
-				if ($appId !== null && $appId !== "") {
+				$appId = Session::get('__appId', self::getDefaultAppId());
+				if ($appId !== null && $appId !=='') {
 					$appInfo = self::getAppInfo($appId, false);
 
 					if (!CGAF::isAllow($appId, ACLHelper::APP_GROUP)) {
@@ -94,6 +96,9 @@ abstract class AppManager extends \StaticObject {
 				return null;
 			}
 		}
+		if (!CGAF::isAllow($appInfo->app_id, ACLHelper::APP_GROUP)) {
+			throw  new AccessDeniedException();
+		}
 		// $appName = $appInfo->app_class_name ? $appInfo->app_class_name :
 		// $appInfo->app_name;
 		$appShortName = $appInfo->app_path ? $appInfo->app_path : $appInfo->app_name;
@@ -101,18 +106,18 @@ abstract class AppManager extends \StaticObject {
 		$cName = self::getAppClass($appInfo->app_class_name, false, $appPath);
 		if (!$cName) {
 			if ($appInfo->app_id === CGAF::APP_ID) {
-				$appPath = CGAF_APP_PATH . DS . 'desktop' . DS . CGAF_CONTEXT . DS . "index" . CGAF_CLASS_EXT;
+				$sappPath = CGAF_APP_PATH . DS . 'desktop' . DS . CGAF_CONTEXT . DS . "index" . CGAF_CLASS_EXT;
 				$cName = "System\\Applications\\Desktop\\WebApp";
 
-				if (!class_exists($cName, false) && is_file($appPath)) {
-					require $appPath;
+				if (!class_exists($cName, false) && is_file($sappPath)) {
+					require $sappPath;
 				}
 				if (!class_exists($cName, false)) {
 					throw new SystemException('CGAF Desktop not found');
 				}
 
 			} else {
-				die($appPath);
+				throw new SystemException('unable to get Application Class '.$appInfo->app_class_name.(CGAF_DEBUG ?' @'.$appPath:''));
 			}
 		}
 
@@ -124,6 +129,7 @@ abstract class AppManager extends \StaticObject {
 		$instance = new $cName();
 		$instance->setAppInfo($appInfo);
 		if ($instance->Initialize()) {
+
 			self::$_instances [$appId] = $instance;
 			if (!self::$_activeApp) {
 				self::$_activeApp = $appId;
@@ -170,8 +176,8 @@ abstract class AppManager extends \StaticObject {
 		}
 		if (\CGAF::isInstalled()) {
 			$model = self::getModel()
-				->clear();
-			if ($direct) {
+			->clear();
+			if ($direct || !self::isAppStarted()) {
 				$model->setFilterACL(FALSE);
 			}
 			$model->Where('app_id=' . $model->quote($id));
@@ -203,48 +209,30 @@ abstract class AppManager extends \StaticObject {
 		return self::$_activeApp;
 	}
 
-	/*public static function unpublish() {
-$cn = new DBQuery(\CGAF::getDBConnection());
-$cn
-	->clear()
-	->exec(
-	'delete from #__role_privs where role_id=0 and app_id=' . $cn->quote(\CGAF::APP_ID) . ' and object_id='
-		. $cn->quote('id') . ' and object_type=' . $cn->quote('app')
-);
-}  */
-
 	public static function publish($id, $publish = true) {
 		$cn = new DBQuery(\CGAF::getDBConnection());
 		$cn->addTable('role_privs');
 		$cn
-			->where('role_id=' . $cn->quote(ACLHelper::GUEST_ROLE_ID))
-			->where('app_id=' . $cn->quote(\CGAF::APP_ID))
-			->where('object_id=' . $cn->quote($id))
-			->Where('object_type=' . $cn->quote(ACLHelper::APP_GROUP))
-			->Where('privs>0');
+		->where('role_id=' . $cn->quote(ACLHelper::GUEST_ROLE_ID))
+		->where('app_id=' . $cn->quote(\CGAF::APP_ID))
+		->where('object_id=' . $cn->quote($id))
+		->Where('object_type=' . $cn->quote(ACLHelper::APP_GROUP))
+		->Where('privs>0');
 		$o = $cn->loadObject();
 		if ($publish && !$o) {
-			/*ppd($cn->lastSQL());
-			$cn
-				->clear()
-				->exec(
-				'insert into #__role_privs value(0,' . $cn->quote(\CGAF::APP_ID) . ',' . $cn->quote($id) . ',' . $cn->quote(
-					'app'
-				) . ',1)'
-			);   */
 			\CGAF::getACL()->grantToRole($id, ACLHelper::APP_GROUP, ACLHelper::GUEST_ROLE_ID, \CGAF::APP_ID, 'view');
 			return true;
-		} elseif (!$publish && $o && $o->privs > 0) {
+		} elseif (!$publish && $o) {
 			\CGAF::getACL()->revokeFromRole($id, ACLHelper::APP_GROUP, \CGAF::APP_ID, ACLHelper::GUEST_ROLE_ID);
 			\CGAF::getACL()
-				->clearCache();
+			->clearCache();
 		}
 		return false;
 	}
 
 	public static function getCurrentAppInfo() {
 		return self::getAppInfo(
-			self::getInstance()
+				self::getInstance()
 				->getAppName(), true
 		);
 	}
@@ -256,24 +244,26 @@ $cn
 	public static function Shutdown() {
 		if (self::$_activeApp != null) {
 			self::getInstance()
-				->Shutdown();
+			->Shutdown();
 		}
 	}
 
 	public static function getContent($position = null) {
 		return self::getInstance()
-			->getContent($position);
+		->getContent($position);
 	}
 
 	public static function isAppInstalled($appPath, $bypath = true) {
 		// $q = CGAF::getConnector("applications");
 		$m = self::getModel();
+		$m->setFilterACL(self::isAppStarted());
 		if ($bypath) {
 			$rappPath  = $appPath;
 			if (!is_dir($appPath)) {
 				$appPath = CGAF_APP_PATH . DS . $appPath;
 			}
 			$appPath = \Utils::ToDirectory($appPath.DS);
+
 			$m->Where("app_path=" . $m->quote($appPath).' or app_path='.$m->quote($rappPath));
 		} else {
 			if ($appPath === CGAF::APP_ID) {
@@ -297,6 +287,16 @@ $cn
 
 	private static function getAppClass($appName, $throw = true, $appPath = null) {
 		$cName = $appPath ? $appName : CGAF_CLASS_PREFIX . "{$appName}App";
+		$classSearch = array($cName,
+				'\\System\\Applications\\' . $appName,
+				'\\System\\Applications\\' . $appName . 'App');
+		foreach($classSearch as $c) {
+				if (class_exists($c,false)) {
+					return $c;
+				}
+		}
+
+
 		if (!class_exists($cName, false)) {
 			$basePath = Utils::toDirectory($appPath ? $appPath : CGAF_APP_PATH . DS . $appName . DS);
 			$clsfile = $basePath . $appName . '.class' . CGAF_CLASS_EXT;
@@ -370,7 +370,7 @@ $cn
 			$q = new DBQuery (CGAF::getDBConnection());
 			$qid = $q->quote($id);
 			$q->exec(
-				'delete from #__sysvals where sysval_key_id in (select syskey_id from #__syskeys where app_id=' . $qid . ')'
+					'delete from #__sysvals where sysval_key_id in (select syskey_id from #__syskeys where app_id=' . $qid . ')'
 			);
 			$q->exec('delete from #__syskeys where app_id=' . $qid);
 			// content related
@@ -410,7 +410,7 @@ $cn
 	public static function install($appName) {
 		$instance = null;
 		\CGAF::getACL()
-			->clearCache();
+		->clearCache();
 		if ($appName instanceof IApplication) {
 			$instance = $appName;
 			$appName = $appName->getAppName();
@@ -447,7 +447,7 @@ $cn
 			 * @var $app \System\MVC\Model
 			 */
 			$app = self::getModel()
-				->clear();
+			->clear();
 			$app->app_id = $id;
 			$app->app_class_name = $class;
 			$app->app_short_name = $appName;
@@ -499,10 +499,12 @@ $cn
 					$r [] = $v;
 				}
 			}
+
 			return $r;
 		} elseif (is_object($o)) {
 			if (self::isAllowApp($o->app_id, $access)) {
 				$path = self::getAppPath($o);
+
 				if (!is_dir($path)) {
 					return null;
 				}
@@ -512,15 +514,15 @@ $cn
 			if ($o === \CGAF::APP_ID || ( int )$o === -1) {
 				return true;
 			}
-			return
-				CGAF::isAllow($o, ACLHelper::APP_GROUP, $access) || CGAF::isAllow('system', 'manage', ACLHelper::ACCESS_MANAGE);
+			return ACLHelper::isInrole(ACLHelper::DEV_GROUP) || CGAF::isAllow($o, ACLHelper::APP_GROUP, $access);
 		}
+
 	}
 
 	public static function getInstalledApp($activeOnly=true) {
 		if (self::$_installedApps == null) {
 			$installed = self::getModel()
-				->clear();
+			->clear();
 			if (CGAF::isInstalled() && $activeOnly) {
 				$installed->where("active=" . $installed->quote('1'));
 			}
@@ -563,10 +565,10 @@ $cn
 			return true;
 		}
 		/*
-* ppd(CGAF::getConfigs('Session.configs'));
-* ini_set('session.use_cookies', '0'); ini_set ( "session.auto_start",
-* false ); ini_set ( "session.use_only_cookies", false );
-*/
+		 * ppd(CGAF::getConfigs('Session.configs'));
+		* ini_set('session.use_cookies', '0'); ini_set ( "session.auto_start",
+				* false ); ini_set ( "session.use_only_cookies", false );
+		*/
 		Session::Start();
 		self::$_initialized = true;
 	}
@@ -589,11 +591,7 @@ $cn
 				$path = Utils::ToDirectory(CGAF_APP_PATH . DS . $obj->app_path . DS);
 			}
 		} else {
-			// if (System::isWebContext ()) {
-			// throw new SystemException ( "cgaf_app_not_installed", $AppName );
-			// } else {
 			return null;
-			// }
 		}
 		$path = Utils::ToDirectory($path);
 		return $path;

@@ -53,6 +53,7 @@ class Image extends \BaseObject implements IDocument {
 			case 'png':
 				if ($exists) {
 					$im = @imagecreatefrompng($file);
+					imagesavealpha($im, true);
 				}elseif($w && $h) {
 					$im = imagecreatetruecolor($w,$h);
 					$transparent = imagecolorallocatealpha($im, 0, 0, 0, 127);
@@ -132,7 +133,7 @@ class Image extends \BaseObject implements IDocument {
 		$ext = Utils::getFileExt($fout, false);
 		switch (strtolower($ext)) {
 			case 'png':
-				imagealphablending($img, FALSE);
+				imagealphablending($img, true);
 				return imagepng($img, $fout, ($q - 100) / 11.111111);
 			case 'gif':
 				return imagegif($img, $fout);
@@ -150,9 +151,9 @@ class Image extends \BaseObject implements IDocument {
 			$w = $s[0];
 			$h = $s[1];
 		} else {
-
-			//TODO Validate
-			return null;
+			$size = getimagesize($this->_file);
+			$w= $size[0];
+			$h=$size[1];
 		}
 		return $this->resizeImage($this->_file, $f, $w, $h);
 	}
@@ -164,6 +165,9 @@ class Image extends \BaseObject implements IDocument {
 		$ws = $ori[0];
 		$hs = $ori[1];
 		if ($w==$ws && $h==$hs) {
+			if ($out) {
+				return $this->_outputImage($source, $out, 100);
+			}
 			return $source;
 		}
 		\Utils::makeDir(dirname($out));
@@ -385,9 +389,10 @@ class Image extends \BaseObject implements IDocument {
 			$image_data = ob_get_contents ();
 			ob_end_clean ();
 			imagedestroy($ou);
-			
+
 		}
 		ppd($ou);*/
+		if (!$this->_file) ppd($this);
 		return 'data:image/'.\Utils::getFileExt($this->_file,false).';base64,'.base64_encode (file_get_contents($this->_file));
 	}
 	function blur(&$image) {
@@ -450,7 +455,9 @@ class Image extends \BaseObject implements IDocument {
 			}
 		}
 	}
-
+	function getSize() {
+		return getimagesize($this->_file);
+	}
 	function saveTo($file) {
 		$this->_outputFile = $file;
 		if (is_file($this->_outputFile)) {

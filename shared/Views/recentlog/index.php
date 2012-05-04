@@ -1,5 +1,5 @@
 <?php
-if (!$rows) {
+if (!isset($rows) || ! $rows) {
 	return;
 }
 echo '<ul class="recent-log">';

@@ -1,5 +1,7 @@
 <?php
 namespace System\MVC;
+use System\Web\UI\Controls\Anchor;
+
 use System\DB\Table;
 use System\ACL\ACLHelper;
 use System\Exceptions\AccessDeniedException;
@@ -50,7 +52,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	/**
 	 * @var Model
 	 */
-	protected $_model;
+	private $_models=array();
 	protected $_initialized = false;
 	protected $_warning = null;
 	protected $_renderInternalAction = true;
@@ -99,24 +101,44 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	 * @param null $route
 	 * @return string
 	 */
-	public function renderActions($o = null, $id = null, $route = null) {
-		$actions = $this->getAction($o, $id, $route);
+	public function renderActions($o = null, $id = null, $route = null,$params=null) {
+		$actions = $this->getAction($o, $id, $route,$params);
 		return $this->render('actions', array(
 				'actions' => $actions
 		), true);
 	}
-
+	protected function _isAllowAction($id,$access) {
+		return true;
+	}
 	/**
 	 * @param      $o string|Table
 	 * @param null $id
 	 * @param null $route
 	 * @return array
 	 */
-	protected function getAction($o, $id = null, $route = null) {
+	protected function getAction($o, $id = null, $route = null,$params=null) {
 		$retval = array();
+		$id = $id !==null ? $id :\Request::get('id');
 		if (!$this->_renderInternalAction)
 			return $retval;
+
+		$params = \Request::getIgnore(array(
+				'CGAFSESS',
+				'__url',
+				'__c',
+				'__a',
+				'id'
+		));
+		$attrs =$this->_actionAttr;
 		$route = $route ? $route : $this->getControllerName();
+		$controller =$this;
+		if ($route !== $this->getControllerName()) {
+			$controller= $this->getController($route,false);
+			if (!$controller) {
+				return $retval;
+			}
+		}
+		$c = $this->getController($route);
 		if (is_array($route)) {
 			$croute = $route;
 		} else {
@@ -127,38 +149,38 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			);
 		}
 		$url = \URLHelper::add(APP_URL, $route);
-		if ($this->isAllow(ACLHelper::ACCESS_MANAGE)) {
+		if ($controller->isAllow(ACLHelper::ACCESS_MANAGE)) {
 			if ($o) {
 				if (!$id) {
 					if ($o instanceof Table) {
 						$id = $o->getPKValue();
 					} elseif (is_object($o)) {
-						$id = $this->getModel()->getPKValue(false, $o);
+						$id = $controller->getModel()->getPKValue(false, $o);
 					} else {
 						$id = Request::get('id');
 					}
 				}
 			} else {
-				if ($croute ['_a'] !== 'aed') {
-					$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'aed'), __('action.add'), $this->_actionAttr);
+				if ($croute ['_a'] !== 'aed' && $this->_isAllowAction($id,'add')) {
+					$retval [] = new Anchor(\URLHelper::Add($url, 'aed',$params),  __('action.add'), HTMLUtils::mergeAttr($this->_actionAttr,array('class'=>'icon-plus')));
 				}
 				if ($this->isAllow('manage')) {
-					$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'manage'), __('action.manage'), $this->_actionAttr);
+					$retval [] = new Anchor(\URLHelper::Add($url, 'manage',$params), __('action.manage'), HTMLUtils::mergeAttr($this->_actionAttr,array('class'=>'icon-list-alt')));
 				}
 			}
 		}
 		if ($id) {
+
 			if ($this->isAllow('detail') && $croute ['_a'] !== 'detail') {
-				$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'detail', 'id=' . $id), __('action.detail'), $this->_actionAttr);
+				$retval [] = new Anchor(\URLHelper::Add($url, 'detail', 'id=' .(is_array($id) ? implode(',',$id):$id)), __('action.detail'), HTMLUtils::mergeAttr($this->_actionAttr,array('class'=>'icon-book')));
 			}
-			if ($this->isAllow('edit')) {
-				$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'aed', 'id=' . $id), __('action.edit'), $this->_actionAttr);
+			if ($this->isAllow('edit') && $this->_isAllowAction($id,'edit')) {
+				$retval [] = new Anchor(\URLHelper::Add($url, 'aed', 'id=' . $id), __('action.edit'), HTMLUtils::mergeAttr($this->_actionAttr,array('class'=>'icon-edit')));
 			}
-			if ($this->isAllow('delete')) {
-				$retval [] = HTMLUtils::renderLink(\URLHelper::Add($url, 'del', 'id=' . $id), __('action.delete'), $this->_actionAttr);
+			if ($this->isAllow('delete') && $this->_isAllowAction($id,'delete')) {
+				$retval [] = new Anchor(\URLHelper::Add($url, 'del', 'id=' . $id), __('action.delete'), HTMLUtils::mergeAttr($this->_actionAttr,array('class'=>'icon-trash')));
 			}
 		}
-		// ppd($retval);
 		return $retval;
 	}
 
@@ -251,12 +273,18 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	protected function getInternalPath($o = null, $create = true) {
 		return $this->getAppOwner()->getInternalStorage('data/'.$this->getControllerName().DS. $o, $create);
 	}
-
+	protected function getLivePath($o=null,$create=true) {
+		$path = $this->getAppOwner()->getLivePath(false).$this->getControllerName().$o.DS;
+		if (!is_dir($path) && $create) {
+			return \Utils::makeDir($path);
+		}
+		return $path;
+	}
 	protected function setModel($model) {
 		if (is_string($model)) {
 			$model = $this->getAppOwner()->getModel($model);
 		}
-		$this->_model = $model;
+		$this->_models[$this->getControllerName()] = $model;
 	}
 
 	protected function getConfig($configName, $def = null) {
@@ -413,6 +441,9 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		if (!$row && $id !== null) {
 			throw new InvalidOperationException ('Editing data with ID ' . $id . ' not allowed by system');
 		}
+		if (!$id) {
+			$m->bind(\Request::gets());
+		}
 		$def = array(
 				'id' => $id,
 				'editForm' => 'add_edit',
@@ -490,8 +521,8 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	function getItemContents($position) {
 		return $this->getAppOwner()->getItemContents($position,  $this->getControllerName());
 	}
-	function renderContent($position, $params = null) {
-		return $this->getAppOwner()->renderContent($position, $this->getControllerName(), false, true, $params);
+	function renderContent($position, $params = null,$tabMode=false) {
+		return $this->getAppOwner()->renderContent($position, $this->getControllerName(), false, true, $params,$tabMode);
 	}
 
 	function isAllowItem($itemid, $access = "view") {
@@ -612,7 +643,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	}
 
 	protected function getManageMenu() {
-		$items = $this->geMenuItems('manage', 0, '/manage', true);
+		$items = $this->getMenuItems('manage', 0, '/manage', true);
 		$acl = $this->getACL();
 		$manage = array();
 		foreach ($items as $v) {
@@ -624,8 +655,8 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		return $manage;
 	}
 
-	public function geMenuItems($position, $parent = 0, $actionPrefix = null, $showIcon = true) {
-		$rows = $this->getAppOwner()->getMenuItems($position, $parent, $actionPrefix, $showIcon);
+	public function getMenuItems($position, $parent = 0, $actionPrefix = null, $showIcon = true) {
+		$rows = $this->getAppOwner()->getMenuItems($position, $parent, $actionPrefix, $showIcon,true,false,$this->getRouteName());
 		$filtered = array();
 		if (count($rows)) {
 			$route = $this->getAppOwner()->getRoute();
@@ -651,7 +682,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 				}
 				$row->childs = array();
 				if ($row->getId() !== $parent) {
-					$row->childs = $this->geMenuItems($position, $row->getId(), $actionPrefix, $showIcon);
+					$row->childs = $this->getMenuItems($position, $row->getId(), $actionPrefix, $showIcon);
 				}
 				$filtered [] = $row;
 			}
@@ -671,7 +702,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 			$filtered = $position;
 			$position = "custom";
 		} else {
-			$filtered = $this->geMenuItems($position, 0, null, $showIcon);
+			$filtered = $this->getMenuItems($position, 0, null, $showIcon);
 		}
 		if ($position == 'menu-bar' && !\Request::isMobile()) {
 			$r = $this->getAppOwner()->getRoute();
@@ -687,7 +718,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 		if (!count($filtered) && $position != "menu-bar") {
 			if (CGAF_DEBUG) {
 				$retval .= "<div class=\"warning\">Menu not found for position $position @" . $this->getControllerName();
-				$retval .= " app : " . $this->getAppOwner()->getAppId() . "</div>";
+				$retval .= " app : " . $this->getAppOwner()->getAppId() .' Controller '.$this->getRouteName() .'</div>';
 			}
 		}
 		$retval .= HTMLUtils::renderMenu($filtered, null, $ulclass . " menu-$position", $replacer, 'menu-' . $position);
@@ -773,9 +804,14 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
 	 */
 	function getModel($modelName = null) {
 		if ($modelName == null) {
-			return $this->_model;
+			$modelName = $this->getControllerName();
 		}
-		return $this->getAppOwner()->getModel($modelName);
+		if (isset($this->_models[$modelName])) {
+			return $this->_models[$modelName];
+		}else{
+			$this->_models[$modelName]= $this->getAppOwner()->getModel($modelName);
+		}
+		return $this->_models[$modelName];
 	}
 
 	function getFile($viewName, $a, $prefix, $forceThrow = true) {

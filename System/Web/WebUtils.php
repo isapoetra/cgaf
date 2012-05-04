@@ -129,12 +129,15 @@ abstract class WebUtils {
 		return 'font-family:' . $m [1] . $m [2];
 	}
 
-	public static function sendMail($to,$m, $template, $subject = "Notification") {
+	/*public static function sendMail($to,$m, $template, $subject = "Notification") {
 
 		$app = AppManager::getInstance();
 
-		$tpl = $app->getInternalData("template/email/$template.html");
-		if ($tpl) {
+		$tpl = $app->getInternalData("template/email/").$template.'.html';
+		if (!is_file($tpl)) {
+			$tpl = \CGAF::getInternalStorage("template/email/",false).$template.'.html';
+		}
+		if (is_file($tpl)) {
 			$o = new \stdClass();
 			if ($m instanceof Table) {
 				$arr = $m->getFields(true, true, false);
@@ -146,11 +149,12 @@ abstract class WebUtils {
 			}
 			$o->title = __($subject);
 			$o->base_url = BASE_URL;
+
 			$msg = Utils::parseDBTemplate(file_get_contents($tpl), $o);
 
-			return \MailUtils::send($to, $subject, $msg, true);
+			return \MailHelper::send($to, $subject, $msg, true);
 		} else {
 			throw new SystemException('mail.template.notfound');
 		}
-	}
+	}*/
 }

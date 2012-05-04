@@ -44,6 +44,11 @@ class AssetController extends System\MVC\Controller {
 	}
 	function get() {
 		$rasset = Request::get('q', null, true);
+		if (!$rasset) {
+			$s = explode('/',$_REQUEST['__url']);
+			array_shift($s);
+			$rasset = implode('/',$s);
+		}
 		$appId = Request::get('appId');
 		$appOwner = null;
 		if ($appId) {

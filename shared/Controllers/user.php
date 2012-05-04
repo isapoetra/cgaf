@@ -26,6 +26,8 @@ class UserController extends Controller {
 	public function isAllow($access = "view") {
 		$isAuth = $this->getAppOwner()->isAuthentificated();
 		switch (strtolower($access)) {
+			case 'edit':
+			case ACLHelper::ACCESS_UPDATE:
 			case 'external':
 				return $isAuth;
 			case 'fbregister' :
@@ -39,8 +41,9 @@ class UserController extends Controller {
 			case "view" :
 			case 'selectopenid' :
 			case 'fbRegister' :
-			case "index" :
+			case 'index' :
 			case 'contacts' :
+			case 'activation':
 				return true;
 				break;
 			case "register" :
@@ -50,6 +53,7 @@ class UserController extends Controller {
 			case "updateprofile" :
 			case "action" :
 			case 'addexternal':
+
 				return $isAuth;
 			case 'manage' :
 			case 'del' :
@@ -205,6 +209,10 @@ class UserController extends Controller {
 				$result ['result'] = false;
 				$result ['message'] ['user_name'] [] = "Username cannot empty";
 			}
+			if (!\Utils::isEmail($o->user_name)) {
+				$result ['result'] = false;
+				$result ['message'] ['user_name'] [] = "user name should be Email address format";
+			}
 			if (!$birth_date) {
 				$result ['result'] = false;
 				$result ['message'] ['birth_date'] [] = "Invalid Birth Date";
@@ -228,7 +236,23 @@ class UserController extends Controller {
 		}
 		return $result;
 	}
+	function activation() {
+		if ($this->getAppOwner()->isValidToken() && \Request::get('key')) {
+			$m = $this->getModel();
+			$m->Where('activation_key='.$m->quote(\Request::get('key')));
+			$u = $m->Where('user_name='.$m->quote(\Request::get('email',null,true,'p')))->loadObject();
+			if ($u ) {
+				$m->clear();
+				$m->bind($u);
+				$m->user_state=1;
+				$m->activation_key='';
+				$m->store();
 
+			}
+			\Response::Redirect(APP_URL,'auth/login/');
+		}
+		return parent::renderView(__FUNCTION__);
+	}
 	private function doRegister() {
 		$type = Request::get('type');
 		$app = $this->getAppOwner();
@@ -244,9 +268,13 @@ class UserController extends Controller {
 				$msg = null;
 				$valid = true;
 				$m = $this->getModel("user");
+				$m->exec('delete from #__users where user_name='.$m->quote($uname));
 				$o = $m->clear()->where("user_name=" . $m->quote($uname))->loadObject();
 				if ($o && $o->user_id != null) {
 					$msg['user_name'][] = "username already registered";
+				}else{
+					$o = new \stdClass();
+					\Convert::toObject(\Request::gets('p'),$o,true);
 				}
 				$birth_date = Request::get("birth_date");
 				$date = \DateUtils::split($birth_date, $dateFormat);
@@ -257,7 +285,13 @@ class UserController extends Controller {
 				}
 
 				if (!$msg) {
+					$m->bind($o);
+					$m->clear();
 					$m->bind(Request::gets());
+					$m->user_status = 0;
+					$m->user_state = 0;
+					$m->user_password = $this->getAppOwner()->getAuthentificator()->encryptPassword($m->user_password);
+					$m->activation_key = $activationKey = $this->generateActivationKey();
 					$person = $this->getModel("person");
 					$person->bind(Request::gets());
 					if ($birth_date) {
@@ -265,24 +299,27 @@ class UserController extends Controller {
 						$person->birth_date = $dt->format(FMT_DATETIME_MYSQL);
 					}
 					$person->email = $m->user_name;
-					$person->first_name = $person->first_name ? $person->first_name : $m->user_name;
-					$id = $person->store()->getLastInsertId();
-					$m->clear();
-					$m->bind(Request::gets());
-					$m->person_id = $id;
-					$m->user_status = 0;
-					$m->user_state = 0;
-					$m->user_password = $this->getAppOwner()->getAuthentificator()->encryptPassword($m->user_password);
-					$m->activation_key = $activationKey = $this->generateActivationKey();
-					$m->store();
-					WebUtils::sendMail($person->email, $m, "registration");
-					return array(
-							"_result" => true,
-							"_redirect" => BASE_URL . "/?_message=check your email"
-					);
-				} else {
+					$person->isprimary=true;
+					if (!$person->check()) {
+						$msg = $person->getLastError();
+					}
+					if ($res=$m->store()) {
+						$person->person_owner=$res->getLastInsertId();
+						$person->first_name = $person->first_name ? $person->first_name : $m->user_name;
+						$person->store();
+						$tplo = get_object_vars($m);
+						$tplo['activation_key'] = hash('crc32', $activationKey);
+						\Utils::arrayMerge($tplo, get_object_vars($person));
+						$tplo['activation_url'] = \URLHelper::add(BASE_URL,'/user/activation/?key='.$tplo['activation_key']);
+						\MailHelper::sendMail( $tplo, "registration",'Registration');
+						return array(
+								"_result" => true,
+								"_redirect" => BASE_URL . "/?_message=check your email"
+						);
+					}
+				}
+				if ($msg) {
 					if (Request::isJSONRequest()) {
-
 						return array(
 								"_result" => false,
 								"message" => $msg
@@ -338,29 +375,35 @@ class UserController extends Controller {
 
 		if ($this->getAppOwner()->isValidToken()) {
 			$capt = Captcha::getInstance(\AppManager::getInstance());
-			
+
 			if (CGAF_DEBUG || ($capt->validateRequest() && $login)) {
-				$m = $this->getModel("user")->clear();
+				$m = $this->getModel("user")->reset();
 				//$date =\DateUtils::toDate(Request::get('birth_date').' 00:00:00')->format(\CDate::FMT_DATETIME_MYSQL);
 				//->Where('birth_date='.$m->quote($date))//
-				$o = $m->where("user_name=" . $m->quote($login))			
+				$o = $m->where("u.user_name=" . $m->quote($login))
 				->loadObject();
-			
+
 				if ($o) {
-					if ($o->user_state == 0) {
-						throw new SystemException ('user.notactive');
-					}
-					
 					if (!$o->user_email) {
 						throw new SystemException ('user.hasnoemail');
+					}
+					if ($o->user_state == 0) {
+						$tplo=array();
+						$tplo['first_name'] = $o->fullname;
+						$tplo['user_email'] = $login;
+						$tplo['activation_key'] = $this->generateActivationKey();
+						$tplo['activation_url'] = \URLHelper::add(BASE_URL,'/user/activation/?key='.$tplo['activation_key']);
+						\MailHelper::sendMail( $tplo, "registration",'Registration');
+
+						return new JSONResult (true, 'user.passwordreminder.ok',APP_URL);
 					}
 					$generated = \Utils::generatePassword();
 					$o->activation_key = $this->generateActivationKey();
 					$o->user_password = $this->getAppOwner()->getAuthentificator()->encryptpassword($generated);
 					$m->bind($o);
-					
+
 					if ($m->store()) {
-						$o->generatedPassword = $generated;						
+						$o->generatedPassword = $generated;
 						\MailHelper::sendMail($o, "forgetpassword", 'user.passwordreminder.emailtitle');
 						return new JSONResult (true, 'user.passwordreminder.ok',APP_URL);
 					}

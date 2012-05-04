@@ -12,6 +12,10 @@ final class FileInfo extends \BaseObject {
 	function __get($var) {
 		$infos = $this->_infos ();
 		switch (strtolower($var)) {
+			case 'mtime':
+				return $infos['size']['time']['mtime'];
+			case 'modified':
+				return $infos['size']['time']['modified'];
 			case 'mime':
 				return $this->getMime();
 			case 'is_writable' :

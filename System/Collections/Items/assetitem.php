@@ -9,8 +9,10 @@ class AssetItem extends \BaseObject implements \IRenderable, \IItem {
 	private $_liveResource = false;
 	private $_group = null;
 	private $_type = 'js';
-	function __construct($resource, $group = null) {
+	private $_appOwner=null;
+	function __construct($resource, $group = null,$appOwner = null) {
 		parent::__construct ();
+		$this->_appOwner = $appOwner ? $appOwner : \AppManager::getInstance();
 		$this->Resource = $resource;
 		$this->_group = $group;
 	}
@@ -25,7 +27,6 @@ class AssetItem extends \BaseObject implements \IRenderable, \IItem {
 		return strtolower ( $ext ) === $type;
 	}
 	private function _getLiveResourceBytype($res, $type) {
-
 		if (is_array ( $res )) {
 			$retval = array ();
 			foreach ( $res as $r ) {
@@ -49,15 +50,18 @@ class AssetItem extends \BaseObject implements \IRenderable, \IItem {
 		if ($item instanceof AssetItem) {
 			return $this->LiveResource === $item->LiveResource;
 		}
-		return $this->_resource === $item;
+		return $this->LiveResource === $item;
 	}
+
 	function setResource($value) {
 		$this->_resource = $value;
-		$this->_liveResource = AppManager::getInstance ()->getLiveAsset ( $value );
+		$this->_liveResource= false;
+		$this->getLiveResource();
+
 	}
 	function getLiveResource() {
 		if ($this->_liveResource === false) {
-			$this->_liveResource = AppManager::getInstance ()->getLiveAsset ( $this->_resource );
+			$this->_liveResource = $this->_appOwner->getLiveAsset ( $this->_resource );
 			if (! $this->_liveResource) {
 				Logger::Warning ( "Unable to Find resource for live " . $this->_resource );
 			}
@@ -66,6 +70,7 @@ class AssetItem extends \BaseObject implements \IRenderable, \IItem {
 	}
 	function Render($return = false) {
 		if (! $this->LiveResource) {
+			pp($this->_resource);
 			Logger::Warning ( 'Unable to find asset live for ' . $this->_resource );
 			return null;
 		}

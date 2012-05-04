@@ -33,16 +33,15 @@ abstract class DateUtils {
 		}else{
 			$dt=$date;
 		}
-		
+
 		$dt = explode("/", $dt);
 		$time =explode(' ',$time);
 		if (is_array($dt) && count($dt) >= 3) {
 			$date = new CDate();
-				
-			
-				
 			$date->setDate($dt[2], $dt[1], $dt[0]);
-			$date->setTime($time[0], $time[1],$time[2]);
+			if (isset($time[1]) && isset($time[2])) {
+				$date->setTime($time[0], $time[1],$time[2]);
+			}
 		} else {
 			$date = new CDate($date);
 		}
@@ -123,8 +122,8 @@ abstract class DateUtils {
 		}
 		return $date->format(\DateTime::ISO8601);
 	}
-	function formatDateJS($date, $format = null) {
-		$format = $format ? $format : __('client.dateFormat');
+	public static function formatDateJS($date, $format = null,$includeTime =false) {
+		$format = $format ? $format : (__('client.dateFormat').($includeTime ? ' h:i:s':''));
 		if (!$date) {
 			$date = new \DateTime();
 		}
@@ -149,11 +148,47 @@ abstract class DateUtils {
 		}
 		return $unix_time;
 	}
-	public static function split($date,$format) {
+	public static function split($date,$format,$delim='/') {
 		if (!$date) {
 			return null;
 		}
-		ppd($date);
+		$format = explode($delim,$format);
+		$date = explode($delim, $date);
+		$dt = new \CDate();
+		$nf ='';
+		$year = null;
+		$month=null;
+		$day= null;
+		$hour=null;
+		$minute=null;
+		$second=null;
+		foreach($format as $k=>$v) {
+			switch ($v) {
+				case 'h':
+					$hour=$date[$k];
+					break;
+				case 'n':
+					$minute=$date[$k];
+					break;
+				case 's':
+					$second=$date[$k];
+					break;
+				case 'Y':
+				case 'y':
+					$year=$date[$k];
+					break;
+				case 'm':
+					$month=$date[$k];
+					break;
+				case 'd':
+					$day = $date[$k];
+					break;
+				default:
+					ppd($k);
+			}
+		}
+		$dt->setDate($year, $month, $day);
+		return $dt;
 	}
 	public static function gmFormat($format) {
 		return str_replace('%', '', $format);

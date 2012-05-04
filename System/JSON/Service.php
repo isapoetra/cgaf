@@ -2,6 +2,8 @@
 namespace System\JSON;
 
 //TODO using another library coz to slow....
+use System\Web\JS\JSFunc;
+
 class Service {
 
 	public $quoteKey= true;
@@ -47,152 +49,43 @@ class Service {
 			case 'float' :
 				return (float) $var;
 			case 'string' :
-				// STRINGS ARE EXPECTED TO BE IN ASCII OR UTF-8 FORMAT
-				$ascii= '';
-				$strlen_var= strlen($var);
-				/*
-				 * Iterate over every character in the string,
-				* escaping with a slash or encoding to UTF-8 where necessary
-				*/
-				for ($c= 0; $c < $strlen_var; ++ $c) {
-					$ord_var_c= ord($var {
-						$c });
-						switch (true) {
-							case $ord_var_c == 0x08 :
-								$ascii .= '\b';
-								break;
-							case $ord_var_c == 0x09 :
-								$ascii .= '\t';
-								break;
-							case $ord_var_c == 0x0A :
-								$ascii .= '\n';
-								break;
-							case $ord_var_c == 0x0C :
-								$ascii .= '\f';
-								break;
-							case $ord_var_c == 0x0D :
-								$ascii .= '\r';
-								break;
-							case $ord_var_c == 0x22 :
-							case $ord_var_c == 0x2F :
-							case $ord_var_c == 0x5C :
-								// double quote, slash, slosh
-								if (!$this->quoteSingle) {
-									$ascii .= '\\' . $var {
-										$c };
-								}
-								else {
-									$ascii .= $var {
-										$c };
-								}
-								break;
-							case (($ord_var_c >= 0x20) && ($ord_var_c <= 0x7F)) :
-								// characters U-00000000 - U-0000007F (same as ASCII)
-								$ascii .= $var {
-									$c };
-									break;
-							case (($ord_var_c & 0xE0) == 0xC0) :
-								// characters U-00000080 - U-000007FF, mask 110XXXXX
-								// see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-								$char= pack('C*', $ord_var_c, ord($var {
-									$c +1 }));
-									$c += 1;
-									$utf16= $this->utf8_to_utf16be($char);
-									$ascii .= sprintf('\u%04s', bin2hex($utf16));
-									break;
-							case (($ord_var_c & 0xF0) == 0xE0) :
-								// characters U-00000800 - U-0000FFFF, mask 1110XXXX
-								// see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-								$char= pack('C*', $ord_var_c, ord($var {
-									$c +1 }), ord($var {
-										$c +2 }));
-										$c += 2;
-										$utf16= $this->utf8_to_utf16be($char);
-										$ascii .= sprintf('\u%04s', bin2hex($utf16));
-										break;
-							case (($ord_var_c & 0xF8) == 0xF0) :
-								// characters U-00010000 - U-001FFFFF, mask 11110XXX
-								// see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-								$char= pack('C*', $ord_var_c, ord($var {
-									$c +1 }), ord($var {
-										$c +2 }), ord($var {
-											$c +3 }));
-											$c += 3;
-											$utf16= $this->utf8_to_utf16be($char);
-											$ascii .= sprintf('\u%04s', bin2hex($utf16));
-											break;
-							case (($ord_var_c & 0xFC) == 0xF8) :
-								// characters U-00200000 - U-03FFFFFF, mask 111110XX
-								// see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-								$char= pack('C*', $ord_var_c, ord($var {
-									$c +1 }), ord($var {
-										$c +2 }), ord($var {
-											$c +3 }), ord($var {
-												$c +4 }));
-												$c += 4;
-												$utf16= $this->utf8_to_utf16be($char);
-												$ascii .= sprintf('\u%04s', bin2hex($utf16));
-												break;
-							case (($ord_var_c & 0xFE) == 0xFC) :
-								// characters U-04000000 - U-7FFFFFFF, mask 1111110X
-								// see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-								$char= pack('C*', $ord_var_c, ord($var {
-									$c +1 }), ord($var {
-										$c +2 }), ord($var {
-											$c +3 }), ord($var {
-												$c +4 }), ord($var {
-													$c +5 }));
-													$c += 5;
-													$utf16= $this->utf8_to_utf16be($char);
-													$ascii .= sprintf('\u%04s', bin2hex($utf16));
-													break;
-						}
-				}
-				if ($quote) {
-					if ($this->quoteSingle) {
-						return '\'' . $ascii . '\'';
-					}
-					else {
-						return '"' . $ascii . '"';
-					}
-				}
-				else {
-					return $ascii;
-				}
+				return json_encode($var);
 			case 'array' :
-				/*
-				 * As per JSON spec if any array key is not an integer
-				 * we must treat the the whole array as an object. We
-				 * also try to catch a sparsely populated associative
-				 * array with numeric keys here because some JS engines
-				 * will create an array with empty indexes up to
-				 * max_index which can cause memory issues and because
-				 * the keys, which may be relevant, will be remapped
-				 * otherwise.
-				 *
-				 * As per the ECMA and JSON specification an object may
-				 * have any string as a property. Unfortunately due to
-				 * a hole in the ECMA specification if the key is a
-				 * ECMA reserved word or starts with a digit the
-				 * parameter is only accessible using ECMAScript's
-				 * bracket notation.
-				 */
-				// treat as a JSON object
-				if (is_array($var) && count($var) && (array_keys($var) !== range(0, sizeof($var) - 1))) {
-					$retval= array_map(array (
-					$this,
-						'name_value'
-					), array_keys($var), array_values($var));
-					return '{' . join($retval, ',') . '}';
+				$ret = array();
+				$hasc = false;
+				foreach($var as $k=>$v) {
+					if (is_numeric($k)) {
+						$ret[] = $this->encode($v);
+					}else{
+						$hasc=true;
+						$ret[$k] = $this->encode($v);
+					}
 				}
-				// treat it like a regular array
-				$retval= array_map(array (
-				$this,
-					'encode'
-				), $var);
-				return '[' . join(',', $retval) . ']';
+				if ($hasc) {
+					$r = '{';
+					foreach($ret as $k=>$v) {
+						$r.= '"'.$k.'":'.$v.',';
+					}
+					$r= (strlen($r) > 2 ? substr($r,0,strlen($r)-1) : $r).'}';
+					return $r;
+				}
+				return '[' . implode(',',$ret) . ']';;
 			case 'object' :
-				if ($var instanceof \IRenderable) {
+				if ($var instanceof JSFunc) {
+					return $var->Render(true);
+				}elseif ($var instanceof \IJSONable){
+					$vars = $var->toJSON();
+					if (!is_string($vars)) {
+						if (is_object($vars) && $vars instanceof JSFunc) {
+							return  $vars->Render(true);
+						}
+
+						$vars = $this->encode($vars,$quote);
+					}
+
+					return $vars;
+
+				}elseif ($var instanceof \IRenderable) {
 					$handle= false;
 					$retval= $var->Render(true, $handle);
 					if (is_array($retval) || is_object($retval)) {
@@ -204,13 +97,8 @@ class Service {
 					else {
 						return '{' . $retval . '}';
 					}
-				}
-				else {
-					$vars= get_object_vars($var);
-					return '{' . join(',', array_map(array (
-					$this,
-						'name_value'
-					), array_keys($vars), array_values($vars))) . '}';
+				}else {
+					return json_encode($var);
 				}
 			default :
 				return '';

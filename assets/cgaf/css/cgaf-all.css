@@ -26,20 +26,15 @@
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
 }
 #sysmessage {
   display: none;
 }
 body {
   padding-bottom: 40px;
+}
+#navigation-top {
+  box-shadow: 0px 2px 30px #888;
 }
 #navigation-top .navbar-inner .container {
   width: 100%;
@@ -61,6 +56,9 @@ body {
   clear: both;
   padding: 0;
   margin-bottom: 2px;
+  border-radius: 0;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
 }
 .navbar .nav > li {
   padding: 0px 4px 2px;
@@ -136,17 +134,16 @@ body {
 #wrapper .wrapper-inner {
   overflow: auto;
 }
-#app-menu-container {
+.app-menu-container {
   display: none;
   position: fixed;
-  top: 37px;
+  top: 30px;
   right: 10px;
   z-index: 99999;
   padding: 0;
 }
-#app-menu-container > div.content {
+.app-menu-container > div.content {
   background-color: #222222;
-  border: 1px solid #eeeeee;
   border-radius: 2px;
   width: 250px;
   height: 100px;
@@ -164,6 +161,16 @@ body {
 }
 .content > div {
   margin: 4px;
+}
+#wrapper-footer {
+  padding: 0 10px 0 10px;
+  box-shadow: #cccccc 0px -10px 30px;
+}
+#wrapper-footer .nav.nav-pills {
+  margin: 0;
+}
+#wrapper-footer .cgaf-powered {
+  line-height: 18px;
 }
 .clearfix {
   *zoom: 1;
@@ -189,14 +196,6 @@ body {
 
   /* Makes inputs behave like true block-level elements */
 
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
@@ -237,14 +236,6 @@ body {
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
 }
 .locale-select > a {
   background-repeat: no-repeat;
@@ -264,6 +255,7 @@ body {
 }
 .dockable .content {
   display: none;
+  overflow: auto;
   background-color: rgba(0, 0, 0, 0.77);
 }
 .dockable .handle .handle-icon {
@@ -339,7 +331,7 @@ body {
   right: 0;
   top: 0;
   bottom: 0;
-  width: 18px;
+  width: 16px;
 }
 .dockable.right.active {
   width: 250px;
@@ -348,13 +340,15 @@ body {
   background-position: -456px -72px;
 }
 .dockable.right.active .content {
+  color: white;
   display: block;
-  height: 100%;
-}
-.dockable.right .content {
-  margin-left: 20px;
+  height: 99%;
+  border: 2px solid #222222;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
 }
 .dockable.right .delim {
+  display: none;
   height: 100%;
   background-color: #222222;
   width: 2px;
@@ -362,7 +356,7 @@ body {
 }
 .dockable.right .handle {
   float: left;
-  width: 25px;
+  width: 20px;
   height: 100%;
 }
 .dockable.right .handle .handle-icon-container {
@@ -386,7 +380,6 @@ body {
 .dockable.bottom {
   position: absolute;
   bottom: 0;
-  left: 0;
   right: 0;
   left: 0;
 }
@@ -444,6 +437,37 @@ body {
   height: 2px;
   clear: both;
 }
+.expandable {
+  border: 1px solid #dddddd;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+.expandable .expandable-header {
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  border: 1px solid #dddddd;
+}
+.expandable .expandable-header .button-expander {
+  float: right;
+}
+.expandable .expandable-header .button-expander .icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  vertical-align: text-top;
+  background: transparent url("/assets/bootstrap/img/glyphicons-halflings.png") no-repeat;
+  background-position: -313px -119px;
+}
+.expandable .expandable-header .button-expander.on .icon {
+  background-position: -288px -120px;
+}
+.expandable .expandable-header:hover {
+  background-color: #f5f5f5;
+}
 .popup-dialog {
   position: absolute;
   top: 250px;
@@ -471,32 +495,8 @@ body {
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-top: 5px solid #000000;
-  bottom: 0;
-  left: 50%;
-  margin-left: -5px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid #000000;
-  bottom: 0;
-  left: 50%;
-  margin-left: -5px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid #000000;
 }
 .popup-dialog.right .arrow {
-  top: 50%;
-  left: 0;
-  margin-top: -5px;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-right: 5px solid #000000;
-  top: 50%;
-  left: 0;
-  margin-top: -5px;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-right: 5px solid #000000;
   top: 50%;
   left: 0;
   margin-top: -5px;
@@ -511,32 +511,8 @@ body {
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-bottom: 5px solid #000000;
-  top: 0;
-  left: 50%;
-  margin-left: -5px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 5px solid #000000;
-  top: 0;
-  left: 50%;
-  margin-left: -5px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 5px solid #000000;
 }
 .popup-dialog.left .arrow {
-  top: 50%;
-  right: 0;
-  margin-top: -5px;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 5px solid #000000;
-  top: 50%;
-  right: 0;
-  margin-top: -5px;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 5px solid #000000;
   top: 50%;
   right: 0;
   margin-top: -5px;
@@ -559,18 +535,6 @@ body {
   -webkit-border-radius: 6px;
   -moz-border-radius: 6px;
   border-radius: 6px;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
-  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-  -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-  -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
   -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
@@ -587,18 +551,6 @@ body {
   -webkit-border-radius: 0 0 3px 3px;
   -moz-border-radius: 0 0 3px 3px;
   border-radius: 0 0 3px 3px;
-  -webkit-border-radius: 0 0 3px 3px;
-  -moz-border-radius: 0 0 3px 3px;
-  border-radius: 0 0 3px 3px;
-  -webkit-border-radius: 0 0 3px 3px;
-  -moz-border-radius: 0 0 3px 3px;
-  border-radius: 0 0 3px 3px;
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding-box;
-  background-clip: padding-box;
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding-box;
-  background-clip: padding-box;
   -webkit-background-clip: padding-box;
   -moz-background-clip: padding-box;
   background-clip: padding-box;
@@ -616,12 +568,84 @@ body {
   -webkit-border-radius: 3px 3px 0 0;
   -moz-border-radius: 3px 3px 0 0;
   border-radius: 3px 3px 0 0;
-  -webkit-border-radius: 3px 3px 0 0;
-  -moz-border-radius: 3px 3px 0 0;
-  border-radius: 3px 3px 0 0;
-  -webkit-border-radius: 3px 3px 0 0;
-  -moz-border-radius: 3px 3px 0 0;
-  border-radius: 3px 3px 0 0;
+}
+.qq-uploader {
+  position: relative;
+  width: 100%;
+}
+.qq-upload-button {
+  display: block;
+  /* or inline-block */
+
+  width: 105px;
+  padding: 7px 0;
+  text-align: center;
+  background: #880000;
+  border-bottom: 1px solid #ddd;
+  color: #fff;
+}
+.qq-upload-button-hover {
+  background: #cc0000;
+}
+.qq-upload-button-focus {
+  outline: 1px dotted black;
+}
+.qq-upload-drop-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 70px;
+  z-index: 2;
+  background: #FF9797;
+  text-align: center;
+}
+.qq-upload-drop-area span {
+  display: block;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  margin-top: -8px;
+  font-size: 16px;
+}
+.qq-upload-drop-area-active {
+  background: #FF7171;
+}
+.qq-upload-list {
+  margin: 15px 35px;
+  padding: 0;
+  list-style: disc;
+}
+.qq-upload-list li {
+  margin: 0;
+  padding: 0;
+  line-height: 15px;
+  font-size: 12px;
+}
+.qq-upload-file,
+.qq-upload-spinner,
+.qq-upload-size,
+.qq-upload-cancel,
+.qq-upload-failed-text {
+  margin-right: 7px;
+}
+.qq-upload-spinner {
+  display: inline-block;
+  background: url("loading.gif");
+  width: 15px;
+  height: 15px;
+  vertical-align: text-bottom;
+}
+.qq-upload-size,
+.qq-upload-cancel {
+  font-size: 11px;
+}
+.qq-upload-failed-text {
+  display: none;
+}
+.qq-upload-fail .qq-upload-failed-text {
+  display: inline;
 }
 .ui-wizzard.tabs-left .tab-content {
   width: 80%;

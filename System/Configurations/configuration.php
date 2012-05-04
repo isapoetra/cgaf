@@ -31,13 +31,16 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable 
 			return;
 		}
 		if (! $fileName && ! $this->_configFile) {
-			ppd($this);
 			throw new \Exception ( "Unable to find Config File", 505 );
 		}
 		if (! $fileName) {
 			$fileName = $this->_configFile;
 		}
 		$parser = $this->getParser ( Utils::getFileExt ( $fileName, false ) );
+		if ($this->_dirty && is_file($fileName) && !is_writable($fileName)) {
+			\Logger::Warning($fileName.' Not Writable');
+			return false;
+		}
 		if ($parser->save ( $fileName, $this, $settings ? $settings : $this->_configs )) {
 			$this->_dirty = false;
 		}

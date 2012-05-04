@@ -1,5 +1,7 @@
 <?php
 namespace System\Session;
+use System\DB\DBQuery;
+
 if (!defined("CGAF"))
 	die("Restricted Access");
 use \CGAF as CGAF;
@@ -88,6 +90,11 @@ abstract class Session {
 			self::$_instance->destroy();
 		}
 	}
+	private static function destroyById($id){
+		if (self::$_instance) {
+			return self::$_instance->destroy($id);
+		}
+	}
 	public static function registerState($stateGroup) {
 		return self::getInstance()->registerState($stateGroup);
 	}
@@ -105,6 +112,26 @@ abstract class Session {
 	}
 	public static function getState($stateGroup, $stateName, $default = null) {
 		return self::getInstance()->getState($stateGroup, $stateName, $default);
+	}
+	public static function clearPast() {
+		$lifetime = self::getInstance()->getConfig('gc_maxlifetime');
+		$past = time() - $lifetime;
+		$q= new DBQuery(CGAF::getDBConnection());
+		$q
+		->clear()
+		->addTable('session');
+		$rows=$q->where('last_access < ' . $q->quote($q->toDate($past)))->loadObjects();
+		if ($rows) {
+			foreach($rows as $row) {
+				if (self::destroyById($row->session_id)) {
+					$q->clear('where')
+					->Where('session_id='.$q->quote($row->session_id))
+					->delete()
+					->exec();
+				}
+				ppd($row);
+			}
+		}
 	}
 }
 ?>

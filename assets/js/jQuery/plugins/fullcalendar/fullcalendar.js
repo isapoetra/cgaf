@@ -11,110 +11,113 @@
  * Dual licensed under the MIT and GPL licenses, located in
  * MIT-LICENSE.txt and GPL-LICENSE.txt respectively.
  *
- * Date: Mon Mar 26 20:29:25 2012 +0700
+ * Date: Mon Feb 6 22:40:40 2012 -0800
  *
  */
  
 (function($, undefined) {
 
-
 var defaults = {
-
-	EventConfig:{
-		aedurl:null
+	EventConfig : {
+		aedurl : null
 	},
-	customButtons:{
-	},
+	customButtons : {},
 	// display
-	defaultView: 'month',
-	aspectRatio: 1.35,
-	header: {
-		left: 'title',
-		center: '',
-		right: 'today prev,next'
+	defaultView : 'month',
+	aspectRatio : 1.35,
+	header : {
+		left : 'title',
+		center : '',
+		right : 'today prev,next'
 	},
-	weekends: true,
-	
+	weekends : true,
+
 	// editing
 	//editable: false,
 	//disableDragging: false,
 	//disableResizing: false,
-	
-	allDayDefault: true,
-	ignoreTimezone: true,
-	
+
+	allDayDefault : true,
+	ignoreTimezone : true,
+
 	// event ajax
-	lazyFetching: true,
-	startParam: 'start',
-	endParam: 'end',
-	
+	lazyFetching : true,
+	startParam : 'start',
+	endParam : 'end',
+
 	// time formats
-	titleFormat: {
-		month: 'MMMM yyyy',
-		week: "MMM d[ yyyy]{ '&#8212;'[ MMM] d yyyy}",
-		day: 'dddd, MMM d, yyyy'
+	titleFormat : {
+		month : 'MMMM yyyy',
+		week : "MMM d[ yyyy]{ '&#8212;'[ MMM] d yyyy}",
+		day : 'dddd, MMM d, yyyy'
 	},
-	columnFormat: {
-		month: 'ddd',
-		week: 'ddd M/d',
-		day: 'dddd M/d'
+	columnFormat : {
+		month : 'ddd',
+		week : 'ddd M/d',
+		day : 'dddd M/d'
 	},
-	timeFormat: { // for event elements
-		'': 'h(:mm)t' // default
+	timeFormat : { // for event elements
+		'' : 'h(:mm)t' // default
 	},
-	
+
 	// locale
-	isRTL: false,
-	firstDay: 0,
-	monthNames: ['January','February','March','April','May','June','July','August','September','October','November','December'],
-	monthNamesShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-	dayNames: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-	dayNamesShort: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-	buttonText: {
-		prev: '&nbsp;&#9668;&nbsp;',
-		next: '&nbsp;&#9658;&nbsp;',
-		prevYear: '&nbsp;&lt;&lt;&nbsp;',
-		nextYear: '&nbsp;&gt;&gt;&nbsp;',
-		today: 'today',
-		month: 'month',
-		week: 'week',
-		day: 'day'
+	isRTL : false,
+	firstDay : 0,
+	monthNames : [
+			'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
+	],
+	monthNamesShort : [
+			'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+	],
+	dayNames : [
+			'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+	],
+	dayNamesShort : [
+			'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
+	],
+	buttonText : {
+		prev : '&nbsp;&#9668;&nbsp;',
+		next : '&nbsp;&#9658;&nbsp;',
+		prevYear : '&nbsp;&lt;&lt;&nbsp;',
+		nextYear : '&nbsp;&gt;&gt;&nbsp;',
+		today : 'today',
+		month : 'month',
+		week : 'week',
+		day : 'day'
 	},
-	
+
 	// jquery-ui theming
-	theme: false,
-	buttonIcons: {
-		prev: 'circle-triangle-w',
-		next: 'circle-triangle-e'
+	theme : false,
+	buttonIcons : {
+		prev : 'circle-triangle-w',
+		next : 'circle-triangle-e'
 	},
-	
+
 	//selectable: false,
-	unselectAuto: true,
-	
-	dropAccept: '*'
-	
+	unselectAuto : true,
+
+	dropAccept : '*'
+
 };
 
 // right-to-left defaults
 var rtlDefaults = {
-	header: {
-		left: 'next,prev today',
-		center: '',
-		right: 'title'
+	header : {
+		left : 'next,prev today',
+		center : '',
+		right : 'title'
 	},
-	buttonText: {
-		prev: '&nbsp;&#9658;&nbsp;',
-		next: '&nbsp;&#9668;&nbsp;',
-		prevYear: '&nbsp;&gt;&gt;&nbsp;',
-		nextYear: '&nbsp;&lt;&lt;&nbsp;'
+	buttonText : {
+		prev : '&nbsp;&#9658;&nbsp;',
+		next : '&nbsp;&#9668;&nbsp;',
+		prevYear : '&nbsp;&gt;&gt;&nbsp;',
+		nextYear : '&nbsp;&lt;&lt;&nbsp;'
 	},
-	buttonIcons: {
-		prev: 'circle-triangle-e',
-		next: 'circle-triangle-w'
+	buttonIcons : {
+		prev : 'circle-triangle-e',
+		next : 'circle-triangle-w'
 	}
 };
-
-
 
 var fc = $.fullCalendar = { version: "1.5.3" };
 var fcViews = fc.views = {};
@@ -751,27 +754,8 @@ function Header(calendar, options) {
 						}
 
 						if (buttonClick) {
-							var icon = options.theme ? smartProperty(options.buttonIcons, buttonName) : null; // why
-							// are
-							// we
-							// using
-							// smartProperty
-							// here?
-
-							text = text || smartProperty(options.buttonText, buttonName); // why
-							// are
-							// we
-							// using
-							// smartProperty
-							// here?
-							/*
-							 * var button = $( "<span class='btn fc-button fc-button-" +
-							 * buttonName + " " + tm + "-state-default'>" + "<span
-							 * class='fc-button-inner'>" + "<span class='fc-button-content'>" +
-							 * (icon ? "<span class='fc-icon-wrap'>" + "<span class='ui-icon
-							 * ui-icon-" + icon + "'/>" + "</span>" : text ) + "</span>" + "<span
-							 * class='fc-button-effect'><span></span></span>" + "</span>" + "</span>" );
-							 */
+							var icon = options.theme ? smartProperty(options.buttonIcons, buttonName) : null; // why are we using smartProperty here?
+							text = text || smartProperty(options.buttonText, buttonName); // why are we using smartProperty here?
 							var button = $('<button class="' + bClass.join(' ') + ' fc-button fc-button-' + buttonName + '"><span>' + text + '</span></button>');
 							if (button) {
 								button.click(function() {
@@ -779,17 +763,6 @@ function Header(calendar, options) {
 										buttonClick();
 									}
 								}).appendTo(e);
-								/*
-								 * .mousedown(function() { button .not('.' + tm +
-								 * '-state-active') .not('.' + tm + '-state-disabled')
-								 * .addClass(tm + '-state-down'); }) .mouseup(function() {
-								 * button.removeClass(tm + '-state-down'); }) .hover( function() {
-								 * button .not('.' + tm + '-state-active') .not('.' + tm +
-								 * '-state-disabled') .addClass(tm + '-state-hover'); },
-								 * function() { button .removeClass(tm + '-state-hover')
-								 * .removeClass(tm + '-state-down'); } )
-								 */
-								;
 								prevButton = button;
 							}
 						}
@@ -807,22 +780,23 @@ function Header(calendar, options) {
 	}
 
 	function activateButton(buttonName) {
-		element.find('.fc-button-' + buttonName).addClass('active');
+		element.find('span.fc-button-' + buttonName).addClass(tm + '-state-active');
 	}
 
 	function deactivateButton(buttonName) {
-		element.find('.fc-button-' + buttonName).removeClass('active');
+		element.find('span.fc-button-' + buttonName).removeClass(tm + '-state-active');
 	}
 
 	function disableButton(buttonName) {
-		element.find('.fc-button-' + buttonName).addClass('disabled');
+		element.find('span.fc-button-' + buttonName).addClass(tm + '-state-disabled');
 	}
 
 	function enableButton(buttonName) {
-		element.find('.fc-button-' + buttonName).removeClass('disabled');
+		element.find('span.fc-button-' + buttonName).removeClass(tm + '-state-disabled');
 	}
 
 }
+
 fc.sourceNormalizers = [];
 fc.sourceFetchers = [];
 
@@ -4938,32 +4912,31 @@ function DayEventRenderer() {
 	
 
 }
-
 //BUG: unselect needs to be triggered when events are dragged+dropped
 
 function SelectionManager() {
 	var t = this;
-	
-	
+
 	// exports
 	t.select = select;
 	t.unselect = unselect;
 	t.reportSelection = reportSelection;
 	t.daySelectionMousedown = daySelectionMousedown;
-	
-	
+	t.getSelected = getSelected;
+
 	// imports
 	var opt = t.opt;
 	var trigger = t.trigger;
 	var defaultSelectionEnd = t.defaultSelectionEnd;
 	var renderSelection = t.renderSelection;
 	var clearSelection = t.clearSelection;
-	
-	
+
 	// locals
 	var selected = false;
-
-
+	var selectedDate = {};
+	function getSelected() {
+		return selectedDate;
+	}
 
 	// unselectAuto
 	if (opt('selectable') && opt('unselectAuto')) {
@@ -4977,7 +4950,6 @@ function SelectionManager() {
 			unselect(ev);
 		});
 	}
-	
 
 	function select(startDate, endDate, allDay) {
 		unselect();
@@ -4987,23 +4959,27 @@ function SelectionManager() {
 		renderSelection(startDate, endDate, allDay);
 		reportSelection(startDate, endDate, allDay);
 	}
-	
-	
+
 	function unselect(ev) {
 		if (selected) {
 			selected = false;
+			selectedDate = {};
 			clearSelection();
 			trigger('unselect', null, ev);
 		}
 	}
-	
-	
+
 	function reportSelection(startDate, endDate, allDay, ev) {
 		selected = true;
+		selectedDate = {
+			start : startDate,
+			endDate : endDate,
+			allDay : allDay,
+			ev : ev
+		}
 		trigger('select', null, startDate, endDate, allDay, ev);
 	}
-	
-	
+
 	function daySelectionMousedown(ev) { // not really a generic manager method, oh well
 		var cellDate = t.cellDate;
 		var cellIsAllDay = t.cellIsAllDay;
@@ -5016,9 +4992,11 @@ function SelectionManager() {
 			hoverListener.start(function(cell, origCell) { // TODO: maybe put cellDate/cellIsAllDay info in cell
 				clearSelection();
 				if (cell && cellIsAllDay(cell)) {
-					dates = [ cellDate(origCell), cellDate(cell) ].sort(cmp);
+					dates = [
+							cellDate(origCell), cellDate(cell)
+					].sort(cmp);
 					renderSelection(dates[0], dates[1], true);
-				}else{
+				} else {
 					dates = null;
 				}
 			}, ev);
@@ -5033,7 +5011,6 @@ function SelectionManager() {
 			});
 		}
 	}
-
 
 }
  

@@ -80,9 +80,11 @@ class ACLHelper {
 	}
 	public static function isAllowUID($uid = null, $access = "view", $rnull = false) {
 		$data = AppManager::getInstance()->getAuthInfo();
-		$uid = $uid == null ? ACLHelper::getUserId() : $uid;
+		$uid = $uid == null ? self::getUserId() : $uid;
 		if ((int) $uid !== (int) ACLHelper::getUserId()) {
 			return AppManager::getInstance()->getACL()->isAdmin() ? $uid : ACLHelper::getUserId();
+		}else{
+			return $uid;
 		}
 		return $rnull ? null : (int) $uid;
 	}
@@ -152,7 +154,8 @@ class ACLHelper {
 		if (is_array($access)) {
 			foreach ($access as $p) {
 				if (is_numeric($access2) && is_numeric($p)) {
-					$retval =(int) ($p & $access2) === (int)$p;
+					if ((int)$p ===0) return false;
+					$retval =(int) ($p & $access2) === (int)$access2;
 					break;
 				} elseif (is_string($access2) && $p === $access2) {
 					$retval = true;

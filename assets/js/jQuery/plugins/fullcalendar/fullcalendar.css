@@ -5,7 +5,7 @@
  * Dual licensed under the MIT and GPL licenses, located in
  * MIT-LICENSE.txt and GPL-LICENSE.txt respectively.
  *
- * Date: Mon Mar 26 20:29:25 2012 +0700
+ * Date: Mon Feb 6 22:40:40 2012 -0800
  *
  */
 
@@ -427,7 +427,7 @@ table.fc-border-separate {
 .fc-border-separate tbody tr.fc-first th {
 	border-top-width: 0;
 	}
-
+	
 	
 
 /* Month View, Basic Week View, Basic Day View
@@ -672,28 +672,28 @@ table.fc-border-separate {
 }
 
 .fc .fc-button-month span {
-    background: transparent url(images/cal-month.gif) no-repeat scroll 0 50%;
+    background: transparent url(../images/icons/cal-month.gif) no-repeat scroll 0 50%;
 }
 
 .fc .fc-button-agendaWeek span {
-    background: transparent url(images/cal-week.gif) no-repeat scroll 0 50%;
+    background: transparent url(../images/icons/cal-week.gif) no-repeat scroll 0 50%;
 }
 
 .fc .fc-button-today span {
-    background: transparent url(images/date.png) no-repeat scroll 0 50%;
+    background: transparent url(../images/icons/date.png) no-repeat scroll 0 50%;
 }
 
 .fc .fc-button-agendaDay span {
-    background: transparent url(images/cal-day.gif) no-repeat scroll 0 50%;
+    background: transparent url(../images/icons/cal-day.gif) no-repeat scroll 0 50%;
 }
 
 .fc .fc-button-newevent span {
-    background: transparent url(images/date_add.png) no-repeat scroll 0 50%;
+    background: transparent url(../images/icons/date_add.png) no-repeat scroll 0 50%;
 
 }
 
 .fc .fc-button-refresh span {
-    background: transparent url(images/view-refresh.png) no-repeat scroll 0 50%;
+    background: transparent url(../images/icons/view-refresh.png) no-repeat scroll 0 50%;
 }
 
 .fc-button-next span, .fc-button-prev span {

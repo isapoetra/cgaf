@@ -22,7 +22,7 @@ try {
 	$hcontent = null;
 }
 $umenu = $this->render("shared/usermenu", true, false);
-
+$route =$appOwner->getRoute();
 $crumb = '';
 // $this->render ( 'shared/crumb', true, false );
 if ($appOwner->getConfig('site.showcrumb', true)) {
@@ -60,48 +60,50 @@ if ($s) {
 echo '</style>';
 echo '</head>';
 echo '<body ' . ($bodyattr ? $bodyattr : '') . '>';
-$mbar = \CGAF::isInstalled() ? $appOwner->renderMenu('menu-bar', false, null, 'navbar', false) : null;
-echo '<div id="navigation-top" class="navbar navbar-fixed-top">';
-echo '	<div class="navbar-inner">';
-echo '		<div class="container">';
-echo <<< EOT
+
+$mbar = \CGAF::isInstalled() ? $appOwner->renderMenu('menu-bar', false, null, 'navbar', \Request::isMobile()) : null;
+if (!\Request::isMobile()) {
+	echo '<div id="navigation-top" class="navbar navbar-fixed-top">';
+	echo '	<div class="navbar-inner">';
+	echo '		<div class="container">';
+	echo <<< EOT
 <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
 <span class="icon-bar"></span>
 <span class="icon-bar"></span>
 <span class="icon-bar"></span>
 </a>
 EOT;
-echo '<a class="brand" id="app-brand" href="' . APP_URL . '">' . $appOwner->getConfig('app.shortname', $appOwner->GetAppName()) . '</a>';
-echo $umenu;
-echo '		<div class="nav-collapse">';
-echo $mbar;
-echo '		</div>';
-echo $crumb;
-echo '	</div>';
-echo '</div>';
-echo '</div>';
-// }
-if (\Request::isMobile()) {
-	$appUrl = APP_URL;
-	echo <<< EOT
-<div data-role="page" id="main" class="type-interior">
-	<div data-role="header">
-	<div data-role="header" data-theme="f">
-		<h1>$title</h1>
-		<a href="$appUrl" data-icon="home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right jqm-home">Home</a>
-	</div><!-- /header -->
-	$mbar
-	</div>
-	<div data-role="content">
-EOT;
-} else {
+	echo '<a class="brand" id="app-brand" href="' . APP_URL . '">' . $appOwner->getConfig('app.shortname', $appOwner->GetAppName()) . '</a>';
+	echo $umenu;
+	echo '		<div class="nav-collapse">';
+	echo $mbar;
+	echo '		</div>';
+	echo $crumb;
+	echo '	</div>';
+	echo '</div>';
+	echo '</div>';
 	echo $appMenu;
-	echo '<div id="wrapper" class="container-fluid wrapper wrapper-' . $appinfo->app_name . ($crumb ? ' hascrumb' : '') . '">';
+	echo '<div id="wrapper" class="container-fluid wrapper wrapper-' . $appinfo->app_name . ($crumb ? ' hascrumb' : '') . ' '.$route['_c'].'-'.$route['_a'].'">';
 	echo '<div class="wrapper-inner">';
 	echo '<div id="sysmessage" class="alert  alert-error"><a class="close" data-dismiss="alert">&times;</a><h4 class="alert-heading">Warning!</h4></div>';
 	if (!Session::get('clientValidated')) {
 		echo $this->render('shared/noscript', true, false);
 	}
 	echo $hcontent;
+}else{
+
+	$appUrl = APP_URL;
+	echo <<< EOT
+
+<div data-role="page" id="wrapper" class="type-interior">
+	<div data-role="header">
+		<div data-role="header">
+			<h1>$title</h1>
+			<a href="$appUrl" data-icon="home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right jqm-home">Home</a>
+		</div>
+		$mbar
+	</div>
+	<div data-role="content">
+EOT;
 }
 ?>

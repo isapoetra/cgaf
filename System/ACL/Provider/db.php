@@ -70,12 +70,13 @@ class Db extends BaseACL {
 
 	function assignRole($uid, $roleId) {
 		if (parent::assignRole($uid, $roleId)) {
+			$roleId = $this->getRoleIdByRoleName($roleId);
 			if (!$this->_q->clear()
-				->addTable('user_roles')
-				->insert('app_id', $this->_q->quote($this->getAppOwer()->getAppId()))
-				->insert('user_id', $uid)
-				->insert('role_id', $roleId)
-				->exec()
+					->addTable('user_roles')
+					->insert('app_id', $this->_q->quote($this->getAppOwer()->getAppId()))
+					->insert('user_id', $uid)
+					->insert('role_id', $roleId)
+					->exec()
 			) {
 				$this->setLastError($this->_q->getLastError());
 			}
@@ -103,6 +104,7 @@ class Db extends BaseACL {
 				$ur->where("ur.app_id=" . $ur->quote($this->_appId));
 			}
 			$ur->where("ur.active=1");
+
 			$roles = $ur->loadObjects();
 			if ($roles) {
 				foreach ($roles as $role) {
@@ -119,6 +121,7 @@ class Db extends BaseACL {
 				$this->_rolesCache [$this->_appId] [$userid] = array();
 			}
 		}
+
 		return $this->_rolesCache [$this->_appId] [$userid];
 	}
 
@@ -188,6 +191,7 @@ class Db extends BaseACL {
 		if ($this->_appId !== "__cgaf") {
 			$q->Where("role_id=0 and app_id=" . $q->Quote("__cgaf"));
 		}
+
 		$rprivs = $q->loadObjects();
 		if ($rprivs) {
 			foreach ($rprivs as $r) {
@@ -199,6 +203,7 @@ class Db extends BaseACL {
 			$q->addTable('role_privs');
 			$q->Where('role_id in (' . implode($userRole, ',') . ')');
 			$q->where("app_id=" . $q->Quote($appId));
+			\Logger::write($q->getSQL(),'acl-check');
 			$rprivs = $q->loadObjects();
 			$this->mergePrivs($privs, $rprivs);
 		}
@@ -245,9 +250,9 @@ class Db extends BaseACL {
 		$q = $this->_q;
 		$q->addTable('role_privs');
 		$q->Where('app_id=' . $q->quote($appId))
-			->Where('role_id=' . $q->quote($roleId))
-			->Where('object_id=' . $q->quote($objectId))
-			->Where('object_type=' . $q->quote($objectGroup));
+		->Where('role_id=' . $q->quote($roleId))
+		->Where('object_id=' . $q->quote($objectId))
+		->Where('object_type=' . $q->quote($objectGroup));
 		$o = $q->loadObject();
 		if ($o) {
 			$d = ACLHelper::revokePrivs($o->privs, $access);
@@ -255,9 +260,9 @@ class Db extends BaseACL {
 			$q->addTable('role_privs');
 			$q->Update('privs', $d);
 			$q->Where('app_id=' . $q->quote($appId))
-				->Where('role_id=' . $q->quote($roleId))
-				->Where('object_id=' . $q->quote($objectId))
-				->Where('object_type=' . $q->quote($objectGroup));
+			->Where('role_id=' . $q->quote($roleId))
+			->Where('object_id=' . $q->quote($objectId))
+			->Where('object_type=' . $q->quote($objectGroup));
 			$q->exec();
 		}
 
@@ -269,9 +274,9 @@ class Db extends BaseACL {
 		$q = $this->_q->clear();
 		$q->addTable('role_privs');
 		$q->Where('app_id=' . $q->quote($appId))
-			->Where('role_id=' . $q->quote($roleId))
-			->Where('object_id=' . $q->quote($objectId))
-			->Where('object_type=' . $q->quote($objectGroup));
+		->Where('role_id=' . $q->quote($roleId))
+		->Where('object_id=' . $q->quote($objectId))
+		->Where('object_type=' . $q->quote($objectGroup));
 		$o = $q->loadObject();
 		if ($o) {
 			$access = ACLHelper::grantAccess($o->privs, $access);
@@ -286,17 +291,17 @@ class Db extends BaseACL {
 		if ($o) {
 			$q->Update('privs', $access);
 			$q->Where('app_id=' . $q->quote($appId))
-				->Where('role_id=' . $q->quote($roleId))
-				->Where('object_id=' . $q->quote($objectId))
-				->Where('object_type=' . $q->quote($objectGroup));
+			->Where('role_id=' . $q->quote($roleId))
+			->Where('object_id=' . $q->quote($objectId))
+			->Where('object_type=' . $q->quote($objectGroup));
 
 		} else {
 			$q->insert('app_id', $appId)
-				->insert('role_id', $roleId)
-				->insert('object_id', $objectId)
-				->insert('app_id', $appId)
-				->insert('object_type', ACLHelper::APP_GROUP)
-				->insert('privs', $access);
+			->insert('role_id', $roleId)
+			->insert('object_id', $objectId)
+			->insert('app_id', $appId)
+			->insert('object_type', ACLHelper::APP_GROUP)
+			->insert('privs', $access);
 		}
 		$q->exec();
 		return parent::grantToRole($objectId, $objectGroup, $roleId, $appId, $access);

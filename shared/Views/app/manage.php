@@ -1,6 +1,10 @@
 <?php
-use System\ACL\ACLHelper;
+use System\Web\Utils\HTMLUtils;
 
+use System\ACL\ACLHelper;
+if (isset($msg) && $msg) {
+	echo HTMLUtils::renderError($msg);
+}
 $ctl = $this->getController();
 $list = \AppManager::getInstalledApp(false);
 $manageMode = CGAF::isAllow('system', 'manage', ACLHelper::ACCESS_MANAGE);
@@ -25,6 +29,9 @@ if ($list) {
 			echo  '<li class="nav-header">Systems</li>';
 			if ($ctl->isAllow('uninstall')) {
 				echo '<li><a  href="' . BASE_URL . 'app/uninstall/?id=' . $app->app_id . '">Uninstall</a></li>';
+			}
+			if ($ctl->isAllow('dumpdb')) {
+				echo '<li><a  href="' . BASE_URL . 'app/dumpdb/?id=' . $app->app_id . '">Dump Database</a></li>';
 			}
 			switch (( bool )$app->active) {
 				case true :

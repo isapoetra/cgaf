@@ -13,53 +13,60 @@ class User extends ExtModel {
 	/**
 	 * @FieldType varchar
 	 * @FieldLength 150
+	 * @var string
 	 */
 	public $user_name;
 	/**
 	 * @FieldType varchar
 	 * @FieldLength 150
+	 * @var string
 	 */
 	public $user_password;
 	/**
 	 * @FieldType smallint
+	 * @var int
 	 */
 	public $user_status;
 	/**
 	 * @FieldType smallint
+	 * @var int
 	 */
 	public $user_state;
 	/**
 	 *
-	 * @var unknown_type @FieldType varchar
-	 *      @FieldLength 150
+	 *@FieldType varchar
+	 *@FieldLength 150
+	 *@var string
 	 */
 	public $activation_key;
 	/**
 	 *
-	 * @var date @FieldType DATETIME
+	 *  @FieldType DATETIME
+	 *  @var \DateTime
 	 */
 	public $registerDate;
 	/**
 	 *
-	 * @var unknown_type @FieldType int
-	 *      @FieldLength 11
+	 *@FieldType int
+	 *@FieldLength 11
+	 *@var string
 	 */
 	public $defaultrole;
 	/**
-	 *
-	 * @var date @FieldType DATETIME
+	 *@FieldType DATETIME
+	 *@var \DateTime
 	 */
 	public $last_access;
 	/**
-	 *
-	 * @var string @FieldType varchar
-	 *      @FieldLength 45
+	 *@FieldLength 45
+	 *@FieldType varchar
+	 *@var string
 	 */
 	public $last_ip;
 	/**
 	 * @FieldType text
 	 *
-	 * @var unknown_type
+	 * @var int
 	 */
 	public $states;
 	public $user_email;
@@ -71,15 +78,18 @@ class User extends ExtModel {
 	}
 	function check($mode = null) {
 		$mode = $this->getCheckMode ( $mode );
-		if (! $this->activation_key) {
+		if (! $this->activation_key && (int)$this->user_state===0) {
 			$this->activation_key = \Utils::generateActivationKey ();
 		}
 		$auth = $this->getAppOwner ()->getAuthentificator ();
-		if ($mode === 'update') {
+		if ($mode === self::MODE_UPDATE) {
 			if ($this->user_password !== $this->_oldData->user_password) {
 				$this->user_password = $auth->encryptPassword ( $this->user_password );
 			}
 		} else {
+			if (!$this->user_email && \Utils::isEmail($this->user_name)) {
+				$this->user_email = $this->user_name;
+			}
 			$this->user_password = $auth->encryptPassword ( $this->user_password );
 		}
 		return parent::check ( $mode );

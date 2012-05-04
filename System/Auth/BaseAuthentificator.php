@@ -6,13 +6,10 @@ use System\IAuthentificator;
 use System\Applications\IApplication;
 abstract class BaseAuthentificator extends \BaseObject implements IAuthentificator {
 	private $_appOwner;
-	private $_lastError = null;
 	function __construct(IApplication $appOwner) {
 		$this->_appOwner = $appOwner;
 	}
-	public function getLastError() {
-		return $this->_lastError;
-	}
+
 	function getAppOwner() {
 		return $this->_appOwner;
 	}

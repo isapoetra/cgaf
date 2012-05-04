@@ -1,5 +1,7 @@
 <?php
 namespace System\Web\JS;
+use System\Exceptions\AccessDeniedException;
+
 use System\Web\JS\Engine\jQuery;
 use System\MVC\Application;
 use System\JSON\JSON;
@@ -46,6 +48,7 @@ final class CGAFJS {
 						)
 				)
 		);
+
 		if (! Request::isDataRequest ()) {
 			$info = $jq->getInfo ();
 			self::setConfig ( 'asseturl', ASSET_URL );
@@ -53,75 +56,63 @@ final class CGAFJS {
 			self::setConfig ( 'jq.compat', $info ['compat'] );
 			self::setConfig ( 'baseurl', BASE_URL );
 			self::setConfig ( 'appurl', \AppManager::getInstance ()->getAppURL () );
+			self::setConfig ( 'appid',\AppManager::getInstance ()->getAppId());
 		}
-		$assets = array ();
-		if (! \Request::isMobile ()) {
-			$assets =array();
-			if ($appOwner->getConfig ( 'js.bootstrap.enabled', true )) {
-				$assets[]= 'bootstrap/css/bootstrap.css';
-				$assets[]= 'bootstrap/css/bootstrap-responsive.css';
-				$assets[]= 'cgaf/css/cgaf-all.css';
-				$assets[]= 'bootstrap/js/bootstrap.js';
-				$plugins = $appOwner->getConfigs ( 'js.bootstrap.plugins', array () );					
-				foreach ( $plugins as $p ) {
-					$assets[]= 'bootstrap/js/' . $p ;
-				}
+		$assets =array();
+		if (\Request::isMobile()) {
+			$assets [] ='jQuery/jquery-mobile/jquery.mobile.structure.css';
+			$assets [] ='jQuery/jquery-mobile/jquery.mobile.theme.css';
+		}
+		if ($appOwner->getConfig ( 'js.bootstrap.enabled', true )) {
+			$assets[]= 'bootstrap/css/bootstrap.css';
+
+			$assets[]= 'cgaf/css/cgaf-all.css';
+			$assets[]= 'bootstrap/js/bootstrap.js';
+			$plugins = $appOwner->getConfigs ( 'js.bootstrap.plugins', array () );
+			foreach ( $plugins as $p ) {
+				$assets[]= 'bootstrap/js/' . $p ;
 			}
-			
-			$assets[] = 'cgaf/cgaf.js';
+		}
+		$assets[] = 'cgaf/cgaf.js';
+		if (! \Request::isMobile ()) {
 			$assets[] = 'cgaf/cgaf-jq.js';
 			if (CGAF_DEBUG) {
 				$assets [] = 'cgaf/debug.js';
 				$assets [] = 'cgaf/css/debug.css';
 			}
 
-			/*$pref = 'js.' . $this->getConfig ( 'js.engine', 'jQuery' ) . '.plugins';
-			 $plugins = $appOwner->getConfigs ( $pref );
-			if ($plugins) {
-			$pref = str_replace ( '.', DS, $pref );
-			foreach ( $plugins as $k => $v ) {
-			$plugins [$k] = $pref . DS . $v;
-			}
-			$assets[]=$plugins;
-			}
-			*/
-			
-
-
-			$plugins = CGAF::getConfigs ( 'cgaf.js.plugins' );
-			if ($plugins) {
-				Utils::arrayMerge ( $assets, $jq->getAsset ( $plugins, 'plugins' ) );
-			}
-
 		} else {
-			$assets = array (
-					'cgaf/mobile/cgaf.js',
-					'jQuery/jQuery-Mobile/jquery.mobile.structure-1.0rc2.css',
-					'jQuery/jQuery-Mobile/themes/default/jquery.mobile.theme.css',
-					'cgaf/css/cgaf-mobile.css'
-			);
-			if ($appOwner->getConfig ( 'js.bootstrap.enabled', true )) {
-				
-				$assets[] = 'cgaf/css/cgaf-bootstrap-responsive.css' ;
-			}
+			$assets [] ='cgaf/mobile/cgaf.js';
+			$assets[]= 'bootstrap/css/bootstrap-responsive.css';
+			$assets [] ='jQuery/jquery-mobile/jquery.mobile.js';
+			$assets [] ='cgaf/css/cgaf-mobile.css';
 		}
+		$plugins = CGAF::getConfigs ( 'cgaf.js.plugins' );
+		if ($plugins) {
+			Utils::arrayMerge ( $assets, $jq->getAsset ( $plugins, 'plugins' ) );
+		}
+
 		$jq->initialize ( $appOwner );
+
 		try {
-			Utils::arrayMerge ( $assets, $jq->loadUI ( false ) );					
-			self::$_appOwner->addClientAsset ( $jq->getAsset ( $assets ) );			
+
+			Utils::arrayMerge ( $assets, $jq->loadUI ( false ) );
+			self::$_appOwner->addClientAsset ( $jq->getAsset ( $assets ) );
 		}catch (\Exception $e){
 			ppd($e);
 			if (CGAF_DEBUG) {
 				ppd($e);
 			}
 		}
-
 		$plugins = null;
 		try {
 			if (self::$_appOwner->getController ()) {
 				$plugins = CGAF::getConfigs ( 'js' . self::$_appOwner->getController ()->getControllerName () . '.plugins' );
 			}
-		} catch ( \Exception $e ) {
+		} catch (AccessDeniedException $e) {
+			throw $e;
+		}catch ( \Exception $e ) {
+			\Logger::Warning($e->getMessage());
 		}
 		if ($plugins) {
 			self::$_appOwner->addClientAsset ( $jq->getAsset ( $plugins, 'plugins' ) );
@@ -198,7 +189,7 @@ final class CGAFJS {
 		}
 		if ($direct) {
 			$plugin = self::getPluginURL ( $plugin );
-			
+
 			self::$_appOwner->addClientAsset ( $plugin );
 			return;
 		}
@@ -237,7 +228,7 @@ final class CGAFJS {
 		//pp(JSON::encode ( self::$_css ) );
 		//ppd(self::$_css);
 		$css = count ( self::$_css ) ? self::_JSInstance . '.loadStyleSheet(' . JSON::encode ( self::$_css ) . ');' : null;
-		
+
 		if (count ( self::$_plugins )) {
 			$plugin = PHP_EOL . self::_JSInstance . '.loadJQPlugin(' . JSON::encode ( self::$_plugins ) . ',function(){';
 		} else {
@@ -258,7 +249,7 @@ final class CGAFJS {
 		if (! Request::isAJAXRequest ()) {
 			$retval [] = "cgaf.setReady(true);";
 		}
-		
+
 		$retval [] = $s;
 		if (count ( self::$_plugins )) {
 			$retval [] = '});';
@@ -271,7 +262,7 @@ final class CGAFJS {
 			$retval [] = '}';
 		}
 		\Utils::arrayRemoveEmptyValue ( $retval );
-		
+
 		if (! Request::isAJAXRequest () && count ( $retval ) <= 3 ) {
 			return null;
 		}

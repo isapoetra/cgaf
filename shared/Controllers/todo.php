@@ -1,5 +1,7 @@
 <?php
 namespace System\Controllers;
+use System\ACL\ACLHelper;
+
 use System\MVC\Controller;
 class TodoController extends Controller {
 	function isAllow($access = 'view') {
@@ -9,7 +11,7 @@ class TodoController extends Controller {
 		case 'simple':
 			return true;
 		}
-		return parent::isAllow($access);
+		return ACLHelper::isInrole(ACLHelper::DEV_GROUP);
 	}
 	function simple() {
 		$m = $this->getModel();

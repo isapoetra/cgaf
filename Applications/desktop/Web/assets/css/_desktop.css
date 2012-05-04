@@ -1,0 +1,9 @@
+#websocket-info {
+	
+}
+#websocket-info .log {
+	border:1px solid red;
+	height:150px;
+	max-height: 150px;
+	overflow: auto;
+}

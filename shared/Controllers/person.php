@@ -1,5 +1,9 @@
 <?php
 namespace System\Controllers;
+use System\JSON\JSONResponse;
+
+use System\Exceptions\UnimplementedException;
+
 use System\Exceptions\AccessDeniedException;
 
 use \System\Documents\Image;
@@ -26,7 +30,13 @@ class Person extends Controller {
 			case 'myperson':
 			case 'activities':
 			case 'friends' :
+			case 'aed':
+			case 'add':
 			case 'edit':
+			case 'setprimaryperson':
+			case 'store':
+			case ACLHelper::ACCESS_MANAGE:
+			case ACLHelper::ACCESS_WRITE:
 			case ACLHelper::ACCESS_UPDATE:
 				return $this->getAppOwner()->isAuthentificated();
 			case 'info' :
@@ -35,7 +45,7 @@ class Person extends Controller {
 		}
 		return parent::isAllow($access);
 	}
-	function edit() {
+	function edit($row=null) {
 		$id = \Request::get('id');
 		$p = $this->getPerson($id);
 		if ($p && $p->isMe()) {
@@ -47,6 +57,39 @@ class Person extends Controller {
 		$m = $this->getModel()->clear();
 		$m->Where('person_id=' . $m->quote($id));
 		return $m->loadObject('\\PersonData');
+	}
+	function store() {
+		throw new UnimplementedException();
+	}
+	function aed($row=null,$action='aed',$args=null) {
+		$id =\Request::get('id');
+
+		$args =$args ? $args : array();
+		$args['errors']= isset($args['errors']) ? $args['errors'] : '';
+		if (!$id) {
+			$p = $this->getModel()->clear('field')->select('count(*)','pt',true)
+			->where('person_owner='.ACLHelper::getUserId())
+			->loadObject();
+			if ($p->pt > (int) $this->getAppOwner()->getConfig('app.person.maximum',2)) {
+				if (!ACLHelper::isInrole(ACLHelper::ADMINS_GROUP)) {
+					throw new InvalidOperationException('Maximum person Reached');
+				}
+			}
+		}
+		if ($this->getAppOwner()->isValidToken()) {
+			$m=$this->getModel()->clear();
+			$m->bind(\Request::gets('p'));
+			$m->person_id=$id;
+			if (!$pid=$m->store(false)) {
+				$args['errors'] =$m->getLastError();
+				if (\Request::isJSONRequest()) {
+					return new JSONResult(false, implode(',',$args['errors']));
+				}
+			}else{
+				return \Response::Redirect(\URLHelper::add(APP_URL,'person/detail/?id='.$id));
+			}
+		}
+		return parent::aed($row,$action,$args);
 	}
 	function contacts($args = null) {
 		$pi = null;
@@ -103,11 +146,11 @@ class Person extends Controller {
 
 
 
-	function detail() {
-		$id = \Request::get('id');
+	function detail($args = null, $return = null) {
+		$id = ($args && isset($args['id']) ? $args['id'] :\Request::get('id'));
 		if (!$id) {
 			$o=$this->getModel()
-				->getPersonByUser(ACLHelper::getUserId());
+			->getPersonByUser(ACLHelper::getUserId());
 		}else{
 			$m = $this->getModel();
 			$m->where('person_id=' . $m->quote($id));
@@ -181,7 +224,7 @@ class Person extends Controller {
 		 * @var $pi \PersonData
 		 */
 		$pi = $m->loadObject('\\PersonData');
-		$img = $pi->getImage(null,\Request::get('size'));
+		$img = $pi->getImage('profile/'.basename($_REQUEST['__url']),\Request::get('size'));
 		return \Streamer::Stream($img);
 	}
 
@@ -221,8 +264,38 @@ class Person extends Controller {
 		return parent::renderView(__FUNCTION__,$params);
 
 	}
+	function setprimaryperson() {
+		$id=(int)\Request::get('id');
+		$cp = $this->getModel()
+		->where('person_owner=' . ACLHelper::getUserId())
+		->where('person_id='.$id)
+		->loadObject();
+		if ($cp->isMe()) {
+			if (!$this->getAppOwner()->isValidToken()) {
+				return parent::renderView('confirmprimary');
+			}
+
+			$r = $this->getModel()->clear()
+
+			->Update('isprimary', false)
+			->Where('person_owner=' . ACLHelper::getUserId())
+			->exec();
+			$r = $this->getModel()->clear()
+			->Update('isprimary', true)
+			->Where('person_owner=' . ACLHelper::getUserId())
+			->Where('person_id='.$id)
+			->exec();
+			\Response::Redirect(\URLHelper::add(APP_URL,'/person/detail/?id='.$id));
+		}else {
+			//TODO Admin Only
+		}
+
+
+	}
 	public function getActionAlias($action) {
 		switch (strtolower($action)) {
+			case 'p':
+				return 'setprimaryperson';
 			case 'af' :
 				return 'addfriend';
 		}

@@ -235,11 +235,16 @@ class URLHelper {
 		if (is_string($path) && strpos($path, '?') !== false) {
 			$addparams = substr($path, strpos($path, '?') + 1);
 			$path = substr($path, 0, strpos($path, '?'));
+		}elseif (is_array($path)) {
+			//Act as params
+			$param = $path;
+			$path=null;
 		}
 		$url = self::explode($url);
+
 		if ($path) {
-			$path =trim($path,'/ ');
-			if (!is_array($path)) {
+			if (is_string($path)) {
+				$path =trim($path,'/ ');
 				$path = explode('/', $path);
 			}
 			$url['path'] = self::merge($url, 'path', $path);

@@ -1,10 +1,15 @@
 <?php
+use System\Web\UI\Controls\WebControl;
+
 if (!$actions) {
 	return null;
 }
-echo '<ul class="nav nav-pills">';
+echo '<div class="btn-group actions-list">';
 foreach ($actions as $act) {
-	echo '<li>'.\Convert::toString($act).'</li>';
+	if ($act instanceof WebControl) {
+		$act->addClass('btn');
+	}
+	echo \Convert::toString($act);
 }
-echo '</ul>';
+echo '</div>';
 ?>

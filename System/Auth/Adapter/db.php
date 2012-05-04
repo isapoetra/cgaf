@@ -47,6 +47,10 @@ class db extends Table implements IAuthentificatorAdapter {
 			$this->Update('user_status', 0);
 			$this->Update('states', serialize(Session::getStates()));
 			$this->exec();
+			$this->getAppOwner()->LogUserAction('logout',array(
+					$_SERVER["REMOTE_ADDR"],
+					$_SERVER["REMOTE_PORT"]
+			));
 		}
 	}
 
@@ -57,6 +61,10 @@ class db extends Table implements IAuthentificatorAdapter {
 			$this->Update('last_access', \CDate::Current());
 			$this->Update('last_ip',\System::getRemoteAddress());
 			$this->exec();
+			$this->getAppOwner()->LogUserAction('login',array(
+					$_SERVER["REMOTE_ADDR"],
+					$_SERVER["REMOTE_PORT"]
+			),$o->user_id);
 			return new AuthResult(AuthResult::SUCCESS, $this->_identify, unserialize($o->states), $o, $this->_logonMethod);
 		}
 		return false;

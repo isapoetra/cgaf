@@ -32,7 +32,7 @@ echo HTMLUtils::renderHiddenField('__mode','direct');
 					if (!$name) $name = $dir;
 					echo '<label  class="checkbox"><input type="checkbox" name="dir[]" value="' . $p . $dir . '" '.(in_array($p . $dir,$pd) ? ' checked="checked"' : '').'/>' . $name ;
 					if (!is_readable($p . $dir.DS.'index.php')) {
-						ppd($p . $dir.DS.'index.php');
+						echo HTMLUtils::renderError($p . $dir.DS.'index.php not readable by webserver');
 					}
 					echo '</label>';
 				} else {

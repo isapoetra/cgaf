@@ -2,7 +2,7 @@
 namespace System\DB;
 if (!class_exists('DB_Error',false)) {
 	class DB_Error {
-		
+
 	}
 }
 abstract class DBUtil {
@@ -309,13 +309,64 @@ abstract class DBUtil {
 	}
 	public static function getPK($table, $row, DBConnection $conn) {
 		$info = self::getPKFromTable ( $table, $conn );
-		$retval = '';
+		$retval = array();
 		foreach ( $row as $k => $v ) {
 			if (in_array ( $k, $info )) {
-				$retval .= $v;
+				$retval []= $v;
 			}
 		}
-		return $retval;
+		return implode(',',$retval);
+	}
+	public static function dumpRows($db,$table,$rows,$fname) {
+		if ($rows ===null) {
+			$rows = $db->exec('select * from '.$db->quoteTable($table,true));
+		}
+		$s = array();
+		while ($row= $rows->next()) {
+			$r = array();
+			foreach($row as $v) {
+				if ($v==null) {
+					$r[] = 'null';
+				}else{
+					$r[]= $db->quote($v);
+				}
+			}
+			$s[] ='insert into '.$db->quoteTable($table).' values('.implode(',',$r).')';
+		}
+		if ($fname) {
+			file_put_contents($fname, implode(';'.PHP_EOL,$s).';'.PHP_EOL);
+		}
+		return $s;
+	}
+	public static function dumpCGAFAppDB($appId,$fname) {
+		$cgtables = array(
+				'applications',
+				'roles',
+				'role_privs',
+				'user_roles',
+				'modules',
+				'menus',
+				'syskeys',
+				'contents',
+				'lookup',
+				'news',
+				'comment',
+				'todo',
+				'vote',
+				'recentlog'
+		);
+		$cg = array();
+		$s =array();
+		$cdb = \CGAF::getDBConnection();
+		foreach($cgtables as $k=>$v) {
+				//$s[] = '---------------------'.$v.'-----------------------';
+				$s[] = 'delete from #__'.$v.' where app_id='.$cdb->quote($appId);
+				$rows= $cdb->exec('select * from '.$cdb->quoteTable($v).' where app_id='.$cdb->quote($appId));
+				$s= array_merge($s,self::dumpRows($cdb, $v, $rows, null));
+				//$s[] = '---------------------'.$v.'-----------------------';
+		}
+		file_put_contents($fname, implode(';'.PHP_EOL,$s).';'.PHP_EOL);
+		//sysvals,vote_items
 	}
 }
 ?>

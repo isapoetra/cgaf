@@ -23,9 +23,9 @@ interface IACL {
 	 * @return boolean
 	 */
 	function isAuthentificated();
-  function clearCache();
-  function getUserId();
-  public function isInRole($role);
+	function clearCache();
+	function getUserId();
+	public function isInRole($role);
 	function assignRole($uid, $roleId) ;
 	function revokeFromRole($objectId,$objectGroup,$appId,$roleId,$access='view');
 }

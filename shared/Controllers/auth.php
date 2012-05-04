@@ -200,7 +200,7 @@ EOT;
 				if (!$msg && !$retval) {
 					$msg = $this->getAppOwner()->getAuthentificator()->getLastError();
 				}
-				
+
 				if ($retval) {
 					$redir = \URLHelper::addParam($redir, array(
 							'__t' => time()
@@ -236,7 +236,6 @@ EOT;
 		}
 
 		if ($appOwner->isAuthentificated()) {
-			
 			\Response::Redirect($redir ? $redir : BASE_URL . 'user/dashboard/');
 		} else {
 

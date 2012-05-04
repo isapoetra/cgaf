@@ -5,7 +5,7 @@ use System\Exceptions\SystemException;
 use System\Mail\MailObject;
 abstract class MailTransport {
 	private static $_instance =array();
-	function getInstance($transport=null) {
+	public static function getInstance($transport=null) {
 		$transport = $transport ? $transport : MailHelper::getConfig('engine','smtp');
 		if (!isset(self::$_instance[$transport])) {
 			$c = 'System\\Mail\\Transport\\'.$transport;
@@ -24,18 +24,17 @@ class MailHelper {
 		$retval = array();
 		$iconfig=\AppManager::getInstance()->getConfigs($configName,array());
 		$cconfig = \CGAF::getConfigs($configName);
-		return array_merge($cconfig,$iconfig);		
-		
+		return array_merge($cconfig,$iconfig);
+
 	}
 	public static function getConfig($configName,$default=null) {
 		$configName = 'mail.'.$configName;
 		return \AppManager::getInstance()->getConfig($configName,\CGAF::getConfig($configName,$default));
-		
+
 	}
-	public static function sendMail($m, $template, $subject = "alKisah-Online") {
+	public static function sendMail($m, $template, $subject ) {
 
 		$app = AppManager::getInstance ();
-
 		$tpl = $app->getInternalData ( "template/email/" ).$template.'.html';
 		if (!is_file($tpl)) {
 			$tpl=\CGAF::getInternalStorage('template/email/',false,false).$template.'.html';
@@ -51,7 +50,7 @@ class MailHelper {
 			} elseif (is_object ( $m )) {
 				$o = $m;
 			}
-			$mail = $m->user_email ? $m->user_email : $m->user_name;
+			$mail = $o->user_email ? $o->user_email : $o->user_name;
 			if (!\Utils::isEmail($mail)) {
 				throw new SystemException('error.invalidemail');
 			}
@@ -59,18 +58,21 @@ class MailHelper {
 			$o->title = __ ( $subject );
 			$o->base_url = BASE_URL;
 			$msg = Utils::parseDBTemplate ( file_get_contents ( $tpl ), $o );
+
 			$e=new MailObject();
 			$e->to = $mail;
+			$e->content = $msg;
 			$e->subject = $subject;
 			if (!$ok=MailTransport::getInstance()->send($e)) {
 				throw new MailException('mail.senderror');
 			}
+			ppd($ok);
 			return $ok;
 		} else {
 			throw new SystemException ( 'mail.template.notfound'.$tpl );
 		}
 	}
-	
+
 }
 
 ?>

@@ -27,7 +27,7 @@ class BaseObject extends \stdClass implements IObject, IEventDispatcher {
   protected $_param;
   protected $_sender;
   //private $_reflection;
-  private $_lastError;
+  protected $_lastError=array();
   protected $_events = array();
 
   /**

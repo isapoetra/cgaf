@@ -18,8 +18,8 @@ class DBQuery extends \BaseObject implements IQuery {
 	private $_conn;
 	private $_table = array();
 	protected $_where = array();
-	private $_type = "select";
-	private $_update = array();
+	protected $_type = "select";
+	protected $_update = array();
 	private $_lastSQL;
 	private $_sql = array();
 	private $_inserts = array();
@@ -93,7 +93,7 @@ class DBQuery extends \BaseObject implements IQuery {
 		if (is_array($str)) {
 			$retval = array();
 			foreach($str as $k=>$s) {
-				$retval[$k] = $this->quote($s); 
+				$retval[$k] = $this->quote($s);
 			}
 			return $retval;
 		}
@@ -709,6 +709,10 @@ class DBQuery extends \BaseObject implements IQuery {
 			}
 			$r = $this->prepareOutput(Utils::toObject($q->First(), $o));
 			return $r;
+		}else{
+			if (is_string($o)) {
+				$o = new $o ($this);
+			}
 		}
 		return $o ? $o : null;
 	}

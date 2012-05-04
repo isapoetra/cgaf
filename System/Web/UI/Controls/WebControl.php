@@ -55,6 +55,23 @@ class WebControl extends \Control implements \IRenderable {
 		}
 		$this->setProperties('class', implode(' ',$current));
 	}
+	function hasClass($c,$ereg=false) {
+		$current  = explode(' ',$this->getProperty('class',''));
+		$sc=array();
+		foreach($current as $cl) {
+			if (!$cl) continue;
+			$match=false;
+			if ($ereg) {
+
+			}else{
+				$match = substr($cl, 0,strlen($c))===$c;
+			}
+			if ($match) {
+				return $cl;
+			}
+		}
+		return null;
+	}
 	function removeClass($c) {
 		if (is_string($c)) {
 			$c = explode(' ',$c);
@@ -67,6 +84,7 @@ class WebControl extends \Control implements \IRenderable {
 				$rc[]= $v;
 			}
 		}
+
 		$this->setProperties('class', implode(' ',$rc));
 		return $this;
 	}
@@ -100,7 +118,7 @@ class WebControl extends \Control implements \IRenderable {
 		}
 		return $this->getProperty("id");
 	}
-	function setId($value) {		
+	function setId($value) {
 		$this->setProperty("id", $value);
 	}
 	function setAutoCloseTag($value) {
@@ -136,6 +154,17 @@ class WebControl extends \Control implements \IRenderable {
 		}
 		return $this->setProperty($attName, $Value);
 	}
+	function setattr2($attName,$value=null) {
+		if (is_array($attName)) {
+			foreach($attName as $k=>$v) {
+				$this->setattr2($k,$v);
+			}
+			return $this;
+		}
+		if ($this->getProperty($attName,null) ===null) {
+			$this->setProperty($attName,$value);
+		}
+	}
 	function setTag($tag) {
 		$this->_tag = $tag;
 		return $this;
@@ -146,8 +175,10 @@ class WebControl extends \Control implements \IRenderable {
 		foreach ($attr as $k => $v) {
 			if (is_string($v)) {
 				$v = trim($v);
-			} else {
+			} elseif (is_array($v)) {
 				$v = Utils::arrayImplode($v, ':', ';');
+			}elseif (is_object($v)){
+				$v= \Convert::toString($v);
 			}
 			if ($v !== null) {
 				if (strtolower(substr($k, 0, 2)) === 'on' && strpos( $v,'$') === false) {

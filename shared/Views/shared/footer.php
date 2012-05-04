@@ -5,20 +5,17 @@ $appOwner = isset ( $appOwner ) ? $appOwner : $this->getAppOwner ();
 if ($this->getAppOwner ()->parent)
 	return;
 $share = null;
-$footer = \CGAF::isInstalled() ? $appOwner->renderContent ( 'footer' ) : null;
-
-
-
+$footer = \CGAF::isInstalled() ? $appOwner->renderContent ( 'footer',null, false, true, null, false, $appOwner->getAppId()) : null;
 
 echo '</div><!-- EOF wrapper-inner -->';
+echo '</div><!-- EOF wrapper -->';
 echo $footer ? '<div>' . $footer . '</div>' : '';
-if (! \Request::isMobile ()) {
-	echo '<footer id="wrapper-footer" class="footer">';
-	echo '<p class="pull-right cgaf-powered"><a href="' . BASE_URL . 'about/cgaf"><small>Powered by CGAF ' . CGAF_VERSION. '</small></a>'.(CGAF_DEBUG ? '&nbsp;<span class="label label-warning">DEBUG MODE</span>' : '').'</p>';
-	echo $this->render ( 'shared/footer-common', true );
-	//echo '<span class="r-address"> Your IP' . $_SERVER ['REMOTE_ADDR'] . '</span>';
-	echo '</footer>';
-}
+echo '<footer id="wrapper-footer" class="footer" data-role="footer" data-position="fixed">';
+echo '<p class="pull-right cgaf-powered"><a href="' . BASE_URL . 'about/cgaf"><small>Powered by CGAF ' . CGAF_VERSION. '</small></a>'.(CGAF_DEBUG ? '&nbsp;<span class="label label-warning">DEBUG MODE</span>' : '').'</p>';
+echo $this->render ( 'shared/footer-common', true );
+//echo '<span class="r-address"> Your IP' . $_SERVER ['REMOTE_ADDR'] . '</span>';
+echo '</footer>';
+
 echo '</div><!-- EOF page/wrapper -->';
 //echo '</div><!--- EOF Page-->';
 

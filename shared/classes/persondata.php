@@ -1,15 +1,11 @@
 <?php
+use System\Exceptions\InvalidOperationException;
+
 use System\Models\Person;
 use System\ACL\ACLHelper;
 use System\Documents\Image;
 
-class PersonACL {
-	const PRIVATE_ACCESS = 1;
-	const FRIEND_ACCESS = 2;
-	const FOF_ACCESS = 4;
-	const EXT_ACCESS = 8;
-	const PUBLIC_ACCESS = 16;
-}
+
 
 class PersonData extends \BaseObject {
 	public $person_id;
@@ -43,8 +39,8 @@ class PersonData extends \BaseObject {
 		"format": "Y"
 	},
 	"friends" : {
-		"privs":2,
-	}
+		"privs":2
+	},
 	"images" : {
 		"privs" :2
 	}
@@ -80,16 +76,16 @@ EOP;
 		return \CGAF::getInternalStorage('persons/' . $this->person_id . DS . $p . DS, false, $create);
 	}
 
-	private function getCachedImage($f, $size = 'full') {
+	private function getCachedImage($f, $size = 'full',$live=false) {
 		if ($size === 'full') {
 			return $f;
 		}
 		$fname = $this->getStorePath('.cache/images/', true) . hash('crc32', $f . $size) . \Utils::getFileExt($f);
+		@unlink($fname);
 		if (!is_file($fname)) {
 			$img = new Image($f);
-			$img->resize($size, $fname);
+			$out = $img->resize($size, $fname);
 		}
-
 		return $fname;
 	}
 
@@ -98,27 +94,32 @@ EOP;
 	 * @param null $size
 	 * @return null|string real path if found or null
 	 */
-	function getImage($name = null, $size = null) {
+	function getImage($name = null, $size = null,$live=false) {
 		$a = null;
-		if (!$this->canView('images', $a)) {
-			return null;
-		}else{
-			if ($name === null) {
-				//TODO get from default image configuration
-				$name = 'profile/default.png';
-			}
-			$f = $this->getStorePath('images') . $name;
-			if (!is_file($f)) {
-				$f = CGAF_PATH . 'assets/images/anonymous.png';
-			}
-			return $this->getCachedImage($f, $size);
+
+		$f = null;
+		if ($name === null) {
+			//TODO get from default image configuration
+			$name = 'profile/default.png';
 		}
+		if ($this->canView('images', $a)){
+			$f = $this->getStorePath('images') . $name;
+		}
+		if (!$f || !is_file($f)) {
+			$f = CGAF_PATH . 'assets/images/anonymous.png';
+		}
+
+		if ($live) {
+			//Handled by person controller
+			return \URLHelper::add(APP_URL,'person/image/'.basename($name).'?id='.$this->person_id .'&size='.$size);
+		}
+		return $this->getCachedImage($f, $size,$live);
 	}
 	function isMe() {
 		return $this->person_owner === ACLHelper::getUserId();
 	}
 	private function isCan($p) {
-		
+
 		$this->getCurrentPerson();
 		if ($this->isMe()) {
 			return true;
@@ -126,7 +127,7 @@ EOP;
 		$ok = false;
 		$isfriend = $this->isFriend();
 		$isfriendOf = $this->isFriendOf();
-		
+
 		if ((PersonACL::PUBLIC_ACCESS & $p) === PersonACL::PUBLIC_ACCESS) {
 			$ok = true;
 		} elseif (((PersonACL::PRIVATE_ACCESS & $p) === PersonACL::PRIVATE_ACCESS) && $this->person_id === $this->_currentPerson->person_id) {
@@ -142,20 +143,23 @@ EOP;
 	function canView($var, &$val) {
 		$var = strtolower($var);
 		$v = $this->getPersonPrivs();
+		if (!$v) ppd($var);
 		if (!isset ($v->$var)) {
+
 			$v->$var = new stdClass();
 			$v->$var->privs = PersonACL::PRIVATE_ACCESS;
 		}
 		if (isset ($this->_cachedPrivs [$var])) {
 			return $this->_cachedPrivs [$var];
 		}
-		$isOther = true;
+		$isOther = $this->isMe() === false;
 		$p = ( int )($v->{$var}->privs ? $v->{$var}->privs : PersonACL::PRIVATE_ACCESS);
 		$ok = $this->isCan($p);
 		if ($ok) {
+
 			switch ($var) {
 				case 'birth_date' :
-					if ($val && $isOther) {
+					if ($val) {
 						$d = new \CDate ($val);
 						$format =$this->isMe() ? $this->_person->getAppOwner()->getUserConfig('date.clientformat','m/d/Y') : (isset ($v->{$var}->format) ? $v->{$var}->format : 'Y');
 						$val = $d->format($format) . ',<span>' . $d->diff(new \CDate())->format('%y Years') . '</span>';
@@ -175,6 +179,8 @@ EOP;
 				$f = \CGAF::getUserStorage($this->person_owner, false) . $this->person_id . DS . 'privs.json';
 				if (is_file($f)) {
 					$this->_privs = json_decode(file_get_contents($f, false));
+				}else{
+					$this->_privs = $this->_defaultPrivs;
 				}
 			}
 		}
@@ -209,8 +215,8 @@ EOP;
 			return false;
 		}
 		$friends = $this->getFriends();
-		
-		
+
+
 	}
 
 	function isFriendOf($uid = null) {
@@ -248,5 +254,20 @@ EOP;
 			}
 		}
 		return $this->_contacts;
+	}
+	function assign($var, $val = null) {
+		$this->_internal =array();
+		parent::assign($var,$val);
+	}
+	public static function getPrimaryCurrentUser() {
+		$m= AppManager::getInstance()->getModel('person');
+		$o = $m->getPersonByUser(ACLHelper::getUserId());
+		return $o;
+	}
+	public static function getInfo($id) {
+		//TODO Cache
+		$m= AppManager::getInstance()->getModel('person')->clear();
+		$m->where('person_id='.$m->quote($id));
+		return $m->loadObject('\\PersonData');
 	}
 }

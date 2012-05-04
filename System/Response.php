@@ -66,6 +66,18 @@ final class Response {
 
 		$instance =AppManager::getInstance();
 		try {
+			if (isset($parsed['params']['__appId']) && $parsed['params']['__appId'] !== CGAF::APP_ID) {
+				try {
+					$iapp=AppManager::getInstance($parsed['params']['__appId']);
+					if (!$iapp) {
+						$parsed['params']['__appId'] =CGAF::APP_ID;
+					}else{
+						$instance = $iapp;
+					}
+				}catch (Exception $e) {
+					$parsed['params']['__appId'] =CGAF::APP_ID;
+				}
+			}
 			$c = $instance->getController($parsed['_c']);
 			if (!$parsed['_a']) $parsed['_a'] ='index';
 			if (!$c->isAllow($parsed['_a'])) {
@@ -76,6 +88,7 @@ final class Response {
 					$parsed['_a'] = 'index';
 				}
 			}
+
 		}catch(\Exception $e){
 			$parsed['_c'] = 'home';
 			$parsed['_a'] = 'index';

@@ -65,6 +65,11 @@ class Contents extends Model {
 	 * @var string
 	 */
 	public $content_title;
+	/**
+	 * @FieldLength 50
+	 * @var string
+	 */
+	public $controller_app;
 	function __construct() {
 		parent::__construct ( \CGAF::getDBConnection (), 'contents', 'content_id,app_id', true, \CGAF::isInstalled () === false );
 	}

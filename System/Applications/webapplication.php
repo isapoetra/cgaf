@@ -38,8 +38,8 @@ class WebApplication extends Application implements IWebApplication {
 	* @param $appPath string
 	* @param $appName string
 	*/
-	function __construct($appPath, $appName) {
-		if (!\System::isWebContext()) {
+	function __construct($appPath, $appName,$onlyWeb=false) {
+		if ($onlyWeb && !\System::isWebContext()) {
 			throw new SystemException('please run from web');
 		}
 		parent::__construct ( $appPath, $appName );
@@ -162,7 +162,6 @@ class WebApplication extends Application implements IWebApplication {
 					$min = parent::getAsset ( Utils::changeFileExt ( $data, 'min.' . $ext ), $prefix );
 					//ppd(Utils::changeFileExt ( $data, 'min.' . $ext ));
 					if ($min && ! $this->isDebugMode ()) {
-						ppd($min);
 						return $min;
 					}
 					$retval = parent::getAsset ( $data, $prefix );
@@ -183,6 +182,15 @@ class WebApplication extends Application implements IWebApplication {
 			$params = array (
 					'__appId' => $this->getAppId ()
 			);
+			$capp = \AppManager::getActiveApp();
+			//Cross Access Applications ??
+			if ($capp && $capp !== $this->getAppId()) {
+				$params= array (
+					'__appId' =>  $capp,
+					'__reffAppId'=>$this->getAppId(),
+
+				);
+			}
 			if (\Request::isMobile ()) {
 				$params ['__mobile'] = 1;
 			}
@@ -332,7 +340,7 @@ class WebApplication extends Application implements IWebApplication {
 		return $this->_crumbs;
 	}
 
-	
+
 	/**
 	 * Enter description here .
 	 * ..
@@ -465,13 +473,12 @@ EOT;
 		if (! Request::isDataRequest ()) {
 			if ($route ['_c'] === 'asset' && $route ['_a'] === 'get')
 				return;
-			
+
 			$maset = $this->getConfig('app.mainasset',$this->getAppPath(false));
 			$this->addClientAsset ( $maset.'.js' );
 			$this->addClientAsset ( $maset.'.css' );
-
 			$this->addClientAsset ( $route['_c'] . '.css' );
-			$this->addClientAsset ( $route['_c'] . '.css' );
+			$this->addClientAsset ( $route['_c'] .'-'.$route['_a']. '.css' );
 		}
 	}
 
