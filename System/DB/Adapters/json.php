@@ -1,5 +1,7 @@
 <?php
 namespace System\DB\Adapters;
+use System\DB\Adapters\JSON\JSONFieldInfo;
+
 use System\DB\Adapters\JSON\JSONSQL;
 
 use System\DB\Adapters\JSON\JSONTable;
@@ -152,7 +154,7 @@ class JSON extends DBConnection {
 				return strtolower($f);
 			case 'bool' :
 				return 'boolean';
-					
+
 			default :
 				$ex = explode(' ', $f);
 				if (count($ex) > 1) {
@@ -220,7 +222,7 @@ class JSON extends DBConnection {
 				$flength = 1;
 				break;
 		}
-		$fi = new JSONFieldInfo ($this);
+		$fi = new JSONFieldInfo($this);
 		$fi->field_name = $field->fieldname;
 		$fi->field_width = $flength;
 		$fi->field_type = $ftype;

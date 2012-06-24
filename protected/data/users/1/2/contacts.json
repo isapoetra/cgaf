@@ -1,0 +1,24 @@
+[
+	{
+		"api" : "google",
+		"type" : "gplus",		
+		"privs" : 31,
+		"configs":{
+			"id" : "103764179766438424577",
+			"data-width":300,
+			"data-height":"131",
+			"data-theme":"light"
+		}		
+	},
+	{
+		"api" : "yahoo",
+		"type" : "onlineStatus",
+		"privs" : 31,
+		"configs":{
+			"username" : "isapoetra",
+			"data-width":300,
+			"data-height":"69",
+			"data-theme":"light"
+		}		
+	}
+]

@@ -10,7 +10,7 @@ religion.protestant=Protestant
 religion.catholic=Catholic
 religion.hindu=Hindu
 religion.budhist=Budhist
-client.dateFormat=m/d/Y
+client.dateFormat=mm/dd/yy
 dateLongFormat=l, m/d/Y h:i:s T
 data.stored=Data Stored
 date.format.short=m D,Y
@@ -67,3 +67,8 @@ middle_name=Middle Name
 last_name=Last Name
 currencies.prefix=$
 currencies.suffix=,-
+
+
+birth_date=Birth Date
+messages=Messages
+menus=Menus

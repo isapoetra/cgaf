@@ -248,7 +248,10 @@ class ModuleManager {
 				array_pop ( $path );
 			}
 			$retval = array ();
-			$retval [] = CGAF_SHARED_PATH.'Modules/'.$m->mod_dir.DS;
+			$shared = \CGAF::getConfigs('cgaf.paths.shared');
+			foreach($shared as $s) {
+			  $retval [] = $s.'Modules/'.$m->mod_dir.DS;
+			}
 			$prev = "";
 			//also check from active app
 			$app_path = $appInstance->getAppPath () . DS . "Modules" . DS . strtolower ( $m->mod_name ) . DS;
@@ -256,7 +259,9 @@ class ModuleManager {
 				$prev .= $p . DS;
 				$retval [] = $m->mod_path . $prev . DS . $p;
 				$retval [] = $app_path . $prev . DS . $p;
-				$retval [] =CGAF_SHARED_PATH.'modules'.strtolower ( $m->mod_name ) . DS.$prev.DS.$p;
+				foreach($shared as $s) {
+				  $retval [] = $s.'modules'.strtolower ( $m->mod_name ) . DS.$prev.DS.$p;;
+				}
 			}
 			//check from core
 			$prev .= '';

@@ -9,8 +9,6 @@ ogp
 tmp
 tmpl
 thumbs.db
-daemons/
-/generate.php
 
 #temporary
 log
@@ -22,3 +20,5 @@ upload.php
 .upload
 userconfig/
 /sql/
+/nbproject/private/
+as/

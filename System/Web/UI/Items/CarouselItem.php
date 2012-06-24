@@ -1,5 +1,7 @@
 <?php
 namespace System\Web\UI\Items;
+use System\Web\UI\Controls\Anchor;
+
 use System\Web\UI\Controls\WebControl;
 
 class CarouselItem extends WebControl{
@@ -7,6 +9,7 @@ class CarouselItem extends WebControl{
 	public $descr;
 	public $subdescr;
 	public $image;
+	public $url;
 	private $_selected=false;
 	private $_customs=array();
 	function __construct($arg=null) {
@@ -20,7 +23,7 @@ class CarouselItem extends WebControl{
 	}
 	function setSelected($value) {
 		if ($value) {
-			$this->addClass('active');			
+			$this->addClass('active');
 		}else{
 			$this->removeClass('active');
 		}
@@ -28,11 +31,20 @@ class CarouselItem extends WebControl{
 	function addCustom($e) {
 		$this->_customs[]= $e;
 	}
-	function prepareRender() { 
+	function prepareRender() {
 		parent::prepareRender();
+		$url =null;
+		if ($this->url) {
+		  $url = new Anchor($this->url, null);
+		}
 		$img = new WebControl('img',true);
 		$img->setAttr('src',$this->image);
-		$this->addChild($img);
+		if ($url) {
+		  $url->addChild($img);
+		  $this->addChild($url);
+		}else{
+		  $this->addChild($img);
+		}
 		if ($this->title || $this->descr) {
 			$c= new WebControl('div',false);
 			$c->setClass('carousel-caption');

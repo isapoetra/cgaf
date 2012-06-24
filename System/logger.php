@@ -44,17 +44,22 @@ final class Logger {
       Response::StartBuffer();
     }
     /*if (CGAF_DEBUG && function_exists('xdebug_get_function_stack')) {
-      echo '<pre>';
-      debug_print_backtrace();
-      var_dump(xdebug_get_function_stack());
-      echo '</pre>';
+     echo '<pre>';
+    debug_print_backtrace();
+    var_dump(xdebug_get_function_stack());
+    echo '</pre>';
     } else {*/
-      include CGAF::getInternalStorage('contents/'). "errors/exception.php";
-      
-      if (class_exists("Response", false)) {
-        Response::EndBuffer(true);
-      }
-   // }
+    $cf = CGAF::getInternalStorage('contents/'). "errors/exception.php";
+    if (is_file($cf) && \System::isWebContext()) {
+      include $cf;
+    }
+    else{
+      echo self::format($args);
+    }
+    if (class_exists("Response", false)) {
+      Response::EndBuffer(true);
+    }
+    // }
     CGAF::doExit();
     exit(0);
   }
@@ -86,7 +91,7 @@ final class Logger {
           }
           if (isset($v["class"])) {
             $retval .= 'Function : ' . $v['class'] . '->' . $v['function'] . "\n" . '<div onclick="this.childNodes[0].currentStyle.display=\'none\'">Args : <span style="display:block">' . self::printArgs($v['args'], false)
-              . '</span></div>';
+            . '</span></div>';
           }
         }
         $retval .= print_r($trace, true);
@@ -104,7 +109,7 @@ final class Logger {
 
   private static function print_backtrace($bt, $showargs = true) {
     /*if (function_exists('xdebug_var_dump')) {
-      return '<pre>'. xdebug_var_dump($bt,true).'</pre>';
+     return '<pre>'. xdebug_var_dump($bt,true).'</pre>';
     }*/
     $r = "";
     $idx = 1;
@@ -146,7 +151,7 @@ final class Logger {
   }
 
   private static function trigger($event, /** @noinspection PhpUnusedParameterInspection */
-                                  $args = null) {
+      $args = null) {
     $args = func_get_args();
     array_shift($args);
     $event = strtolower($event);
@@ -159,28 +164,28 @@ final class Logger {
   public static function trace($file, $line, $level, $message, $group) {
     //__FILE__, __LINE__, E_NOTICE, "--------------Projects List ----------\n", "DB"
     self::write(implode('::', array(
-                                   $group,
-                                   $file,
-                                   $line,
-                                   $message)), $level);
+        $group,
+        $file,
+        $line,
+        $message)), $level);
   }
 
   private static function error2string($value) {
-	  if (is_string($value) && !is_numeric($value)) {
-		  return $value;
-	  }
+    if (is_string($value) && !is_numeric($value)) {
+      return $value;
+    }
     $level_names = array(
-      E_ERROR => 'E_ERROR',
-      E_WARNING => 'E_WARNING',
-      E_PARSE => 'E_PARSE',
-      E_NOTICE => 'E_NOTICE',
-      E_CORE_ERROR => 'E_CORE_ERROR',
-      E_CORE_WARNING => 'E_CORE_WARNING',
-      E_COMPILE_ERROR => 'E_COMPILE_ERROR',
-      E_COMPILE_WARNING => 'E_COMPILE_WARNING',
-      E_USER_ERROR => 'E_USER_ERROR',
-      E_USER_WARNING => 'E_USER_WARNING',
-      E_USER_NOTICE => 'E_USER_NOTICE');
+        E_ERROR => 'E_ERROR',
+        E_WARNING => 'E_WARNING',
+        E_PARSE => 'E_PARSE',
+        E_NOTICE => 'E_NOTICE',
+        E_CORE_ERROR => 'E_CORE_ERROR',
+        E_CORE_WARNING => 'E_CORE_WARNING',
+        E_COMPILE_ERROR => 'E_COMPILE_ERROR',
+        E_COMPILE_WARNING => 'E_COMPILE_WARNING',
+        E_USER_ERROR => 'E_USER_ERROR',
+        E_USER_WARNING => 'E_USER_WARNING',
+        E_USER_NOTICE => 'E_USER_NOTICE');
     if (defined('E_STRICT'))
       $level_names[E_STRICT] = 'E_STRICT';
     $levels = array();
@@ -190,24 +195,24 @@ final class Logger {
     }
     foreach ($level_names as $level => $name)
       if (($value & $level) == $level)
-        $levels[] = $name;
+      $levels[] = $name;
     return count($levels) ? implode(' | ', $levels) : $value;
   }
 
   private static function string2error($string) {
     $level_names = array(
-      'E_ERROR',
-      'E_WARNING',
-      'E_PARSE',
-      'E_NOTICE',
-      'E_CORE_ERROR',
-      'E_CORE_WARNING',
-      'E_COMPILE_ERROR',
-      'E_COMPILE_WARNING',
-      'E_USER_ERROR',
-      'E_USER_WARNING',
-      'E_USER_NOTICE',
-      'E_ALL');
+        'E_ERROR',
+        'E_WARNING',
+        'E_PARSE',
+        'E_NOTICE',
+        'E_CORE_ERROR',
+        'E_CORE_WARNING',
+        'E_COMPILE_ERROR',
+        'E_COMPILE_WARNING',
+        'E_USER_ERROR',
+        'E_USER_WARNING',
+        'E_USER_NOTICE',
+        'E_ALL');
     if (defined('E_STRICT'))
       $level_names[] = 'E_STRICT';
     $value = 0;
@@ -224,11 +229,12 @@ final class Logger {
 
     $logPath = CGAF::getConfig('errors.error_log', \CGAF::getInternalStorage('log', false, true, 0770) . DS);
     $logFile = $logPath . strtolower(self::error2string($level)) . '.log';
+
     /*$levels = array(
-      E_NOTICE => 'Notice',
-      E_USER_WARNING => 'Warning',
-      E_WARNING => 'Warning',
-      E_COMPILE_ERROR => 'Compile Error');*/
+     E_NOTICE => 'Notice',
+        E_USER_WARNING => 'Warning',
+        E_WARNING => 'Warning',
+        E_COMPILE_ERROR => 'Compile Error');*/
     if (System::isConsole() && CGAF_DEBUG) {
       if (class_exists('Response', false)) {
         Response::writeln($s);
@@ -251,14 +257,17 @@ final class Logger {
     }
     fwrite($f, $msg . "\n");
     fclose($f);
+
     $die = $level > 0 && $die !== null ? $die : $level == E_ERROR || $level == E_USER_ERROR || $level == E_CORE_ERROR || $level === E_RECOVERABLE_ERROR;
     if ($die) {
       echo $msg;
+
       if (CGAF_DEBUG) {
         echo self::print_backtrace(debug_backtrace());
       }
       CGAF::doExit();
     }
+
     return true;
   }
 
@@ -267,24 +276,24 @@ final class Logger {
       case E_ERROR:
       case E_CORE_ERROR:
         $attr = array(
-          "__tag" => "span",
-          "class" => "error");
+        "__tag" => "span",
+        "class" => "error");
         break;
       case E_NOTICE:
         $attr = array(
-          "__tag" => "span",
-          "class" => "notice");
+        "__tag" => "span",
+        "class" => "notice");
         break;
       case E_WARNING:
       case E_USER_WARNING:
         $attr = array(
-          "__tag" => "span",
-          "class" => "warning");
+        "__tag" => "span",
+        "class" => "warning");
         break;
       default:
         $attr = array(
-          "__tag" => "span",
-          "class" => "");
+        "__tag" => "span",
+        "class" => "");
         break;
     }
     return $attr;

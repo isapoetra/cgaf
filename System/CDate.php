@@ -386,7 +386,7 @@ class CDate extends \DateTime {
 	}
 	public static function Current($fmt = DATE_ISO8601) {
 		$dt = new CDate ();
-		return $dt->format(DATE_ISO8601);
+		return $dt->format($fmt);
 	}
 
 	public static function getMFileTime($filePath) {

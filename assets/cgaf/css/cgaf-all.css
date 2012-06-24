@@ -10,18 +10,16 @@
   clear: both;
 }
 .hide-text {
-  overflow: hidden;
-  text-indent: 100%;
-  white-space: nowrap;
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
 }
 .input-block-level {
   display: block;
   width: 100%;
   min-height: 28px;
-  /* Make inputs at least the height of their button counterpart */
-
-  /* Makes inputs behave like true block-level elements */
-
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
@@ -50,7 +48,15 @@ body {
   font-weight: bold;
   color: white;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), 0 0 30px rgba(255, 255, 255, 0.125);
-  transition: all .2s linear;
+  border-bottom: 4px solid gray;
+  -webkit-transition: background 2s;
+  transition-property: background, opacity;
+  transition-duration: 2s, 2s;
+  opacity: .8;
+}
+.navbar .brand:hover {
+  opacity: 1;
+  background: #1ec7e6;
 }
 .breadcrumb {
   clear: both;
@@ -64,7 +70,7 @@ body {
   padding: 0px 4px 2px;
 }
 .navbar .nav > li > a {
-  padding: 5px  5px 5px;
+  padding: 5px 5px 5px;
 }
 .navbar .nav > li > a:hover {
   color: white;
@@ -111,7 +117,7 @@ body {
   padding: 5px;
 }
 .loading {
-  background: #eeeeee url('/assets/images/loading.gif') center center no-repeat;
+  background: #eeeeee url('/images/loading.gif') center center no-repeat;
 }
 #loading {
   position: fixed;
@@ -172,6 +178,16 @@ body {
 #wrapper-footer .cgaf-powered {
   line-height: 18px;
 }
+#user_menu .user-notification img {
+  margin: 0;
+  padding: 0;
+  float: left;
+}
+.modal-body {
+  max-height: 400px;
+  padding: 15px;
+  overflow: auto;
+}
 .clearfix {
   *zoom: 1;
 }
@@ -184,18 +200,16 @@ body {
   clear: both;
 }
 .hide-text {
-  overflow: hidden;
-  text-indent: 100%;
-  white-space: nowrap;
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
 }
 .input-block-level {
   display: block;
   width: 100%;
   min-height: 28px;
-  /* Make inputs at least the height of their button counterpart */
-
-  /* Makes inputs behave like true block-level elements */
-
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
@@ -220,18 +234,16 @@ body {
   clear: both;
 }
 .hide-text {
-  overflow: hidden;
-  text-indent: 100%;
-  white-space: nowrap;
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
 }
 .input-block-level {
   display: block;
   width: 100%;
   min-height: 28px;
-  /* Make inputs at least the height of their button counterpart */
-
-  /* Makes inputs behave like true block-level elements */
-
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
@@ -249,6 +261,104 @@ body {
 }
 .locale-select.en > a {
   background-image: url("../../images/flags/us.png");
+}
+.scroll-container {
+  position: relative;
+}
+.scroll-container .scroll-box {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+.scroll-container .scroll-box .container {
+  position: relative;
+  top: 0;
+  float: left;
+}
+.scroll-container .scroll-box .content {
+  clear: both;
+}
+.scroll-container .scroll-box .content p {
+  padding: 0 5px;
+  margin: 10px 0;
+  color: #fff;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+}
+.scroll-container .scroll-box .content p.alt {
+  padding: 10px 5px;
+  margin: 10px 0;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 17px;
+  line-height: 19px;
+  color: #999;
+}
+.scroll-container .scroll-box img {
+  border: 5px solid #fff;
+}
+.scroll-container .dragger_container {
+  position: relative;
+  width: 2px;
+  float: left;
+  margin: 0;
+  margin-left: 10px;
+  background: #000;
+  cursor: pointer;
+  border-radius: 2px;
+  cursor: s-resize;
+}
+.scroll-container .dragger {
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background: #999;
+  text-align: center;
+  color: #666;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.scroll-container .dragger:hover,
+.scroll-container .dragger_pressed {
+  position: absolute;
+  width: 4px;
+  margin-left: -1px;
+  height: 60px;
+  background: #999;
+  text-align: center;
+  line-height: 60px;
+  color: #666;
+  overflow: hidden;
+  -moz-border-radius: 4px;
+  -khtml-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  cursor: s-resize;
+}
+.scroll-container .scrollUpBtn,
+.scroll-container .scrollDownBtn {
+  position: absolute;
+  display: inline-block;
+  width: 14px;
+  height: 15px;
+  margin-right: 12px;
+  text-decoration: none;
+  right: 0;
+  opacity: 0.20;
+}
+.scroll-container .scrollUpBtn {
+  top: 16px;
+  background: url(mcs_btnUp.png) center center no-repeat;
+}
+.scroll-container .scrollDownBtn {
+  bottom: 12px;
+  background: url(mcs_btnDown.png) center center no-repeat;
+}
+.scroll-container .scrollUpBtn:hover,
+.scroll-container .scrollDownBtn:hover {
+  opacity: 0.60;
 }
 .dockable {
   z-index: 10;
@@ -468,6 +578,13 @@ body {
 .expandable .expandable-header:hover {
   background-color: #f5f5f5;
 }
+table.grid .grid-action {
+  padding: 2px;
+}
+table.grid .grid-action table td {
+  border: none;
+  padding: 0 0 0 10px;
+}
 .popup-dialog {
   position: absolute;
   top: 250px;
@@ -568,6 +685,33 @@ body {
   -webkit-border-radius: 3px 3px 0 0;
   -moz-border-radius: 3px 3px 0 0;
   border-radius: 3px 3px 0 0;
+}
+.nav-tabs .tab-head {
+  padding-right: 12px;
+  padding-left: 12px;
+  margin-right: 2px;
+  color: #555;
+  background-color: white;
+  cursor: default;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  line-height: 18px;
+  -webkit-border-radius: 4px 4px 0 0;
+  -moz-border-radius: 4px 4px 0 0;
+  border-radius: 4px 4px 0 0;
+}
+.nav-tabs .tab-head.active {
+  border: 1px solid #DDD;
+  border-bottom-color: transparent;
+}
+.nav-tabs .tab-head .right.open .dropdown-toggle {
+  background-color: transparent;
+}
+.nav-tabs .tab-head .right .dropdown-toggle {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 10px;
 }
 .qq-uploader {
   position: relative;

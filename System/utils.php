@@ -461,6 +461,7 @@ abstract class Utils {
 		if (Strings::BeginWith($path, 'https:') || Strings::BeginWith($path, 'http:') || Strings::BeginWith($path, 'ftp:')) {
 			return $path;
 		}
+		$path =  self::ToDirectory($path);
 		if (!Strings::BeginWith($path, ASSET_PATH)) {
 			pp(ASSET_PATH);
 			ppd($path);
@@ -830,8 +831,8 @@ abstract class Utils {
 		}
 	}
 
-	public static function findConfig($configName, $configs) {
-		$configs = \Convert::toArray($configs);
+	public static function findConfig($configName, $configs,$toArray=true) {
+		$configs = $toArray ?  \Convert::toArray($configs) : $configs;
 		if (isset ($configs [$configName])) {
 			return $configs [$configName];
 		}
@@ -986,7 +987,9 @@ EOT;
 		if (!is_string($o)) {
 			return $o;
 		}
+
 		if (substr($o, 0, 1) === '#') {
+		    $o .= "\n";
 			$o = explode("\n", substr($o, 1));
 			$r = array();
 			foreach ($o as $v) {
@@ -1200,6 +1203,7 @@ EOT;
 					$a2
 			);
 		}
+
 		if (!is_array($a1)) {
 			$a1 = array();
 		}

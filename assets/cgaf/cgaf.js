@@ -2302,804 +2302,6 @@ $.format = $.validator.format;
 	});
 }(jQuery));
 (function($) {
-	function DateRange(el, options) {
-		options = $.extend(this.defaults, options);
-		this.init(el, options);
-	}
-	$.extend(DateRange.prototype, {
-		setDefaults : function(settings) {
-			extendRemove(this._defaults, settings || {});
-			return this;
-		},
-		_newInst : function($input, o) {
-
-		}
-	});
-
-	DateRange.prototype = {
-
-		defaults : {
-
-		},
-		init : function(el, options) {
-			this.options = options;
-			this.$el = $(el);
-			this.$el.bind({
-				blur : function() {
-					console.log('lost focus');
-				},
-				focus : function() {
-					console.log('focus');
-				}
-			})
-		}
-	}
-	$.fn.daterange = function(o) {
-		o = o || {};
-		var tmp_args = arguments;
-		if (typeof o == 'object')
-			tmp_args[0] = $.extend(o, {
-				timeOnly : true
-			});
-		return $(this).each(function() {
-			$.fn.datepicker.apply($(this), tmp_args);
-		});
-	}
-})(jQuery);(function($){
-	function Dockable(el,options){
-		options = $.extend(this.defaults,options);
-		this.init(el,options)
-		return this;
-	} 
-	Dockable.prototype = {
-			defaults : {
-				location :'left',
-				url:null,
-				renderTo:'body'
-			},
-			location:function(l) {
-				
-			},
-			
-			init : function(el,options) {
-				this.options  =options;
-				if (el) {
-					this.$el = $(el);
-				}else{
-					var tpl = 
-							 '<div class="dockable" id="'+ options.id +'">' 
-							+'	<div class="handle">'
-							+'		<div class="handle-icon-container">'
-							+'			<div class="handle-icon">'
-							+'				<i class="icon"></i>'
-							+'			</div>'
-							+'		</div>'
-							+'		<div class="delim"></div>'
-							+'	</div>'
-							+'	<div class="content"></div>'
-							+'</div>';
-					
-					this.$el=$(tpl).appendTo(options.renderTo);
-					if (options.id) {
-						this.$el.attr('id',options.id);
-					}
-				}
-			
-				this.options = $.extend(options || {},this.defaults || {});
-				this.$title = this.$el.find('.handle .handle-icon');
-				this.$title.click($.proxy(this.toggle,this));
-				this.$content = this.$el.find('.content');
-				this.$delim = this.$el.find('.handle .delim');
-				this.calculatePosition();
-				this.reloadContent();
-			},
-			reloadContent : function() {
-				if (this.options.url) {
-					this.$content.html('Loading...');
-					$(this).addClass('loading');
-					this.$content.load(this.options.url,function(){
-						$(this).removeClass('loading');
-					});
-				} 
-			},
-			width:function() {
-				return this.$el.width();
-			},
-			getPropertyFromAttr : function(prop,def) {
-				var p=this.$el.attr('data-dockable-'+prop);
-				return p ? p : (def ? def :  this.options[prop]);
-			},
-			calculatePosition : function() {
-				var loc= this.getPropertyFromAttr('location');
-				this.$el.addClass(loc);
-				switch (loc) {
-					case 'top':
-						this.$content.remove().prependTo(this.$el);
-						this.$delim.remove().prependTo(this.$el.find('.handle'));
-						break;
-				}
-				
-			},
-			getId:function() {
-				return this.$el.attr('id');
-			},
-			trigger : function(o) {
-				if (this.options.on && this.options.on[o]) {
-					this.options.on[o].call(this,o);
-				}
-			},
-			hide : function() {
-				this.trigger('beforehide');
-				this.$el.removeClass('active');
-				this.trigger('hide');
-			},
-			setContent : function(content) {
-				if (typeof(content)==='function') {
-					content = content.call();
-				} 
-				this.$content.html(content);
-			},
-			show:function() {
-				this.trigger('beforeshow');
-				this.$el.addClass('active');
-				this.trigger('show');
-			},
-			toggle:function() {
-				if (this.$el.hasClass('active')) {
-					this.hide();
-				}else{
-					this.show();
-				}
-				//this.$content.hide();
-			}
-	}
-	//direct creation
-	$.dockable = function(options) {
-		return new Dockable(null, options);
-	};
-	$.fn.dockable = function(option,arg) {
-		return this.each(function(){
-			var $this = $(this), data = $this.data('dockable'), options = typeof option == 'object' && option
-			if (!data)
-				$this.data('dockable', (data = new Dockable(this, options)))
-			if (typeof option == 'string')
-				data[option](arg);
-			return $this.data('dockable');
-		});
-	}
-})(jQuery);(function ($) {
-    var expandableData = new Array;
-    var defaultConfig = {
-        groups:"all",
-        hideAllGroupOnExpand:true,
-        hideHeaderOnExpand:false,
-        header:null,
-        body:null,
-        expanded:false,
-        style:"expandable",
-        floatui:false
-    };
-    $.fn.expandable = function (options) {
-        options = options || {};
-        var config = $.extend(defaultConfig, options);
-        this.each(function () {
-            var cfg = config;
-            expandableData.push(new $.expandable(this, cfg));
-        });
-        return this;
-    };
-    $.expandable = function (e, config) {
-        if (!e)
-            return this;
-        config = $.extend(defaultConfig, config || {});
-        var self = $(e);
-        var me = this;
-        if (!self.attr("id"))
-            self.attr("id", "expandable-" + Math.floor(Math.random() * 16).toString(16).toUpperCase());
-        this.options = $.extend({
-            body:"#" + self.attr("id") + "-expander-body"
-        }, config);
-        if (!this.options.body)
-            this.options.body = "#" + self.attr("id") + "-expander-body";
-        this.expanded = this.options.expanded;
-        this.groups = config.groups;
-        this.content = null;
-        if (config.style)
-            self.addClass("expandable");
-        self.addClass("rounded");
-        if (config.header) {
-            this.head = self.find(config.header);
-            if (this.head.find("button .button-expander")) {
-                tpl = '<a class="button-expander" href="javascript:void(0)"><i class="icon"></i></a>';
-                $(tpl).appendTo(this.head);
-            }
-        } else {
-            var header = self.find(".expandable-header");
-            if (header.length === 0)
-                header = $('<div class="expandable-header"><a class="button-expander" href="javascript:void(0)"><i class="icon"></i></a></div>').prependTo(self);
-            config.title = config.title || self.attr("title");
-            if (config.title) {
-                title = $("<div/>").html(config.title).text();
-                tpl = '<div class="expander-content">' + title + "</div>";
-                $(tpl).appendTo(header);
-            }
-            this.head = header;
-        }
-        this.button = this.head.find(".button-expander");
-        var found = false;
-        var c=undefined;
-        if (self.find(this.options.body).length === 0)
-            try {
-                c = $("#" + this.options.body);
-                found = c.length > 0;
-            } catch (e) {
-                try {
-                    c = $(this.options.body);
-                    found = c.length > 0;
-                } catch (e) {
-                }
-            }
-        else {
-            c = self.find(this.options.body);
-            found = c.length > 0;
-        }
-        if (!found) {
-            c = $('<div id="' + this.options.body + '">' + this.options.content + "</div>").appendTo(self);
-            c.hide();
-        }
-        if (this.options.style)
-            c.addClass(this.options.style + "-body ui-widget-content");
-        if (this.options.floatui)
-            c.css({
-                position:"absolute",
-                top:self.offset().top + this.head.height(),
-                left:0,
-                right:0,
-                bottom:0,
-                "z-index":1001
-            });
-        this.content = c;
-        this.self = self;
-        this.head.bind("dblclick", function () {
-            me.toggle()
-        });
-        this.button.bind("click", function () {
-            me.toggle()
-        });
-        this.setup(e);
-        if (found && !this.options.contentUrl)
-            if (this.options.expanded)
-                this.expand(true);
-            else
-                this.collapse(true)
-    };
-    var $ex = $.expandable;
-    $ex.fn = $ex.prototype = {
-        expandable:"version 1.0b"
-    };
-    $ex.fn.extend = $ex.extend = $.extend;
-    $ex.fn.extend({
-        setup:function (e) {
-        },
-        setExpanded:function (value) {
-            if (value) {
-                this.self.addClass("on");
-                this.head.addClass("off");
-                this.button.addClass("on");
-                this.content.addClass("on");
-            } else {
-                this.self.removeClass("on");
-                this.head.removeClass("off");
-                this.button.removeClass("on");
-                this.content.removeClass("on");
-            }
-            this.expanded = value;
-        },
-        collapse:function (force) {
-            if (!force && !this.expanded)
-                return;
-            this.onAction = true;
-            if (this.options.hideHeaderOnExpand)
-                this.head.find(".expander-content").show();
-            this.content.slideUp().hide();
-            this.setExpanded(false)
-        },
-        loading:function () {
-            var l = this.head.find(".loading-small");
-            if (l.length == 0)
-                l = $('<div class="loading-small"></div>').prependTo(this.head);
-            return l
-        },
-        expand:function (force) {
-            if (!force && this.expanded)
-                return;
-            this.onAction = true;
-           // var self = this;
-            if (this.options.hideAllGroupOnExpand)
-                $.each(expandableData, function (k, v) {
-                    if (v.groups === self.groups)
-                        v.collapse()
-                });
-            if (this.options.hideHeaderOnExpand)
-                this.head.find(".expander-content").hide();
-            if (this.content.html() === "")
-                if (this.options.contentUrl)
-                    this.load(this.options.contentUrl);
-                else
-                    this.content.html("");
-            else {
-                this.content.slideDown().show();
-                this.setExpanded(true)
-            }
-        },
-        load:function (url) {
-            this.loading().show();
-            var self = this;
-            this.content.load(url, function (response, status, xhr) {
-                self.loading().hide();
-                self.content.slideDown().show();
-                self.setExpanded(true)
-            })
-        },
-        toggle:function () {
-            if (!this.expanded)
-                this.expand();
-            else
-                this.collapse();
-            this.self.resize();
-        }
-    });
-})(jQuery);(function($) {
-	"use strict"
-	var popupDialog = function(element, options) {
-		options = $.extend(options || {}, $.fn.popupDialog.defaults);
-		this.options = options;
-		if (element) {
-			this.init(element);
-		}
-		return this;
-	}
-
-	popupDialog.prototype = {
-		constructor : popupDialog,
-		init : function(element, options) {
-			if (!this.initialized) {
-				this.initialized = true;
-				this.$element = $(element);
-				this.enabled = true;
-				this.$container = $('#popup-dialog');
-				if (this.$container.length === 0) {
-					this.$container = $('<div id="popup-dialog" class="popup-dialog">' + this.options.template + '</div>').appendTo('body').hide();
-				}
-				var me = this;
-				this.$container.find('.close').click(function() {
-					me.hide();
-					$(me).trigger('close');
-				});
-			} else {
-				this.$element = $(element);
-			}
-			this.calculatePosition();
-		},
-		setContent : function(o) {
-			this.content = o;
-			this.calculatePosition();
-		},
-		getContent : function(el) {
-			if (!this.$element) {
-				return '';
-			}
-			if (this.options.contentEl) {
-				if (typeof (this.options.contentEl) === 'string') {
-					this.options.contentEl = $(this.options.contentEl).show();
-				}
-				$(this.$element).data('data-popup', this.options.contentEl);
-			} else if (this.content) {
-				var content = this.content;
-				if (typeof this.content == 'function') {
-					content = this.content.content.call(this);
-				}
-				$(this.$element).data('data-popup', content);
-			} else if (this.options.url) {
-				var dc = $(this.$element).data('data-popup');
-				if (!dc) {
-					var me = this;
-					$.ajax({
-						url : this.options.url,
-						success : function(data) {
-							$(me.$element).data('data-popup', data);
-							me.calculatePosition();
-						},
-						error : function() {
-							$(me.$element).data('data-popup', 'error');
-							me.calculatePosition();
-						}
-					});
-					return '<span>Loading...</span>';
-				}
-			} else {
-				return '<span></span>';
-			}
-			return $(this.$element).data('data-popup');
-		},
-
-		calculatePosition : function() {
-			var content, placement, inside, tp, pos, actualWidth, actualHeight;
-			content = this.getContent();
-			if (this.options.title) {
-				this.$container.find('.title')[$.type(this.options.title) == 'object' ? 'append' : 'html'](this.options.title).show();
-			} else {
-				this.$container.find('.title').hide();
-			}
-			this.$container.find('.content').empty().html(content);
-			var arrow = this.$container.find('.arrow');
-			placement = typeof this.options.placement == 'function' ? this.options.placement.call(this, this.$container, this.$element[0]) : this.options.placement;
-			inside = /in/.test(placement);
-
-			//calculate based on Content;
-			content = $(content);
-			actualWidth = content.width() ? content.width() : this.options.defaultWidth;
-			actualHeight = content.height() ? content.height() : this.options.defaultHeight;
-			//makesure container has valid width
-			this.$container.css({
-				width : actualWidth + 'px',
-				height : actualHeight + 'px'
-			});
-			pos = this.$element.offset();
-			pos.height = this.$element[0].offsetHeight;
-			pos.width = this.$element[0].offsetWidth;
-			this.updatePosition(placement, pos, actualWidth, actualHeight);
-		},
-		updatePosition : function(placement, pos, actualWidth, actualHeight) {
-			var inside = /in/.test(placement);
-			var tp = {
-				width : actualWidth,
-				height : actualHeight
-			};
-			switch (inside ? placement.split(' ')[1] : placement) {
-				case 'bottom':
-					tp.top = pos.top + pos.height, tp.left = pos.left + pos.width / 2 - actualWidth / 2
-					break;
-				case 'top':
-					tp.top = pos.top - actualHeight, tp.left = pos.left + pos.width / 2 - actualWidth / 2;
-					break
-				case 'left':
-					tp.top = pos.top + pos.height / 2 - actualHeight / 2;
-					tp.left = pos.left - actualWidth;
-					break
-				case 'right':
-					tp.top = pos.top + pos.height / 2 - actualHeight / 2;
-					tp.left = pos.left + pos.width;
-
-					break
-			}
-			//Reupdate Position
-			this.$container.addClass(placement).css(tp).addClass('in');
-			var inner = this.$container.find('.inner');
-			if (this.$container.find('.title').is(':visible')) {
-				//inner.find('.content').height(actualHeight - (this.$container.find('.title').height() + 30));
-			}
-			inner.css({
-				width : actualWidth,
-				height : actualHeight
-			});
-		},
-		setOptions : function(o) {
-			if ($.type(o) === 'object') {
-				if (o.url && (this.options.url !== o.url)) {
-					//force reupdate content from remote
-					$(this).data('data-content', null);
-				}
-				if (o.element) {
-					this.init(o.element);
-				}
-				this.options = $.extend(this.options, o);
-			}
-		},
-		show : function(o) {
-
-			this.calculatePosition();
-			this.$element.addClass('active');
-			this.$container.show();
-		},
-		hide : function() {
-			this.$element.removeClass('active');
-			this.$container.hide();
-		},
-		toggle : function() {
-			if (!this.$container.is(":visible")) {
-				this.show();
-			} else {
-				this.hide();
-			}
-		},
-		setTitle : function(title) {
-			this.options.title = title;
-			this.update();
-		}
-	};
-
-	$.fn.popupDialog = function(option, arg) {
-		return this.each(function() {
-			var $this = $(this), data = $this.data('popupdialog'), options = typeof option == 'object' && option
-			if (!data)
-				$this.data('popupdialog', (data = new popupDialog(this, options)))
-			if (typeof option == 'string')
-				data[option](arg);
-			return $this.data('popupdialog');
-		});
-	}
-	$.popupDialog = popupDialog;
-	$.fn.popupDialog.Constructor = popupDialog;
-	$.fn.popupDialog.defaults = {
-		placement : 'bottom',
-		defaultWidth : '150',
-		defaultHeight : '150',
-		trigger : 'manual',
-		template : '<div class="arrow"></div><div class="inner"><div class="icon icon-remove close"/><h3 class="title"></h3><div class="content"><p></p></div></div>'
-	}
-})(jQuery);(function () {
-    $.fn.scrollbar = function (options) {
-        options = $.extend({
-            scrollHeight:150
-        }, options || {});
-        return this.each(function () {
-            var $$ = $(this);
-            var content = $$.children(0).css({
-                position:"relative"
-            });
-            if (!$$.data("scrollbar")) {
-                var sc = $$.find(".scrollbar");
-                if (sc.length === 0) {
-                    sc = $('<div class="scrollbar"></div>').prependTo($$);
-                    s = $("<div></div>").appendTo(sc);
-                    sc.css({
-                        padding:0,
-                        margin:0,
-                        backgroundColor:"rgba(118, 118, 118, 1)",
-                        cssFloat:"right",
-                        width:"6px"
-                    });
-                    s.css({
-                        height:25 + "px",
-                        position:"relative",
-                        border:"1px solid rgba(118, 118, 118, 1)",
-                        borderRadius:"2px",
-                        backgroundColor:"red",
-                        cursor:"pointer"
-                    });
-                    s.draggable({
-                        containment:"parent",
-                        axis:"y",
-                        start:function () {
-                        },
-                        drag:function (event, ui) {
-                            recalculate(ui.position.top)
-                        },
-                        stop:function (event, ui) {
-                            recalculate(ui.position.top)
-                        }
-                    });
-                    s.bind("mousewheel", function () {
-                        recalculate()
-                    })
-                }
-                function recalculate(top) {
-                    sc.css({
-                        height:$$.height() + "px"
-                    });
-                    content.css({
-                        top:top * -1
-                    })
-                }
-
-                recalculate();
-                this.recalculate = recalculate;
-                $$.data("scrollbar", this)
-            } else
-                $$.data("scrollbar").recarculate();
-            return this
-        })
-    }
-})(jQuery);/* ========================================================
- * bootstrap-tab.js v2.0.2
- * http://twitter.github.com/bootstrap/javascript.html#tabs
- * ========================================================
- * Copyright 2012 Twitter, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * ======================================================== */
-
-!function($) {
-
-	"use strict"
-
-	/*
-	 * TAB CLASS DEFINITION ====================
-	 */
-
-	var Tab = function(element) {
-		this.element = $(element)
-	}
-
-	Tab.prototype = {
-
-		constructor : Tab
-
-		,
-		show : function() {
-			var $this = this.element, $ul = $this.closest('ul:not(.dropdown-menu)'), selector = $this.attr('data-target'), previous, $target
-
-			if (!selector) {
-				selector = $this.attr('href')
-				selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '') //strip for ie7
-			}
-			if ($this.parent('li').hasClass('active'))
-				return
-
-			
-
-			previous = $ul.find('.active a').last()[0]
-
-			$this.trigger({
-				type : 'show',
-				relatedTarget : previous
-			})
-
-			$target = $(selector)
-
-			this.activate($this.parent('li'), $ul)
-			this.activate($target, $target.parent(), function() {
-				$this.trigger({
-					type : 'shown',
-					relatedTarget : previous
-				})
-			});
-			var url = $this.attr('data-url');
-			if (url) {
-				if (!$this.attr('data-loaded')) {
-					$target.addClass('loading');
-					$.ajax({
-						url : url,
-						success : function(data) {
-							$this.attr('data-loaded', true);
-							$target.html(data);
-							$target.removeClass('loading');
-						}
-					});
-				}
-			}
-		}
-
-		,
-		activate : function(element, container, callback) {
-			var $active = container.find('> .active'), transition = callback && $.support.transition && $active.hasClass('fade')
-
-			function next() {
-				$active.removeClass('active').find('> .dropdown-menu > .active').removeClass('active')
-
-				element.addClass('active')
-
-				if (transition) {
-					element[0].offsetWidth // reflow for transition
-					element.addClass('in')
-				} else {
-					element.removeClass('fade')
-				}
-
-				if (element.parent('.dropdown-menu')) {
-					element.closest('li.dropdown').addClass('active')
-				}
-
-				callback && callback()
-			}
-
-			transition ? $active.one($.support.transition.end, next) : next()
-
-			$active.removeClass('in')
-		}
-	}
-
-	/*
-	 * TAB PLUGIN DEFINITION =====================
-	 */
-
-	$.fn.tab = function(option) {
-		return this.each(function() {
-			var $this = $(this), data = $this.data('tab')
-			if (!data)
-				$this.data('tab', (data = new Tab(this)))
-			if (typeof option == 'string')
-				data[option]()
-		})
-	}
-
-	$.fn.tab.Constructor = Tab
-
-	/*
-	 * TAB DATA-API ============
-	 */
-
-	$(function() {
-		$('body').on('click.tab.data-api', '[data-toggle="tab"], [data-toggle="pill"]', function(e) {
-			e.preventDefault()
-			$(this).tab('show')
-		})
-	})
-
-}(window.jQuery);(function () {
-    function tooltip(el, config) {
-        var config = $.extend({
-            title:""
-        }, config || {});
-        var el = $(el);
-        var tip = el.find(".tip");
-        var title = config.title ? config.title : el.attr("title");
-        if (tip.length === 0)
-            tip = $('<div class=".tip">' + title + "</div>").css({
-                position:"absolute"
-            }).appendTo($(el));
-        tip.hide();
-        $(el).bind({
-            mouseenter:function (e) {
-                tip.show();
-            },
-            mouseleave:function (e) {
-                tip.hide();
-            },
-            mousemove:function (e) {
-                var mousex = e.pageX + 20;
-                var mousey = e.pageY + 20;
-                var tipWidth = tip.width();
-                var tipHeight = tip.height();
-                var tipVisX = $(window).width() - (mousex + tipWidth);
-                var tipVisY = $(window).height() - (mousey + tipHeight);
-                if (tipVisX < 20)
-                    mousex = e.pageX - tipWidth - 20;
-                if (tipVisY < 20)
-                    mousey = e.pageY - tipHeight - 20;
-                tip.css({
-                    top:mousey,
-                    left:mousex
-                })
-            }
-        })
-    }
-
-    $.fn.tooltip = function (config) {
-        $(this).each(function () {
-            new tooltip(this, config)
-        })
-    }
-})(jQuery);(function($) {
-	var Uploader = function(el,options) {
-		
-	}
-	Uploader.prototype = {
-			defaults: {
-				allowMulti : true
-			}
-	}
-	$.fn.uploader = function(options) {
-		return this.each(function() {
-			var $this = $(this), data = $this.data('uploader')
-			if (!data)
-				$this.data('uploader', (data = new Uploader(this,options)))
-			if (typeof option == 'string')
-				data[option]()
-		}); 
-	};
-})(jQuery); (function($) {
 
   $.fn.passwordStrength = function(username) {
     score = 0;
@@ -3210,7 +2412,8 @@ $.format = $.validator.format;
                   lastXhr =
                       $.getJSON($this.attr('srclookup'), request,
                           function(data, status, xhr) {
-                            $this.cache = $this.cache || {};
+                            $this.cache = $this.cache
+                                || {};
                             $this.cache[term] = data;
                             if (xhr === lastXhr) {
                               response(data);
@@ -3220,11 +2423,21 @@ $.format = $.validator.format;
               });
             });
         form.find('[data-input="datetime"]').each(function() {
-
+          $(this).timepicker();
         });
         form.find('[data-input="daterange"]').each(function() {
           //console.log(this);
-          $(this).daterange();
+          if ($(this).attr('data-time')) {
+            $(this).datetimepicker({
+              timeOnly : false,
+              timeFormat:'hh:mm:ss',
+              dateFormat : cgaf.getConfig('dateInputFormat')
+            });
+          } else {
+            $(this).datepicker({
+              dateFormat : cgaf.getConfig('dateInputFormat')
+            });
+          }
         });
         var jax =
             form.attr("useajax") === undefined ? config.ajaxmode : form
@@ -3301,510 +2514,688 @@ $.format = $.validator.format;
         return false;
       };
 })(jQuery);(function($) {
-	function log() {
-		if (!$.fn.ajaxSubmit.debug)
-			return;
-		var msg = "[jquery.form] " + Array.prototype.join.call(arguments, "");
-		if (window.console && window.console.log)
-			window.console.log(msg);
-		else if (window.opera && window.opera.windpostError)
-			window.opera.postError(msg);
-	}
+  function log() {
+    if (!$.fn.ajaxSubmit.debug)
+      return;
+    var msg = "[jquery.form] "
+        + Array.prototype.join.call(arguments, "");
+    if (window.console
+        && window.console.log)
+      window.console.log(msg);
+    else if (window.opera
+        && window.opera.windpostError)
+      window.opera.postError(msg);
+  }
 
-	window.log = log;
+  window.log = log;
 
-	$.openOverlay = function(options) {
-		if (typeof(options) === 'string') {
-			options = {
-					url : options
-			}
-		}
-		var m = $('#cgaf-modal');
-		var options = $.extend(options, options || {
-			title : 'test',
-			backdrop : true,
-			show : false
-		});
-		if (m.length == 0) {
-			m = $('<div id="cgaf-modal" class="modal fade in"/>').appendTo('body');
-			$('<div class="modal-header"><a class="icon-remove close" data-dismiss="modal"></a><h3></h3></div><div class="modal-body"></div> <div class="modal-footer"></div>').appendTo(m);
-		}
-		var b = m.find('.modal-body').empty();
+  $.openOverlay =
+      function(options) {
+        if (typeof (options) === 'string') {
+          options = {
+            url : options
+          }
+        }
+        var m = $('#cgaf-modal');
+        var options = $.extend(options, options
+            || {
+              title : 'test',
+              backdrop : true,
+              show : false
+            });
+        if (m.length == 0) {
+          m =
+              $('<div id="cgaf-modal" class="modal fade in"/>')
+                  .appendTo('body');
+          $(
+              '<div class="modal-header"><a class="icon-remove close" data-dismiss="modal"></a><h3></h3></div><div class="modal-body"></div> <div class="modal-footer"></div>')
+              .appendTo(m);
+        }
+        var b = m.find('.modal-body').empty();
 
-		var modal = new $.fn.modal.Constructor(m, options);
-		if (options.title) {
-			m.find('.modal-header h3').html(options.title);
-		} else {
-			m.find('.modal-header h3').hide();
-		}
-		if (options.url) {
-			b.addClass('loading');
-			var url =cgaf.url(options.url,{
-				__uimode:'dialog'
-			}).toString(); 
-			b.load(url, function(data,s,xhr) {
-				if (options.callback) {
-					options.callback.call(modal,b);
-				}
-				b.removeClass('loading');
-			});
-		} else if (options.contents) {
-			var content = options.contents;
-			if (typeof(content) ==='object') {
-				var tmp = '<ul>';
-				for (var i in content) {
-					if (typeof (content[i]) ==='string') {
-						tmp +='<li>'+content[i]+'</li>';
-					}else if (typeof(content[i])==='object') {
-						
-						for (var j in content[i]) {
-							tmp += '<li>';
-							tmp += content[i][j];
-							tmp += '</li>';
-						}
-					} 
-				}
-				tmp +='</ul>'
-				content =tmp;
-			}
-			b.html(content);
-		}
-		modal.show();
-	};
+        var modal = new $.fn.modal.Constructor(m, options);
+        options.title = options.title || '&nbsp;';
+        m.find('.modal-header h3').html(options.title);
+        if (options.url) {
+          b.addClass('loading');
+          var url = cgaf.url(options.url, {
+            __uimode : 'dialog'
+          }).toString();
+          b.load(url, function(data, s, xhr) {
+            if (options.callback) {
+              options.callback.call(modal, b);
+            }
+            b.removeClass('loading');
+          });
+        } else if (options.contents) {
+          var content = options.contents;
+          if (typeof (content) === 'object') {
+            var tmp = '<ul>';
+            for ( var i in content) {
+              if (typeof (content[i]) === 'string') {
+                tmp += '<li>'
+                    + content[i] + '</li>';
+              } else if (typeof (content[i]) === 'object') {
 
-	$.showErrorMessage = function(msg) {
-		$.openOverlay({
-			title : 'Error',
-			contents : msg
-		});
-	};
-	
-	$.fn.openOverlay = $.openOverlay;
-	$.filterProperties = function(r, o) {
-		var retval = {};
-		for ( var s in r) {
-			var value = o[s];
-			if (typeof value !== "undefined" && value !== null)
-				retval[s] = value;
-		}
-		return retval;
-	};
-	function Q() {
-		var _finish = [], _queue = [];
-		this._started = false;
-		return {
-			onFinish : function(callback) {
-				_finish.push(callback);
-				this._started = false;
-			},
-			add : function(callback) {
-				_queue.push(callback);
-			},
-			next : function() {
-				if (_queue.length === 0) {
-					$(_finish).each(function() {
-						this.call();
-					});
-					return
+                for ( var j in content[i]) {
+                  tmp += '<li>';
+                  tmp += content[i][j];
+                  tmp += '</li>';
+                }
+              }
+            }
+            tmp += '</ul>'
+            content = tmp;
+          }
+          b.html(content);
+        }
+        modal.show();
+      };
 
-				}
-				this._started = true;
-				callback = _queue.shift();
-				callback.call(this);
-			},
-			start : function() {
-				this.next();
-			}
-		};
-	}
+  $.showErrorMessage = function(msg) {
+    $.openOverlay({
+      title : 'Error',
+      contents : msg
+    });
+  };
 
-	function CGAFEvent() {
-		var _events = [];
-		return {
-			Event : function(e, s, a) {
-				var propagationStopped = false;
-				this.EventName = e;
-				this.Source = s;
-				this.args = a;
-				this.stopPropagation = function() {
-					propagationStopped = true;
-				};
-				this.propagationStoped = function() {
-					return propagationStopped;
-				}
-			},
-			bind : function(event, callback) {
-				_events.push({
-					name : event,
-					callback : callback
-				});
-			},
-			trigger : function(event, data) {
-				for ( var e in _events) {
-					var ev = _events[e];
-					if (ev.name === event)
-						ev.callback(data);
-				}
-			},
-			unbind : function(event, data) {
-				for ( var e in _events) {
-					var ev = _events[e];
-					try {
-						if (ev.name === event && ev.callback == data) {
-							_events.splice(e, 1);
-							break;
-						}
-					} catch (e) {
-						console.log(e);
-					}
-				}
-			}
-		};
-	}
+  $.fn.openOverlay = $.openOverlay;
+  $.filterProperties = function(r, o) {
+    var retval = {};
+    for ( var s in r) {
+      var value = o[s];
+      if (typeof value !== "undefined"
+          && value !== null)
+        retval[s] = value;
+    }
+    return retval;
+  };
+  function Q() {
+    var _finish = [], _queue = [];
+    this._started = false;
+    return {
+      onFinish : function(callback) {
+        _finish.push(callback);
+        this._started = false;
+      },
+      add : function(callback) {
+        _queue.push(callback);
+      },
+      next : function() {
+        if (_queue.length === 0) {
+          $(_finish).each(function() {
+            this.call();
+          });
+          return
 
-	var CGAF = function() {
-		var _queue = [], pluginLoader = new Q, cgafconfig = {}, _queueRunning = false, loadedJQ = {
-			"jquery.mousewheel" : ""
-		}, loadedCSS = {}, _event = new CGAFEvent, _module = {};
+          
 
-		function CGAF(options) {
-			if (window.cgaf)
-				return window.cgaf;
-			return new CGAF.fn.init(options);
-		}
+                    
 
-		CGAF.fn = CGAF.prototype = {
-			defaults: {
-				ismobile:false
-			},
-			init : function(options) {
-				var me = this;
-				cgafconfig= $.extend(this.defaults,options || {});
-				var lo = $("#loading");
-				if (lo.length === 0)
-					lo = $('<div id="loading" class="loading"><span>loading...</span></div>').appendTo("body").hide();
-				lo.bind("ajaxSend", function() {
-					$(this).show();
-				}).bind("ajaxComplete", function() {
-					me.defaultUIHandler();
-					$(this).hide();
-				});
-				this.Events = {
-					CGAF_READY : "cgaf-ready",
-					STATUS_CHANGED : "status-changed"
-				};
-			},
-			getModuleInfo : function(m) {
-				if (typeof m === "object")
-					m = m._m;
-				for ( var key in _module) {
-					var obj = _module[key];
-					if (isNaN(m)) {
-						if (obj.mod_dir.toLowerCase() == m.toLowerCase())
-							return obj
-					} else if (key.toString().toLowerCase() == m.toString().toLowerCase())
-						return obj
-				}
-			},
-			getJSAsync : function(url, config) {
-				var callback=null;
-				if (typeof(url) ==='string') url = [url];
-				if (typeof(config) ==='function') callback =config;
-				var loader = function(src, handler) {
-					var script = document.createElement("script");
-					script.src = src;
-					script.onload = script.onreadystatechange = function() {
-						script.onreadystatechange = script.onload = null;
-						handler();
-					}
-					var head = document.getElementsByTagName("head")[0];
-					(head || document.body).appendChild(script);
-				};
-				(function() {
-					if (url.length != 0) {
-						loader(url.shift(), arguments.callee);
-					} else {
-						callback && callback();
-					}
-				})();
+          
 
-				/*var script = document.createElement("script");
-				script.type = "text/javascript";
-				var u = cgaf.url(url, config);
-				script.src = u.toString();
-				document.body.appendChild(script);*/
-			},
-			getJS : function(scripts, onComplete, id) {
-				var i = 1;
-				var ii = typeof scripts !== "string" ? scripts.length : 1;
+                              
 
-				function onScriptLoaded(data, response) {
-					if (i++ == ii)
-						if (typeof onComplete !== "undefined")
-							onComplete();
-				}
+          
 
-				function onScriptError() {
-					cgaf.log(arguments);
-					i++;
-				}
+                    
 
-				if (typeof scripts === "string")
-					try {
-						this.getJSAsync(scripts, onScriptLoaded);
-						//$.getScript(scripts, onScriptLoaded)
-					} catch (e) {
-						onScriptError(e);
-					}
-				else if (typeof scripts === "object")
-					for ( var s in scripts) {
-						var sc = scripts[s];
-						if (typeof sc !== "string")
-							continue;
-						try {
-							this.getJSAsync(scripts, onScriptLoaded);
-							//$.getScript(sc, onScriptLoaded);
-						} catch (e) {
-							onScriptError(e);
-						}
-					}
-				else
-					cgaf.log(typeof scripts);
-			},
-			ui : {},
-			rescheduleQueue : function() {
-				if (_queueRunning)
-					return;
-				if (_queue.length == 0)
-					return;
-				_queueRunning = true;
-				var q = _queue.shift();
-				var old = q.data.callback || function() {
-				};
-				var me = this;
-				q.data.callback = function() {
-					try {
-						old.apply(this, arguments)
-					} catch (e) {
-					}
-					_queueRunning = false;
-					me.rescheduleQueue()
-				};
-				q.callback.call(this, q.data)
-			},
-			isJQPluginLoaded : function(js) {
-				return loadedJQ.hasOwnProperty(js)
-			},
-			loadStyleSheet : function(url) {
-				if (Object.keys(loadedCSS).length == 0)
-					$("head > link").each(function(key, item) {
-						var href = $(item).attr("href");
-						loadedCSS[href] = true;
-					});
-				if (loadedCSS.hasOwnProperty(url))
-					return;
-				loadedCSS[url] = true;
-				console.log(url);
-				$("head").append($('<link rel="stylesheet" type="text/css" />').attr("href", url))
-			},
-			loadJQPlugin : function(jq, callback) {
-				if (typeof jq === "object") {
-					var self = this;
-					pluginLoader.onFinish(callback);
-					$.each(jq, function(k, item) {
-						pluginLoader.add(function() {
-							self.loadJQPlugin(item, function() {
-								pluginLoader.next()
-							})
-						})
-					});
-					pluginLoader.start();
-					return
+          
 
-				}
-				if (this.isJQPluginLoaded(jq)) {
-					this.trigger("onpluginloaded", jq);
-					if ($.isFunction(callback))
-						callback.call(this);
-					return
+                                        
 
-				}
-				version = this.getConfig("jq.version", "latest");
-				var url = this.getConfig("jqurl", this.getConfig("asseturl", "")) + "js/jQuery/plugins/" + jq + ".js";
-				loadedJQ[jq] = url;
-				this.require(url, callback)
-			},
-			require : function(ns, callback) {
-				this.getJS(ns, function() {
-					if (typeof callback !== "undefined")
-						callback.call(this, arguments)
-				})
-			},
-			getJSON : function(url, data, callback, err) {
-				var me = this;
-				data = $.extend({
-					__data : "json"
-				}, data || {});
-				return jQuery.get(url, data, function(d) {
-					var j;
-					try {
-						j = (new Function("return " + d))()
-					} catch (e) {
-						if (err) {
-							err.call(this, e, d)
-						}else{
-						  cgaf.log(e.toString() + ":" + d);
-	            me.showError("Invalid JSON Data<br/>" + d);
-						}
-						return false
-					}
-					if (callback)
-						callback.call(this, j)
-				}, "text")
-			},
-			getJSONApp : function(data, callback) {
-				var appurl = cgaf.getConfig("appurl");
-				return jQuery.get(appurl, data, function(d) {
-					if (typeof callback !== "undefined")
-						callback.call(this, (new Function("return " + d))())
-				}, "text");
-			},
-			ErrorType : {
-				Notice : "error-type-notice",
-				Warning : "error-type-warning",
-				Error : "error-type-error"
-			},
-			defaultUIHandler : function() {
-				if (!$("#sysmessage").attr("handled"))
-					$("#sysmessage").bind("click", function() {
-						$(this).hide();
-					}).attr("handled", true);
-				$("a[rel=__overlay]").each(function() {
-					if (!$(this).attr("__overlay")) {
-						$(this).attr("__overlay", 1);
-						$(this).click(function(e) {
-							e.preventDefault();
-							$.openOverlay($(this).attr("href"));
-						});
-					}
-				});
-				$("a[rel=__confirm]").each(function() {
-					if (!$(this).attr("__confirm")) {
-						$(this).attr("__confirm", 1);
-						$(this).click(function(e) {
-							e.preventDefault();
-							var title = $(this).attr("ctitle");
-							if (!title)
-								title = $(this).attr("title");
-							var me = $(this);
-							cgaf.confirm(title, function() {
-								var url = $.url(me.attr("href"));
-								url.param("__confirm", 1);
-								$.openOverlay(url.toString());
-							});
-						});
-					}
-				});
-			},
-			setReady : function() {
-				this.defaultUIHandler();
-				this.trigger(this.Events.CGAF_READY);
-			},
-			trigger : function() {
-				_event.trigger.apply(this, arguments);
-			},
-			bind : function() {
-				_event.bind.apply(this, arguments);
-			},
-			Windows : function() {
-				return {
-					open : function(url) {
-						return $.openOverlay(url);
-					}
-				};
-			},
-			Plugins : function() {
-				return {
-					select : function() {
-					}
-				};
-			},
-			setStatus : function(msg) {
-				cgaf.trigger(cgaf.Events.STATUS_CHANGED, msg);
-			},
-			setConfig : function(name, value) {
-				if (typeof value === "undefined") {
-					var self = this;
-					$.each(name, function(k, v) {
-						self.setConfig(k, v);
-					});
-				} else
-					cgafconfig[name] = value;
-			},
-			confirm : function(msg, callback) {
-				var dlf = $("#confirm-dialog");
-				if (dlf.length === 0)
-					dlf = $('<div id="confirm-dialog"></div>').appendTo("body");
-				dlf.html(msg);
-				dlf.dialog({
-					modal : true,
-					buttons : {
-						Confirm : function() {
-							if (callback)
-								callback.call(this);
-							$(this).dialog("close");
-						},
-						Cancel : function() {
-							$(this).dialog("close")
-						}
-					}
-				});
-				dlf.dialog("open")
-			},
-			dateFromISO : function(date, format) {
-				date = new Date(date);
-				return date.format(format);
-			},
-			showError : function(msg) {
-				$.showErrorMessage(msg);
-			},
-			getConfig : function(name, def) {
-				return typeof cgafconfig[name] === "undefined" ? def : cgafconfig[name];
-			},
-			log : function(args, etype) {
-				window.log(arguments);
-			},
-			url : function(uri, data) {
-				var r = new $.url(uri);
-				r.setParam(data);
-				return r;
-			},
-			Queue : function(id, callback, data) {
-				_queue.push({
-					id : id,
-					data : data,
-					callback : callback
-				});
-				this.rescheduleQueue();
-			},
-			toJSON : function(o) {
-				if (typeof o === "string")
-					try {
-						return (new Function("return " + o))();
-					} catch (e) {
-						return null;
-					}
-				cgaf.log($(this));
-				return o;
-			},
-			Socket : function() {
-			}
-		};
-		CGAF.fn.init.prototype = CGAF.fn;
-		return CGAF;
-	}();
-	// window.Util = Util;
-	window.cgaf = new CGAF
+          
+
+                    
+
+          
+
+                              
+
+          
+
+                    
+
+          
+
+                                                  
+
+          
+
+                    
+
+          
+
+                              
+
+          
+
+                    
+
+          
+
+                                        
+
+          
+
+                    
+
+          
+
+                              
+
+          
+
+                    
+
+          
+
+                                                            
+
+          
+
+                    
+
+          
+
+                              
+
+          
+
+                    
+
+          
+
+                                        
+
+          
+
+                    
+
+          
+
+                              
+
+          
+
+                    
+
+          
+
+                                                  
+
+          
+
+                    
+
+          
+
+                              
+
+          
+
+                    
+
+          
+
+                                        
+
+          
+
+                    
+
+          
+
+                              
+
+          
+
+                    
+
+          
+
+        }
+        this._started = true;
+        callback = _queue.shift();
+        callback.call(this);
+      },
+      start : function() {
+        this.next();
+      }
+    };
+  }
+
+  function CGAFEvent() {
+    var _events = [];
+    return {
+      Event : function(e, s, a) {
+        var propagationStopped = false;
+        this.EventName = e;
+        this.Source = s;
+        this.args = a;
+        this.stopPropagation = function() {
+          propagationStopped = true;
+        };
+        this.propagationStoped = function() {
+          return propagationStopped;
+        }
+      },
+      bind : function(event, callback) {
+        _events.push({
+          name : event,
+          callback : callback
+        });
+      },
+      trigger : function(event, data) {
+        for ( var e in _events) {
+          var ev = _events[e];
+          if (ev.name === event)
+            ev.callback(data);
+        }
+      },
+      unbind : function(event, data) {
+        for ( var e in _events) {
+          var ev = _events[e];
+          try {
+            if (ev.name === event
+                && ev.callback == data) {
+              _events.splice(e, 1);
+              break;
+            }
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      }
+    };
+  }
+
+  var CGAF =
+      function() {
+        var _queue = [], pluginLoader = new Q, cgafconfig = {}, _queueRunning =
+            false, loadedJQ = {
+          "jquery.mousewheel" : ""
+        }, loadedCSS = {}, _event = new CGAFEvent, _module = {};
+
+        function CGAF(options) {
+          if (window.cgaf)
+            return window.cgaf;
+          return new CGAF.fn.init(options);
+        }
+
+        CGAF.fn =
+            CGAF.prototype =
+                {
+                  defaults : {
+                    ismobile : false
+                  },
+                  init : function(options) {
+                    var me = this;
+                    cgafconfig = $.extend(this.defaults, options
+                        || {});
+                    var lo = $("#loading");
+                    if (lo.length === 0)
+                      lo =
+                          $(
+                              '<div id="loading" class="loading"><span>loading...</span></div>')
+                              .appendTo("body").hide();
+                    lo.bind("ajaxSend", function() {
+                      $(this).show();
+                    }).bind("ajaxComplete", function() {
+                      me.defaultUIHandler();
+                      $(this).hide();
+                    });
+                    this.Events = {
+                      CGAF_READY : "cgaf-ready",
+                      STATUS_CHANGED : "status-changed"
+                    };
+                  },
+                  getModuleInfo : function(m) {
+                    if (typeof m === "object")
+                      m = m._m;
+                    for ( var key in _module) {
+                      var obj = _module[key];
+                      if (isNaN(m)) {
+                        if (obj.mod_dir.toLowerCase() == m.toLowerCase())
+                          return obj
+                      } else if (key.toString().toLowerCase() == m.toString()
+                          .toLowerCase())
+                        return obj
+                    }
+                  },
+                  getJSAsync : function(url, config) {
+                    var callback = null;
+                    if (typeof (url) === 'string')
+                      url = [
+                        url
+                      ];
+                    if (typeof (config) === 'function')
+                      callback = config;
+                    var loader = function(src, handler) {
+                      var script = document.createElement("script");
+                      script.src = src;
+                      script.onload = script.onreadystatechange = function() {
+                        script.onreadystatechange = script.onload = null;
+                        handler();
+                      }
+                      var head = document.getElementsByTagName("head")[0];
+                      (head || document.body).appendChild(script);
+                    };
+                    (function() {
+                      if (url.length != 0) {
+                        loader(url.shift(), arguments.callee);
+                      } else {
+                        callback
+                            && callback();
+                      }
+                    })();
+                  },
+                  getJS : function(scripts, onComplete, id) {
+                    var i = 1;
+                    var ii = typeof scripts !== "string" ? scripts.length : 1;
+
+                    function onScriptLoaded(data, response) {
+                      if (i++ == ii)
+                        if (typeof onComplete !== "undefined")
+                          onComplete();
+                    }
+
+                    function onScriptError() {
+                      cgaf.log(arguments);
+                      i++;
+                    }
+
+                    if (typeof scripts === "string")
+                      try {
+                        this.getJSAsync(scripts, onScriptLoaded);
+                        //$.getScript(scripts, onScriptLoaded)
+                      } catch (e) {
+                        onScriptError(e);
+                      }
+                    else if (typeof scripts === "object")
+                      for ( var s in scripts) {
+                        var sc = scripts[s];
+                        if (typeof sc !== "string")
+                          continue;
+                        try {
+                          this.getJSAsync(scripts, onScriptLoaded);
+                          //$.getScript(sc, onScriptLoaded);
+                        } catch (e) {
+                          onScriptError(e);
+                        }
+                      }
+                    else
+                      cgaf.log(typeof scripts);
+                  },
+                  ui : {},
+                  rescheduleQueue : function() {
+                    if (_queueRunning)
+                      return;
+                    if (_queue.length == 0)
+                      return;
+                    _queueRunning = true;
+                    var q = _queue.shift();
+                    var old = q.data.callback
+                        || function() {
+                        };
+                    var me = this;
+                    q.data.callback = function() {
+                      try {
+                        old.apply(this, arguments)
+                      } catch (e) {
+                      }
+                      _queueRunning = false;
+                      me.rescheduleQueue()
+                    };
+                    q.callback.call(this, q.data)
+                  },
+                  isJQPluginLoaded : function(js) {
+                    return loadedJQ.hasOwnProperty(js)
+                  },
+                  loadStyleSheet : function(url) {
+                    if (Object.keys(loadedCSS).length == 0)
+                      $("head > link").each(function(key, item) {
+                        var href = $(item).attr("href");
+                        loadedCSS[href] = true;
+                      });
+                    if (loadedCSS.hasOwnProperty(url))
+                      return;
+                    loadedCSS[url] = true;
+                    console.log(url);
+                    $("head").append(
+                        $('<link rel="stylesheet" type="text/css" />').attr(
+                            "href", url))
+                  },
+                  isURL : function(textval) {
+                    var urlregex =
+                        new RegExp(
+                            "^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&amp;%\$\-]+)*@)*((25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])|([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&amp;%\$#\=~_\-]+))*$");
+                    return urlregex.test(textval);
+                  },
+                  loadJQPlugin : function(jq, callback) {
+                    if (typeof jq === "object") {
+                      var self = this;
+                      pluginLoader.onFinish(callback);
+                      $.each(jq, function(k, item) {
+                        pluginLoader.add(function() {
+                          self.loadJQPlugin(item, function() {
+                            pluginLoader.next()
+                          })
+                        })
+                      });
+                      pluginLoader.start();
+                      return;
+                    }
+                    if (this.isJQPluginLoaded(jq)) {
+                      this.trigger("onpluginloaded", jq);
+                      if ($.isFunction(callback))
+                        callback.call(this);
+                      return;
+                    }
+                    version = this.getConfig("jq.version", "latest");
+                    var url =
+                        this.getConfig("jqurl", this.getConfig("asseturl", ""))
+                            + "js/jQuery/plugins/" + jq + ".js";
+                    loadedJQ[jq] = url;
+                    this.require(url, callback)
+                  },
+                  require : function(ns, callback) {
+                    this.getJS(ns, function() {
+                      if (typeof callback !== "undefined")
+                        callback.call(this, arguments)
+                    })
+                  },
+                  getJSON : function(url, data, callback, err) {
+                    var me = this;
+                    data = $.extend({
+                      __data : "json"
+                    }, data
+                        || {});
+                    return jQuery.get(url, data, function(d) {
+                      var j;
+                      try {
+                        j = (new Function("return "
+                            + d))()
+                      } catch (e) {
+                        if (err) {
+                          err.call(this, e, d)
+                        } else {
+                          cgaf.log(e.toString()
+                              + ":" + d);
+                          me.showError("Invalid JSON Data<br/>"
+                              + d);
+                        }
+                        return false
+                      }
+                      if (callback)
+                        callback.call(this, j)
+                    }, "text")
+                  },
+                  getJSONApp : function(data, callback) {
+                    var appurl = cgaf.getConfig("appurl");
+                    return jQuery.get(appurl, data, function(d) {
+                      if (typeof callback !== "undefined")
+                        callback.call(this, (new Function("return "
+                            + d))())
+                    }, "text");
+                  },
+                  ErrorType : {
+                    Notice : "error-type-notice",
+                    Warning : "error-type-warning",
+                    Error : "error-type-error"
+                  },
+                  defaultUIHandler : function() {
+                    if (!$("#sysmessage").attr("handled"))
+                      $("#sysmessage").bind("click", function() {
+                        $(this).hide();
+                      }).attr("handled", true);
+                    $("a[rel=__overlay]").each(function() {
+                      if (!$(this).attr("__overlay")) {
+                        $(this).attr("__overlay", 1);
+                        $(this).click(function(e) {
+                          e.preventDefault();
+                          $.openOverlay($(this).attr("href"));
+                        });
+                      }
+                    });
+                    $("a[data-target]").each(
+                        function() {
+                          var href = $(this).attr('href');
+
+                          if (href 
+                              && (href.substring(0,window.location.protocol.length) == window.location.protocol || href[0] ==='/')
+                              && $($(this).attr('data-target')).length >0) {
+                            if (!$(this).data('data-target')) {
+                              $(this).click(
+                                  function(e) {
+                                    e.preventDefault();
+                                    $($(this).attr('data-target')).load(
+                                        $(this).attr('href'));
+                                  });
+                            }
+                            $(this).data('data-target', true);
+                          }
+                        });
+                    $("a[rel=__confirm]").each(function() {
+                      if (!$(this).attr("__confirm")) {
+                        $(this).attr("__confirm", 1);
+                        $(this).click(function(e) {
+                          e.preventDefault();
+                          var title = $(this).attr("ctitle");
+                          if (!title)
+                            title = $(this).attr("title");
+                          var me = $(this);
+                          cgaf.confirm(title, function() {
+                            var url = $.url(me.attr("href"));
+                            url.param("__confirm", 1);
+                            $.openOverlay(url.toString());
+                          });
+                        });
+                      }
+                    });
+                  },
+                  setReady : function() {
+                    this.defaultUIHandler();
+                    this.trigger(this.Events.CGAF_READY);
+                  },
+                  trigger : function() {
+                    _event.trigger.apply(this, arguments);
+                  },
+                  bind : function() {
+                    _event.bind.apply(this, arguments);
+                  },
+                  Windows : function() {
+                    return {
+                      open : function(url) {
+                        return $.openOverlay(url);
+                      }
+                    };
+                  },
+                  Plugins : function() {
+                    return {
+                      select : function() {
+                      }
+                    };
+                  },
+                  setStatus : function(msg) {
+                    cgaf.trigger(cgaf.Events.STATUS_CHANGED, msg);
+                  },
+                  setConfig : function(name, value) {
+                    if (typeof value === "undefined") {
+                      var self = this;
+                      $.each(name, function(k, v) {
+                        self.setConfig(k, v);
+                      });
+                    } else
+                      cgafconfig[name] = value;
+                  },
+                  confirm : function(msg, callback) {
+                    var dlf = $("#confirm-dialog");
+                    if (dlf.length === 0)
+                      dlf =
+                          $('<div id="confirm-dialog"></div>').appendTo("body");
+                    dlf.html(msg);
+                    dlf.dialog({
+                      modal : true,
+                      buttons : {
+                        Confirm : function() {
+                          if (callback)
+                            callback.call(this);
+                          $(this).dialog("close");
+                        },
+                        Cancel : function() {
+                          $(this).dialog("close")
+                        }
+                      }
+                    });
+                    dlf.dialog("open")
+                  },
+                  dateFromISO : function(date, format) {
+                    date = new Date(date);
+                    return date.format(format);
+                  },
+                  showError : function(msg) {
+                    $.showErrorMessage(msg);
+                  },
+                  getConfig : function(name, def) {
+                    return typeof cgafconfig[name] === "undefined" ? def
+                        : cgafconfig[name];
+                  },
+                  log : function(args, etype) {
+                    window.log(arguments);
+                  },
+                  url : function(uri, data) {
+                    var r = new $.url(uri);
+                    r.setParam(data);
+                    return r;
+                  },
+                  Queue : function(id, callback, data) {
+                    _queue.push({
+                      id : id,
+                      data : data,
+                      callback : callback
+                    });
+                    this.rescheduleQueue();
+                  },
+                  toJSON : function(o) {
+                    if (typeof o === "string")
+                      try {
+                        return (new Function("return "
+                            + o))();
+                      } catch (e) {
+                        return null;
+                      }
+                    cgaf.log($(this));
+                    return o;
+                  },
+                  Socket : function() {
+                  }
+                };
+        CGAF.fn.init.prototype = CGAF.fn;
+        return CGAF;
+      }();
+  // window.Util = Util;
+  window.cgaf = new CGAF
 })(jQuery);
 (function($) {
   var Chat = function() {

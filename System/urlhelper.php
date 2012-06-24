@@ -8,11 +8,7 @@ class URLHelper {
 		return $protocol;
 	}
 	public static function getOrigin() {
-		static $origin;
-		if (!$origin) {
-			$origin = self::addParam(BASE_URL, Request::getIgnore(array('CGAFSESS')));
-		}
-		return $origin;
+		return \Request::getOrigin();
 	}
 	public static function selfUrl() {
 		if (self::$selfUrl !== null) {

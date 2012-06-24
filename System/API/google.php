@@ -22,14 +22,14 @@ class google extends PublicApi {
 		$instance = Auth::getProviderInstance('google');
 		$client = \GoogleAPI::getAuthInstance();
 		$retval->loginURL= $client->createAuthUrl();
-		
+
 		if ($client->getAccessToken()) {
-			$plus = \GoogleAPI::getPlusService();	
-			try {		
-				$people =new \stdClass();  
+			$plus = \GoogleAPI::getPlusService();
+			try {
+				$people =new \stdClass();
 				\Utils::toObject($plus->people->get($id),$people);
 				$retval->displayName =  $people->displayName;
-				$retval->profileURL = $people->url;				
+				$retval->profileURL = $people->url;
 				$retval->imageURL = ($people->image ?$people->image['url'] : null);
 				//$retval->activities = $plus->activities->listActivities('me', 'public');
 			}catch (\Exception $e) {
@@ -38,7 +38,7 @@ class google extends PublicApi {
 			}
 		}else{
 			$retval->valid = false;
-		}		
+		}
 		return $retval;
 	}
 	public function plusOne($size = 'small') {
@@ -48,14 +48,14 @@ class google extends PublicApi {
 			$size = isset ( $size ['size'] ) ? $size ['size'] : 'small';
 		}
 		$size = $size ? $size : $this->getConfig ( "plusOne.size" );
-		return '<g:plusone size="' . $size . '"></g:plusone>';
+		return '<div class="g-plusone" size="' . $size . '"></div>';
 	}
 	public function initJS() {
 		static $init;
 		if ($init)
 			return;
 		$init = true;
-		$key = AppManager::getInstance ()->getConfig ( 'service.google.jsapi.key' );
+		$key = AppManager::getInstance ()->getConfig ( 'google.jsapi.key' );
 		if (! $key) {
 			throw new SystemException ( "invalid google api key" );
 		}
@@ -96,7 +96,7 @@ SC;
 				'rel'=>'publisher'
 		),'link');
 		AppManager::getInstance ()->addClientDirectScript ( $s );
-		$ret = '<div class="g-plus" data-href="https://plus.google.com/'.$id.'"	'.$params.'></div>';
+		$ret = '<div class="g-plus" data-href="https://plus.google.com/'.$id.'?rel=publisher"	'.$params.'></div>';
 		return $ret;
 	}
 	public function analitycs() {

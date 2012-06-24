@@ -129,7 +129,6 @@ abstract class Session {
 					->delete()
 					->exec();
 				}
-				ppd($row);
 			}
 		}
 	}

@@ -1,0 +1,34 @@
+.news-detail .date {
+  font-size: 1em;
+  font-style: italic;
+  display: block;
+  color: #E00;
+  color: #666;
+}
+.news-detail .title {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: bold;
+}
+.news-detail .short-descr {
+  line-height: 27px;
+  font-size: 18px;
+  font-weight: bold;
+}
+.news-detail .detail {
+  text-align: justify;
+}
+.news-detail .detail .imgarticle {
+  padding: 3px;
+  border: 1px solid #CCC;
+  float: left;
+  max-width: 300px;
+  display: inline;
+  margin: 3px 10px 5px 0;
+  clear: left;
+}
+.news-detail .detail .imgarticle img {
+  margin: 0 0 2px;
+  max-width: 300px;
+  max-height: 300px;
+}

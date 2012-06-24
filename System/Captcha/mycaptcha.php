@@ -301,6 +301,7 @@ class ImageCaptcha extends Image {
 
 
 		$this->_ttf_file = $this->getResource($this->_ttf_file);
+
 		$this->drawWord($code);
 		if ($this->_use_gd_font == false && is_readable($this->_ttf_file))
 			$this->distortedCopy();
@@ -344,7 +345,7 @@ class ImageCaptcha extends Image {
 			if (!is_int($this->_gd_font_file)) { //is a file name
 				$font = @imageloadfont($this->getResource($this->_gd_font_file));
 				if ($font == false) {
-					trigger_error("Failed to load GD Font file {$this->gd_font_file} ", E_USER_WARNING);
+					trigger_error("Failed to load GD Font file {$this->_gd_font_file} ", E_USER_WARNING);
 					return;
 				}
 			} else { //gd font identifier
@@ -627,7 +628,7 @@ EOT;
 
 	public function getResource($resourceName) {
 		$search = array(
-			$this->_appOwner->getInternalStorage($resourceName),
+			$this->_appOwner->getInternalStorage(dirname($resourceName), false, false) . DS . basename($resourceName),
 			\CGAF::getInternalStorage(dirname($resourceName), false, false) . DS . basename($resourceName)
 		);
 		foreach ($search as $s) {

@@ -31,7 +31,6 @@ class MySQL extends DBConnection {
 			$this->_lastError = mysql_error ();
 		}
 		if ($this->_resource === false) {
-
 			throw new Exception ( $this->_lastError );
 		}
 		if ($this->getArg ( "database" ) !== null) {

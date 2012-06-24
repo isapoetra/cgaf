@@ -7,3 +7,9 @@
 	max-height: 150px;
 	overflow: auto;
 }
+
+.share-community img {
+	margin :4px;
+	border:1px solid #ccc;
+	border-radius:2px;
+}

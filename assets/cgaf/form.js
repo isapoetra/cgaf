@@ -109,7 +109,8 @@
                   lastXhr =
                       $.getJSON($this.attr('srclookup'), request,
                           function(data, status, xhr) {
-                            $this.cache = $this.cache || {};
+                            $this.cache = $this.cache
+                                || {};
                             $this.cache[term] = data;
                             if (xhr === lastXhr) {
                               response(data);
@@ -119,11 +120,21 @@
               });
             });
         form.find('[data-input="datetime"]').each(function() {
-
+          $(this).timepicker();
         });
         form.find('[data-input="daterange"]').each(function() {
           //console.log(this);
-          $(this).daterange();
+          if ($(this).attr('data-time')) {
+            $(this).datetimepicker({
+              timeOnly : false,
+              timeFormat:'hh:mm:ss',
+              dateFormat : cgaf.getConfig('dateInputFormat')
+            });
+          } else {
+            $(this).datepicker({
+              dateFormat : cgaf.getConfig('dateInputFormat')
+            });
+          }
         });
         var jax =
             form.attr("useajax") === undefined ? config.ajaxmode : form

@@ -1,4 +1,4 @@
-Options -Indexes  -Multiviews
+#Options -Indexes  -Multiviews
 #for acunnetix web scanner
 #php_value auto_prepend_file D:\e1\wamp\acu\PHP\acu_phpaspect.php
 #php_value auto_prepend_file D:\e1\cgaf\cgafinit.php

@@ -1,0 +1,2 @@
+register.basic=Basic Information
+company_name=Name

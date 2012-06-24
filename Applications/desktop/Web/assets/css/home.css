@@ -31,3 +31,8 @@
 	z-index: 996;
 	visibility: hidden;
 }
+.share-community .ui-widget-content .item {
+	float:left;
+	margin : 0 auto;
+	
+}

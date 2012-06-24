@@ -45,7 +45,19 @@ class Image extends \BaseObject implements IDocument {
 		$this->_watermarkConfig['top'] = $top;
 		$this->_watermarkConfig['left'] = $top;
 	}
+    private function createImage($width,$height,$type) {
+      $retval = imagecreatetruecolor($width, $height); // original image
 
+      switch ($type) {
+        case 'png':
+          imagealphablending($retval, false);
+          imagesavealpha($retval,true);
+          $transparent = imagecolorallocatealpha($retval, 255, 255, 255, 127);
+          imagefilledrectangle($retval, 0, 0, $width, $height, $transparent);
+          break;
+      }
+      return $retval;
+    }
 	function getImage($file,$w=0,$h=0) {
 		$ext = Utils::getFileExt($file, false);
 		$exists = is_file($file);
@@ -161,6 +173,7 @@ class Image extends \BaseObject implements IDocument {
 
 	function resizeImage($file, $out, $w, $h) {
 		$source = $this->getImage($file);
+
 		$ori = getimagesize($file);
 		$ws = $ori[0];
 		$hs = $ori[1];
@@ -170,54 +183,12 @@ class Image extends \BaseObject implements IDocument {
 			}
 			return $source;
 		}
+		mkdir(dirname($out),0750,true);
 		\Utils::makeDir(dirname($out));
-		if ($ws > $w && $hs > $h) {
-			$aspect = $ws / $hs;
-			if ($aspect <= 1.333333) {
-				$hd = $h;
-				$wd = floor($hd * $aspect);
-			} else {
-				$wd = $w;
-				$hd = floor($wd / $aspect);
-			}
-			$Z = ceil(log(($ws * $hs) / (4 * $w * $h))) + 1;
-			if (log(($ws * $hs) / (4 * $w * $h)) < 0)
-				$Z = 1;
-			$dx = $dy = 0;
-			if ($Z > 1) {
-				$dest = imagecreatetruecolor(round($ws / $Z), round($hs / $Z));
-				for ($i = 0; $i < $hs; $i += $Z) {
-					for ($j = 0; $j < $ws; $j += $Z) {
-						$rgb = imagecolorat($source, $j, $i);
-						$a_s = ($rgb >> 24) << 1; ## 7 to 8 bits. alpha
-						if ($a_s < 253) {
-							$r = ($rgb >> 16) & 0xFF;
-							$g = ($rgb >> 8) & 0xFF;
-							$b = $rgb & 0xFF;
-							$pcol = imagecolorallocate($dest, $r, $g, $b);
-							imagesetpixel($dest, $dx, $dy, $pcol);
-						}
-						$dx++;
-					}
-					$dx = 0;
-					$dy++;
-				}
-			} else {
-				$dest = imagecreatetruecolor($ws, $hs);
-				imagecopy($dest, $source, 0, 0, 0, 0, $ws, $hs );
-			}
-			imagedestroy($source);
-			$destrs = imagecreatetruecolor($wd, $hd);
-			$this->ImageCopyResampleBicubic($destrs, $dest, 0, 0, 0, 0, $wd, $hd, round($ws / $Z), round($hs / $Z));
-		} else {
-			//just move to center
-			$destrs = $this->getImage(time().\Utils::getFileExt($file),$w, $h);
-			$x =  ($w/2)-($ws/2);
-			$y =  ($h/2)-($hs/2);
-			imagecopyresized($destrs,$source,0,0,0,0,$w,$h,$ws,$hs);
-		}
+		$dest = $this->createImage($w, $h, \Utils::getFileExt($file,false));
+		ImageCopyResampled($dest, $source, 0, 0, 0, 0, $w, $h, $ws, $hs); // do the resize in memory
 		if ($out) {
-			return $this->_outputImage($destrs, $out, 100);
+			return $this->_outputImage($dest, $out, 100);
 		}
 		return $source;
 	}

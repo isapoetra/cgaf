@@ -101,6 +101,7 @@ abstract class AbstractResponse extends \BaseObject implements \IResponse, \IRen
 		while ($this->_idx > 0) {
 			$r .= $this->EndBuffer();
 		}
+		//ppd($r);
 		echo $r;
 		//@ob_end_clean();
 		$this->_buffer = null;

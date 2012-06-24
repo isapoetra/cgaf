@@ -165,6 +165,7 @@ class JSONTable extends DBQuery {
 		if (is_file($f)) {
 			$rows = json_decode(file_get_contents($f));
 		}
+		$found =false;
 		foreach($rows as $idx=>$r) {
 			$pks=$this->getPrimaryKey();
 			$found =false;
@@ -172,7 +173,7 @@ class JSONTable extends DBQuery {
 				foreach($pks as $pk) {
 					$found =  $r->$pk === $row->$pk;
 				}
-				
+
 			}
 			if ($found) {
 				$found=$idx;

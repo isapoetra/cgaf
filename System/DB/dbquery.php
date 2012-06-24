@@ -157,6 +157,7 @@ class DBQuery extends \BaseObject implements IQuery {
 				$this->_orderby = array();
 				$this->_distinct = false;
 				$this->_unions = array();
+				$this->_having = array();
 				break;
 		}
 		return $this;
@@ -781,6 +782,7 @@ class DBQuery extends \BaseObject implements IQuery {
 			if ($this->_throwOnError) {
 				throw $e;
 			}
+
 			$this->setLastError($e->getMessage());
 		}
 		return $res;

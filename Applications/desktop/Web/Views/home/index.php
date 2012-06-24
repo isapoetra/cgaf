@@ -70,7 +70,7 @@ $owner->AddClientScript($js);
             if (is_file($icon)) {
               $icon = \Utils::PathToLive($icon);
             } else {
-              $icon = BASE_URL . 'asset/get/?appId=' . $r->app_id . '&q=' . $ricon;
+              $icon = BASE_URL . 'asset/'. $ricon.'?appId=' . $r->app_id;
             }
             echo '<li  data-app="' . $r->app_id . '">';
             echo HTMLUtils::renderLink(

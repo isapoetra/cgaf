@@ -58,8 +58,17 @@ class Anchor extends WebControl implements \IRenderable {
 		$this->setText ( ($c ? '<i class="icon '.$c.'"></i>':'').($this->_showLabelIfIcon ? '<span>' . $this->Text . '</span>' : '') );
 		return parent::prepareRender ();
 	}
-
-	public static function link($link, $title, $target, $tooltip, $jsMode = true, $additionaljs = null) {
+	function Render($return = false) {
+		if (!$this->_renderPrepared) {
+			$this->prepareRender();
+		}
+		$retval = $this->renderBeginLabel() . $this->RenderBeginTag() . $this->getText() . $this->renderItems() . $this->renderEndTag() . $this->renderEndLabel();
+		if (!$return) {
+			\Response::write($retval);
+		}
+		return $retval;
+	}
+	public static function link($link, $title, $target=null, $tooltip=null, $jsMode = true, $additionaljs = null) {
 		$link = new Anchor ( $link, $title, $target, $tooltip, $jsMode, $additionaljs );
 		return $link->render ( true );
 	}

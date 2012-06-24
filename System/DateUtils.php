@@ -127,16 +127,17 @@ abstract class DateUtils {
 		if (!$date) {
 			$date = new \DateTime();
 		}
-		if (!($date instanceof \DateTime)) {
 
+		if (!($date instanceof \DateTime)) {
+			$date = new \CDate($date);
 		}
+
 		$format = str_replace('mm', 'm', $format);
 		$format = str_replace('yy', 'Y', $format);
 		$format = str_replace('dd', 'd', $format);
-		/*pp($date);
-		 ppd($format);*/
 		return $date->format($format);
 	}
+
 	public static function DateToUnixTime($time) {
 		$unix_time = null;
 		if (preg_match('/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', $time, $pieces) || preg_match('/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', $time, $pieces)) {
@@ -203,6 +204,9 @@ abstract class DateUtils {
 		return false;
 	}
 	public static function formatUser($date,$long=true) {
+		if (!$date) {
+			return '';
+		}
 		$date = new \CDate($date);
 		$format = __('client.dateFormat');
 		if ($long) {
@@ -210,15 +214,22 @@ abstract class DateUtils {
 		}
 		return $date->format($format);
 	}
-	public static function fromJS($date, $format, $asString = false) {
+	public static function fromJS($date, $format=null, $asString = false) {
+		$format =  $format ? $format :  __('client.dateFormat');
+		if (strlen($date) >10) {
+			$format .= ' H:i:s';
+		}
 		$format = str_replace('yy', 'Y', $format);
 		$format = str_replace('dd', 'd', $format);
+		//$format = str_replace('dd', 'd', $format);
 		$format = str_replace('mm', 'm', $format);
+
+
 		$d = \DateTime::createFromFormat($format, $date);
 		if (!$d) {
-			ppd(\DateTime::getLastErrors());
 			return null;
 		}
+
 		$retval = new CDate($d);
 		return $asString ? $retval->format(FMT_DATEISO) : $retval;
 	}

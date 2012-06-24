@@ -48,6 +48,6 @@ IE6-8 support of HTML5 elements --> <!--[if lt IE 9]>
 			title="Mail">M</abbr> <a
 				href="mailto:isapoetra@gmail.com">isapoetra@gmail.com</a><br>
 		</address>
-
 	</footer>
+	<small><?php echo $_SERVER['REMOTE_ADDR'];?></small>
 </body> </html>

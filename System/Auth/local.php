@@ -13,7 +13,7 @@ class Local extends BaseAuthentificator implements IAuthentificator {
    *
    * @var IAuthentificatorAdapter
    */
-  private $_adapter;
+  protected $_adapter;
 
   /**
    * @param IApplication $appOwner
@@ -61,7 +61,7 @@ class Local extends BaseAuthentificator implements IAuthentificator {
     if ($args == null) {
       $args = Request::gets(null, true);
     }
-    $args = parent::getAuthArgs();
+    $args = parent::getAuthArgs($args);
     $result = $this->authDirect($args->username, $this->encryptPassword($args->password), 'local', $args->remember);
     if (!$result) {
       $this->setLastError("Invalid Username/password");

@@ -161,7 +161,7 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable 
 				}
 			}
 			$this->_configCache = array ();
-			$this->_configs = $this->reparseConfig ( $this->_configs );
+			$this->_configs = \Convert::toArray($this->reparseConfig ( $this->_configs ));
 		}
 	}
 	private function reparseConfig(&$config) {
@@ -190,7 +190,7 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable 
 		if (isset ( $this->_configCache [$configName] )) {
 			return $this->_configCache [$configName];
 		}
-		$retval = Utils::findConfig ( 'System.' . $configName, $this->_configs );
+		$retval = Utils::findConfig ( 'System.' . $configName, $this->_configs,false );
 		if ($retval === null) {
 			$retval = Utils::findConfig ( $configName, $this->_configs );
 		}

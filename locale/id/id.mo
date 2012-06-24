@@ -68,3 +68,5 @@ date.diff.seconds=Detik
 action.manage=Atur
 action.add=Tambah
 currencies.prefix=IDR
+action.edit=Ubah
+action.delete=Hapus

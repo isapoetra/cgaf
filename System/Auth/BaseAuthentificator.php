@@ -55,6 +55,7 @@ abstract class BaseAuthentificator extends \BaseObject implements IAuthentificat
 			Session::set("__logonInfo", $info);
 		}
 	}
+
 	/* (non-PHPdoc)
 	 * @see System.IAuthentificator::Logout()
 	 */

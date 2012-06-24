@@ -87,9 +87,6 @@ class BaseObject extends \stdClass implements IObject, IEventDispatcher {
   }
 
   function __call($name, $a) {
-    if (\CGAF::isDebugMode()) {
-      ppd('Undefined Method ' . $name . ' In Class ' . get_class($this));
-    }
     throw new Exception('Undefined Method ' . $name . ' In Class ' . get_class($this));
   }
 
@@ -246,7 +243,7 @@ class BaseObject extends \stdClass implements IObject, IEventDispatcher {
       $this->_value = (string)$val;
     } elseif ($var instanceof BaseObject) {
       $var->AssignTo($this);
-    } elseif ($var instanceof \stdClass) {
+    } elseif ($var instanceof \stdClass || is_array($var)) {
       foreach ($var as $k => $v) {
         $this->$k = $v;
       }
@@ -261,7 +258,9 @@ class BaseObject extends \stdClass implements IObject, IEventDispatcher {
     $vars = array_keys(get_class_vars(get_class($this)));
     $retval = new stdClass();
     foreach ($vars as $k) {
-      $retval->$k = $this->$k;
+      if ($k[0] !== '_') {
+      	$retval->$k = $this->$k;
+      }
     }
     return $retval;
   }

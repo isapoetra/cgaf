@@ -124,11 +124,14 @@ abstract class AbstractTemplate extends \BaseObject implements \ITemplate, IConf
 		if ($this->getAppOwner() instanceof \IApplication) {
 			$retval[] = $this->getAppOwner()->getAppPath() . DS . 'Views' . DS . $templateName . $this->getTemplateFileExt();
 		}
-		$retval = array_merge($retval,
-				array(
-						$last ? dirname($last) . DS . basename($templateName . $this->getTemplateFileExt()) : null,
-						CGAF_SHARED_PATH . '/Views' . DS . $templateName . $this->getTemplateFileExt(),
-						CGAF_SHARED_PATH . '/Views/shared/' . DS . $templateName . $this->getTemplateFileExt()));
+		if ($last) {
+		  $retval[] = dirname($last) . DS . basename($templateName . $this->getTemplateFileExt());
+		}
+		$shared = \CGAF::getConfigs('cgaf.paths.shared');
+		foreach($shared as $s) {
+		  $retval[] = $s . '/Views' . DS . $templateName . $this->getTemplateFileExt();
+		  $retval[] = $s. '/Views/shared/' . DS . $templateName . $this->getTemplateFileExt();
+		}
 		return $retval;
 	}
 	function Render($templateName, $return = true, $log = false, $vars = null) {
