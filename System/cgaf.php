@@ -229,7 +229,6 @@ final class CGAF {
       ppd($ex);
       return false;
     }
-    ppd($ex);
     if (\Request::isDataRequest()) {
       header('HTTP/1.0 400 Bad Request');
       echo $ex->getMessage();
@@ -403,8 +402,7 @@ final class CGAF {
     }
     \System\MVC\MVCHelper::Initialize();
     $debugMode = self::getConfig('cgaf.debugmode', false);
-
-    if ($debugMode) {
+   if ($debugMode) {
       if (!defined('CGAF_DEBUG')) {
         if (isset($_SERVER['REMOTE_ADDR'])) {
           self::$_isDebugMode = self::isRemoteDebugAllow();

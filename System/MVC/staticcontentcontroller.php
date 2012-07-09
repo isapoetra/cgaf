@@ -71,6 +71,13 @@ abstract class StaticContentController extends Controller {
     $id = ACLHelper::secureFile(\Request::get('id',null,true), false);
     if ($id) {
       $a = $a . DS . $id;
+    }else{
+      $url = explode('/', trim($_REQUEST['__url'],' /'));
+      array_shift($url);
+      array_shift($url);
+      if ($url) {
+        $a  =$a.DS.ACLHelper::secureFile(implode('', $url),false);
+      }
     }
     $f = $this->getContentFile($a, true);
     if ($f && is_file($f)) {

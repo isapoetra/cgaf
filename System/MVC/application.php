@@ -954,7 +954,11 @@ abstract class Application extends AbstractApplication {
           $owner = $this;
           if ($row->controller_app) {
             $owner =\AppManager::getInstance($row->controller_app);
-            $ctl = $owner->getController($row->controller);
+            if ($owner) {
+              $ctl = $owner->getController($row->controller);
+            }else{
+              $ctl = $this->getController($row->controller);
+            }
           }else{
             $ctl = $this->getController($row->controller);
           }
@@ -962,13 +966,12 @@ abstract class Application extends AbstractApplication {
             $row->actions = $ctl->getActionAlias($row->actions);
             if ((isset($params['__renderAction']) ? $params['__renderAction'] : true) && $this->getConfig('content.rendercontentaction',true)) {
               if ($this->getRoute('_c') !==$ctl->getRouteName()) {
-
                 if ((isset($params['__renderActionContent']) ? $params['__renderActionContent'] : true) && true) {
                   isset($params['__renderActionContent']) ? ppd($params):null;
                   $hcontent .= $ctl->renderActions();
                 }
                 try {
-                    $haction = $ctl->getAction(null);
+                  $haction = $ctl->getAction(null);
                 }catch (\Exception $e) {
                 }
               }

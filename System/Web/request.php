@@ -34,11 +34,13 @@ class Request implements \IRequest {
             $value = $filter->filterInput($value);
           }
         }
-        if (strlen($var) < 60 && !isset($this->input[$var])) {
+        if (strlen($var) < 60 ) {
           if ($var !== '__url') {
             $this->_inputbyplace[$current][$var] = $value;
           }
+          //if (!isset($this->input[$var])) {
           $this->input[$var] = $value;
+          //}
         } elseif (!isset($this->input[$var])) {
           throw new \Exception('Parameter to long ' . $current . ' > ' . $var);
         }
@@ -46,17 +48,17 @@ class Request implements \IRequest {
     }
     $origin = '';
     /*if (isset($this->input["__url"])) {
-      $url = explode("/", $this->input["__url"]);
-      for ($i = 0; $i < count($url); $i += 2) {
-        if (isset($url[$i + 1])) {
-          if (!isset($this->input[$url[$i]])) {
-            $origin .= $url[$i] . '/' . $url[$i + 1];
-            $this->input[$url[$i]] = $url[$i + 1];
-          }
-        }
-      }
-      $this->_origin = $origin;
-      unset($this->input["__url"]);
+     $url = explode("/", $this->input["__url"]);
+    for ($i = 0; $i < count($url); $i += 2) {
+    if (isset($url[$i + 1])) {
+    if (!isset($this->input[$url[$i]])) {
+    $origin .= $url[$i] . '/' . $url[$i + 1];
+    $this->input[$url[$i]] = $url[$i + 1];
+    }
+    }
+    }
+    $this->_origin = $origin;
+    unset($this->input["__url"]);
     }*/
   }
 

@@ -11,6 +11,7 @@ abstract class ODF extends \BaseObject {
    */
 	static function open($f, $ext = null) {
     $instance =null;
+    \CGAF::addClassPath('Dio', '/home/cgaf/libs/dio/include/');
 		if (is_file($f)) {
 			$ext = strtolower($ext ? $ext : \Utils::getFileExt($f, false));
 			$c = 'Dio\\';

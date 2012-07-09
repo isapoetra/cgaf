@@ -1,3 +1,0 @@
-[submodule "Libs/PDF/tcpdf"]
-	path = Libs/PDF/tcpdf
-	url = git://tcpdf.git.sourceforge.net/gitroot/tcpdf/tcpdf

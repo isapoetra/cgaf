@@ -340,9 +340,10 @@ class WebApplication extends Application implements IWebApplication {
         case '' :
           return \Convert::toString ( $s );
           break;
+        default:
+          break;
       }
     }
-    throw new SystemException ( 'Unhandled Request Data Format' );
   }
   function prepareOutput($s) {
     if (Request::isDataRequest ()) {

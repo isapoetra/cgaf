@@ -1,4 +1,5 @@
 <?php
+define('CGAF_DEBUG',true);
 if (!defined('CGAF')) {
   include "cgafinit.php";
 }

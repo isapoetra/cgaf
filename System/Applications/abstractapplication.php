@@ -102,6 +102,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication {
     $this->_configFile = $this->_configFile ? $this->_configFile : $this->_appPath . DS . 'config';
 
     $this->_configs->loadFile($this->_configFile, false);
+
     if (!$this->getConfig('app.internalstorage')) {
       $path = $this->getAppPath() . '/protected/';
       $this->setConfig('app.internalstorage', $path);

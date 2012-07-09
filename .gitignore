@@ -3,7 +3,6 @@
 !/.gitignore
 !/.gitmodules
 #temporary ignore
-/install/
 manifest/
 ogp
 tmp
@@ -20,5 +19,4 @@ upload.php
 .upload
 userconfig/
 /sql/
-/nbproject/private/
 as/

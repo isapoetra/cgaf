@@ -17,7 +17,7 @@ function pp($o, $return = false) {
 			if (!System::isConsole()) {
 				$r = "<pre>" . print_r($o, true) . "</pre>";
 			} else {
-				$r = print_r($o, true);
+				$r = print_r($o, true).PHP_EOL;
 			}
 		}
 	} else {

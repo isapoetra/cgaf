@@ -5,6 +5,11 @@ use System\Exceptions\SystemException;
 use System\Mail\MailObject;
 abstract class MailTransport {
 	private static $_instance =array();
+	/**
+	 *
+	 * @param unknown_type $transport
+	 * @return \System\Mail\Transport\AbstractTransport
+	 */
 	public static function getInstance($transport=null) {
 		$transport = $transport ? $transport : MailHelper::getConfig('engine','smtp');
 		if (!isset(self::$_instance[$transport])) {
