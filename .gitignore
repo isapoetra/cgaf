@@ -12,11 +12,11 @@ thumbs.db
 #temporary
 log
 sessions
-tmp
 vendor
 config.php
 upload.php
 .upload
 userconfig/
 /sql/
-as/
+/as
+testmail.php

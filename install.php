@@ -263,7 +263,7 @@ class Install extends WebApplication {
 			\CGAF::reloadConfig();
 			$con = DB::Connect($gconf->getConfigs('db'));
 			$installlog [] = 'Installing Default Model';
-			$drop = array();
+			$drop = array('users','user_roles','persons','menus','user_log');
 			$init = array(
 					'session' => 'session',
 					'applications' => 'application',
@@ -274,6 +274,7 @@ class Install extends WebApplication {
 					'user_companies' => 'usercompanies',
 					'lookup' => 'lookup',
 					'users' => 'user',
+					'user_log'=>'userlog',
 					'user_roles' => 'userroles',
 					'role_privs' => 'roleprivs',
 					'user_privs' => 'userprivs',

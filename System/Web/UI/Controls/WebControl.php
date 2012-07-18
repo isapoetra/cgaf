@@ -221,7 +221,12 @@ class WebControl extends \Control implements \IRenderable {
 		if (Request::isDataRequest()) {
 			return $this->renderItems();
 		}
-		$retval = $this->renderBeginLabel() . $this->RenderBeginTag() . $this->_text . $this->renderItems() . $this->renderEndTag() . $this->renderEndLabel();
+		$retval = $this->renderBeginLabel()
+		. $this->RenderBeginTag()
+		. $this->_text
+		. $this->renderItems()
+		. $this->renderEndTag()
+		. $this->renderEndLabel();
 		if (!$return) {
 			\Response::write($retval);
 		}

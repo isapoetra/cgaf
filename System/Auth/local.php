@@ -1,5 +1,7 @@
 <?php
 namespace System\Auth;
+use System\Session\sessionStateHandler;
+
 use System\Session\Session;
 use System\Auth\Adapter\db;
 use System\IAuthentificator;
@@ -44,6 +46,9 @@ class Local extends BaseAuthentificator implements IAuthentificator {
     if ($result) {
       $states = $result->getStates();
       if ($states) {
+      	if (! $states instanceof sessionStateHandler) {
+      		$states = new sessionStateHandler($states);
+      	}
         Session::setStates($states);
       }
       \Logger::info("Login", $result->idetify, true);

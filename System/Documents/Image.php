@@ -183,7 +183,7 @@ class Image extends \BaseObject implements IDocument {
 			}
 			return $source;
 		}
-		mkdir(dirname($out),0750,true);
+		\Utils::makeDir(dirname($out),0750);
 		\Utils::makeDir(dirname($out));
 		$dest = $this->createImage($w, $h, \Utils::getFileExt($file,false));
 		ImageCopyResampled($dest, $source, 0, 0, 0, 0, $w, $h, $ws, $hs); // do the resize in memory

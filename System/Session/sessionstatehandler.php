@@ -6,15 +6,23 @@
  */
 namespace System\Session;
 class sessionStateHandler extends \ArrayObject {
-  function getState($name, $def = null) {
-    if (is_array($name)) {
-      foreach ($name as $n) {
-      }
-      return $this;
-    }
-    return isset($this[$name]) ? $this[$name] : $def;
-  }
-  function setState($name, $value) {
-    $this[$name] = $value;
-  }
+	function __construct($array =NULL) {
+		if ($array) {
+			$array = is_array($array) ? $array : \Convert::toArray($array);
+			parent::__construct($array);
+		}else{
+			parent::__construct();
+		}
+	}
+	function getState($name, $def = null) {
+		if (is_array($name)) {
+			foreach ($name as $n) {
+			}
+			return $this;
+		}
+		return isset($this[$name]) ? $this[$name] : $def;
+	}
+	function setState($name, $value) {
+		$this[$name] = $value;
+	}
 }

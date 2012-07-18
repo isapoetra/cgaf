@@ -781,7 +781,7 @@ abstract class Application extends AbstractApplication {
       if ($this->parent) {
         return 'no Controller';
       }
-    } else {
+    } else { 
       $this->_action = $controller->getActionAlias($this->_action);
       $this->_route ["_a"] = $this->_action;
       if (method_exists($controller, $this->_action)) {
@@ -1259,8 +1259,8 @@ abstract class Application extends AbstractApplication {
   public function LogUserAction($action,$descr=null,$uid=null) {
     $m = $this->getModel('userlog');
     $m->insert('user_id',$uid ===null ? ACLHelper::getUserId() : $uid);
-    $m->insert('action_type',$action);
-    $m->insert('action_descr',serialize($descr));
+    $m->insert('log_type',$action);
+    $m->insert('log_descr',serialize($descr));
     $m->exec();
   }
 }?>

@@ -83,7 +83,7 @@ abstract class StaticContentController extends Controller {
     if ($f && is_file($f)) {
       return $this->renderFile($a, $f);
     } elseif ($route['_a'] !=='index') {
-      return "Content not found".$route['_a'];
+      throw new SystemException("Content not found ".$route['_a']);
     }
     //}
     return parent::Index();

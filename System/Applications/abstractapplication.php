@@ -343,6 +343,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication {
 
   function resetToken() {
     $token = md5(uniqid(rand(), true));
+    
     Session::set("__token", $token);
     return $token;
   }

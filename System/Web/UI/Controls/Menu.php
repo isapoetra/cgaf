@@ -20,6 +20,5 @@ class Menu extends WebControl {
 	}
 	function getReplacer() {
 		return $this->_replacer;
-	
 	}
 }

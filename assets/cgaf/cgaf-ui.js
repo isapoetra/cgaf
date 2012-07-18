@@ -2750,69 +2750,69 @@ jQuery.extend( jQuery.easing,
 		trigger : 'manual',
 		template : '<div class="arrow"></div><div class="inner"><div class="icon icon-remove close"/><h3 class="title"></h3><div class="content"><p></p></div></div>'
 	}
-})(jQuery);(function () {
-    $.fn.scrollbar = function (options) {
-        options = $.extend({
-            scrollHeight:150
-        }, options || {});
-        return this.each(function () {
-            var $$ = $(this);
-            var content = $$.children(0).css({
-                position:"relative"
-            });
-            if (!$$.data("scrollbar")) {
-                var sc = $$.find(".scrollbar");
-                if (sc.length === 0) {
-                    sc = $('<div class="scrollbar"></div>').prependTo($$);
-                    s = $("<div></div>").appendTo(sc);
-                    sc.css({
-                        padding:0,
-                        margin:0,
-                        backgroundColor:"rgba(118, 118, 118, 1)",
-                        cssFloat:"right",
-                        width:"6px"
-                    });
-                    s.css({
-                        height:25 + "px",
-                        position:"relative",
-                        border:"1px solid rgba(118, 118, 118, 1)",
-                        borderRadius:"2px",
-                        backgroundColor:"red",
-                        cursor:"pointer"
-                    });
-                    s.draggable({
-                        containment:"parent",
-                        axis:"y",
-                        start:function () {
-                        },
-                        drag:function (event, ui) {
-                            recalculate(ui.position.top)
-                        },
-                        stop:function (event, ui) {
-                            recalculate(ui.position.top)
-                        }
-                    });
-                    s.bind("mousewheel", function () {
-                        recalculate()
-                    })
-                }
-                function recalculate(top) {
-                    sc.css({
-                        height:$$.height() + "px"
-                    });
-                    content.css({
-                        top:top * -1
-                    })
-                }
+})(jQuery);(function() {
+	$.fn.scrollbar = function(options) {
+		options = $.extend({
+			scrollHeight : 150
+		}, options || {});
+		return this.each(function() {
+			var $$ = $(this);
+			var content = $$.children(0).css({
+				position : "relative"
+			});
+			if (!$$.data("scrollbar")) {
+				var sc = $$.find(".scrollbar");
+				if (sc.length === 0) {
+					sc = $('<div class="scrollbar"></div>').prependTo($$);
+					s = $("<div></div>").appendTo(sc);
+					sc.css({
+						padding : 0,
+						margin : 0,
+						backgroundColor : "rgba(118, 118, 118, 1)",
+						cssFloat : "right",
+						width : "6px"
+					});
+					s.css({
+						height : 25 + "px",
+						position : "relative",
+						border : "1px solid rgba(118, 118, 118, 1)",
+						borderRadius : "2px",
+						backgroundColor : "red",
+						cursor : "pointer"
+					});
+					s.draggable({
+						containment : "parent",
+						axis : "y",
+						start : function() {
+						},
+						drag : function(event, ui) {
+							recalculate(ui.position.top);
+						},
+						stop : function(event, ui) {
+							recalculate(ui.position.top);
+						}
+					});
+					s.bind("mousewheel", function() {
+						recalculate();
+					});
+				}
+				function recalculate(top) {
+					sc.css({
+						height : $$.height() + "px"
+					});
+					content.css({
+						top : top * -1
+					});
+				}
 
-                recalculate();
-                this.recalculate = recalculate;
-                $$.data("scrollbar", this)
-            } else
-                $$.data("scrollbar").recarculate();
-            return this
-        })
-    }
+				recalculate();
+				this.recalculate = recalculate;
+				$$.data("scrollbar", this);
+			} else
+				$$.data("scrollbar").recarculate();
+			return this;
+		});
+	};
 })(jQuery);/* ========================================================
  * bootstrap-tab.js v2.0.3
  * http://twitter.github.com/bootstrap/javascript.html#tabs
