@@ -1,5 +1,6 @@
 <?php
 namespace System\Web\UI\Controls;
+
 class Expandable extends WebControl {
 	private $_content;
 	function __construct($id) {

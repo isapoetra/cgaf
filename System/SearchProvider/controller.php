@@ -1,8 +1,9 @@
 <?php
-class TSearchProviderController implements ISearchProvider {
+namespace System\SearchProvider;
+class Controller implements \ISearchProvider {
 	private $_appOwner;
 	private $_ctl;
-	function __construct(ISearchEngine $se) {
+	function __construct(\ISearchEngine $se) {
 		$this->_appOwner = $se->getAppOwner();
 	}
 	function search($s, $config) {
@@ -15,12 +16,12 @@ class TSearchProviderController implements ISearchProvider {
 			}
 		}
 	}
-/* (non-PHPdoc)
+	/* (non-PHPdoc)
 	 * @see ISearchProvider::name()
-	 */
+	*/
 	public function name() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

@@ -1,5 +1,6 @@
 <?php
 namespace System\Web\UI\Ext;
+
 use System\Exceptions\SystemException;
 
 use System\Web\JS\JSUtils;
@@ -24,11 +25,7 @@ class Grid extends Control {
 	protected $_RenderWhenNoData = false;
 	protected $_reportString;
 	protected $_viewMode = "window";
-	protected $_showbutton = array(
-			"add",
-			"edit",
-			"delete",
-			"view");
+	protected $_showbutton = array("add", "edit", "delete", "view");
 	function __construct($data = null, $column = null, $fields = null) {
 		if ($this->_class == null)
 			$this->_class = "Ext.grid.GridPanel";
@@ -38,18 +35,8 @@ class Grid extends Control {
 		$this->_column = $column;
 		$this->_fields = $fields;
 		//ppd($this->_controlScript);
-		$this->addIgnoreConfigStr(array(
-						"getRowClass",
-						"bbarplugins",
-						"plugins",
-						"sm",
-						"renderer",
-						"ds",
-						"view"));
-		$this->setConfigs(array(
-						"autoHeight" => true,
-						"frame" => true,
-						"autoScroll" => true));
+		$this->addIgnoreConfigStr(array("getRowClass", "bbarplugins", "plugins", "sm", "renderer", "ds", "view"));
+		$this->setConfigs(array("autoHeight" => true, "frame" => true, "autoScroll" => true));
 		$this->_winCallBack = "{changed:function(){grid=Ext.getCmp('" . $this->getId() . "');grid.store.load();}}";
 		// stupid ie
 		if (Request::ISIE()) {
@@ -93,21 +80,16 @@ class Grid extends Control {
 				$f = $v["filter"];
 				//boolean :D
 				if (is_bool($f) && $f) {
-					$arrfilter[] = array(
-							"type" => "string",
-							"dataIndex" => $v["dataIndex"]);
+					$arrfilter[] = array("type" => "string", "dataIndex" => $v["dataIndex"]);
 				} elseif (is_array($f)) {
 					$arrfilter[] = $f;
 				}
 			} elseif ($this->_autoFilter && isset($v["dataIndex"])) {
-				$arrfilter[] = array(
-						"type" => "string",
-						"dataIndex" => $v["dataIndex"]);
+				$arrfilter[] = array("type" => "string", "dataIndex" => $v["dataIndex"]);
 			}
 		}
 		JExt::LoadPlugin('gridfilters/GridFilters.js');
-		$filters = new CustomComponent("Ext.ux.grid.GridFilters", array(
-				"filters" => $arrfilter), null, false);
+		$filters = new CustomComponent("Ext.ux.grid.GridFilters", array("filters" => $arrfilter), null, false);
 		$this->addClientScript("filters=" . $filters->render(true), "start");
 		if (!isset($this->_config["plugins"])) {
 			$this->setConfig("plugins", "filters");
@@ -135,13 +117,7 @@ function(a,b){
 	}
 }"
 EOT;
-			$this->addTopBar(array(
-							array(
-									"id" => "bReports",
-									"text" => 'Reports',
-									"tooltip" => 'Render Reports',
-									"iconCls" => 'x-rpt-print',
-									"handler" => $js)));
+			$this->addTopBar(array(array("id" => "bReports", "text" => 'Reports', "tooltip" => 'Render Reports', "iconCls" => 'x-rpt-print', "handler" => $js)));
 		}
 		//"handler" => "function(){doLoadPageContent('{$this->_reportURL}')}")));
 	}
@@ -167,16 +143,13 @@ EOT;
 		if ($c->isAllow($m, "access")) {
 			$sm = $this->getConfig("sm");
 			if (!$sm) {
-				$sm = $this->Setconfig("sm", new CustomComponent("Ext.grid.RowSelectionModel", array(
-								"singleSelect" => true), null, false));
+				$sm = $this->Setconfig("sm", new CustomComponent("Ext.grid.RowSelectionModel", array("singleSelect" => true), null, false));
 			}
 			if ($sm instanceof Component) {
 				if ($this->_viewMode == "window") {
 					$winc = $this->getWinConfig("view");
 					$this
-							->addEvent("rowdblclick",
-									"function(grid,idx,e){sm= grid.getSelectionModel().getSelected();if (sm) {data = sm.data;uri = '{$this->_viewURL}&' + genFid('{$this->_fieldId}',data);doCreateRemoteWindow({" . ($winc ? $winc . "," : "")
-											. "autoLoad:{url:uri}})}}");
+							->addEvent("rowdblclick", "function(grid,idx,e){sm= grid.getSelectionModel().getSelected();if (sm) {data = sm.data;uri = '{$this->_viewURL}&' + genFid('{$this->_fieldId}',data);doCreateRemoteWindow({" . ($winc ? $winc . "," : "") . "autoLoad:{url:uri}})}}");
 				} else {
 					$this->addEvent("rowdblclick", "function(grid,idx,e){sm= grid.getSelectionModel().getSelected();if (sm) {data = sm.data;uri = '{$this->_viewURL}&' + genFid('{$this->_fieldId}',data);doLoadPageContent(uri)}}");
 				}
@@ -190,11 +163,7 @@ EOT;
 	}
 	function setFieldId($value) {
 		$this->_fieldId = $value;
-		$this->_baseURI = Request::getQuery(array(
-				"_a",
-				"_task",
-				"_dc",
-				$this->_fieldId), true);
+		$this->_baseURI = Request::getQuery(array("_a", "_task", "_dc", $this->_fieldId), true);
 	}
 	function setSingleSelect($value) {
 		$this->_singleSelect = $value;
@@ -220,11 +189,7 @@ EOT;
 			$this
 					->addTopBar(
 							array(
-									array(
-											"id" => "badd",
-											"text" => 'Add',
-											"tooltip" => 'Add a new row',
-											"iconCls" => 'add',
+									array("id" => "badd", "text" => 'Add', "tooltip" => 'Add a new row', "iconCls" => 'add',
 											"handler" => "function(){doCreateRemoteWindow({" . ($winc ? $winc . "," : "") . "modal:true,autoScroll:true,autoLoad:{url:'" . $this->_addEditURL . "'}},null,{$this->_winCallBack});}")));
 		}
 	}
@@ -238,11 +203,7 @@ EOT;
 			$this
 					->addTopBar(
 							array(
-									array(
-											"id" => "bDelete",
-											"text" => 'Delete',
-											"tooltip" => 'Delete row',
-											"iconCls" => 'delete',
+									array("id" => "bDelete", "text" => 'Delete', "tooltip" => 'Delete row', "iconCls" => 'delete',
 											"handler" => "function(a,b){var grid=Ext.getCmp('" . $this->getId()
 													. "');if (grid) {sm=grid.getSelectionModel().getSelected();if(!sm){Ext.MessageBox.alert('Error','No Data Selected');return false} Ext.Msg.confirm('Confirm Delete','Delete Selected Data?',function(b) { if (b=='yes'){ $delaction }})}}")));
 		}
@@ -275,13 +236,7 @@ function(a,b){
 	}
 }
 EOT;
-			$this->addTopBar(array(
-							array(
-									"id" => "bEdit",
-									"text" => 'Edit',
-									"tooltip" => 'Edit row',
-									"iconCls" => 'edit',
-									"handler" => new ExtJS($script))));
+			$this->addTopBar(array(array("id" => "bEdit", "text" => 'Edit', "tooltip" => 'Edit row', "iconCls" => 'edit', "handler" => new ExtJS($script))));
 		}
 	}
 	protected function getFields() {
@@ -290,8 +245,7 @@ EOT;
 				$fld = get_object_vars($this->_data);
 				$this->_fields = array();
 				foreach (array_keys($fld) as $k) {
-					$this->_fields[] = array(
-							"name" => "$k");
+					$this->_fields[] = array("name" => "$k");
 				}
 			} elseif (isset($this->_data[0]) && count($this->_data[0])) {
 				$this->_fields = array();
@@ -301,8 +255,7 @@ EOT;
 					$list = get_object_vars($this->_data[0]);
 				}
 				foreach (array_keys($list) as $k) {
-					$this->_fields[] = array(
-							"name" => "$k");
+					$this->_fields[] = array("name" => "$k");
 				}
 			}
 		}
@@ -311,9 +264,7 @@ EOT;
 	function preRender() {
 		parent::preRender();
 		if (!JExt::isExtAllLoaded()) {
-			$this->_controlScript = array(
-					'id' => get_class($this),
-					'url' => JExt::PluginURL() . 'grid/grid.js');
+			$this->_controlScript = array('id' => get_class($this), 'url' => JExt::PluginURL() . 'grid/grid.js');
 		}
 		$fld = $this->getFields();
 		$fields = array();
@@ -344,8 +295,7 @@ EOT;
 					$js .= "});\n$storeid.loadData(" . JSON::encode($this->_data) . ");\n";
 					$this->addClientScript($js);
 				} elseif (is_string($this->_data)) {
-					$storeid = new JsonStore($this->_data, array(
-							"fields" => new ExtJS("[$fields]")));
+					$storeid = new JsonStore($this->_data, array("fields" => new ExtJS("[$fields]")));
 				}
 				$this->setConfig("store", $storeid);
 			} else if (!$this->_RenderWhenNoData) {
@@ -409,9 +359,7 @@ EOT;
 			$str .= "</tr>";
 		}
 		$str .= "</table>";
-		$renderer->assign(array(
-						"css" => "",
-						"footer" => ""));
+		$renderer->assign(array("css" => "", "footer" => ""));
 		$this->_reportString = $str;
 		if ($this->raiseEvent("onRenderReport", $renderer)) {
 			return $renderer->RenderString($this->_reportString);
@@ -424,9 +372,7 @@ EOT;
 			switch (strtolower($this->_renderMode)) {
 			case "report":
 				$rpt = new WebReport();
-				$rpt->attachEventHandler("onRenderContent", array(
-								$this,
-								"renderReport"));
+				$rpt->attachEventHandler("onRenderContent", array($this, "renderReport"));
 				return $rpt->Render($return, $handle);
 				break;
 			default:
@@ -457,11 +403,7 @@ class TTableGrid extends Control {
 class JExtGroupingGrid extends Grid {
 	function __construct($dataurl, $field, $column = null) {
 		parent::__construct(null, $column, null);
-		$this->setConfigs(array(
-						"view" => new CustomComponent("Ext.grid.GroupingView", array(
-								"forceFit" => true,
-								"showGroupName" => true,
-								"hideGroupedColumn" => true), null, false)));
+		$this->setConfigs(array("view" => new CustomComponent("Ext.grid.GroupingView", array("forceFit" => true, "showGroupName" => true, "hideGroupedColumn" => true), null, false)));
 		$this->_config["store"] = new GroupingStore($dataurl, null, $field);
 	}
 	function setForceFit($value) {
@@ -479,16 +421,10 @@ class JExtGroupingSummaryGrid extends JExtGroupingGrid {
 		$this->setConfigs($configs, false);
 	}
 	function PreRender() {
-		$initconfigs = array(
-				"id" => $this->_config["id"],
-				"store" => $this->_config["store"],
-				"columns" => $this->_config["columns"],
-				"view" => new CustomComponent("Ext.grid.GroupingView", array(
-						"showGroupName" => false,
-						"enableNoGroups" => false,
-						// REQUIRED!
-						"hideGroupedColumn" => true), null, false),
-				"plugins" => new ExtJS("new Ext.grid.GroupSummary()"));
+		$initconfigs = array("id" => $this->_config["id"], "store" => $this->_config["store"], "columns" => $this->_config["columns"],
+				"view" => new CustomComponent("Ext.grid.GroupingView", array("showGroupName" => false, "enableNoGroups" => false, 
+				// REQUIRED!
+				"hideGroupedColumn" => true), null, false), "plugins" => new ExtJS("new Ext.grid.GroupSummary()"));
 		$cfg = $this->_config;
 		$this->_config = array();
 		$this->setConfigs($initconfigs, false);

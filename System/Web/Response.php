@@ -25,9 +25,8 @@ class Response extends AbstractResponse {
 		return false;
 	}
 	function flush() {
-		if ($this->_flush)
+		if ($this->_flushed)
 			return null;
-		$this->_flush = true;
 		if (!$this->hasSent('Content-Type')) {
 			@header("Content-Type:text/html; charset=UTF-8");
 		}

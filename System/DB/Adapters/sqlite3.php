@@ -80,7 +80,7 @@ class DBSQLite3Adapter extends DBSQLiteAdapter {
 			$this->throwError ( new DBException ( $this->_lastErrorCode.':'.$this->_lastError ) );
 		}
 	}
-	function Exec($sql) {
+	function exec($sql) {
 		$sql = $this->prepareQuery($sql);
 		
 		$this->Log ( $sql );

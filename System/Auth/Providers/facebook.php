@@ -1,5 +1,6 @@
 <?php
 namespace System\Auth\Providers;
+
 use System\Auth\RemoteUser;
 use System\Auth\Auth;
 use System\Auth\BaseAuthProvider;
@@ -49,12 +50,6 @@ class Facebook extends BaseAuthProvider {
 	}
 	function getLoginURL($baseUrl) {
 		return $this->_fb
-				->getLoginURL(
-						array(
-								'display' => 'popup',
-								'redirect_uri' => $baseUrl,
-								'next' => \URLHelper::addParam($baseUrl, '__loginSatus=1'),
-								'cancel_url' => \URLHelper::addParam($baseUrl, '__loginSatus=0'),
-								'req_perms' => 'email,user_birthday'));
+				->getLoginURL(array('display' => 'popup', 'redirect_uri' => $baseUrl, 'next' => \URLHelper::addParam($baseUrl, '__loginSatus=1'), 'cancel_url' => \URLHelper::addParam($baseUrl, '__loginSatus=0'), 'req_perms' => 'email,user_birthday'));
 	}
 }

@@ -1,7 +1,7 @@
 <?php
 namespace System\Session;
-use \CGAF as CGAF, \Utils as Utils;
 
+use \CGAF as CGAF, \Utils as Utils;
 
 abstract class SessionBase extends \BaseObject implements \ISession {
 	private $_started = false;
@@ -197,7 +197,7 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 		//$expire = gmdate("D, d M Y H:i:s", time() + date("Z") + $expire) . ' GMT';
 		//problem with timezone
 		/** @noinspection PhpUnusedLocalVariableInspection */
-		$expire = time() + (date("Z") + $this->getConfig('gc_maxlifetime'));
+		$expire = time() + (@date("Z") + $this->getConfig('gc_maxlifetime'));
 		$cookie['lifetime'] = 0;
 		$ses = session_name();
 		setcookie($ses, "", time() - 3600);
@@ -249,7 +249,8 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 				$this->set('session.client.browser', $_SERVER['HTTP_USER_AGENT']);
 			} else if ($_SERVER['HTTP_USER_AGENT'] !== $browser) {
 				$this->_sessionState = Session::STATE_ERROR;
-				ppd($_SERVER['HTTP_USER_AGENT'] . $browser);
+				Session::destroy();
+				//ppd($_SERVER['HTTP_USER_AGENT'] . $browser);
 				return false;
 			}
 		}
@@ -269,7 +270,8 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 	 * @return null
 	 */
 	public function &get($name, $default = null) {
-		if ($this->_sessionState == Session::STATE_DESTROYED) return null;
+		if ($this->_sessionState == Session::STATE_DESTROYED)
+			return null;
 		if ($this->_sessionState !== 'active' && $this->_sessionState !== 'expired') {
 			$this->restart();
 		}
@@ -296,7 +298,8 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 		if (null === $value) {
 			$stemp = array();
 			foreach ($_SESSION['__session'] as $k => $v) {
-				if (substr($k, 0, strlen($name . '.')) === $name . '.') continue;
+				if (substr($k, 0, strlen($name . '.')) === $name . '.')
+					continue;
 				$stemp[$k] = $v;
 			}
 			unset($stemp[$name]);
@@ -312,15 +315,15 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 	 * @return mixed
 	 */
 	public function remove($varname) {
-		$old=null;
+		$old = null;
 		if (isset($_SESSION['__session'][$varname])) {
 			$old = $_SESSION['__session'][$varname];
 			unset($_SESSION['__session'][$varname]);
-		}else{
-			$old =array();
-			$varname .='.';
-			foreach($_SESSION['__session'] as $k=>$v) {
-				if (substr($k,0,strlen($varname))==$varname){
+		} else {
+			$old = array();
+			$varname .= '.';
+			foreach ($_SESSION['__session'] as $k => $v) {
+				if (substr($k, 0, strlen($varname)) == $varname) {
 					$old[$k] = self::remove($k);
 				}
 			}
@@ -347,7 +350,7 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 
 		$sessID = $sessID ? $sessID : $this->getId();
 
-		if ($this->getId()===$sessID) {
+		if ($this->getId() === $sessID) {
 			$this->_sessionState = Session::STATE_DESTROYED;
 			$this->dispatchEvent(new SessionEvent($this, SessionEvent::DESTROY));
 			if (isset($_COOKIE[session_name()])) {
@@ -362,10 +365,10 @@ abstract class SessionBase extends \BaseObject implements \ISession {
 		return true;
 	}
 
-	function restart($id=null) {
-		if ($id && $id=== $this->getId()) {
+	function restart($id = null) {
+		if ($id && $id === $this->getId()) {
 			session_decode($this->read($id));
-		}else{
+		} else {
 			$this->destroy();
 			if ($this->_sessionState !== Session::STATE_DESTROYED && $this->_sessionState !== Session::STATE_CLOSED) {
 				return false;

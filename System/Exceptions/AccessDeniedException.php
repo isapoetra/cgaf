@@ -11,8 +11,6 @@ class AccessDeniedException extends SystemException {
 		if ($arg) {
 			$msg = @vsprintf($msg, $arg);
 		}
-
-
 		parent::__construct($msg);
 	}
 

@@ -119,6 +119,7 @@ abstract class JSON {
 		} else {
 			$quote = $ignorestr;
 		}
+		
 		$retval = $json->encode($var, $quote);
 		return $retval;
 	}

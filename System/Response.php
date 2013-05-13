@@ -63,37 +63,38 @@ final class Response {
 			$url = APP_URL;
 		}
 		$parsed =MVCHelper::parse($url);
-
-		$instance =AppManager::getInstance();
-		try {
-			if (isset($parsed['params']['__appId']) && $parsed['params']['__appId'] !== CGAF::APP_ID) {
-				try {
-					$iapp=AppManager::getInstance($parsed['params']['__appId']);
-					if (!$iapp) {
+		if (AppManager::isAppStarted()) {
+			$instance =AppManager::getInstance();
+			try {
+				if (isset($parsed['params']['__appId']) && $parsed['params']['__appId'] !== CGAF::APP_ID) {
+					try {
+						$iapp=AppManager::getInstance($parsed['params']['__appId']);
+						if (!$iapp) {
+							$parsed['params']['__appId'] =CGAF::APP_ID;
+						}else{
+							$instance = $iapp;
+						}
+					}catch (Exception $e) {
 						$parsed['params']['__appId'] =CGAF::APP_ID;
-					}else{
-						$instance = $iapp;
 					}
-				}catch (Exception $e) {
-					$parsed['params']['__appId'] =CGAF::APP_ID;
 				}
-			}
-			$c = $instance->getController($parsed['_c']);
-			if (!$parsed['_a']) $parsed['_a'] ='index';
-			if (!$c->isAllow($parsed['_a'])) {
-				if (!$c->isAllow('index')) {
-					$parsed['_a'] = 'index';
-				}else{
-					$parsed['_c'] = 'home';
-					$parsed['_a'] = 'index';
+				$c = $instance->getController($parsed['_c']);
+				if (!$parsed['_a']) $parsed['_a'] ='index';
+				if (!$c->isAllow($parsed['_a'])) {
+					if (!$c->isAllow('index')) {
+						$parsed['_a'] = 'index';
+					}else{
+						$parsed['_c'] = 'home';
+						$parsed['_a'] = 'index';
+					}
 				}
-			}
 
-		}catch(\Exception $e){
-			$parsed['_c'] = 'home';
-			$parsed['_a'] = 'index';
+			}catch(\Exception $e){
+				$parsed['_c'] = 'home';
+				$parsed['_a'] = 'index';
+			}
+			$url=MVCHelper::toCGAFUrl($parsed);
 		}
-		$url=MVCHelper::toCGAFUrl($parsed);
 		return self::getInstance()->Redirect($url);
 	}
 	public static function JSON($code, $message, $redirect = null) {

@@ -1,6 +1,7 @@
 <?php
 namespace System\Applications;
-use \System\DB\IDBAware;
+
+use System\DB\IDBAware;
 
 /**
  * Core Application Interface

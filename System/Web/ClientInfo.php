@@ -140,7 +140,7 @@ class ClientInfo {
 					$name
 			);
 		}
-		$retval = new TClientInfoData ();
+		$retval = new ClientInfoData ();
 		$retval->agent = $agent;
 		$retval->browser = $name;
 		$retval->version = $version;
@@ -181,7 +181,7 @@ class ClientInfo {
 		return $this->_data->get ( $key, $def );
 	}
 }
-class TClientInfoData {
+class ClientInfoData {
 	public $browser;
 	public $version;
 	function __get($k) {

@@ -1,5 +1,6 @@
 <?php
 namespace System\Web\UI\Controls;
+
 use \AppManager;
 class Button extends WebControl {
 	private $_icon = 'cleardot.gif';

@@ -104,7 +104,7 @@ abstract class AppManager extends \StaticObject {
 		$appShortName = $appInfo->app_path ? $appInfo->app_path : $appInfo->app_name;
 
 		$appPath = \Utils::toDirectory((is_dir($appInfo->app_path) ? $appInfo->app_path : CGAF_APP_PATH . DS . $appInfo->app_path) . DS);
-		$cName = self::getAppClass($appInfo->app_class_name, false, $appPath);
+		$cName = self::getAppClass($appInfo->app_class_name ?  $appInfo->app_class_name : $appInfo->app_name, false, $appPath);
 		if (!$cName) {
 			if ($appInfo->app_id === CGAF::APP_ID) {
 				$sappPath = CGAF_APP_PATH . DS . 'desktop' . DS . CGAF_CONTEXT . DS . "index" . CGAF_CLASS_EXT;
@@ -128,6 +128,7 @@ abstract class AppManager extends \StaticObject {
 		 * @var  \System\Applications\IApplication $instance
 		 */
 		$instance = new $cName();
+		if (!$instance instanceof IApplication) throw new SystemException('Invalid Application Instance');
 		$instance->setAppInfo($appInfo);
 		if ($instance->Initialize()) {
 			self::$_instances [$appId] = $instance;
@@ -165,7 +166,8 @@ abstract class AppManager extends \StaticObject {
 	public static function getAppInfo($id, $throw = true) {
 
 		$id = $id ? $id : self::getDefaultAppId();
-
+		$o =null;
+		$infos=array();
 		$direct = false;
 		if ($id instanceof IApplication) {
 			$id = $id->getAppId();
@@ -195,8 +197,9 @@ abstract class AppManager extends \StaticObject {
 			ppd(self::$_activeApp);
 			return self::$_activeApp;
 		}
-
-		return $infos [$o->app_id];
+		if ($o !=null) {
+			return $infos [$o->app_id];
+		}		
 	}
 
 	/**
@@ -286,16 +289,18 @@ abstract class AppManager extends \StaticObject {
 	}
 
 	private static function getAppClass($appName, $throw = true, $appPath = null) {
+		if (!$appName) return  null;
+		if ($appName == 'cgaf') $appName = 'Desktop';
 		$cName = $appPath ? $appName : CGAF_CLASS_PREFIX . "{$appName}App";
+		
 		$classSearch = array($cName,
 				'\\System\\Applications\\' . $appName,
 				'\\System\\Applications\\' . $appName . 'App');
 		foreach($classSearch as $c) {
-			if (class_exists($c,false)) {
+			if (class_exists($c,false) ) {
 				return $c;
 			}
 		}
-
 
 		if (!class_exists($cName, false)) {
 			$basePath = Utils::toDirectory($appPath ? $appPath : CGAF_APP_PATH . DS . $appName . DS);
@@ -423,18 +428,22 @@ abstract class AppManager extends \StaticObject {
 				$appName = trim(substr($appName, strrpos($appName, DS)), DS);
 			} else {
 				$paths = self::getNotInstalledApp();
+				
 				if (isset($paths[$appName])) {
 					$appPath = realpath($paths[$appName]).DS;
-				}
-
+				}				
 			}
 			if (!$appPath) {
 				throw new SystemException("application not found/Application already installed");
 			}
 			$config = self::getAppConfig($appPath);
+			
 			$c = self::getAppClass($appName, true, $appPath);
-			$instance = new $c ();
+			if ($c) {
+				$instance = new $c ();
+			}
 		}
+		if (!$instance || !($instance instanceof IApplication)) throw new SystemException('Unable to find application instance for '.$appName);
 		$id = $instance->getConfig("app.id");
 
 		if (!$id) {
@@ -470,6 +479,8 @@ abstract class AppManager extends \StaticObject {
 				self::uninstall($instance, false);
 				throw new SystemException ('Unable to Install application ' . $id);
 			}
+		}else{
+			$instance->Reinstall();
 		}
 		return $id;
 	}
@@ -556,8 +567,9 @@ abstract class AppManager extends \StaticObject {
 	public static function getNotInstalledApp() {
 		$retval = array();
 		$paths = cgaf::getConfigs('cgaf.paths.app', array());
+		
 		foreach($paths as $path) {
-			$files = Utils::getDirList($path);
+			$files = Utils::getDirList($path);			
 			foreach ($files as $file) {
 				if (strpos($file, '.') !== false || $file === 'desktop' || $file === 'installer') {
 					continue;
@@ -582,7 +594,16 @@ abstract class AppManager extends \StaticObject {
 		Session::Start();
 		self::$_initialized = true;
 	}
-
+	public static function getRealAppPath($appName) {
+		$paths = CGAF::getConfig('cgaf.paths.app');
+		foreach($paths as $p) {
+			$path = $p.$appName;
+			if (is_dir($path)) {
+				return $path;
+			}
+		}
+		return null;
+	}
 	public static function getAppPath($AppName = null) {
 		if ($AppName === null) {
 			$AppName = self::$_activeApp;
@@ -605,6 +626,17 @@ abstract class AppManager extends \StaticObject {
 		}
 		$path = Utils::ToDirectory($path);
 		return $path;
+	}
+	public static function resetAppPath($path) {
+		$path = \Utils::ToDirectory($path.DS);
+		\Utils::makeDir($path.'protected');
+		\Utils::makeDir($path.'protected/contents/about/');
+		\Utils::makeDir($path.'assets');
+		\Utils::makeDir($path.'classes');
+		\Utils::makeDir($path.'Controllers');
+		\Utils::makeDir($path.'Models');
+		\Utils::makeDir($path.'Views');		
+		
 	}
 }
 

@@ -1,10 +1,8 @@
 <?php
 namespace System\UI\Items;
-use AppManager;
-use String;
-use System\Web\UI\Controls\Anchor;
-use IRenderable;
+
 use Utils;
+use System\Web\UI\Items\MenuItem;
 /**
  * 
  * @author e1
@@ -122,13 +120,15 @@ abstract class MenuItemx extends \BaseObject implements \IRenderable {
 		$retval = "";
 		if ($includediv) {
 			// $retval .= '<div class="sub">';
-			$retval .= '<ul class="dropdown-menu">';
+			$retval .= '<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">';
+			
 		}
 		foreach ( $this->_childs as $child ) {
+			
 			if (is_object ( $child )) {				
-				$retval .= \Utils::toString ( $child );			
+				$retval .= \Convert::toString ( $child );			
 			} elseif (is_string ( $child )) {
-				$retval .= ($includediv ? '<li>' : '') . $child . ($includediv ? '</li>' : '');
+				$retval .= ($includediv ? '<li>xxx' : '') . $child . ($includediv ? '</li>' : '');
 			}
 		}
 		if ($includediv) {

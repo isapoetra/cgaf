@@ -88,7 +88,7 @@ final class Streamer {
 
 		exit();
 	}
-	public static function Stream($file, $mime = null, $downloadmode = false,$allowCache=true) {
+	public static function Stream($file, $mime = null, $downloadmode = false,$allowCache=true) {		
 		if (!is_file($file) ) {
 			CGAF::doExit();
 		}
@@ -97,7 +97,7 @@ final class Streamer {
 			$finfo = new FileInfo($file);
 			$mime = $finfo->Mime;
 		}
-		//ppd($mime);
+		
 		$content = null;
 		$streammode = false;
 		switch ($ext) {

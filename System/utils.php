@@ -254,7 +254,7 @@ abstract class Utils {
     if ($securepatern) {
       self::securePath($pathname, $securepatern);
     }
-    return $pathname;
+    return realpath($pathname).DS;
   }
 
   public static function getDirList($dir) {
@@ -288,7 +288,7 @@ abstract class Utils {
    *                 regex string $match ex /\.png$/i
    */
   public static function getDirFiles($dir, $base = null, $recurse = true, $match = null) {
-    $dir = self::ToDirectory($dir);
+    $dir = \CGAF::ToDirectory($dir);
     $files = array();
     if (!is_dir($dir)) {
       return $files;
@@ -304,17 +304,19 @@ abstract class Utils {
         if ($match) {
           $matches = array();
           if (preg_match($match, $filename, $matches)) {
-            $files [] = self::ToDirectory($base . $filename);
+            $files [] = $base . $filename;
           }
         } else {
-          $files [] = self::ToDirectory($base . $filename);
+          $files [] = $base . $filename;
         }
       } else if (is_dir($dir . DS . $filename) && $recurse) {
         $childs = self::getDirFiles($dir . DS . $filename, ($base ? $base . DS : "") . $filename . DS, true, $match);
         $files = array_merge($files, $childs);
       }
     }
+    
     closedir($dh);
+    //ppd($files);
     natcasesort($files);
     return $files;
   }
@@ -350,6 +352,13 @@ abstract class Utils {
       'removeSoure' => false,
       'filePermission' => 0755
   ), $callback = null, $callbackparam = null) {
+  	if (is_array($source)) {
+  		self::makeDir($dest,$options['folderPermission']);
+  		foreach ($source as $v) {
+  			self::copyFile($v, $dest,$options);
+  		}
+  		return true;
+  	}
     $overwrite = isset ($options ["overwrite"]) ? $options ["overwrite"] : false;
     $removeSoure = isset ($options ["removeSoure"]) ? $options ["removeSoure"] : false;
     $folderPermission = isset ($options ['folderPermission']) ? $options ['folderPermission'] : 0755;

@@ -15,6 +15,9 @@ class ConsoleApplication extends AbstractApplication {
 		}
 		Utils::sysexec('set TERM=linux');
 	}
+	function isAllow($id, $group, $access = 'view') {
+		return System::isConsole();
+	}
 	/* (non-PHPdoc)
 	 * @see Application::getAssetPath()
 	 */

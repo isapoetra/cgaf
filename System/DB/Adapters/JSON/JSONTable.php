@@ -1,7 +1,7 @@
 <?php
 namespace System\DB\Adapters\JSON;
+use System\DB\DBException;
 use System\DB\Adapters\JSON;
-
 use System\DB\DBQuery;
 
 class JSONTable extends DBQuery {
@@ -12,37 +12,58 @@ class JSONTable extends DBQuery {
 	protected $_path;
 	private $_pk;
 	private $_updates;
+	private $_lastInsertId = -1;
+
 	function __construct(JSON $db, $t) {
 		parent::__construct($db);
 		$this->_table = $t;
 		$this->_db = $db;
 		$this->_path = $this->_db->getPathFor($this->_table, 'table');
+		$this->loadDefs();
+		if (!isset($this->_tableDefs->DataConfig)) {
+			$this->_tableDefs->DataConfig = new \stdClass();
+		}
+	}
+
+	private function loadDefs() {
 		$f = $this->_path . 'defs.json';
 		if (is_readable($f)) {
 			$this->_tableDefs = json_decode(file_get_contents($f));
 		} else {
-			throw new DBException ('table not found ' . $t . '@' . $f);
+			throw new DBException('table not found ' . $t . '@' . $f);
+		}
+		if (!isset($this->_tableDefs)) {
+			$this->_tableDefs = new \stdClass();
 		}
 	}
 
-	function __destruct() {
+	private function saveDefs() {
 		$f = $this->_path . 'defs.json';
 		if (is_file($f)) {
 			file_put_contents($this->_path . 'defs.json', json_encode($this->_tableDefs));
 		}
 	}
 
-	private function getDataConfig($name, $def = null) {
-		if (!isset ($this->_tableDefs->DataConfig [$this->_table])) {
-			$this->_tableDefs->DataConfig [$this->_table] = new \stdClass ();
-		}
-		if (!isset ($this->_tableDefs->DataConfig [$this->_table]->$name)) {
+	function __destruct() {
+		$this->saveDefs();
+	}
+
+	protected function getDataConfig($name, $def = null) {
+		if (!isset($this->_tableDefs->DataConfig->$name)) {
 			if ($def !== null) {
-				$this->_tableDefs->DataConfig [$this->_table]->$name = $def;
+				$this->_tableDefs->DataConfig->$name = $def;
 			}
 			return $def;
 		}
-		return $this->_tableDefs->DataConfig [$this->_table]->$name;
+		return $this->_tableDefs->DataConfig->$name;
+	}
+
+	function setDataConfig($name, $value) {
+		if (!isset($this->_tableDefs->DataConfig)) {
+			$this->_tableDefs->DataConfig = new \stdClass();
+		}
+		$this->_tableDefs->DataConfig->$name = $value;
+		$this->saveDefs();
 	}
 
 	function getNextAutoIncrement() {
@@ -53,13 +74,20 @@ class JSONTable extends DBQuery {
 		return $this->_db;
 	}
 
-	function getTableName($includeDBName = false,$quote =true) {
+	function getTableName($includeDBName = false, $quote = true) {
 		return $this->_table;
 	}
+
+	function hasField($fieldname) {
+		$fields = $this->_getFieldDefs();		
+		return isset($fields[$fieldname]) ? true : false;
+	}
+
 	function getField($fieldName) {
 		$fields = $this->_getFieldDefs();
-		return isset($fields[$fieldName]) ? $fields[$fieldName]:null;
+		return isset($fields[$fieldName]) ? $fields[$fieldName] : null;
 	}
+
 	function getFields() {
 		return $this->_getFieldDefs();
 	}
@@ -69,7 +97,7 @@ class JSONTable extends DBQuery {
 			$this->_pk = array();
 			foreach ($this->Fields as $v) {
 				if ($v->primary) {
-					$this->_pk [] = $v->field_name;
+					$this->_pk[] = $v->field_name;
 				}
 			}
 		}
@@ -79,13 +107,12 @@ class JSONTable extends DBQuery {
 	protected function _getFieldDefs() {
 		if (!$this->_defs) {
 			$this->_defs = array();
-
 			foreach ($this->_tableDefs->fields as $v) {
-				$o = new JSONFieldInfo ($this);
+				$o = new JSONFieldInfo($this);
 				foreach ($v as $k => $j) {
 					$o->$k = $j;
 				}
-				$this->_defs [$v->field_name] = $o;
+				$this->_defs[$v->field_name] = $o;
 			}
 		}
 		return $this->_defs;
@@ -93,7 +120,7 @@ class JSONTable extends DBQuery {
 
 	function getFieldInfo($field) {
 		$fields = $this->_getFieldDefs();
-		return isset ($fields [$field]) ? $fields [$field] : null;
+		return isset($fields[$field]) ? $fields[$field] : null;
 	}
 
 	protected function load() {
@@ -113,9 +140,7 @@ class JSONTable extends DBQuery {
 				if ($object != "." && $object != "..") {
 					if (filetype($dir . "/" . $object) == "dir") {
 						$this->rrmdir($dir . "/" . $object);
-					}
-					else
-					{
+					} else {
 						unlink($dir . "/" . $object);
 					}
 				}
@@ -125,7 +150,7 @@ class JSONTable extends DBQuery {
 		}
 	}
 
-	function drop($object=null, $what = "table") {
+	function drop($object = null, $what = "table") {
 		if ($this->_db->isAllow('drop', 'table', $this->_table)) {
 			try {
 				// \Utils::removeFile($this->_path,true,true);
@@ -146,7 +171,7 @@ class JSONTable extends DBQuery {
 		foreach ($rows as $r) {
 			$eq = false;
 			foreach ($cpk as $p) {
-				$eq = $r->$p === $v [$p];
+				$eq = $r->$p === $v[$p];
 			}
 			if ($eq) {
 				return true;
@@ -159,31 +184,44 @@ class JSONTable extends DBQuery {
 		return $this->_path . 'rows.json';
 	}
 
+	protected function deleteRows() {
+		/**
+		 * @todo remove when stable
+		 */
+		if (!CGAF_DEBUG) {
+			throw new DBException('Delete command without key not allowed');
+		} else {
+			$fname = $this->getFileFor(null);
+			$this->setDataConfig('numrow', 0);
+			@unlink($fname);
+			clearstatcache(true, $fname);
+		}
+	}
+
 	protected function _putRow($row) {
 		$f = $this->getFileFor($row);
 		$rows = array();
 		if (is_file($f)) {
 			$rows = json_decode(file_get_contents($f));
 		}
-		$found =false;
-		foreach($rows as $idx=>$r) {
-			$pks=$this->getPrimaryKey();
-			$found =false;
+		$found = false;
+		foreach ($rows as $idx => $r) {
+			$pks = $this->getPrimaryKey();
+			$found = false;
 			if ($pks) {
-				foreach($pks as $pk) {
-					$found =  $r->$pk === $row->$pk;
+				foreach ($pks as $pk) {
+					$found = $r->$pk === (is_array($row) ? $row[$pk] : $row->$pk);
 				}
-
 			}
 			if ($found) {
-				$found=$idx;
+				$found = $idx;
 				break;
 			}
 		}
 		if ($found) {
-			$rows[$found]= $row;
-		}else{
-			$rows [] = $row;
+			$rows[$found] = $row;
+		} else {
+			$rows[] = $row;
 		}
 		file_put_contents($f, json_encode($rows));
 		return $this;
@@ -191,26 +229,37 @@ class JSONTable extends DBQuery {
 
 	function insert($def, $value = null, $func = false) {
 		$this->clear();
-		$row = new \stdClass ();
+		$row = new \stdClass();
 		$cf = $this->getFields();
 		foreach ($def as $k => $v) {
-			$def [$k] = trim($v, '\'\' ');
+			$def[$k] = trim($v, '\'\' ');
 		}
+		$this->_lastInsertId = -1;
 		$valid = array();
 		foreach ($cf as $f) {
-			$v = isset ($def [$f->field_name]) ? $def [$f->field_name] : null;
+			$v = isset($def[$f->field_name]) ? $def[$f->field_name] : null;
 			/** @noinspection PhpUndefinedMethodInspection */
 			if ($f->isValid($v)) {
-				$valid [$f->field_name] = $v;
+				$valid[$f->field_name] = $v;
 			} else {
 				$this->_db->_throwError(3001, $f->field_name, ' for table ' . $this->_table);
 			}
+			if ($f->auto_inc) {
+				$this->_lastInsertId = $v;
+				$this->setDataConfig('increment', $v);
+			}
 		}
 		if ($this->_isDuplicate($valid)) {
-			throw new DBException ('Duplicate value');
+			$this->_lastInsertId = -1;
+			throw new DBException('Duplicate Row');
 		}
 		$this->_putRow($valid);
+		$this->setDataConfig('numrow', $this->getDataConfig('numrow', 0) + 1);
 		return true;
+	}
+
+	function getLastInsertId() {
+		return $this->_lastInsertId;
 	}
 }
 ?>

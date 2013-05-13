@@ -1,8 +1,7 @@
 <?php
 namespace System\Web\JS\Engine;
 use System\Web\JS\JSUtils;
-use System\MVC\Application;
-use Utils, CGAF, Request, System\Web\JS\CGAFJS;
+use \Utils,  \Request;
 use System\Exceptions\AssetException;
 use System\Applications\IApplication;
 abstract class AbstractJSEngine implements \IJSEngine {

@@ -1,8 +1,6 @@
 <project name="cgaf-applications" default="dist">
 	<property file="${cgaf.master}/cgaf.properties" />
 	<import file="${cgaf.master}/cgaf-macro.xml" />
-
-
 	<!-- - - - - - - - - - - - - - - - - - 
           target: dist                      
         - - - - - - - - - - - - - - - - - -->

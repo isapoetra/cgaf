@@ -3,13 +3,15 @@ namespace System\Console;
 if (!defined("CGAF"))
 	die("Restricted Access");
 
-class Request implements \IRequest {
+class Request extends \BaseObject implements \IRequest {
 	private $_input;
+	private $_tty;
 	function __construct() {
 		$arg = $_SERVER["argv"];
 		array_shift($arg);
 		$this->parse($arg);
 	}
+	
 	/**
 	 * @param unknown_type $varname
 	 * @param unknown_type $default
@@ -72,4 +74,6 @@ class Request implements \IRequest {
 	public function gets($place = null, $secure = true) {
 		return $this->_input;
 	}
+	
+	
 }

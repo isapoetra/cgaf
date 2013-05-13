@@ -73,7 +73,7 @@ class DBSQLiteAdapter extends DBConnection {
 		return isset($this->_objects[$objectType][$objectName]) ? $this->_objects[$objectType][$objectName] :  false;
 	}
 
-	function Exec($sql) {
+	function exec($sql) {
 		$sql = $this->prepareQuery($sql);
 
 		if (\Strings::BeginWith($sql,'drop',false) || \Strings::BeginWith($sql,'create',false)) {

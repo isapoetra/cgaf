@@ -5,4 +5,3 @@ if (!defined('CGAF')) {
 		throw new System\Exceptions\SystemException('Initializing framework');
 	}
 }
-?>

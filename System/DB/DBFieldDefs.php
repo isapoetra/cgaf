@@ -6,7 +6,7 @@ class DBFieldDefs {
 		
 		if ($arg instanceof \SimplePHPDoc) {
 			$ori = $arg;
-			$arg = $arg->getVars ();
+			$arg = $arg->getVars ();			
 			if ($arg) {
 				foreach ( $arg as $k => $v ) {
 					switch (strtolower ( $k )) {
@@ -49,7 +49,7 @@ class DBFieldDefs {
 
 
 		$extra = isset($this->_vars['fieldextra']) ? (stripos($this->_vars['fieldextra'],'auto_increment') !==false ? true :false) : false;
-		return isset($this->_vars['fieldautoinrement']) ? (bool) $this->_vars['fieldautoinrement'] : $extra;
+		return isset($this->_vars['fieldautoincrement']) ? (bool) $this->_vars['fieldautoincrement'] : $extra;
 	}
 	function isPrimaryKey() {
 		return ( bool ) $this->fieldisprimarykey === true;

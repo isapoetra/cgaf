@@ -9,6 +9,7 @@ use DateUtils;
 use System\DB\DBReflectionClass;
 use System\DB\DBException;
 use Exception;
+use System\DB\DBIndexInfo;
 class MySQL extends DBConnection {
 	private $_affectedRow = 0;
 	private $_engine = "innoDb";
@@ -26,11 +27,11 @@ class MySQL extends DBConnection {
 		if ($this->isConnected ()) {
 			return true;
 		}
-		$this->_resource = mysql_connect ( $this->getArg ( "host", "localhost" ), $this->getArg ( "username", "root" ), $this->getArg ( "password" ), $this->getArg ( "persist", true ) );
+		$this->_resource = @mysql_connect ( $this->getArg ( "host", "localhost" ), $this->getArg ( "username", "root" ), $this->getArg ( "password" ), $this->getArg ( "persist", true ) );
 		if (! $this->_resource) {
 			$this->_lastError = mysql_error ();
 		}
-		if ($this->_resource === false) {
+		if ($this->_resource === false) {						
 			throw new Exception ( $this->_lastError );
 		}
 		if ($this->getArg ( "database" ) !== null) {
@@ -285,7 +286,7 @@ class MySQL extends DBConnection {
 		$q = $this->Query ( 'show indexes in ' . $table );
 		$retval = array ();
 		while ( $r = $q->next () ) {
-			$o = new TDBIndexInfo ();
+			$o = new DBIndexInfo();
 			$o->Table = $r->Table;
 			$o->Title = $r->Key_name;
 			$o->Column = $r->Column_name;
@@ -302,7 +303,7 @@ class MySQL extends DBConnection {
 		}
 		return $retval;
 	}
-	function Exec($sql, $fetchMode = DB::DB_FETCH_OBJECT) {
+	function exec($sql, $fetchMode = DB::DB_FETCH_OBJECT) {
 		return $this->Query ( $sql, $fetchMode );
 	}
 	function getError() {

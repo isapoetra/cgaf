@@ -16,6 +16,9 @@ class JSONFieldInfo extends TableField {
 				break;
 			case 'smallint':
 			case 'int':
+			case 'integer':
+				$val = (int)$val;
+				break;
 			case 'varchar':
 				$val = \Convert::toString($val);
 				break;
@@ -50,6 +53,9 @@ class JSONFieldInfo extends TableField {
 						break;
 				}
 			}
+		}elseif (trim($val)=='' && $this->auto_inc) {
+			$table = $this->getTable();
+			$val = $table->getNextAutoIncrement();
 		}
 		if ((!$this->allow_null || $this->primary) && trim($val) === '') {
 			if ($this->default_value) {

@@ -1,5 +1,6 @@
 <?php
 namespace System\Auth;
+
 use System\ACL\ACLHelper;
 use System\Session\Session;
 use System\IAuthentificator;
@@ -18,18 +19,15 @@ abstract class BaseAuthentificator extends \BaseObject implements IAuthentificat
 	}
 	abstract function authDirect($username, $password, $method = 'local');
 	/**
-   * @param $configName
-   * @param $def
-   * @return mixed
-   */
+	 * @param $configName
+	 * @param $def
+	 * @return mixed
+	 */
 	function getConfig($configName, $def) {
 		return $this->_appOwner->getConfig('auth.' . $configName, $def);
 	}
 	protected function getAuthArgs($args = null) {
-		$req = array(
-				"username" => "",
-				"password" => "",
-				"remember" => false);
+		$req = array("username" => "", "password" => "", "remember" => false);
 		if ($args == null) {
 			$args = \Request::gets('p');
 		}
@@ -41,9 +39,9 @@ abstract class BaseAuthentificator extends \BaseObject implements IAuthentificat
 				$retval->$k = $v;
 			}
 		}
-		foreach ($req as $k=>$v) {
+		foreach ($req as $k => $v) {
 			if (!isset($retval->$k)) {
-				$retval->$k=$v;
+				$retval->$k = $v;
 			}
 		}
 		return $retval;

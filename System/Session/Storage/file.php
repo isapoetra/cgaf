@@ -1,7 +1,7 @@
 <?php
 namespace System\Session\Storage;
-use System\Session\Session;
 
+use System\Session\Session;
 use System\Session\SessionBase as SessionBase, \CGAF as CGAF, \Utils as Utils;
 
 function serialize_fix_callback($match) {
@@ -33,13 +33,13 @@ class File extends SessionBase {
 	}
 
 	protected function getFileName($sesid) {
-		return Utils::ToDirectory($this->_savePath . DS . "sess_$sesid");
+		return \CGAF::ToDirectory($this->_savePath . DS . "sess_$sesid");
 	}
 
 	function read($sessID) {
 		$sess_file = $this->getFileName($sessID);
 		if (is_readable($sess_file)) {
-			return base64_decode((string)file_get_contents($sess_file));
+			return base64_decode((string) file_get_contents($sess_file));
 		}
 		return ("");
 	}
@@ -67,7 +67,7 @@ class File extends SessionBase {
 		if (is_readable($sess_file)) {
 			@unlink($sess_file);
 		}
-		return parent::destroy($sessID);;
+		return parent::destroy($sessID);
 	}
 
 	function gc($sessMaxLifeTime) {
@@ -79,8 +79,9 @@ class File extends SessionBase {
 		}
 		return true;
 	}
-
-
+	function reStart($id=null) {
+		return parent::reStart($id);
+	}
 }
 
 ?>

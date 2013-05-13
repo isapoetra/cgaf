@@ -6,7 +6,6 @@
  * Time: 7:50 PM
  */
 namespace System\VCS;
-use \System\Exceptions\SystemException;
 use \Git2\Repository;
 use \Git2\Reference;
 

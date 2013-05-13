@@ -1,5 +1,6 @@
 <?php
 namespace System\Web\UI\Controls;
+
 use System\Session\Session;
 
 use System\Web\Utils\HTMLUtils;
@@ -16,6 +17,6 @@ class Form extends WebControl {
 		$this->addChild(HTMLUtils::renderHiddenField('__token', Session::get('__token')));
 	}
 	function setRenderToken($value) {
-		$this->_renderToken=$value;
+		$this->_renderToken = $value;
 	}
 }

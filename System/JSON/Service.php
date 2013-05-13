@@ -38,8 +38,9 @@ class Service {
 	 * @access   public
 	 */
 	public function encode($var, $quote= true) {
+		
 		switch (gettype($var)) {
-			case 'boolean' :
+			case 'boolean' :				
 				return $var ? 'true' : 'false';
 			case 'NULL' :
 				return $this->ignoreNull ? '' : 'null';
@@ -53,20 +54,35 @@ class Service {
 			case 'array' :
 				$ret = array();
 				$hasc = false;
+				
 				foreach($var as $k=>$v) {
+					if ( $v ===null) continue;
 					if (is_numeric($k)) {
 						$ret[] = $this->encode($v);
 					}else{
 						$hasc=true;
-						$ret[$k] = $this->encode($v);
+						if ($this->ignoreStr && in_array( $k,$this->ignoreStr)){
+							
+							$ret[$k] = is_string($v) ? $v : $this->encode($v) ;
+						}else{
+							
+							$ret[$k] = $this->encode($v);
+						}
+						
 					}
-				}
+				}				
 				if ($hasc) {
-					$r = '{';
+					$r = array();
+					
 					foreach($ret as $k=>$v) {
-						$r.= '"'.$k.'":'.$v.',';
+						if ($k) {
+							$r []= '"'.$k.'":'.$v;
+						}
+						
 					}
-					$r= (strlen($r) > 2 ? substr($r,0,strlen($r)-1) : $r).'}';
+					//$r= (strlen($r) > 2 ? substr($r,0,strlen($r)-1) : $r).'}';
+					
+					$r = '{'.implode(','.(CGAF_DEBUG ? PHP_EOL :null),$r).'}';
 					return $r;
 				}
 				return '[' . implode(',',$ret) . ']';;

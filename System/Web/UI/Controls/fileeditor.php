@@ -1,9 +1,9 @@
 <?php
 namespace System\Web\UI\Controls;
+
 use System\Web\UI\JQ\HTMLEditor;
-use System\Locale\Locale;
 use System\Configurations\Configuration;
-use System\JSON\JSON;
+
 class FileEditor extends WebControl {
 	private $_configs = array();
 	private $_file;
@@ -12,14 +12,7 @@ class FileEditor extends WebControl {
 		parent::__construct('div');
 		$this->_file = $file;
 		$this->_configs = new Configuration($configs, false);
-		$this
-				->setEditorConfig(
-						array(
-								'filebrowserImageBrowseUrl' => BASE_URL . '/asset/browse/?type=images',
-								'skin' => 'kama',
-								'uiColor' => '#9AB8F3',
-								'toolbarCanCollapse' => true,
-								'language' => $this->getAppOwner()->getLocale()->getLocale()));
+		$this->setEditorConfig(array('filebrowserImageBrowseUrl' => BASE_URL . '/asset/browse/?type=images', 'skin' => 'kama', 'uiColor' => '#9AB8F3', 'toolbarCanCollapse' => true, 'language' => $this->getAppOwner()->getLocale()->getLocale()));
 	}
 	function setEditorConfig($config, $value = null) {
 		$this->_configs->setConfig($config, $value);
@@ -37,7 +30,7 @@ class FileEditor extends WebControl {
 		 */
 		$instance = null;
 		$id = $this->getId();
-		$this->setId($id.'-container');
+		$this->setId($id . '-container');
 		switch ($ext) {
 		case 'js':
 		case 'html':

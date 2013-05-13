@@ -1,6 +1,6 @@
 <?php
 namespace System\DB;
-use CGAF, AppManager;
+use  AppManager;
 abstract class DB {
 	const DB_FETCH_OBJECT = 0;
 	/**
@@ -11,7 +11,7 @@ abstract class DB {
 	 */
 	public static function Connect($connArgs) {
 		if (! $connArgs) {
-			return CGAF::getDBConnection ();
+			return \CGAF::getDBConnection ();
 		}
 		$connArgs ["type"] = isset ( $connArgs ["type"] ) ? $connArgs ["type"] : "mysql";
 		$class = "\\System\\DB\\Adapters\\" . $connArgs ['type'];
@@ -23,7 +23,7 @@ abstract class DB {
 		// throw new DBException("Database Class [$class] Not Found");
 	}
 	public static function loadObjectLists($sql, $conn = null) {
-		$conn = $conn ? $conn : AppManager::getInstance ()->getDBConnection ();
+		$conn = $conn ? $conn : \AppManager::getInstance ()->getDBConnection ();
 		$q = new DBQuery ( $conn );
 		$q->addSQL ( $sql );
 		return $q->loadObjects ();

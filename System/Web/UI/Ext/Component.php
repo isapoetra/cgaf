@@ -1,9 +1,13 @@
 <?php
 namespace System\Web\UI\Ext;
+
 use System\JSON\JSON;
 use \Utils;
 use \Request;
 use \Response;
+use System\Exceptions\SystemException;
+use System\Web\JS\JSUtils;
+
 class Component extends \Control {
 	protected $_class;
 	protected $_config;
@@ -15,15 +19,7 @@ class Component extends \Control {
 	protected $_controlScript;
 	protected $_checkObjectInstance = true;
 	protected $_parent = null;
-	protected $_strIgnore = array(
-			"handler",
-			"context",
-			"scope",
-			"plugins",
-			"store",
-			"data",
-			"loader",
-			"initComponent");
+	protected $_strIgnore = array("handler", "context", "scope", "plugins", "store", "data", "loader", "initComponent");
 	protected $_baseURI;
 	protected $_renderMode;
 	protected $_addEditURL;
@@ -31,10 +27,7 @@ class Component extends \Control {
 	protected $_viewURL;
 	protected $_winConfig;
 	protected $_reportURL;
-	protected $_ignoreQuery = array(
-			"_task",
-			"_a",
-			"_dc");
+	protected $_ignoreQuery = array("_task", "_a", "_dc");
 	function __construct($config, $class = null, $varPrefix = "g") {
 		$this->_strict = true;
 		$this->_prefix = $varPrefix;
@@ -125,9 +118,9 @@ class Component extends \Control {
 	}
 	function Initialize() {
 		parent::Initialize();
-		$minfo = ModuleManager::getModuleInfo();
-		$u = CGAF::getParam("_u");
-		$a = CGAF::getParam("_a");
+		$minfo = \ModuleManager::getModuleInfo();
+		$u = \Request::get("_u");
+		$a = \Request::get("_a");
 		if ($a !== null && $u == $a || ($minfo && (strtolower($a) == strtolower($minfo->mod_name)))) {
 			$this->_ignoreQuery[] = "_a";
 			$a = null;
@@ -163,7 +156,7 @@ class Component extends \Control {
 		if ($config) {
 			if (is_array($config)) {
 				if (!isset($config["title"])) {
-					$m = ModuleManager::getModuleInfo();
+					$m = \ModuleManager::getModuleInfo();
 					$config["title"] = "'" . ucfirst($type) . " " . $m->mod_ui_name . "'";
 				}
 				$config = Utils::arrayImplode($config, ":", ",", '');
@@ -180,8 +173,7 @@ class Component extends \Control {
 			if (is_array($configVal)) {
 				$configVal = Utils::arrayMerge($this->_winConfig[$v], $configVal);
 			} else {
-				$configVal = array(
-						$configVal);
+				$configVal = array($configVal);
 			}
 			$this->_winConfig[$v] = $configVal;
 		}
@@ -326,16 +318,11 @@ class Component extends \Control {
 		static $ignore;
 		if ($checkMethod) {
 			if (!$ignore) {
-				$ignore = array(
-						"setid");
+				$ignore = array("setid");
 			}
 			$method = "set$configName";
-			if (!in_array(strtolower($method), $ignore) && is_callable(array(
-							$this,
-							$method))) {
-				$nval = call_user_func_array(array(
-						$this,
-						"$method"), $configValue);
+			if (!in_array(strtolower($method), $ignore) && is_callable(array($this, $method))) {
+				$nval = call_user_func_array(array($this, "$method"), $configValue);
 				$configValue = $nval !== null ? $nval : $configValue;
 			}
 		}
@@ -379,7 +366,7 @@ class Component extends \Control {
 		$items = $this->getConfig("items");
 		if ($items) {
 			foreach ($items as $item) {
-				if ($item instanceof JExtComponent) {
+				if ($item instanceof Component) {
 					$item->setParent($this);
 					$item->prepareRender();
 				}
@@ -437,9 +424,7 @@ class Component extends \Control {
 			} else {
 				$ignore = $this->_strIgnore;
 			}
-			$res = JSON::encodeConfig($v, $ignore, array(
-					$this,
-					"$method"));
+			$res = JSON::encodeConfig($v, $ignore, array($this, "$method"));
 			if ($res !== null) {
 				$retval .= "$k:" . $res . ",";
 			}
@@ -497,8 +482,7 @@ class Component extends \Control {
 	}
 	function RenderDirect($return = false) {
 		if (Request::get("renderTo")) {
-			$this->setConfigs(array(
-							"renderTo" => Request::get("renderTo")));
+			$this->setConfigs(array("renderTo" => Request::get("renderTo")));
 		}
 		$handle = false;
 		$ret = $this->Render(true, $handle);
@@ -508,7 +492,7 @@ class Component extends \Control {
 				throw new SystemException("unknown class, cannot render Direct");
 			}
 			$ret .= $this->getJS("end");
-			$ret = WebResponse::RenderScript("var obj=" . $ret, false, true, true);
+			$ret = JSUtils::renderJSTag("var obj=" . $ret, false);
 		}
 		if (!$return) {
 			Response::Write($ret);

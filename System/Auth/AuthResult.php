@@ -1,6 +1,6 @@
 <?php
 namespace System\Auth;
-use \AppManager;
+
 class AuthResult extends \BaseObject {
 	const FAILURE = 0;
 	const SUCCESS = 1;

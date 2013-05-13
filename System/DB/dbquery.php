@@ -26,7 +26,7 @@ class DBQuery extends \BaseObject implements IQuery {
 	private $_drops = array();
 	private $_orderby = array();
 	private $_prepared = false;
-	private $_join = array();
+	protected $_join = array();
 	private $_groupBy = array();
 	private $_having = array();
 	private $_distinct = false;
@@ -66,7 +66,10 @@ class DBQuery extends \BaseObject implements IQuery {
 
 	protected function Initialize() {
 	}
-
+	/**
+	 * 
+	 * @return \System\DB\DBConnection
+	 */
 	function getConnection() {
 		return $this->_conn;
 	}
@@ -173,6 +176,7 @@ class DBQuery extends \BaseObject implements IQuery {
 	 * @return DBQuery
 	 */
 	function Update($field, $value, $ope = "=", $func = false) {
+		
 		$this->_type = "update";
 		$this->_update [$field] = array(
 				$ope,
@@ -277,19 +281,6 @@ class DBQuery extends \BaseObject implements IQuery {
 	}
 
 	function loadSQLFile($file) {
-		/*
-		 * if (is_readable ( $f )) { $query = file_get_contents ( $f, FILE_TEXT
-		 		* ) . "\n"; if ($query && trim ( $query ) !== '') { $this->clear ();
-		* $sql = ""; $multiSQL = "/('[^']*'|\"[^\"]*\"|[^;'\"])*;/"; ini_set (
-				* 'pcre.backtrack_limit', 10000 ); preg_match_all ( $multiSQL,
-						* "$query;\n", $aSQL ); for($i = sizeof ( $aSQL = $aSQL [0] ); $i --;)
-			* { if (! ($trim = trim ( substr ( $aSQL [$i], 0, - 1 ) ))) { unset (
-					* $aSQL [$i] ); } else { $aSQL [$i] = "$trim;"; } } foreach ( $aSQL as
-							* $sql ) { $this->addSQL ( $sql ); } $this->_type = "direct"; if (count
-									* ( $aSQL ) > 0) { return $this; } return false; } return false; } else
-			* { throw new \Exception ( "File Not Found" . Logger::WriteDebug ( $f )
-					* ); } return $this;
-		*/
 		//original sourcecode http://stackoverflow.com/questions/1883079/best-practice-import-mysql-file-in-php-split-queries
 		$delimiter = ';';
 		set_time_limit(0);
@@ -375,7 +366,7 @@ class DBQuery extends \BaseObject implements IQuery {
 	 * @param  $field   string
 	 * @param $alias string
 	 * @param  $func bool
-	 * @return IQuery
+	 * @return DBQuery
 	 */
 	function select($field, $alias = null, $func = false) {
 		if ($alias) {
@@ -810,7 +801,9 @@ class DBQuery extends \BaseObject implements IQuery {
 		}
 		return $this;
 	}
-
+	protected function setJoin($join) {
+		$this->_join = $join;
+	}
 	/**
 	 * @param        $table
 	 * @param        $alias

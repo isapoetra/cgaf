@@ -1,5 +1,6 @@
 <?php
 namespace System\ACL;
+
 interface IACL {
 	/**
 	 *
@@ -25,8 +26,8 @@ interface IACL {
 	function isAuthentificated();
 	function clearCache();
 	function getUserId();
-	public function isInRole($role);
-	function assignRole($uid, $roleId) ;
-	function revokeFromRole($objectId,$objectGroup,$appId,$roleId,$access='view');
+	function isInRole($role, $uid = null);
+	function assignRole($uid, $roleId);
+	function revokeFromRole($objectId, $objectGroup, $appId, $roleId, $access = 'view');
 }
 ?>

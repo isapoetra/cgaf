@@ -8,10 +8,11 @@ abstract class AbstractResponse extends \BaseObject implements \IResponse, \IRen
 	private $_buffered = true;
 	private $_buffer = null;
 	private $_buff = array();
-	private $_idx = 0;
-  /**
-   * @param bool|array $buffered
-   */
+	private $_idx = -1;
+	protected $flushed =false;
+	/**
+	 * @param bool|array $buffered
+	 */
 	function __construct($buffered = true) {
 		if (is_array($buffered)) {
 			foreach ($buffered as $k => $v) {
@@ -30,9 +31,9 @@ abstract class AbstractResponse extends \BaseObject implements \IResponse, \IRen
 	function clearBuffer() {
 		$this->_buffer = '';
 	}
-	protected function setBuffer($buff) {
+	/*protected function setBuffer($buff) {
 		$this->_buffer = $buff;
-	}
+	}*/
 	function setBuffered($value) {
 		if ($this->_buffered !== $value) {
 			$this->_buffered = $value;
@@ -47,46 +48,42 @@ abstract class AbstractResponse extends \BaseObject implements \IResponse, \IRen
 	}
 	function write($s, $attr = null) {
 		$s = \Convert::toString($s);
-		if ($this->_idx == 0) {
-			echo $s;
-			return;
-		}
-		if ($this->_buffered) {
-			$this->_buffer .= $s;
-		} else {
-			echo $s;
-		}
+		echo $s;
 	}
-	function OnBuffer($buff) {
+	function OnBuffer($buff,$flags) {
 		$this->_buff[$this->_idx] = $buff;
 	}
 	function StartBuffer() {
 		$this->_idx++;
 		if ($this->_buffered) {
-			ob_start(array(
+			/*ob_start(array(
 					$this,
 					"OnBuffer"
-			), null, true);
+			), null, true);*/
+			ob_start();
 		}
 	}
 	function EndBuffer($flush = false) {
 		if (!$this->_buffered) {
 			return null;
 		}
-		if ($this->_idx == 0) {
+		if ($this->_idx < 0) {
 			return null;
 		}
 		$r = @ob_get_clean();
-		$s = array();
+		//$r = @ob_get_clean();
+		/*$s = array();
 		foreach ($this->_buff as $k => $v) {
-			if ($k !== $this->_idx) {
-				$s[$k] = $v;
-			} else {
-				$r = $v;
-			}
+		if ($k !== $this->_idx) {
+		$s[$k] = $v;
+		} else {
+		$r = $v;
 		}
+		}
+
+		$this->_buff = $s;*/
+		$r .= array_pop($this->_buff);
 		$this->_idx--;
-		$this->_buff = $s;
 		if ($flush) {
 			$this->write($r);
 			$this->flush();
@@ -101,10 +98,11 @@ abstract class AbstractResponse extends \BaseObject implements \IResponse, \IRen
 		while ($this->_idx > 0) {
 			$r .= $this->EndBuffer();
 		}
-		//ppd($r);
+
 		echo $r;
-		//@ob_end_clean();
+		while (@ob_end_flush());
 		$this->_buffer = null;
+		$this->flushed = true;
 	}
 	function Render($return = false) {
 		if (Request::isJSONRequest()) {

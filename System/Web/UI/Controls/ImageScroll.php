@@ -1,13 +1,13 @@
 <?php
 namespace System\Web\UI\Controls;
+
 use System\Web\JS\CGAFJS;
 
 class ImageScroll extends WebControl {
 	private $_itemClass = "img-item";
 	function __construct($items) {
 		parent::__construct('div', false, 'class="image-scroll fill-parent"');
-		$container = new WebControl('div', false, array(
-				'class' => 'img-container fill-parent'));
+		$container = new WebControl('div', false, array('class' => 'img-container fill-parent'));
 		$this->addChild($container);
 		$cnav = new WebControl('div', false);
 		$cnav->addChild(new WebControl('a', false, 'class="left-nav";href="#";title="Prev"'));
@@ -26,8 +26,8 @@ class ImageScroll extends WebControl {
 		if ($this->_container) {
 			if (is_object($c)) {
 				$c->addStyle($this->_itemClass);
-			}elseif (is_string($c)) {
-				$c = '<div class="'.$this->_itemClass.'">'.$c.'</div>';
+			} elseif (is_string($c)) {
+				$c = '<div class="' . $this->_itemClass . '">' . $c . '</div>';
 			}
 			return $this->_container->addChild($c);
 		}

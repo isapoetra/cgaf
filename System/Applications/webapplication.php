@@ -4,14 +4,11 @@ use \System\Web\JS\CGAFJS;
 use \System\Session\Session;
 use \Logger;
 use \System\Web\WebUtils;
-use System\ACL\ACLHelper;
 use System\Web\UI\Items\BreadCrumbItem;
 use CGAF, Utils, URLHelper, Request;
-use System\API\PublicApi;
 use System\Web\Utils\HTMLUtils;
 use System\Exceptions\SystemException;
 use System\JSON\JSON;
-use System\JSON\JSONResult;
 use \System\MVC\Application;
 /**
  *
@@ -65,6 +62,9 @@ class WebApplication extends Application implements IWebApplication {
   function addClientScript($script) {
     if (! $script) {
       return;
+    }
+    if (is_array($script)) {
+    	$script =  implode(CGAF_DEBUG ? PHP_EOL : '', $script);
     }
     $this->_clientScripts [] = $script;
   }
@@ -221,16 +221,22 @@ class WebApplication extends Application implements IWebApplication {
     return $this->_appURL;
   }
   function Initialize() {
+  	
     if (parent::Initialize ()) {
+    	
       $this->getAppUrl ();
+     
       /*if (! defined ( 'APP_URL' )) {
        define ( 'APP_URL', $this->getAppUrl () );
       }*/
-      CGAF::addClassPath ( 'System', $this->getAppPath () . DS . 'classes' . DS );
-      CGAF::addAlowedLiveAssetPath ( $this->getLivePath () );
+      CGAF::addClassPath ( 'System', $this->getAppPath () . DS . 'classes' . DS );      
+      CGAF::addClassPath ( 'System', $this->getAppPath () . DS . 'classes' . DS.'System'.DS );
+      CGAF::addAlowedLiveAssetPath ( $this->getLivePath () );      
       CGAF::addAlowedLiveAssetPath ( $this->getAppPath () . $this->getConfig ( 'livedatapath', 'assets' ) );
+     
       return true;
     }
+    
     return false;
   }
 
@@ -596,6 +602,7 @@ EOT;
       return null;
     }
     $asset = Utils::toDirectory($asset);
+    
     if (!is_file($asset)) {
       return null;
     }
@@ -609,9 +616,10 @@ EOT;
         break;
     }
     $apath = \Utils::ToDirectory($this->getAppPath() . $this->getConfig('livedatapath', 'assets') . '/');
-    if (\Strings::BeginWith($asset, $apath)) {
-      $asset = \Strings::Replace($apath, '', $asset);
-      return URLHelper::add($this->getAppUrl(), 'asset/'.$asset);
+  	
+    if (substr($asset,0,strlen($apath))===$apath) {
+      $asset = \Strings::Replace($apath, '', $asset);      
+      return URLHelper::add($this->getAppUrl(), 'assets/'.$asset);
     }
     return CGAF::assetToLive($asset);
   }
@@ -621,7 +629,9 @@ EOT;
   }
   function Run() {
     $retval = parent::Run();
-    return $this->prepareOutput($retval);
+    if ($retval) {
+    	return $this->prepareOutput($retval);
+    }
   }
 }
 ?>

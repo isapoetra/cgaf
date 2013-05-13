@@ -88,12 +88,12 @@ class TreeView extends Control {
 	private function loadAll($parent = 0, $loadChild = false) {
 		$m = $this->_model;
 		$m->reset('tree', $this->getId());
-		//$m->clear('field');
 		$m->select($this->colMapping('id'), 'id');
 		$m->select($this->colMapping('parent'), 'parent');
 		$m->select($this->colMapping('text'), 'text');
 		$m->where($this->colMapping('parent') . '=' . $m->quote($parent));
-		$m->select('(select count(' . $this->colMapping('id') . ') from ' . $m->getFirstTableName() . ' c where c.' . $this->colMapping('parent') . '=id)', 'childs', true);
+		$m->select('(select count(' . $this->colMapping('id') . ') from ' . $m->getFirstTableName()
+				. ' c where c.' . $this->colMapping('parent') . '=id)', 'childs', true);
 		//$m->groupBy($this->colMapping('parent'));
 		return $this->parseModelRows($m->loadObjects(), $loadChild);
 	}

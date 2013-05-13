@@ -4,7 +4,7 @@
  *
  */
 namespace System\ACL;
-use System\Session\SessionEvent;
+
 use System\Session\Session;
 use CGAF;
 use System\Exceptions\SystemException;
@@ -52,19 +52,19 @@ abstract class BaseACL extends \BaseObject implements IACL {
 			$this->setAppOwner($appOwner);
 		}
 		/*if ($appOwner instanceof \IApplication) {
-			$appOwner->addEventListener ( LoginEvent::LOGIN, array (
-					$this,
-					"onAuth"
-			) );
+		    $appOwner->addEventListener ( LoginEvent::LOGIN, array (
+		            $this,
+		            "onAuth"
+		    ) );
 		$appOwner->addEventListener ( LoginEvent::LOGOUT, array (
-				$this,
-				"onAuth"
+		        $this,
+		        "onAuth"
 		) );
 		$this->setAppOwner ( $appOwner );
 		}
 		Session::getInstance ()->addEventListener ( SessionEvent::DESTROY, array (
-				$this,
-				'onSessionDestroy'
+		        $this,
+		        'onSessionDestroy'
 		) );*/
 	}
 
@@ -99,7 +99,7 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		if (is_array($o)) {
 			foreach ($o as $k => $row) {
 				if ($this->isAllow($row->$field, $aclgroup)) {
-					$retval [$k] = $row;
+					$retval[$k] = $row;
 				}
 			}
 			return $retval;
@@ -140,9 +140,9 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		if (!is_numeric($access)) {
 			$enum = ACLHelper::$ACCESS_ENUM;
 			$access = strtolower($access);
-			return isset ($enum [$access]) ? $enum [$access] : $access;
+			return isset($enum[$access]) ? $enum[$access] : $access;
 		}
-		return ( int )$access;
+		return (int) $access;
 	}
 
 	protected function isAllowPrivs($privs, $id, $group, $access) {
@@ -150,22 +150,22 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		if ($access === (ACLHelper::ACCESS_WRITE | ACLHelper::ACCESS_UPDATE)) {
 			return $this->isAllowPrivs($privs, $id, $group, ACLHelper::ACCESS_WRITE) || $this->isAllowPrivs($privs, $id, $group, ACLHelper::ACCESS_UPDATE);
 		}
-		if (isset ($this->_groupCache [$group] [$id] [$access])) {
-			return $this->_groupCache [$group] [$id] [$access];
+		if (isset($this->_groupCache[$group][$id][$access])) {
+			return $this->_groupCache[$group][$id][$access];
 		}
 		/*
 		 * if (isset($privs ['manage'] ['system'])) { $privs [$group] [$id] =
-		* $privs ['manage'] ['system'] ? $privs ['manage'] ['system'] : $privs
-		* [$group] [$id] ; }
-		*/
-		if (!isset ($privs [$group] [$id])) {
+		 * $privs ['manage'] ['system'] ? $privs ['manage'] ['system'] : $privs
+		 * [$group] [$id] ; }
+		 */
+		if (!isset($privs[$group][$id])) {
 			return false;
 		}
 		$retval = false;
-		$pr = $privs [$group] [$id];
-		$retval=ACLHelper::isAllowAccess($pr,$access);
-		$this->_groupCache [$group] [$id] [$access] = $retval;
-		return $this->_groupCache [$group] [$id] [$access];
+		$pr = $privs[$group][$id];
+		$retval = ACLHelper::isAllowAccess($pr, $access);
+		$this->_groupCache[$group][$id][$access] = $retval;
+		return $this->_groupCache[$group][$id][$access];
 	}
 
 	/**
@@ -182,15 +182,15 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		if ($userid == null) {
 			$userid = $this->getUserId();
 		}
-		$this->_cacheUserPrivs [$userid][$appId] = $value;
+		$this->_cacheUserPrivs[$userid][$appId] = $value;
 		$cm = $this->getCacheManager();
-		$id = "acl-$userid-".$this->_appId;
+		$id = "acl-$userid-" . $this->_appId;
 		return $cm->put($id, serialize($value), $this->_cachePath);
 	}
 
 	protected function removeCacheForUser($userId) {
-		if (isset ($this->_cacheUserPrivs [$userId])) {
-			unset ($this->_cacheUserPrivs [$userId]);
+		if (isset($this->_cacheUserPrivs[$userId])) {
+			unset($this->_cacheUserPrivs[$userId]);
 		}
 		$cm = $this->getCacheManager();
 		$id = "acl-$userId";
@@ -202,14 +202,14 @@ abstract class BaseACL extends \BaseObject implements IACL {
 			$userid = $this->getUserId();
 		}
 		$appId = $appId ? $appId : $this->_appId;
-		if (isset ($this->_cacheUserPrivs [$userid][$appId])) {
-			return $this->_cacheUserPrivs [$userid][$appId];
+		if (isset($this->_cacheUserPrivs[$userid][$appId])) {
+			return $this->_cacheUserPrivs[$userid][$appId];
 		}
 
 		$cm = $this->getCacheManager();
-		$id = "acl-$userid-".$this->_appId;
-		$this->_cacheUserPrivs [$userid][$appId] = unserialize($cm->getContent($id, 'acl'));
-		return $this->_cacheUserPrivs [$userid][$appId];
+		$id = "acl-$userid-" . $this->_appId;
+		$this->_cacheUserPrivs[$userid][$appId] = unserialize($cm->getContent($id, 'acl'));
+		return $this->_cacheUserPrivs[$userid][$appId];
 	}
 
 	protected function clearUserCache($uid) {
@@ -235,20 +235,20 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		if ($userid === null) {
 			$userid = $this->getUserId();
 		}
-		if (!isset ($this->_rolesCache [$this->_appId] [$userid])) {
-			return $this->_rolesCache [$this->_appId] [$userid];
+		if (!isset($this->_rolesCache[$this->_appId][$userid])) {
+			return $this->_rolesCache[$this->_appId][$userid];
 		}
 		return null;
 	}
 
 	protected function mergePrivs(&$privs, $o) {
 		foreach ($o as $r) {
-			if (isset ($privs [$r->object_type] [$r->object_id])) {
-				$x = $privs [$r->object_type] [$r->object_id];
+			if (isset($privs[$r->object_type][$r->object_id])) {
+				$x = $privs[$r->object_type][$r->object_id];
 				$found = false;
 				foreach ($x as $k => $v) {
 					if (is_numeric($v) && is_numeric($r->privs)) {
-						$privs [$r->object_type] [$r->object_id] [$k] = $r->privs;
+						$privs[$r->object_type][$r->object_id][$k] = $r->privs;
 						$found = true;
 					}
 					if (is_string($v) && $v == $r->privs) {
@@ -256,10 +256,10 @@ abstract class BaseACL extends \BaseObject implements IACL {
 					}
 				}
 				if (!$found) {
-					$privs [$r->object_type] [$r->object_id] [] = $r->privs;
+					$privs[$r->object_type][$r->object_id][] = $r->privs;
 				}
 			} else {
-				$privs [$r->object_type] [$r->object_id] [] = $r->privs;
+				$privs[$r->object_type][$r->object_id][] = $r->privs;
 			}
 		}
 	}
@@ -269,7 +269,7 @@ abstract class BaseACL extends \BaseObject implements IACL {
 			return $cache[$group][$id];
 		}
 	}
-	protected function getUserPrivs($userid, $id,  $appId, $force = false) {
+	protected function getUserPrivs($userid, $id, $appId, $force = false) {
 		$cache = $this->getCache($userid, $appId);
 		return $cache;
 	}
@@ -309,7 +309,7 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		//if ($this->_appId !== CGAF::APP_ID) ppd($cache);
 		if ($cache) {
 			$cache = is_string($cache) ? unserialize($cache) : $cache;
-			if (isset ($cache [$group])) {
+			if (isset($cache[$group])) {
 				return $this->isAllowPrivs($cache, $id, $group, $access);
 			}
 		}
@@ -321,22 +321,21 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		if ($userid == null) {
 			$userid = $this->getUserId();
 		}
-		$userid = ( int )$userid;
+		$userid = (int) $userid;
 		// remove from cache
 		$cache = $this->getCache($userid, $this->_appId);
-		if (isset ($cache [$group] [$id])) {
-			unset ($cache [$group] [$id]);
+		if (isset($cache[$group][$id])) {
+			unset($cache[$group][$id]);
 			$this->putCache($userid, $this->_appId, $cache);
 		}
 	}
-
 
 	protected abstract function _getRoles();
 
 	function getRoleIdByRoleName($id) {
 		$roles = $this->_getRoles();
 		foreach ($roles as $role) {
-			if (is_numeric($id) && ( int )$role->role_id === ( int )$id) {
+			if (is_numeric($id) && (int) $role->role_id === (int) $id) {
 				return $role;
 			} else if ($role->role_name === $id) {
 				return $role;
@@ -348,7 +347,7 @@ abstract class BaseACL extends \BaseObject implements IACL {
 	function assignRole($uid, $roleId) {
 		$role = $this->getRoleIdByRoleName($roleId);
 		if (!$role) {
-			throw new SystemException ('acl.invalidrole');
+			throw new SystemException('acl.invalidrole');
 		}
 		if ($this->isInrole($role->role_name, $uid)) {
 			return true;
@@ -356,9 +355,9 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		return true;
 	}
 
-	function grantToRole($id, $group, $roleId,$appId, $access = 'view') {
-		$uroles = $this->getUserInRole($roleId,false);
-		foreach($uroles as $r) {
+	function grantToRole($id, $group, $roleId, $appId, $access = 'view') {
+		$uroles = $this->getUserInRole($roleId, false);
+		foreach ($uroles as $r) {
 			$this->clearUserCache($r->user_id);
 		}
 	}
@@ -370,39 +369,22 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		}
 		// remove from cache
 		$cache = $this->getCache($userid, $this->_appId);
-		if (isset ($cache [$group] [$id])) {
-			unset ($cache [$group] [$id]);
+		if (isset($cache[$group][$id])) {
+			unset($cache[$group][$id]);
 			$this->putCache($userid, $this->_appId, $cache);
 		}
 		$access = ACLHelper::stringToAccess($access);
-		$o = $this->_q->clear()->addTable("user_privs")
-		->where("user_id=" . $userid)
-		->where("app_id=" . $this->_q->quote($this->_appId))
-		->where("object_id=" . $this->_q->quote($id))
-		->where("object_type=" . $this->_q->quote($group))
-		->loadObject();
+		$o = $this->_q->clear()->addTable("user_privs")->where("user_id=" . $userid)->where("app_id=" . $this->_q->quote($this->_appId))->where("object_id=" . $this->_q->quote($id))->where("object_type=" . $this->_q->quote($group))->loadObject();
 		if ($o) {
 			$o->privs = $o->privs | $access;
-			$this->_q->clear()->addTable("user_privs")
-			->Update("privs", $o->privs, "=", true)
-			->where("user_id=" . ( int )$userid)
-			->where("app_id=" . $this->_q->quote($this->_appId))
-			->where("object_id=" . $this->_q->quote($id))
-			->where("object_type=" . $this->_q->quote($group))
-			->exec();
+			$this->_q->clear()->addTable("user_privs")->Update("privs", $o->privs, "=", true)->where("user_id=" . (int) $userid)->where("app_id=" . $this->_q->quote($this->_appId))->where("object_id=" . $this->_q->quote($id))->where("object_type=" . $this->_q->quote($group))->exec();
 		} else {
-			$this->_q->clear()->addTable("user_privs")
-			->addInsert("user_id", ( int )$userid)
-			->addInsert("app_id", $this->_q->quote($this->_appId))
-			->addInsert("object_id", $this->_q->quote($id))
-			->addInsert("object_type", $this->_q->quote($group))
-			->addInsert("privs", $access)
-			->exec();
+			$this->_q->clear()->addTable("user_privs")->addInsert("user_id", (int) $userid)->addInsert("app_id", $this->_q->quote($this->_appId))->addInsert("object_id", $this->_q->quote($id))->addInsert("object_type", $this->_q->quote($group))->addInsert("privs", $access)->exec();
 		}
 		return true;
 	}
 
-	function isInrole($roleName, $uid = null) {
+	function isInRole($roleName, $uid = null) {
 		$owner = $this->getAppOwer();
 		if ($owner && $owner->getConfig('disableacl', false)) {
 			return true;
@@ -411,7 +393,7 @@ abstract class BaseACL extends \BaseObject implements IACL {
 		// ppd($roles);
 		if ($roles) {
 			foreach ($roles as $role) {
-				if (is_numeric($roleName) && ( int )$role->role_id === ( int )$roleName) {
+				if (is_numeric($roleName) && (int) $role->role_id === (int) $roleName) {
 					return true;
 				} else if ($role->role_name === $roleName) {
 					return true;

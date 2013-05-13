@@ -4,7 +4,6 @@ return array(
 	//Application to ignore while installation
 		'appignoreinstall' => array(),
 		'installed' => true,
-		'DEBUGMODE' => true,
 		'disableacl' => true,
 		'disableCache' => false,
 		'applicationPath' => realpath(dirname(__FILE__) . 'Applications'),

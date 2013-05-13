@@ -188,8 +188,9 @@ class Install extends WebApplication {
 		return count($this->_postError) === 0;
 	}
 
-	function run() {
+	function Run() {
 		$steps = $this->_steps;
+
 		$this->assign('steps', $steps);
 		$step = ( int )(isset ($_REQUEST ['step']) ? $_REQUEST ['step'] : 0);
 		if ($_POST) {
@@ -205,6 +206,7 @@ class Install extends WebApplication {
 			Session::set('install.postedvalues', $npost
 			);
 		}
+
 		$isvalid = true;
 		for ($i = 0; $i <= $step; $i++) {
 			if (!$this->isValidStep($i, isset ($steps [$i] ['defaults']) ? $steps
@@ -243,6 +245,7 @@ class Install extends WebApplication {
 		$this->assign('postvalues', $posted ['step_' . $step]);
 		Session::set('install.step', $step);
 		$installlog = array();
+
 		if ($installConfirm && !\CGAF::isInstalled()) {
 			$installlog [] = 'Setting up CGAF Configuration';
 			$gconf = CGAF::getConfiguration();
@@ -260,6 +263,7 @@ class Install extends WebApplication {
 					}
 				}
 			}
+			
 			\CGAF::reloadConfig();
 			$con = DB::Connect($gconf->getConfigs('db'));
 			$installlog [] = 'Installing Default Model';
@@ -293,11 +297,11 @@ class Install extends WebApplication {
 			}
 			foreach ($init as $k => $v) {
 				try {
-					
+						
 					$installlog [] = 'loading model ' . $v;
 					$this->getModel($v);
 				} catch (\Exception $e) {
-					die ($e->getMessage());
+					throw $e;
 				}
 			}
 
@@ -313,12 +317,21 @@ class Install extends WebApplication {
 			$this->assign('installlog', $installlog);
 
 			$gconf->setConfig('cgaf.installed', true);
+			$gconf->setConfig("disableacl",false);
 			if ($gconf->save(CGAF_PATH . 'config.php')) {
 				Session::remove('install.postedvalues');
 			}
+			Session::reStart();
 			\Response::Redirect(\URLHelper::add(BASE_URL, null, '__appId=' . \CGAF::APP_ID));
 		}
-		return parent::RUN();
+		return parent::Run();
+	}
+	function handleError(Exception $ex) {
+		echo $ex->getMessage();
+		Response::Flush(true);
+		CGAF::doExit();
+		return true;
+		
 	}
 }
 

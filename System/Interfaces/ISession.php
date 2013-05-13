@@ -1,47 +1,46 @@
 <?php
 if (!defined("CGAF"))
-  die("Restricted Access");
+	die("Restricted Access");
 use System\Configurations\IConfigurable;
-interface ISession extends IObject,IConfigurable {
+interface ISession extends IObject, IConfigurable {
 
-  function Start();
+	function Start();
 
-  function isStarted();
+	function isStarted();
 
-  function &get($name, $default = null);
+	function &get($name, $default = null);
 
-  function set($name, $value);
+	function set($name, $value);
 
-  function remove($varname);
+	function remove($varname);
 
-  //Session Handler
+	//Session Handler
 
+	function open($savePath, $sessName);
 
-  function open($savePath, $sessName);
+	function read($sessID);
 
-  function read($sessID);
+	function write($sessID, $sessData);
 
-  function write($sessID, $sessData);
+	function destroy($sessID = null);
 
-  function destroy($sessID = null);
+	function gc($sessMaxLifeTime);
 
-  function gc($sessMaxLifeTime);
+	function reStart($id=null);
 
-  public function reStart();
+	function getId();
 
-  public function getId();
+	function &registerState($stateGroup);
 
-  public function &registerState($stateGroup);
+	function unregisterState($stateGroup);
 
-  public function unregisterState($stateGroup);
+	function setState($stateGroup, $stateName, $value);
 
-  public function setState($stateGroup, $stateName, $value);
+	function &setStates(\System\Session\sessionStateHandler $state);
 
-  function &setStates(\System\Session\sessionStateHandler $state);
+	function &getStates();
 
-  public function &getStates();
-
-  public function getState($stateGroup, $stateName, $default = null);
+	function getState($stateGroup, $stateName, $default = null);
 }
 
 ?>

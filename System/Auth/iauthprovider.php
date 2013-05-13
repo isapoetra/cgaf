@@ -1,5 +1,6 @@
 <?php
 namespace System\Auth;
+
 interface IAuthProvider {
 	/**
 	 *

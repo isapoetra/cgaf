@@ -1,8 +1,10 @@
 <?php
 namespace System\Web\UI\Ext;
+
 use System\Web\JS\JSUtils;
 use \AppManager;
 use \Request;
+
 class Control extends Component {
 	function __construct($class, $varPrefix = "g") {
 		parent::__construct(null, $varPrefix);
@@ -193,11 +195,11 @@ class Control extends Component {
 			$retval[] = join($this->_js["end"], ";\n");
 		}
 		if ($hascontrol) {
-			$retval[] = "}," . (CGAF::isDebugMode() ? "true" : "false") . ");";
+			$retval[] = "}," . (\CGAF::isDebugMode() ? "true" : "false") . ");";
 		}
 		$retval = implode("\n", $retval);
 		if (!$return) {
-			WebResponse::renderScript($retval, false, false);
+			echo JSUtils::renderJSTag($retval, false);
 		}
 		return $retval;
 	}

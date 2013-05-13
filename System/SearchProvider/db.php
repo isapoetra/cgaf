@@ -1,7 +1,10 @@
 <?php
-abstract class TSearchProviderDB extends DBQuery implements ISearchProvider {
+namespace System\SearchProvider;
+use System\DB\DBQuery;
 
-	function __construct(ISearchEngine $se) {
+abstract class TSearchProviderDB extends DBQuery implements \ISearchProvider {
+
+	function __construct(\ISearchEngine $se) {
 		parent::__construct ( $se->getAppOwner());
 	}
 	private function isValidConfig($config) {
@@ -38,7 +41,7 @@ abstract class TSearchProviderDB extends DBQuery implements ISearchProvider {
 
 		$rows=$this->clear('field')
 		->select ( $config ["resultField"] )
-		->loadObjects (null,Request::get('_p',0),Request::get('_pw',10));
+		->loadObjects(null,Request::get('_p',0),Request::get('_pw',10));
 
 
 		foreach ($rows as $k=>$v) {

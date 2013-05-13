@@ -16,7 +16,7 @@ abstract class Request {
    *
    * @return IRequest
    */
-  protected static function getInstance() {
+  public static function getInstance() {
     if (!self::$_instance) {
       $class = '\\System\\' . CGAF_CONTEXT . "\\Request";
       self::$_instance = new $class();

@@ -1,7 +1,6 @@
 <?php
 namespace System\ACL\Provider;
 use System\ACL\ACLHelper;
-use CGAF, System\Session\Session;
 use System\ACL\BaseACL;
 use System\DB\DBQuery;
 use System\Models\User;
@@ -15,7 +14,7 @@ class Db extends BaseACL {
 
 	function __construct($appOwner) {
 		parent::__construct($appOwner);
-		$this->_q = new DBQuery (CGAF::getDBConnection());
+		$this->_q = new DBQuery (\CGAF::getDBConnection());
 	}
 
 	function isPartner() {

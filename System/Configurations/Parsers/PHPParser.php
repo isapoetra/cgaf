@@ -25,8 +25,7 @@ class PHPParser implements IConfigurationParser {
 				if ($cnt < count($config) - 1) {
 					$retval .= ',';
 				}
-				$retval .= ' ' . $cmt;
-				;
+				$retval .= ' ' . $cmt;				
 				$cnt++;
 			}
 			$retval .= self::NL . str_repeat('	', $level) . ')';
@@ -43,7 +42,7 @@ class PHPParser implements IConfigurationParser {
 				$retval .= '\'' . $config . '\'';
 				break;
 			default:
-				$retval .= $config;
+				$retval .= $config ==null ? 'null':$config;
 				Logger::info(__CLASS__ . '::' . __FUNCTION__ . 'unknown type ' . $t);
 			}
 		}

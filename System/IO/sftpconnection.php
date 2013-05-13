@@ -16,7 +16,7 @@ class SFTPConnection extends \BaseObject {
   private $_baseRemotePath;
   private $_dirs = array();
   public function __construct($host, $port = 22) {
-      $this->connection = ssh2_connect($host, $port, null, array(
+      $this->connection = @ssh2_connect($host, $port, null, array(
         $this,
         'connlog'
     ));
@@ -33,6 +33,10 @@ class SFTPConnection extends \BaseObject {
     $this->log('setting remotepath ' . $path);
     $this->_baseRemotePath = $path;
   }
+  public function getRemotePath() {
+	return $this->_baseRemotePath;
+  }
+
   public function login($username, $password) {
     $this->log('Authentificating...' . $username);
     if (!ssh2_auth_password($this->connection, $username, $password))

@@ -110,6 +110,7 @@ class Strings extends stdClass {
 			}
 			return false;
 		}
+		if (!$needle) return true;
 		if ($case) {
 			return stripos($haystack, $needle, $offset) !== false;
 		} else {
@@ -142,6 +143,14 @@ class Strings extends stdClass {
 		return self::Replace(array(
 				'%20'=>' '
 		), null,$s);
+	}
+	public static  function CharCount($haystack,$needle) {
+		if ($needle ==null) return 0;
+		$count =0;
+		for($i=0;$i<strlen($haystack);$i++) {			
+			if ($haystack[$i] === $needle) $count++;
+		}
+		return $count;
 	}
 }
 ?>

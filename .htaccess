@@ -80,8 +80,7 @@ AddType text/cache-manifest manifest
 
 <IfModule mod_rewrite.c>
 	RewriteEngine On
-	#replace with your base url
-	#RewriteBase /
+	#replace with your base url	
 	RewriteBase /
 	RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
 	RewriteRule .* - [F]
@@ -89,7 +88,7 @@ AddType text/cache-manifest manifest
 	RewriteCond %{REQUEST_FILENAME}   !robots\.txt
 	RewriteCond %{REQUEST_FILENAME}   !sitemap\.xml
 	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteCond %{REQUEST_FILENAME} !-d	
-	RewriteRule ^(.*)$ index.php?__url=$1 [L,QSA]
+	RewriteCond %{REQUEST_FILENAME} !-d		
+	RewriteRule ^(.*)$ index.php?__url=$1 [L,QSA]		
 	RewriteRule .*\shared/.* - [F]
 </IfModule>

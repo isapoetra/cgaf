@@ -265,7 +265,7 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable 
 		if (! $f) {
 			return false;
 		}
-		$this->_configFile = $f;
+		$this->_configFile = $f;		
 		$ext = Utils::getFileExt ( $f, false );
 		$parser = $this->getParser ( $ext );
 		$configs = null;

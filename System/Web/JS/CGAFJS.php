@@ -173,8 +173,7 @@ final class CGAFJS {
   }
   public static function loadPlugin($plugin, $direct = false) {
     self::initialize ();
-    if (! self::$_appOwner) {
-      ppd ( self::$_plugins );
+    if (! self::$_appOwner) {      
       return;
     }
     if (is_array($plugin)) {
@@ -192,13 +191,13 @@ final class CGAFJS {
     }
     if ($direct) {
       $plugin = self::getPluginURL ( $plugin );
-
       self::$_appOwner->addClientAsset ( $plugin );
       return;
     }
     if (! in_array ( $plugin, self::$_plugins )) {
       self::$_plugins [] = $plugin;
     }
+   
   }
   public static function addToolbar($id, $title = null, $action = null) {
     self::$_toolbars [] = array (

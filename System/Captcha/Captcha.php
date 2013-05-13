@@ -17,7 +17,7 @@ abstract class Captcha {
 	public static function getInstance(IApplication $appOwner) {
 		static $instance;
 		if (!$instance) {
-			$class = '\\System\\Captcha\\' . $appOwner->getConfig('captcha.engine');
+			$class = '\\System\\Captcha\\' . $appOwner->getConfig('captcha.engine','MyCaptcha');
 			$instance = new $class($appOwner);
 		}
 		return $instance;

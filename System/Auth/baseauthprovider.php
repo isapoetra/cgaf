@@ -1,5 +1,6 @@
 <?php
 namespace System\Auth;
+
 use System\Applications\IApplication;
 use System\Session\Session;
 abstract class BaseAuthProvider implements IAuthProvider {
@@ -11,22 +12,22 @@ abstract class BaseAuthProvider implements IAuthProvider {
 	private $_state = Auth::NEED_RETRY_STATE;
 	private $_base;
 	private $_sessionStorage;
-	function __construct(IApplication $appOwner,$base) {
+	function __construct(IApplication $appOwner, $base) {
 		$this->_appOwner = $appOwner;
-		$this->_base =$base;
+		$this->_base = $base;
 
 	}
 	protected function getFromSession($var) {
-		return Session::get($this->_sessionStorage.'.'.$var);
+		return Session::get($this->_sessionStorage . '.' . $var);
 	}
-	protected function setToSession($var,$val) {
-		return Session::set('__auth.'.$this->_base.'.'.$var,$val);
+	protected function setToSession($var, $val) {
+		return Session::set('__auth.' . $this->_base . '.' . $var, $val);
 	}
 	abstract function getRemoteUser();
 	function Initialize() {
-		$this->_sessionStorage = '__auth.'.$this->_base;
+		$this->_sessionStorage = '__auth.' . $this->_base;
 		$this->_remoteUser = $this->getFromSession('remoteUser');
-		return  true;
+		return true;
 	}
 	protected function getAppOwner() {
 		return $this->_appOwner;
@@ -38,12 +39,12 @@ abstract class BaseAuthProvider implements IAuthProvider {
 	function getRealUser() {
 		if (!$this->_realUser && $this->_remoteUser) {
 			$u = $this->_appOwner->getModel('user');
-			$this->_realUser=$u->loadByExternalId($this->_remoteUser->id,$this->_base);			
+			$this->_realUser = $u->loadByExternalId($this->_remoteUser->id, $this->_base);
 		}
 		return $this->_realUser;
 	}
-	protected function setRemoteUser($r) {				
-		$this->setToSession('remoteUser', $r);		
+	protected function setRemoteUser($r) {
+		$this->setToSession('remoteUser', $r);
 		$this->_remoteUser = $r;
 	}
 	protected function setState($state) {

@@ -5,3 +5,7 @@ contacts=Contacts
 activities=Activities
 noactivities=This person has no activities/not sharing any activities with you
 noactivitiesme=You don't have any activities
+nationality=Nationality
+religion=Religion
+ethnic=Ethnic
+
