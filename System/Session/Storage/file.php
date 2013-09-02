@@ -8,7 +8,7 @@ function serialize_fix_callback($match) {
 	return 's:' . strlen($match[2]);
 }
 
-class File extends SessionBase {
+class File extends SessionBase { 
 	private $_savePath;
 	private $_sessionName = "CGAF";
 
@@ -33,6 +33,7 @@ class File extends SessionBase {
 	}
 
 	protected function getFileName($sesid) {
+		
 		return \CGAF::ToDirectory($this->_savePath . DS . "sess_$sesid");
 	}
 
@@ -47,6 +48,7 @@ class File extends SessionBase {
 	function write($sessID, $sessData) {
 		parent::write($sessID, $sessData);
 		$sess_file = $this->getFileName($sessID);
+		
 		$fp = @fopen($sess_file, "w+");
 		if ($fp) {
 			$return = fwrite($fp, base64_encode($sessData));

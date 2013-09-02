@@ -15,7 +15,7 @@ class TTY extends \BaseObject{
 		@fclose($this->_tty);
 	}
 	public function ask($title) {
-		$t = $title.' [Y/N]';
+		//$t = $title.' [Y/N]';
 		$r = '';
 		while($r !='Y' && $r !='N') {
 			$t = $title.' [Y/N]';

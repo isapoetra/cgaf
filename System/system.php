@@ -2,6 +2,7 @@
 use System\Exceptions\SystemException;
 
 class OSInfo extends BaseObject {
+
 	function __construct() {
 		$this->os = PHP_OS;
 	}
@@ -15,15 +16,23 @@ class OSInfo extends BaseObject {
 	}
 }
 
+/**
+ * Class System
+ */
 abstract class System {
 	private static $_osInfo;
 	private static $_initialized;
 	const WebContext = 'Web';
 
-	public static function addIncludePath($path) {
+    /**
+     * @internal param $path
+     */
+    public static function addIncludePath() {
 		foreach (func_get_args() as $path) {
-			if (!file_exists($path) or (file_exists($path) && filetype($path) !== 'dir')) {
-				trigger_error("Include path '{$path}' not exists", E_USER_WARNING);
+			if (!file_exists($path)
+					or (file_exists($path) && filetype($path) !== 'dir')) {
+				trigger_error("Include path '{$path}' not exists",
+						E_USER_WARNING);
 				continue;
 			}
 			$delim = self::isLinux() ? ':' : ';';
@@ -42,15 +51,20 @@ abstract class System {
 		return strtolower(CGAF_CONTEXT) === 'console';
 	}
 
-	public static function removeIncludePath($path) {
+    /**
+     * @internal param $path
+     */
+    public static function removeIncludePath() {
 		foreach (func_get_args() as $path) {
 			$paths = explode(DS, get_include_path());
 			if (($k = array_search($path, $paths)) !== false)
-				unset ($paths [$k]);
+				unset($paths[$k]);
 			else
 				continue;
 			if (!count($paths)) {
-				trigger_error("Include path '{$path}' can not be removed because it is the only", E_USER_NOTICE);
+				trigger_error(
+						"Include path '{$path}' can not be removed because it is the only",
+						E_USER_NOTICE);
 				continue;
 			}
 			set_include_path(implode(PATH_SEPARATOR, $paths));
@@ -59,7 +73,7 @@ abstract class System {
 
 	public static function getOSInfo() {
 		if (!self::$_osInfo) {
-			self::$_osInfo = new OSInfo ();
+			self::$_osInfo = new OSInfo();
 			self::$_osInfo->distro = self::getLinuxDistname();
 		}
 		return self::$_osInfo;
@@ -92,27 +106,33 @@ abstract class System {
 			if (@file_exists('/etc/debian_version')) {
 				if (is_file('/etc/lsb-release')) {
 					$s = Utils::parseIni('/etc/lsb-release');
-					$s = $s ['Default'];
-					$distname = $s ["DISTRIB_ID"];
-					$distver = $s ["DISTRIB_RELEASE"];
-					$distid = $s ["DISTRIB_CODENAME"] . ' - ' . $s ['DISTRIB_DESCRIPTION'];
+					$s = $s['Default'];
+					$distname = $s["DISTRIB_ID"];
+					$distver = $s["DISTRIB_RELEASE"];
+					$distid = $s["DISTRIB_CODENAME"] . ' - '
+							. $s['DISTRIB_DESCRIPTION'];
 					$distbaseid = 'debian';
 					$ver = Utils::sysexec('uname -a', null, true);
-					$ver = $ver [0];
+					$ver = $ver[0];
 					$descr = $ver;
-				} elseif (trim(file_get_contents('/etc/debian_version')) == '4.0') {
+				} elseif (trim(file_get_contents('/etc/debian_version'))
+						== '4.0') {
 					$distname = 'Debian';
 					$distver = '4.0';
 					$distid = 'debian40';
 					$distbaseid = 'debian';
 					$descr = "Operating System: Debian 4.0 or compatible\n";
-				} elseif (strstr(trim(file_get_contents('/etc/debian_version')), '5.0')) {
+				} elseif (strstr(
+						trim(file_get_contents('/etc/debian_version')), '5.0')) {
 					$distname = 'Debian';
 					$distver = 'Lenny';
 					$distid = 'debian40';
 					$distbaseid = 'debian';
 					$descr = "Operating System: Debian Lenny or compatible\n";
-				} elseif (strstr(trim(file_get_contents('/etc/debian_version')), '6.0') || trim(file_get_contents('/etc/debian_version')) == 'squeeze/sid') {
+				} elseif (strstr(
+						trim(file_get_contents('/etc/debian_version')), '6.0')
+						|| trim(file_get_contents('/etc/debian_version'))
+								== 'squeeze/sid') {
 					$distname = 'Debian';
 					$distver = 'Squeeze/Sid';
 					$distid = 'debian40';
@@ -126,8 +146,7 @@ abstract class System {
 					$descr = "Operating System: Debian or compatible, unknown version.\n";
 				}
 			}
-
-			elseif (file_exists("/etc/SuSE-release")) {
+ elseif (file_exists("/etc/SuSE-release")) {
 				// ** OpenSuSE
 				if (stristr(file_get_contents('/etc/SuSE-release'), '11.0')) {
 					$distname = 'openSUSE';
@@ -135,13 +154,15 @@ abstract class System {
 					$distid = 'opensuse110';
 					$distbaseid = 'opensuse';
 					$descr = "Operating System: openSUSE 11.0 or compatible\n";
-				} elseif (stristr(file_get_contents('/etc/SuSE-release'), '11.1')) {
+				} elseif (stristr(file_get_contents('/etc/SuSE-release'),
+						'11.1')) {
 					$distname = 'openSUSE';
 					$distver = '11.1';
 					$distid = 'opensuse110';
 					$distbaseid = 'opensuse';
 					$descr = "Operating System: openSUSE 11.1 or compatible\n";
-				} elseif (stristr(file_get_contents('/etc/SuSE-release'), '11.2')) {
+				} elseif (stristr(file_get_contents('/etc/SuSE-release'),
+						'11.2')) {
 					$distname = 'openSUSE';
 					$distver = '11.1';
 					$distid = 'opensuse110';
@@ -155,7 +176,7 @@ abstract class System {
 					$descr = "Operating System: openSUSE or compatible, unknown version.\n";
 				}
 			} // ** Redhat
-			elseif (file_exists("/etc/redhat-release")) {
+ elseif (file_exists("/etc/redhat-release")) {
 				$content = file_get_contents('/etc/redhat-release');
 				if (stristr($content, 'Fedora release 9 (Sulphur)')) {
 					$distname = 'Fedora';
@@ -195,11 +216,11 @@ abstract class System {
 					$descr = "Operating System: Redhat or compatible, unknown version.\n";
 				}
 			} // ** Gentoo
-			elseif (file_exists("/etc/gentoo-release")) {
+ elseif (file_exists("/etc/gentoo-release")) {
 				$content = file_get_contents('/etc/gentoo-release');
 				preg_match_all('/([0-9]{1,2})/', $content, $version);
 				$distname = 'Gentoo';
-				$distver = $version [0] [0] . $version [0] [1];
+				$distver = $version[0][0] . $version[0][1];
 				$distid = 'gentoo';
 				$distbaseid = 'gentoo';
 				$descr = "Operating System: Gentoo $distver or compatible\n";
@@ -207,11 +228,11 @@ abstract class System {
 		} catch (Exception $e) {
 		}
 		return array(
-			'name' => $distname,
-			'version' => $distver,
-			'id' => $distid,
-			'baseid' => $distbaseid,
-			'description' => $descr
+				'name' => $distname,
+				'version' => $distver,
+				'id' => $distid,
+				'baseid' => $distbaseid,
+				'description' => $descr
 		);
 	}
 
@@ -228,26 +249,32 @@ abstract class System {
 		if (self::isConsole()) {
 			return 'localhost';
 		}
-		return isset ($_SERVER ['REMOTE_ADDR']) ? $_SERVER ['REMOTE_ADDR'] : null;
+		return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
 	}
-
 	/**
-	 * @deprecated
-	 *  dl since php5.3
+	 * @deprecated dl since php5.3
 	 * @static
 	 * @param $ext
 	 * @return bool
 	 * @throws System\Exceptions\SystemException
 	 *
 	 */
+
 	public static function loadExtenstion($ext) {
 		if (extension_loaded($ext)) {
 			return true;
 		}
 		if (function_exists('dl')) {
-			@dl('php_' . $ext . (self::isWindows() ? '.dll' : '.so'));
+			$prefix = (PHP_SHLIB_SUFFIX === 'dll') ? 'php_' : '';
+			
+			@dl($prefix . $ext . '.' . PHP_SHLIB_SUFFIX);
+			if (extension_loaded($ext)) {
+				
+			}
 		} else {
-			throw new SystemException ('Unable to load extension ' . $ext . ',dynamic loading extension not allowed by system');
+			throw new SystemException(
+					'Unable to load extension ' . $ext
+							. ',dynamic loading extension not allowed by system');
 		}
 		if (extension_loaded($ext)) {
 			return true;
@@ -257,12 +284,12 @@ abstract class System {
 
 	private static function tryGetTempDir() {
 		// Try to get from environment variable
-		if (!empty ($_ENV ['TMP'])) {
-			$path = realpath($_ENV ['TMP']);
-		} else if (!empty ($_ENV ['TMPDIR'])) {
-			$path = realpath($_ENV ['TMPDIR']);
-		} else if (!empty ($_ENV ['TEMP'])) {
-			$path = realpath($_ENV ['TEMP']);
+		if (!empty($_ENV['TMP'])) {
+			$path = realpath($_ENV['TMP']);
+		} else if (!empty($_ENV['TMPDIR'])) {
+			$path = realpath($_ENV['TMPDIR']);
+		} else if (!empty($_ENV['TEMP'])) {
+			$path = realpath($_ENV['TEMP']);
 		} else {
 			// Detect by creating a temporary file
 			// Try to use system's temporary directory
@@ -288,22 +315,25 @@ abstract class System {
 			$user = posix_getpwuid(posix_geteuid());
 			$groupinfo = posix_getgrgid(posix_getegid());
 			$u = array(
-				'username' => $user['name'],
-				'groups' => $groupinfo['name']);
+					'username' => $user['name'],
+					'groups' => $groupinfo['name']
+			);
 		}
 		return $u;
 	}
-	public static function iniset($set,$value=null) {
+
+	public static function iniset($set, $value = null) {
 		if (is_array($set) || is_object($set)) {
-			foreach($set as $k=>$v) {
+			foreach ($set as $k => $v) {
 				ini_set($k, $v);
 			}
 			return;
 		}
 		ini_set($set, $value);
 	}
+
 	public static function getTempDir() {
-		$path = '';
+		//$path = '';
 		if (!function_exists('sys_get_temp_dir')) {
 			$path = self::tryGetTempDir();
 		} else {

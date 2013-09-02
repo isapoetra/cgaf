@@ -1,5 +1,6 @@
 <?php
 namespace System\MVC;
+use System\DB\DBQuery;
 use System\DB\Table;
 
 class Model extends Table {
@@ -14,8 +15,8 @@ class Model extends Table {
 	}
 	/**
 	 *
-	 * @param unknown_type $mode
-	 * @param unknown_type $id
+	 * @param string $mode
+	 * @param mixed $id
 	 * @return Model
 	 */
 	function reset($mode = null, $id = null) {
@@ -25,7 +26,12 @@ class Model extends Table {
 	function resetgrid($id = null) {
 		return $this->reset();
 	}
-
+    function reCreate() {
+        if ($this->isObjectExist($this->getTableName())) {
+            $this->drop()->exec();
+        }
+        $this->_createTable();
+    }
 	protected function _createTable() {
 		if (parent::_createTable()) {
 			$tname = $this
@@ -68,6 +74,18 @@ class Model extends Table {
 	function newData() {
 		return $this->clear('all');
 	}
+    public function getRowCount() {
+        $q = new DBQuery($this->getConnection());
+        $sql =$this->lastSQL();
+        if (strpos($sql,'LIMIT') !== false) {
+            $sql =substr($sql,0,strpos($sql,'LIMIT'));
+        }
+        $q->addTable('('.$sql.')', 't',true);
+        $q->select("count(*)",'count',true);
+        $q->setJoin($this->_join);
+        $o = $q->loadObject();
+        return $o->count;
+    }
 }
 
 ?>

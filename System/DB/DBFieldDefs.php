@@ -5,7 +5,7 @@ class DBFieldDefs {
 	function __construct($arg = null) {
 		
 		if ($arg instanceof \SimplePHPDoc) {
-			$ori = $arg;
+			//$ori = $arg;
 			$arg = $arg->getVars ();			
 			if ($arg) {
 				foreach ( $arg as $k => $v ) {

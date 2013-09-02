@@ -8,7 +8,7 @@ interface IACL {
 	 * @param string $group
 	 * @param string|int $access
 	 * @param null|int $userid
-	 * @return boolean
+	 * @return bool
 	 */
 	function isAllow($id, $group, $access = "view", $userid = null);
 	/**
@@ -29,5 +29,19 @@ interface IACL {
 	function isInRole($role, $uid = null);
 	function assignRole($uid, $roleId);
 	function revokeFromRole($objectId, $objectGroup, $appId, $roleId, $access = 'view');
+
+    /**
+     * @return bool
+     */
+    function isAdmin();
+
+    /**
+     * @param $id
+     * @param $group
+     * @param string $access
+     * @param null $userid
+     * @return mixed
+     */
+    function grant($id, $group, $access = "view", $userid = null) ;
 }
 ?>

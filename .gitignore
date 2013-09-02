@@ -23,3 +23,5 @@ testx/
 testmail.php
 assets.php
 assets/js/jQuery/plugins/
+*.min.js
+*.min.css

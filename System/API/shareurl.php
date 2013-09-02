@@ -21,13 +21,14 @@ class shareurl extends PublicApi {
 	function url($config, $id = null, $multi = true, $imageIndex = 0) {
 		$this->init(__FUNCTION__);
 		if ($multi) {
-			$retval = '<ul class="share-url">';
+			//$retval = '<ul class="share-url">';
+            $retval ='';
 			$idx = 0;
 			foreach ($config as $k => $v) {
 				$retval .= $this->url($v, $k, false, $idx);
 				$idx++;
 			}
-			$retval .= '</ul>';
+			//$retval .= '</ul>';
 		} else {
 			$t = array();
 			foreach ($config as $kk => $vv) {
@@ -41,15 +42,16 @@ class shareurl extends PublicApi {
 					. urlencode($this->getConfig('tags'));// $t['shareurl'];
 			$descr = isset($t['descr']) ? $t['descr'] : ucwords($id);
 			$title = isset($t['title']) ? $t['title'] : ucwords($id);
-			$retval = '<li  class="share-item">';
-			$retval .= '<a href="' . $url . '" alt="' . $descr . '" title="' . $descr . '" class="' . strtolower($id) . '" target="__blank">';
-			$retval .= ' <span class="bg">&nbsp;</span>';
-			if ($this->getConfig('showtitle')) {
-				$retval .= '<span>' . $title . '</span>';
-			}
+			//$retval = '<li  class="share-item">';
+			$retval = '<a href="' . $url . '" alt="' . $descr . '" title="' . $descr . '" class="share-item ' . strtolower($id) . '" target="__blank">';
+            if ($this->getConfig('showtitle')) {
+                $retval .= '<label>' . $title . '</label>';
+            }
+            $retval .= ' <span class="bg" title="'.$title.'"></span>';
+
 			//$retval .= $title;
 			$retval .= '</a>';
-			$retval .= '</li>';
+			//$retval .= '</li>';
 		}
 		return $retval;
 	}

@@ -49,6 +49,7 @@ abstract class AbstractResponse extends \BaseObject implements \IResponse, \IRen
 	function write($s, $attr = null) {
 		$s = \Convert::toString($s);
 		echo $s;
+        return null;
 	}
 	function OnBuffer($buff,$flags) {
 		$this->_buff[$this->_idx] = $buff;

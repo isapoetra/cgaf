@@ -8,6 +8,7 @@ use \System\Configurations\Configuration;
 use \Response;
 use \AppManager;
 use \Logger;
+use System\Applications\IApplication;
 /**
  * Base Template engine
  *
@@ -121,7 +122,7 @@ abstract class AbstractTemplate extends \BaseObject implements \ITemplate, IConf
 		$retval = array(
 				$this->getTemplatePath() . DS . $templateName . $this->getTemplateFileExt(),
 				dirname($last) . DS . $templateName . $this->getTemplateFileExt());
-		if ($this->getAppOwner() instanceof \IApplication) {
+		if ($this->getAppOwner() instanceof IApplication) {
 			$retval[] = $this->getAppOwner()->getAppPath() . DS . 'Views' . DS . $templateName . $this->getTemplateFileExt();
 		}
 		if ($last) {

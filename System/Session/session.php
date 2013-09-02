@@ -20,7 +20,7 @@ abstract class Session {
 	/**
 	 * get Session Instance
 	 *
-	 * @return \ISession|\IEventDispatcher
+	 * @return \ISession
 	 */
 	public static function getInstance() {
 		if (self::$_instance == null) {
@@ -57,7 +57,13 @@ abstract class Session {
 		}
 		return self::$_instance;
 	}
-	public static function &get($name, $default = null) {
+
+    /**
+     * @param $name
+     * @param null $default
+     * @return mixed
+     */
+    public static function &get($name, $default = null) {
 		return self::getInstance()->get($name, $default);
 	}
 	public static function set($name, $value) {
@@ -73,6 +79,10 @@ abstract class Session {
 		return self::getInstance()->remove($varname);
 	}
 	public static function Start() {
+		if (\System::isConsole()) {
+			$id = \Request::get('sessid',md5($_SERVER['USERNAME'].'@'.php_uname('n').'-'.$_SERVER['PWD']));
+			session_id($id);
+		}
 		$instance = self::getInstance();
 		if ($instance->isStarted()) {
 			return true;

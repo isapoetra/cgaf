@@ -44,16 +44,14 @@ abstract class AppManager extends \StaticObject {
 		return CGAF::getConfig("cgaf.defaultAppId", \CGAF::APP_ID);
 	}
 
-	/**
-	 * @static
-	 *
-	 * @param null $appId
-	 *
-	 * @return System\Applications\IApplication
-	 * @throws System\Exceptions\SystemException
-	 */
-	public static function getInstance($appId = null) {
-		if ($appId instanceof \IApplication) {
+    /**
+     * @param null $appId
+     * @return null|IApplication
+     * @throws System\Exceptions\AccessDeniedException
+     * @throws System\Exceptions\SystemException
+     */
+    public static function getInstance($appId = null) {
+		if ($appId instanceof IApplication) {
 			$id = $appId->getAppId();
 			if (!$id) {
 				throw new SystemException ('Unable to get application id from class ' . get_class($appId));
@@ -295,13 +293,14 @@ abstract class AppManager extends \StaticObject {
 		
 		$classSearch = array($cName,
 				'\\System\\Applications\\' . $appName,
-				'\\System\\Applications\\' . $appName . 'App');
+				'\\System\\Applications\\' . $appName . 'App',
+				'\\'.$appName . 'App'
+		);
 		foreach($classSearch as $c) {
 			if (class_exists($c,false) ) {
 				return $c;
 			}
-		}
-
+		}		
 		if (!class_exists($cName, false)) {
 			$basePath = Utils::toDirectory($appPath ? $appPath : CGAF_APP_PATH . DS . $appName . DS);
 			$clsfile = $basePath . $appName . '.class' . CGAF_CLASS_EXT;
@@ -309,7 +308,9 @@ abstract class AppManager extends \StaticObject {
 				require $clsfile;
 			}
 			$appFileName = $basePath . "index" . CGAF_CLASS_EXT;
+			
 			if (is_file($appFileName)) {
+				
 				require ($appFileName);
 			} else {
 				$alt = $basePath . DS . $appName . CGAF_CLASS_EXT;
@@ -322,15 +323,11 @@ abstract class AppManager extends \StaticObject {
 				}
 			}
 		}
-		$cl = '\\System\\Applications\\' . $appName;
-		if (class_exists($cl, false)) {
-			return $cl;
+		foreach($classSearch as $c) {
+			if (class_exists($c,false) ) {
+				return $c;
+			}
 		}
-		$cl = '\\System\\Applications\\' . $appName . 'App';
-		if (class_exists($cl, false)) {
-			return $cl;
-		}
-
 		if (!class_exists($cName, false)) {
 			return null;
 		}
@@ -433,6 +430,7 @@ abstract class AppManager extends \StaticObject {
 					$appPath = realpath($paths[$appName]).DS;
 				}				
 			}
+			
 			if (!$appPath) {
 				throw new SystemException("application not found/Application already installed");
 			}
@@ -470,7 +468,7 @@ abstract class AppManager extends \StaticObject {
 			$app->active = true;
 			$app->app_name = $config->getConfig("app.name", $appName);
 			$app->app_path = $appPath;
-			$app->app_version = $config->getConfig("app.version", "0.1");
+			$app->app_version = $config->getConfig("app.version", "1.0.0");
 			$app->store(false);
 			if ($app->getError()) {
 				throw new Exception ($app->getError());

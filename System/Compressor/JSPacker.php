@@ -201,6 +201,7 @@ class JSPacker {
 		$_encoded = array(); // dictionary of word->encoding
 		$_protected = array(); // instances of "protected" words
 		$all = $all[0]; // simulate the javascript comportement of global match
+        $values =array();
 		if (!empty($all)) {
 			$unsorted = array(); // same list, not sorted
 			$protected = array(); // "protected" words (dictionary of word->"word")
@@ -272,6 +273,7 @@ class JSPacker {
 	// build the boot function used for loading and decoding
 	private function _bootStrap($packed, $keywords) {
 		$ENCODE = $this->_safeRegExp('$encode\\($count\\)');
+        $decode=null;
 		// $packed: the packed script
 		$packed = "'" . $this->_escape($packed) . "'";
 		// $ascii: base for encoding

@@ -1,6 +1,8 @@
 <?php
 use System\Exceptions\AccessDeniedException;
 use System\ACL\ACLHelper;
+use System\Exceptions\InvalidOperationException;
+use System\DB\UnchangedDataException;
 
 class MenuManager {
 
@@ -35,11 +37,18 @@ class MenuManager {
 		return $lists;
 	}
 
-	public static function addMenu($menu, $parent = 0) {
+    /**
+     * @param array $menu
+     * @param int $parent
+     * @throws Exception
+     */
+    public static function addMenu($menu, $parent = 0) {
 		$childs = null;
-		
 		$app = AppManager::getInstance();
-		$mm = $app->getModel('menus');
+        /**
+         * @var \System\Models\Menus
+         */
+        $mm = $app->getModel('menus');
 		if (!isset($menu['app_id'])) {
 			$menu['app_id'] = $app->getAppId();
 		}
@@ -56,6 +65,9 @@ class MenuManager {
 			} else {
 				$menuidx = 0;
 				foreach ($v as $kk => $vv) {
+					if (!isset($v[$kk]['menu_parent'])) {
+						$v[$kk]['menu_parent'] = $menu['menu_id'];
+					}
 					if (!isset($v[$kk]['menu_index'])) {
 						$v[$kk]['menu_index'] = $menuidx;
 					}
@@ -63,13 +75,17 @@ class MenuManager {
 				$childs = $v;
 			}
 		}
-		$id = $mm->store(false);
+		try {
+			$id = $mm->store(true);
+		} catch (UnchangedDataException $e) {
+		} catch (\Exception $e) {
+			throw $e;
+		}
 		if ($childs) {
 			$p = $mm->menu_id;
-			foreach ($childs as $c) {				
+			foreach ($childs as $c) {
 				self::addMenu($c, $p);
 			}
-			
 		}
 	}
 
@@ -82,6 +98,35 @@ class MenuManager {
 			self::addMenu($m);
 			$menuidx++;
 		}
+	}
+
+	public static function removeAppMenu($app = null) {
+		$app = $app ? $app : \AppManager::getInstance();
+		if ($app->getAppId() === \CGAF::APP_ID) {
+			throw new InvalidOperationException(
+					'Cannot delete cgaf menu,please delete manualy');
+		}
+		if (!$app->isAllow($app->getAppId(), 'app', ACLHelper::ACCESS_MANAGE)) {
+			if (!CGAF_DEBUG)
+				throw new AccessDeniedException();
+		}
+		$mm = $app->getModel('menus');
+		$mm->where('app_id=' . $mm->quote($app->getAppId()))->delete();
+	}
+    public static function getAppMenus($app=null) {
+        $app = $app ? $app : \AppManager::getInstance();
+        $mm = $app->getModel('menus');
+        return $mm->where('app_id=' . $mm->quote($app->getAppId()))->loadObjects();
+    }
+	public static function removeMenuController($controller, $app = null) {
+		$app = $app ? $app : \AppManager::getInstance();
+		if (!$app->isAllow($controller, 'controller', ACLHelper::ACCESS_MANAGE)) {
+			if (!CGAF_DEBUG)
+				throw new AccessDeniedException();
+		}
+		$mm = $app->getModel('menus');
+		$mm->where('app_id=' . $mm->quote($app->getAppId()))
+				->where('menu_controller=' . $mm->quote($controller))->delete();
 	}
 }
 ?>

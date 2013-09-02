@@ -38,17 +38,38 @@ abstract class PublicApi {
 			throw new SystemException('undefined method ' . $method . ' on class ' . get_class($instance));
 		}
 	}
-	public static function getInstance($api) {
+
+    /**
+     * @param $api
+     * @param array $configs
+     * @return PublicApi
+     */
+    public static function getInstance($api,$configs= array()) {
 		$c = "\\System\\API\\" . $api;
-		return new $c();
+		return new $c($configs);
 	}
-	private static function Initialize($appOwner = null) {
+    public static function isOnlineContact($contact) {
+        switch ($contact->api ) {
+            case 'google':
+            case 'yahoo':
+                return true;
+            case 'contacts':
+                switch ($contact->type) {
+                    case 'email':
+                        return true;
+                }
+        }
+
+        return false;
+    }
+	public static function Initialize($appOwner = null) {
 		static $initialized;
 		if ($initialized)
 			return;
 		$initialized = true;
 		self::$_appOwner = $appOwner ? $appOwner : AppManager::getInstance();
 		$share = self::$_appOwner->getConfig('app.web.share');
+        //ppd(self::$_appOwner);
 		if ($share) {
 			foreach ($share as $k => $v) {
 				$instance = self::getInstance($k);

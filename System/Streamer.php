@@ -90,6 +90,8 @@ final class Streamer {
 	}
 	public static function Stream($file, $mime = null, $downloadmode = false,$allowCache=true) {		
 		if (!is_file($file) ) {
+            header('Content-Type: ' . \Utils::getFileMime($file), true);
+            header("Content-Length: 0",true);
 			CGAF::doExit();
 		}
 		$ext = Utils::getFileExt($file, false);

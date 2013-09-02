@@ -16,8 +16,8 @@ class CoverFlow extends Control {
 			return $this->renderData();
 		}
 		$id = $this->getId();
-		//CGAFJS::loadPlugin('coverflow/coverflow', true);
-		//CGAFJS::addJQAsset('plugins/coverflow/coverflow.css');
+		CGAFJS::loadPlugin('coverflow/coverflow', true);
+		CGAFJS::addJQAsset('plugins/coverflow/coverflow.css');
 		//CGAFJS::addJQAsset('plugins/coverflow/coverflow-' . $this->_theme . '.css');
 		$parent = $this->getConfig('renderTo', 'body');
 		$this->removeConfig('renderTo');

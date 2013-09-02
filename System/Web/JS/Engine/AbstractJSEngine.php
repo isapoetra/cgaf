@@ -57,7 +57,7 @@ abstract class AbstractJSEngine implements \IJSEngine {
 			}
 			return $retval;
 		}
-		if (is_file ( $asset )) {
+		if (is_file ( $asset ) || \Utils::isLive($asset)) {
 			return $asset;
 		}
 		$old = $asset;

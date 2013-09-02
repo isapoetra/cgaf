@@ -1,5 +1,6 @@
 <?php
 namespace System\Configurations\Parsers;
+use System\Configurations\IConfiguration;
 use \Utils;
 use \Logger;
 class PHPParser implements IConfigurationParser {
@@ -64,7 +65,7 @@ class PHPParser implements IConfigurationParser {
 		$retval .= '?>';
 		return $retval;
 	}
-	public function save($fileName, $configs, $settings = null) {
+	public function save($fileName, IConfiguration $configs, $settings = null) {
 		$configs = $this->toPHPConfig($settings ? $settings : $configs->getConfigs());
 		file_put_contents($fileName, $configs);
 		return true;

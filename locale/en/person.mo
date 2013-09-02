@@ -8,4 +8,8 @@ noactivitiesme=You don't have any activities
 nationality=Nationality
 religion=Religion
 ethnic=Ethnic
+birth_place=Birth Place
+birth_date=Birth Date
+full_name=Name
+gender=Gender
 

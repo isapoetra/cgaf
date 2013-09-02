@@ -11,12 +11,14 @@ class TabItem {
 	private $_parent;
 	private $_attrs;
 	private $_actions;
-	function __construct($title, $content, $id = null, $attrs = null, $actions = null) {
+    private $_ajax;
+	function __construct($title, $content, $id = null, $attrs = null, $actions = null,$ajax=false) {
 		$this->_id = $id ? $id : \Utils::generateId('tab');
 		$this->_title = $title;
 		$this->_content = $content;
 		$this->_attrs = $attrs;
 		$this->_actions = $actions;
+        $this->_ajax = $ajax;
 	}
 	function setParent(Tab $tab) {
 		$this->_parent = $tab;
@@ -33,7 +35,15 @@ class TabItem {
 		$retval = '<li class="tab-head ' . ($this->_active ? ' active' : '') . ($this->_actions ? ' dropdown ' : '') . '">';
 		$retval .= '<span class="left">';
 		$retval .= '<span class="right">';
-		$retval .= '<a href="#' . $this->_id . '" data-toggle="tab" ' . HTMLUtils::renderAttr($attr) . '">';
+        if ($this->_ajax) {
+
+            $url = $this->_content.'#' . $this->_id ;
+            $this->_content =null;
+
+            $retval .= '<a href="' . $url . '" data-toggle="tab" ' . HTMLUtils::renderAttr($attr) . '">';
+        }else{
+		    $retval .= '<a href="#' . $this->_id . '" data-toggle="tab" ' . HTMLUtils::renderAttr($attr) . '">';
+        }
 		$retval .= '<span class="title">';
 		$retval .= $this->_title;
 		$retval .= '</span>';
@@ -83,7 +93,7 @@ class Tab extends WebControl {
 	function addTab($tab) {
 		if (is_array($tab)) {
 			$tmp = $tab;
-			$tab = new TabItem($tmp['title'], @$tmp['content'], @$tmp['id'], @$tmp['attrs'], @$tmp['actions']);
+			$tab = new TabItem($tmp['title'], @$tmp['content'], @$tmp['id'], @$tmp['attrs'], @$tmp['actions'],@$tmp['ajax']);
 		}
 		$this->_tabs[] = $tab;
 	}
@@ -91,6 +101,25 @@ class Tab extends WebControl {
 		if ($this->_activeTab === null) {
 			$this->_activeTab = 0;
 		}
+        $script = <<< EOS
+$('#{$this->getId()}').tab().bind('show', function(e) {
+   var pattern=/#.+/gi //use regex to get anchor(==selector)
+   var contentID = e.target.toString().match(pattern)[0]; //get anchor
+   var url = e.target.toString().replace(contentID,'');
+   if (url !== '' && url != document.URL && !$(contentID).html()) {
+       url = cgaf.url(url,{
+        __ajax : 1
+       }).toString();
+       var me =this;
+
+       $(contentID).addClass('loading').load(url, function(){
+           $(this).removeClass('loading');
+           $(me).tab(); //reinitialize tabs
+       });
+   }
+});
+EOS;
+        \AppManager::getInstance()->addClientScript($script);
 		if (!isset($this->_tabs[$this->_activeTab])) {
 			$this->_activeTab = 0;
 		}

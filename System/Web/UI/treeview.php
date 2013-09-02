@@ -12,22 +12,27 @@ class TreeView extends WebControl {
 	private $_parent;
 	private $_baseLocale;
 	private $_columnMapping = array();
-	private $_selectedNode=null;
-	private $_defaultMapping
-	= array(
-			'text'   => 'text',
-			'id'     => 'id',
+	private $_selectedNode = null;
+
+	private $_defaultMapping = array(
+			'text' => 'text',
+			'id' => 'id',
 			'parent' => 'parent'
 	);
 
 	function __construct($id, $url = null, $baseLocale = null, $parent = 0) {
-		parent::__construct('ul', false, array('class'=> 'treeview nav nav-list'));
+		parent::__construct('ul', false,
+				array(
+						'class' => 'nav treeview'
+				));
+        $this->setId($id);
 		$this->_parent = 0;
 		$this->_baseLocale = $baseLocale;
 	}
 
 	function setModel(TreeModel $m, $columnMapping = null) {
-		$this->_columnMapping = $columnMapping ? $columnMapping : $this->_defaultMapping;
+		$this->_columnMapping = $columnMapping ? $columnMapping
+				: $this->_defaultMapping;
 		$this->_model = $m;
 	}
 
@@ -36,33 +41,51 @@ class TreeView extends WebControl {
 	}
 
 	private function colMapping($id) {
-		return isset($this->_columnMapping[$id]) ? $this->_columnMapping[$id] : $this->_defaultMapping[$id];
+		return isset($this->_columnMapping[$id]) ? $this->_columnMapping[$id]
+				: $this->_defaultMapping[$id];
 	}
+
 	function setSelectedNodeId($id) {
 		$this->_selectedNode = $id;
 	}
+
+
 	private function _renderNodes($items) {
-		$pnode =new WebControl('li',false,array('class'=>'node'));
-		foreach ($items as $row) {
-			$ctext = $this->colMapping('text');
-			$id =$this->colMapping('id');
-			$s = new \stdClass();
-			$s->id=$row->$id;
-			$s->t = '';
-			$s->text = $this->_baseLocale ? __($this->_baseLocale . '.' . $row->$ctext, $row->$ctext) : $row->$ctext;
-			$r = $this->_nodeText ? $this->_nodeText :$s->text;
-			$s->text = \Strings::replace($r, $s, $r, false, 0, '#', '#');
-			$class='';
-			if ($row->$id === $this->_selectedNode) {
-				$class='active';
-			}
-			$pnode->addChild('<div class="'.$class.'">'
-					.'<i class="'.($row->childs ? 'node-haschild' :'').'"></i>'
-					.$s->text.'</div>');
-			if ($row->childs) {
-				$node = new WebControl('ul',false,array('class'=>'treeview nav nav-list'));
-				$node->addChild($this->_renderNodes($row->childs));
-				$pnode->addChild($node);
+		$pnode=array();
+		if ($items) {
+
+			
+			foreach ($items as $row) {
+                $newNode = new WebControl('li', false, array(
+                ));
+				$ctext = $this->colMapping('text');
+				$id = $this->colMapping('id');
+				$s = new \stdClass();
+				$s->id = $row->$id;
+				$s->t = '';
+				$s->text = $this->_baseLocale ? __(
+								$this->_baseLocale . '.' . $row->$ctext,
+								$row->$ctext) : $row->$ctext;
+				if (!$s->text) $s->text = "[NO TITLE]";
+				$r = $this->_nodeText ? $this->_nodeText : $s->text;
+				$s->text = \Strings::replace($r, $s, $r, false, 0, '#', '#');
+				$class = '';
+				if ($row->$id === $this->_selectedNode) {
+					$class = 'active';
+				}
+                $newNode
+						->addChild( '<i class="'
+										. ($row->childs ? 'node-haschild' : '')
+										. '"></i>' . $s->text);
+				if ($row->childs) {
+					$node = new WebControl('ul', false,
+							array(
+									'class' => 'nav'
+							));
+					$node->addChild($this->_renderNodes($row->childs));
+                    $newNode->addChild($node);
+				}
+                $pnode[] =$newNode;
 			}
 		}
 		return $pnode;
@@ -78,5 +101,4 @@ class TreeView extends WebControl {
 		}
 	}
 }
-
 ?>

@@ -24,14 +24,16 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
   private $_iClass = null;
   private $_allowDuplicate = false;
 
-  /**
-   * Constructor.
-   * Initializes the list with an array or an iterable object.
-   *
-   * @param array|Iterator the     initial data. Default is null, meaning no initialization.
-   * @param                boolean whether the list is read-only
-   * @throws TInvalidDataTypeException If data is not null and neither an array nor an iterator.
-   */
+    /**
+     * Constructor.
+     * Initializes the list with an array or an iterable object.
+     *
+     * @param null $data
+     * @param bool $readOnly
+     * @param null $itemClass
+     * @internal param array|\System\Collections\Iterator $the initial data. Default is null, meaning no initialization.
+     * @internal param \System\Collections\whether $boolean the list is read-only
+     */
   public function __construct($data = null, $readOnly = false, $itemClass = null) {
     if ($data !== null)
       $this->assign($data);
@@ -61,7 +63,7 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
   }
 
   /**
-   * @param boolean whether this list is read-only or not
+   * @param bool $value whether this list is read-only or not
    */
   protected function setReadOnly($value) {
     $this->_r = Convert::toBoolean($value);
@@ -71,7 +73,7 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
    * Returns an iterator for traversing the items in the list.
    * This method is required by the interface IteratorAggregate.
    *
-   * @return Iterator an iterator for traversing the items in the list.
+   * @return ListIterator an iterator for traversing the items in the list.
    */
   public function getIterator() {
     return new ListIterator($this->_d);
@@ -120,7 +122,8 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
     if ($this->_allowDuplicate) {
       return false;
     }
-    foreach ($this->_d as $k => $v) {
+      /** @noinspection PhpUnusedLocalVariableInspection */
+      foreach ($this->_d as $k => $v) {
       if (is_object($v)) {
         if (method_exists($v, 'equals') && $v->equals($item)) {
           return true;
@@ -131,7 +134,7 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
   }
 
   /**
-   * @param      $item
+   * @param  mixed    $item
    * @param bool $multi
    * @return int
    * @throws \System\Exceptions\SystemException
@@ -224,7 +227,7 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
   }
 
   /**
-   * @param mixed the item
+   * @param mixed $item the item
    * @return integer the index of the item in the list (0 based), -1 if not found.
    */
   public function indexOf($item) {
@@ -241,13 +244,15 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
     return $this->_d;
   }
 
-  /**
-   * Copies iterable data into the list.
-   * Note, existing data in the list will be cleared first.
-   *
-   * @param mixed the data to be copied from, must be an array or object implementing Traversable
-   * @throws TInvalidDataTypeException If data is neither an array nor a Traversable.
-   */
+    /**
+     * Copies iterable data into the list.
+     * Note, existing data in the list will be cleared first.
+     *
+     * @param \BaseObject|object|string $var
+     * @param null $val
+     * @throws \System\Exceptions\SystemException
+     * @internal param \System\Collections\the $mixed data to be copied from, must be an array or object implementing Traversable
+     */
   function assign($var, $val = null) {
     if (is_array($var) || ($var instanceof \Traversable)) {
       if ($this->_c > 0)
@@ -259,13 +264,13 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
       throw new SystemException('list_data_not_iterable');
   }
 
-  /**
-   * Merges iterable data into the map.
-   * New data will be appended to the end of the existing data.
-   *
-   * @param mixed the data to be merged with, must be an array or object implementing Traversable
-   * @throws TInvalidDataTypeException If data is neither an array nor an iterator.
-   */
+    /**
+     * Merges iterable data into the map.
+     * New data will be appended to the end of the existing data.
+     *
+     * @param mixed $data the data to be merged with, must be an array or object implementing Traversable
+     * @throws \System\Exceptions\InvalidOperationException
+     */
   public function mergeWith($data) {
     if (is_array($data) || ($data instanceof \Traversable)) {
       foreach ($data as $item)
@@ -274,36 +279,39 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
       throw new InvalidOperationException('list_data_not_iterable');
   }
 
-  /**
-   * Returns whether there is an item at the specified offset.
-   * This method is required by the interface ArrayAccess.
-   *
-   * @param integer the offset to check on
-   * @return boolean
-   */
+    /**
+     * Returns whether there is an item at the specified offset.
+     * This method is required by the interface ArrayAccess.
+     *
+     * @param mixed $offset
+     * @internal param \System\Collections\the $integer offset to check on
+     * @return boolean
+     */
   public function offsetExists($offset) {
     return ($offset >= 0 && $offset < $this->_c);
   }
 
-  /**
-   * Returns the item at the specified offset.
-   * This method is required by the interface ArrayAccess.
-   *
-   * @param integer the offset to retrieve item.
-   * @return mixed the item at the offset
-   * @throws TInvalidDataValueException if the offset is invalid
-   */
+    /**
+     * Returns the item at the specified offset.
+     * This method is required by the interface ArrayAccess.
+     *
+     * @param mixed $offset
+     * @internal param \System\Collections\the $integer offset to retrieve item.
+     * @return mixed the item at the offset
+     */
   public function offsetGet($offset) {
     return $this->itemAt($offset);
   }
 
-  /**
-   * Sets the item at the specified offset.
-   * This method is required by the interface ArrayAccess.
-   *
-   * @param integer the offset to set item
-   * @param mixed   the item value
-   */
+    /**
+     * Sets the item at the specified offset.
+     * This method is required by the interface ArrayAccess.
+     *
+     * @param mixed $offset
+     * @param mixed $item
+     * @internal param \System\Collections\the $integer offset to set item
+     * @internal param \System\Collections\the $mixed item value
+     */
   public function offsetSet($offset, $item) {
     if ($offset === null || $offset === $this->_c)
       $this->insertAt($this->_c, $item);
@@ -313,12 +321,13 @@ class Collection extends \BaseObject implements \IteratorAggregate, \ArrayAccess
     }
   }
 
-  /**
-   * Unsets the item at the specified offset.
-   * This method is required by the interface ArrayAccess.
-   *
-   * @param integer the offset to unset item
-   */
+    /**
+     * Unsets the item at the specified offset.
+     * This method is required by the interface ArrayAccess.
+     *
+     * @param mixed $offset
+     * @internal param \System\Collections\the $integer offset to unset item
+     */
   public function offsetUnset($offset) {
     $this->removeAt($offset);
   }

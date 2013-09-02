@@ -9,6 +9,7 @@ use System\DB\DBConnection;
 use System\DB\DBReflectionClass;
 use System\DB\DBException;
 use \System\DB\DBFieldDefs;
+use System\DB\DBResultList;
 
 class JSON extends DBConnection {
 	private $_path;
@@ -51,7 +52,7 @@ class JSON extends DBConnection {
 	function unquote($s) {
 		return trim($s, '\' ');
 	}
-	function quote($s) {
+	function quote($s,$pref=true) {
 		return '\'' . $s . '\'';
 	}
 	function getLastSQL() {
@@ -257,5 +258,33 @@ class JSON extends DBConnection {
 	function getSQLCreateTable($o) {
 		// TODO: Implement getSQLCreateTable() method.
 	}
+	/* (non-PHPdoc)
+	 * @see \System\DB\IDBConnection::fieldTypeToPHP()
+	 */
+	public function fieldTypeToPHP($type) {
+		// TODO Auto-generated method stub
+		switch ($type) {
+			case 'string':
+			case 'varchar':
+			case 'text':
+				return 'string';
+			default:
+				ppd($type);
+				break;
+		}
+	}
+
+    public function dropDB()
+    {
+        // TODO: Implement dropDB() method.
+    }
+
+    /**
+     * @return DBResultList
+     */
+    function getTableList()
+    {
+        // TODO: Implement getTableList() method.
+    }
 }
 ?>

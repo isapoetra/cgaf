@@ -1,0 +1,120 @@
+.pub-share {
+  position: fixed;
+  top: 20%;
+  left: -136px;
+  font-family: "helvetica neue", arial, helvetica, sans-serif;
+  font-size: 16px;
+  z-index: 100020;
+  padding: 0;
+  margin: 0;
+}
+.pub-share a {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  left: 0;
+  min-width: 184px;
+  height: 48px;
+  line-height: 32px;
+  margin: 0;
+  color: #428bca;
+  transition: left 0.25s ease-in-out;
+}
+.pub-share a label {
+  display: block;
+  text-align: left;
+  margin-left: 40px;
+  padding: 8px;
+  cursor: pointer;
+  visibility: hidden;
+  height: 32px;
+  line-height: 32px;
+}
+.pub-share .share-item {
+  padding: 2px;
+  display: block;
+}
+.pub-share .share-item:first-child {
+  border-top-right-radius: 4px;
+}
+.pub-share .share-item:hover,
+.pub-share .share-item:active {
+  background: #e5e3e9;
+  text-decoration: none;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  left: 136px;
+}
+.pub-share .share-item:hover .bg,
+.pub-share .share-item:active .bg {
+  right: auto;
+  left: 8px;
+}
+.pub-share .share-item:hover label,
+.pub-share .share-item:active label {
+  visibility: visible;
+  transition: visibility 0.25s ease-in-out;
+}
+.pub-share .share-item .bg {
+  background: transparent url('/images/social.png') no-repeat 0 0;
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: block;
+}
+.pub-share .share-item.facebook:hover .bg {
+  background-position: -32px -32px;
+}
+.pub-share .share-item.facebook .bg {
+  background-position: -32px 0;
+}
+.pub-share .share-item.twitter:hover .bg {
+  background-position: -64px -32px;
+}
+.pub-share .share-item.twitter .bg {
+  background-position: -64px 0;
+}
+.pub-share .share-item.digg:hover .bg {
+  background-position: -96px -32px;
+}
+.pub-share .share-item.digg .bg {
+  background-position: -96px 0;
+}
+.pub-share .share-item.delicious:hover .bg {
+  background-position: -128px -32px;
+}
+.pub-share .share-item.delicious .bg {
+  background-position: -128px 0;
+}
+.pub-share .share-item.google:hover .bg {
+  background-position: -160px -32px;
+}
+.pub-share .share-item.google .bg {
+  background-position: -160px 0;
+}
+.pub-share .share-item.yahoo:hover .bg {
+  background-position: -192px -32px;
+}
+.pub-share .share-item.yahoo .bg {
+  background-position: -192px 0;
+}
+.pub-share .share-item.reddit:hover .bg {
+  background-position: -224px -32px;
+}
+.pub-share .share-item.reddit .bg {
+  background-position: -224px 0;
+}
+.pub-share .share-item.linkedin:hover .bg {
+  background-position: -256px -32px;
+}
+.pub-share .share-item.linkedin .bg {
+  background-position: -256px 0;
+}
+.pub-share .share-item.stumbleupon:hover .bg {
+  background-position: -288px -32px;
+}
+.pub-share .share-item.stumbleupon .bg {
+  background-position: -288px 0;
+}

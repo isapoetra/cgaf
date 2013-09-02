@@ -45,6 +45,7 @@ class ClientInfo {
 		} elseif (preg_match ( '/windows|win32/i', $u_agent )) {
 			$platform = 'windows';
 		}
+		$ub ='';
 		// Next get the name of the useragent yes seperately and for good reason
 		if (preg_match ( '/MSIE/i', $u_agent ) && ! preg_match ( '/Opera/i', $u_agent )) {
 			$bname = 'Internet Explorer';
@@ -121,7 +122,7 @@ class ClientInfo {
 		if (is_file ( $cfile )) {
 			$retval = unserialize ( file_get_contents ( $cfile ) );
 		}
-		if (! $retval) {
+		if (! $retval || get_class($retval) === '__PHP_Incomplete_Class') {
 			$matches = $this->getBrowser ( $agent );
 			$retval = $this->getBrowserCaps ( $matches ['realName'], $matches ['version'],$matches ['platform'], $agent );
 			if ($matches ['mobile'] != null) {

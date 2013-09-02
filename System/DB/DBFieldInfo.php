@@ -9,6 +9,7 @@ abstract class DBFieldInfo {
 	public $primary;
 	public $extra;
 	public $auto_inc;
+	public $reference;
 	protected $_connection;
 
 	function __construct(IDBConnection  $connection) {

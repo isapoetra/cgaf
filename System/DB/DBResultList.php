@@ -57,21 +57,29 @@ class DBResultList implements \Iterator {
 		$this->_crow++;
 		return $this->current();
 	}
-	/**
-	 *
-	 */
-	public function key() {
+    function fetch_assoc() {
+        $c = $this->next();
+        return \Convert::toArray($c);
+    }
+
+    /**
+     * @return int|mixed
+     */
+    public function key() {
+		return $this->_crow;
 	}
-	/**
-	 *
-	 */
-	public function valid() {
+
+    /**
+     * @return bool
+     */
+    public function valid() {
 		return $this->_crow >= 0 && $this->_crow < $this->count();
 	}
-	/**
-	 *
-	 */
-	public function rewind() {
+
+    /**
+     *
+     */
+    public function rewind() {
 		$this->_crow = -1;
 	}
 	private function rowToHash($row, $fk, $fv, &$retval) {
@@ -83,7 +91,8 @@ class DBResultList implements \Iterator {
 	 * Enter description here ...
 	 * @param string $fk Field Key
 	 * @param string $fv Field Value
-	 */
+     * @return array
+     */
 	public function toHashList($fk = null, $fv = null) {
 		$r = $this->First();
 		if (!$r) {

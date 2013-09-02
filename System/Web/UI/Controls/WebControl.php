@@ -50,14 +50,19 @@ class WebControl extends \Control implements \IRenderable {
 	function setClass($c) {
 		parent::setProperties('class', $c);
 	}
-
+    function setChildClass($cl) {
+        foreach($this->_childs as $c) {
+            $c->setClass($cl);
+        }
+    }
 	function addClass($c) {
 		if (!is_array($c)) {
 			$c = explode(' ', $c);
 		}
 		$current = explode(' ', $this->getProperty('class', ''));
+
 		foreach ($c as $a) {
-			if (!in_array($c, $current)) {
+			if (!in_array($a, $current)) {
 				$current[] = $a;
 			}
 		}

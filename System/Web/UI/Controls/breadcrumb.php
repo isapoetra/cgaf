@@ -27,7 +27,7 @@ class BreadCrumb extends WebControl {
 			$retval .= '>';
 			$retval .= \Utils::toString($item);
 			if ($idx < $cnt) {
-				$retval .= '<span class="divider">/</span>';
+				$retval .= '<span class="divider"></span>';
 			}
 			$retval .= '</li>';
 			$idx++;

@@ -59,7 +59,14 @@ class ModuleManager {
 			}
 		}
 	}
-	public static function getModuleInstance($m,$app=null) {
+
+    /**
+     * @param $m
+     * @param null $app
+     * @return mixed
+     * @throws System\Exceptions\SystemException
+     */
+    public static function getModuleInstance($m,$app=null) {
 		$info = self::getModuleInfo($m);
 		self::loadModuleClass($m);
 

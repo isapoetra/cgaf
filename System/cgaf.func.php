@@ -11,11 +11,11 @@ function pp($o, $return = false) {
 			if (System::isConsole()) {
 				$r = 'NULL';
 			} else {
-				$r = "<pre>NULL</pre>";
+				$r = "\n<pre>NULL</pre>";
 			}
 		} else {
 			if (!System::isConsole()) {
-				$r = "<pre>" . print_r($o, true) . "</pre>";
+				$r = "\n<pre>" . print_r($o, true) . "</pre>";
 			} else {
 				$r = print_r($o, true).PHP_EOL;
 			}

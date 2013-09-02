@@ -13,13 +13,14 @@ class Table extends DBQuery {
 	private $_infos;
 	private $_appOwner;
 	private $_alias;
-	private $_findResult;
+	//private $_findResult;
 	protected $_skipACL = false;
 	protected $_isExpr = false;
 	private $_filterACL = null;
 	protected $_oldData;
 	protected $_autoCreateTable = false;
 	private $_cachedRows;
+
 	/**
 	 * @param $connection
 	 * @param $tableName
@@ -27,7 +28,8 @@ class Table extends DBQuery {
 	 * @param bool $includeAppId
 	 * @param null|bool $autoCreate
 	 */
-	function __construct($connection, $tableName, $pk = "id", $includeAppId = false, $autoCreate = null) {
+	function __construct($connection, $tableName, $pk = "id",
+			$includeAppId = false, $autoCreate = null) {
 		$this->_tableName = $tableName;
 		if ($connection instanceof IApplication) {
 			$this->_appOwner = $connection;
@@ -35,26 +37,26 @@ class Table extends DBQuery {
 			$this->_appOwner = AppManager::getInstance();
 		}
 		if ($autoCreate === null) {
-			$autoCreate = $this->_appOwner->isInstalled() == false;
+			$autoCreate = $this->_appOwner->isInstalled() == false && $this->_appOwner->getConfig('app.installmode',false)==false;
 		}
 		$this->_autoCreateTable = $autoCreate;
 		$pk = $pk ? $pk : array();
 		$this->_pk = is_array($pk) ? $pk : explode(",", $pk);
-
 		parent::__construct($connection);
 		$this->_filterACL = \CGAF::isInstalled();
-
 		$this->_includeAppId = $includeAppId;
 		$this->Initialize();
 	}
 
 	protected function Initialize() {
 		if (!$this->_infos) {
-			$this->_infos = $this->getConnection()->getObjectInfo($this->_tableName, "table", false);
+			$this->_infos = $this->getConnection()
+					->getObjectInfo($this->_tableName, "table", false);
 		}
 		if ($this->_infos == null && $this->_autoCreateTable) {
 			$this->_createTable();
-			$this->_infos = $this->getConnection()->getObjectInfo($this->_tableName, "table", false);
+			$this->_infos = $this->getConnection()
+					->getObjectInfo($this->_tableName, "table", false);
 		}
 		$this->clear();
 	}
@@ -69,12 +71,13 @@ class Table extends DBQuery {
 		}
 		return $this;
 	}
+
 	/**
 	 *
-	 * @param unknown_type $value
+	 * @param bool $value
 	 * @return \System\DB\Table
 	 */
-	function setIncludeAppId($value) {
+	public function setIncludeAppId($value) {
 		$this->_includeAppId = $value;
 		return $this;
 	}
@@ -95,11 +98,14 @@ class Table extends DBQuery {
 		return $this;
 	}
 
-	function getAllowedRecords($uid, $fields = '*', $orderby = '', $index = null, $extra = null) {
+	function getAllowedRecords($uid, $fields = '*', $orderby = '',
+			$index = null, $extra = null) {
 		$perms = ACLHelper::getInstance();
 		$uid = intval($uid);
 		if (!$uid) {
-			exit("FATAL ERROR<br />" . get_class($this) . "::getAllowedRecords failed");
+			exit(
+					"FATAL ERROR<br />" . get_class($this)
+							. "::getAllowedRecords failed");
 		}
 		$mod = DBUtil::toModule($this->_tbl, $this->_db);
 		$deny = &$perms->getDeniedItems($mod, $uid);
@@ -118,10 +124,15 @@ class Table extends DBQuery {
 			$this->_query->addTable($extra['from']);
 		}
 		if (count($allow)) {
-			$this->_query->addWhere("$this->_tbl_key IN (" . implode(',', $allow) . ")");
+			$this->_query
+					->addWhere(
+							"$this->_tbl_key IN (" . implode(',', $allow) . ")");
 		}
 		if (count($deny)) {
-			$this->_query->addWhere("$this->_tbl_key NOT IN (" . implode(",", $deny) . ")");
+			$this->_query
+					->addWhere(
+							"$this->_tbl_key NOT IN (" . implode(",", $deny)
+									. ")");
 		}
 		if (isset($extra['where'])) {
 			$this->_query->addWhere($extra['where']);
@@ -136,7 +147,10 @@ class Table extends DBQuery {
 		return $this->_alias ? $this->_alias : $this->_tableName;
 	}
 
-	function getAppOwner() {
+    /**
+     * @return null|IApplication
+     */
+    function getAppOwner() {
 		if ($this->_appOwner == null) {
 			$this->_appOwner = AppManager::getInstance();
 		}
@@ -147,7 +161,14 @@ class Table extends DBQuery {
 		if ($this->_tableName == null) {
 			return;
 		}
-		return $this->getConnection()->createDBObjectFromClass($this, 'table', $this->_tableName);
+		$retval = false;
+		try {
+			$retval = $this->getConnection()
+					->createDBObjectFromClass($this, 'table', $this->_tableName);
+		} catch (\Exception $ex) {
+			ppd($ex->getMessage());
+		}
+		return $retval;
 	}
 
 	/**
@@ -165,7 +186,8 @@ class Table extends DBQuery {
 	 */
 	function clear($what = 'all') {
 		parent::clear($what);
-		$this->_filterACL = $this->_filterACL === null ? CGAF::getConfig('installed') : $this->_filterACL;
+		$this->_filterACL = $this->_filterACL === null ? CGAF::getConfig(
+						'installed') : $this->_filterACL;
 		$this->_skipACL = false;
 		if ($what == 'all') {
 			$fields = $this->getFields(true, false);
@@ -176,7 +198,8 @@ class Table extends DBQuery {
 					if (is_object($this->_infos)) {
 						$f = $this->_infos->getFieldInfo($field);
 					} else {
-						$f = isset($this->_infos[$field]) ? $this->_infos[$field] : null;
+						$f = isset($this->_infos[$field]) ? $this
+										->_infos[$field] : null;
 					}
 					if ($f) {
 						$this->$field = $f->default_value;
@@ -234,10 +257,9 @@ class Table extends DBQuery {
 		if (is_string($id) || is_numeric($id)) {
 			$id = explode(",", $id);
 		}
-
 		foreach ($this->_pk as $k => $pk) {
 			if (!isset($id[$k])) {
-				throw new DBException('error.invalidid',$k);
+				throw new DBException('error.invalidid', $k);
 			}
 			$this->Where($this->quoteField($pk) . "=" . $this->quote($id[$k]));
 		}
@@ -256,7 +278,7 @@ class Table extends DBQuery {
 			$this->whereId($id);
 		}
 		$rc = $bindtothis ? $this : $this->getRowClass();
-		$retval = $this->prepareOutput($this->loadObject($rc));
+		$retval = $this->loadObject($rc);
 		$this->_cachedRows[$id] = $retval;
 		return $retval;
 	}
@@ -284,7 +306,15 @@ class Table extends DBQuery {
 					throw $e;
 				}
 			}
-			$this->where($this->quoteField('app_id') . "=" . $this->quote(is_object($this->_appOwner) ? $this->_appOwner->getAppId() : $this->_appOwner));
+			$this
+					->where(
+							$this->quoteField('app_id') . "="
+									. $this
+											->quote(
+													is_object($this->_appOwner) ? $this
+																	->_appOwner
+																	->getAppId()
+															: $this->_appOwner));
 		}
 		return parent::prepare();
 	}
@@ -309,7 +339,9 @@ class Table extends DBQuery {
 				$name = $prop->getName();
 				if ($name[0] != "_") {
 					if ($withValue) {
-						$this->_fields[$name] = $quote ? $this->toFieldString($name, $this->$name) : $this->$name;
+						$this->_fields[$name] = $quote ? $this
+										->toFieldString($name, $this->$name)
+								: $this->$name;
 					} else {
 						$this->_fields[] = $name;
 					}
@@ -342,19 +374,20 @@ class Table extends DBQuery {
 		return true;
 	}
 
-	function addError($msg,$id=null) {
+	function addError($msg, $id = null) {
 		if ($id) {
-			$old = isset($this->_lastError[$id]) ? $this->_lastError[$id]  : null;
-			$msg = $old.PHP_EOL.$msg;
-			$this->_lastError[$id]=$msg;
-		}else{
+			$old = isset($this->_lastError[$id]) ? $this->_lastError[$id] : null;
+			$msg = $old . PHP_EOL . $msg;
+			$this->_lastError[$id] = $msg;
+		} else {
 			$this->_lastError[] = __($msg);
 		}
 	}
 
 	protected function getCheckMode($mode = null) {
 		if (!$mode) {
-			$mode = $this->getPKValue() !== null ? self::MODE_INSERT : self::MODE_UPDATE;
+			$mode = $this->getPKValue() !== null ? self::MODE_INSERT
+					: self::MODE_UPDATE;
 		}
 		return $mode;
 	}
@@ -369,7 +402,14 @@ class Table extends DBQuery {
 					if ($this->isAllowNull($f))
 						continue;
 					if (($this->$f === null || trim($this->$f) === '')) {
-						$this->addError(sprintf(__("nulledvalue", "Invalid Value for field %s"), __($this->_tableName . '.' . $f, $f)));
+						$this
+								->addError(
+										sprintf(
+												__("nulledvalue",
+														"Invalid Value for field %s"),
+												__(
+														$this->_tableName . '.'
+																. $f, $f)));
 						return false;
 					}
 				}
@@ -378,15 +418,21 @@ class Table extends DBQuery {
 			case self::MODE_UPDATE:
 				$fields = $this->getFields();
 				foreach ($fields as $f) {
-					if (!in_array($f, $this->_pk) && $this->$f === null && !$this->isAllowNull($f)) {
-						$this->addError(vsprintf(__("nulledvalue", "null Value for field %s"), __($this->_tableName . '.' . $f)));
+					if (!in_array($f, $this->_pk) && $this->$f === null
+							&& !$this->isAllowNull($f)) {
+						$this
+								->addError(
+										vsprintf(
+												__("nulledvalue",
+														"null Value for field %s"),
+												__($this->_tableName . '.' . $f)));
 						return false;
 					}
 				}
 				$retval = true;
 				break;
 			case self::MODE_DELETE;
-			break;
+				break;
 			default:
 				ppd($mode);
 		}
@@ -405,10 +451,15 @@ class Table extends DBQuery {
 				$retval[$pk] = $o->$pk;
 			}
 		}
-		return $asArray ? $retval : (empty($retval) ? null : implode(",", $retval));
+		return $asArray ? $retval
+				: (empty($retval) ? null : implode(",", $retval));
 	}
 
-	function getFieldInfo($field) {
+    /**
+     * @param $field
+     * @return null | DBFieldInfo
+     */
+    function getFieldInfo($field) {
 		if (is_object($this->_infos)) {
 			return $this->_infos->getField($field);
 		}
@@ -435,7 +486,7 @@ class Table extends DBQuery {
 		if ($pks !== null && $pks !== '') {
 			$q = new DBQuery($this->getConnection());
 			$q->addTable($this->_tableName, $this->getAlias(), $this->_isExpr);
-			$id = explode(",", $pks);			
+			$id = explode(",", $pks);
 			foreach ($this->_pk as $k => $pk) {
 				if (!isset($id[$k])) {
 					pp($id);
@@ -453,12 +504,14 @@ class Table extends DBQuery {
 						$f = $this->getFieldInfo($k)->default_value;
 						if ($this->$k === null || $this->$k === $f) {
 							$this->$k = $v ? $v : $f;
-							$diff = true;
+							//$diff = true;
 						}
 					}
 				} else {
 					if ($throw && CGAF_DEBUG) {
-						throw new DBException(__("store.nothingchanged", 'Unable to store unchanged data'));
+						throw new UnchangedDataException(
+								__("store.nothingchanged",
+										'Unable to store unchanged data'));
 					} else {
 						return true;
 					}
@@ -468,7 +521,8 @@ class Table extends DBQuery {
 		}
 		if (!$this->check($mode)) {
 			if ($throw) {
-				throw new DBException("store.failed", ',' . implode($this->_lastError, " "));
+				throw new DBException("store.failed",
+						',' . implode($this->_lastError, " "));
 			} else {
 				return false;
 			}
@@ -514,6 +568,8 @@ class Table extends DBQuery {
 			$id = $retval->getLastInsertId();
 			if ($id) {
 				$this->load($id, true);
+			} else {
+				$this->load($pks, true);
 			}
 		} else {
 			$this->load(null, true);
@@ -527,20 +583,19 @@ class Table extends DBQuery {
 
 	protected function onDelete($id) {
 	}
-
 	/**
 	 * Unused parameter,just for compatibility with E_STRICT
 	 * (non-PHPdoc)
 	 * @see System\DB.DBQuery::drop()
 	 *
 	 */
-	public function drop($object=null, $what = "table") {
-		return parent::drop($this->getTableName(false,false),'table');
+
+	public function drop($object = null, $what = "table") {
+		return parent::drop($this->getTableName(false, false), 'table');
 	}
 
 	public function delete() {
 		$q = new DBQuery($this->getConnection());
-
 		$q->addTable($this->_tableName, null, $this->_isExpr);
 		$q->setMode('delete');
 		$pk = $this->getPKValue(true);
@@ -553,7 +608,8 @@ class Table extends DBQuery {
 				$q->Where($v[0], $v[1]);
 			}
 		} else {
-			throw new InvalidOperationException('deleting all data is not aloowed');
+			throw new InvalidOperationException(
+					'deleting all data is not aloowed');
 		}
 		if ($q->exec()) {
 			$this->onDelete($pk);
@@ -572,32 +628,38 @@ class Table extends DBQuery {
 	}
 
 	function find($field, $val) {
-		return $this->clear()->where($field . '=' . $this->quote($val))->loadObject();
+		return $this->clear()->where($field . '=' . $this->quote($val))
+				->loadObject();
 	}
 
-	function search($text, $field = null, $config = null) {
+	function search($text, $field = null, $config = null,$clear=true) {
 		if (!$text) {
 			return array();
 		}
 		$field = $field === null ? $this->getFields(false, false) : $field;
 		if (is_string($field)) {
-			$field = array($field);
+			$field = array(
+					$field
+			);
 		}
-		$this->clear();
+        if ($clear)		$this->clear();
 		foreach ($field as $f) {
 			if (is_array($f)) {
 				//TODO search config based on field;
 			} else {
-				$this->where($f . ' like \'%' . $this->quote($text,false).'%\'', ' or');
+				$this
+						->where(
+								$f . ' like \'%' . $this->quote($text, false)
+										. '%\'', ' or');
 			}
 		}
-		ppd($this->getSQL());
-		return $this->loadObjects(null, 0, 10);
+		return $this->loadObjects(null, \Request::get('__p',0), \Request::get('__rpp',10));
 	}
 
 	protected function getGridColsWidth() {
 		return array(
-				'app_id' => 230);
+				'app_id' => 230
+		);
 	}
 
 	function getGridColumns($gridId) {
@@ -608,7 +670,8 @@ class Table extends DBQuery {
 			foreach ($o as $field => $v) {
 				$info = $this->getFieldInfo($field);
 				$fi = array(
-						"value" => "#{$field}#");
+						"value" => "#{$field}#"
+				);
 				if ($info) {
 					$fi['width'] = $info->field_width;
 				}
@@ -622,8 +685,9 @@ class Table extends DBQuery {
 			foreach ($fields as $field) {
 				if (!is_array($field)) {
 					$retval[$field] = array(
-							"value" => "#{$field}#");
-				}else{
+							"value" => "#{$field}#"
+					);
+				} else {
 					//TODO trouble when rowcount ==0 && data come from direct query
 					//ppd($fields);
 				}
@@ -638,21 +702,27 @@ class Table extends DBQuery {
 		}
 		return $retval;
 	}
+
 	public function loadCached($id) {
-		if ($id ===null) return null;
+		if ($id === null)
+			return null;
 		$pk = $this->getPK();
 		if (!isset($this->_cachedRows[$id])) {
-			$this->load($id,false);
+			$this->load($id, false);
 		}
-		return isset($this->_cachedRows[$id]) ? $this->_cachedRows[$id]  : null;
+		return isset($this->_cachedRows[$id]) ? $this->_cachedRows[$id] : null;
 	}
+
 	public function quoteField($fields) {
 		if (is_string($fields)) {
 			if (strpos($fields, '.') > 0) {
 				return parent::quoteField($fields);
 			}
 			if (strpos($fields, ',') === false) {
-				$fields = $this->getAlias() ? parent::quoteField($this->getAlias()) . '.' . parent::quoteField($fields) : parent::quoteField($fields);
+				$fields = $this->getAlias() ? parent::quoteField(
+								$this->getAlias()) . '.'
+								. parent::quoteField($fields)
+						: parent::quoteField($fields);
 			} else {
 				return $fields;
 			}
@@ -661,5 +731,4 @@ class Table extends DBQuery {
 		return parent::quoteField($fields);
 	}
 }
-
 ?>

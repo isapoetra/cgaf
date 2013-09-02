@@ -9,8 +9,8 @@ class ThumbnailItem extends WebControl {
 	private $_backgroundImage;
 	private $_actions = array();
 	private $_description;
-	private $width = '160';
-	private $height = '120';
+	//private $width = '160';
+	//private $height = '120';
 	private $_action;
 	private $_stitle;
 	private $_imgW;
@@ -70,16 +70,16 @@ class ThumbnailItem extends WebControl {
 		if ($this->_description)
 			$cap->addChild('<div>' . $this->_description . '</div>');
 		if ($this->_actions)
-			$cap->addChild('<div class="actions">' . \Utils::toString($this->_actions) . '</div>');
+			$cap->addChild('<div class="actions">' . \Convert::toString($this->_actions) . '</div>');
 		if ($cap->hasChild())
 			$this->addChild($cap);
 	}
 }
 class Thumbnail extends WebControl {
-	private $_itemClass = 'span2';
+	private $_itemClass = 'col-lg-2';
 	private $_size;
 	function __construct() {
-		parent::__construct('ul', false, array('class' => 'thumbnails'));
+		parent::__construct('div', false, array('class' => 'row'));
 	}
 	function setImageSize($w, $h) {
 		$this->_size = array('w' => $w, 'h' => $h);
@@ -91,16 +91,19 @@ class Thumbnail extends WebControl {
 		// $c = $this->_childs;
 		$retval = '';
 		foreach ($this->_childs as $c) {
-			$retval .= '<li class="' . $this->_itemClass . '">';
+			$retval .= '<div class="' . $this->_itemClass . '">';
 			$retval .= \Convert::toString($c);
-			$retval .= '</li>';
+			$retval .= '</div>';
 		}
 		return $retval;
 	}
 	function prepareRender() {
 		parent::prepareRender();
 		if ($this->_size) {
-			foreach ($this->_childs as $v) {
+            /**
+             * @var ThumbnailItem $v
+             */
+            foreach ($this->_childs as $v) {
 				$v->setImageSize($this->_size['w'], $this->_size['h']);
 			}
 		}

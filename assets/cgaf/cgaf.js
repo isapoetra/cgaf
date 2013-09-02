@@ -1,8 +1,4 @@
 /**
-**/
-
-
-/*!
  * jQuery Form Plugin
  * version: 3.03 (08-MAR-2012)
  * @requires jQuery v1.3.2 or later
@@ -2513,2274 +2509,555 @@ $.format = $.validator.format;
         $(this).validate(validconfig);
         return false;
       };
-})(jQuery);(function($) {
-  function log() {
-    if (!$.fn.ajaxSubmit.debug)
-      return;
-    var msg = "[jquery.form] "
-        + Array.prototype.join.call(arguments, "");
-    if (window.console
-        && window.console.log)
-      window.console.log(msg);
-    else if (window.opera
-        && window.opera.windpostError)
-      window.opera.postError(msg);
-  }
+})(jQuery);(function ($) {
+    function log() {
+        if (!$.fn.ajaxSubmit.debug)
+            return;
+        var msg = "[jquery.form] " + Array.prototype.join.call(arguments, "");
+        if (window.console && window.console.log)
+            window.console.log(msg);
+        else if (window.opera && window.opera.windpostError)
+            window.opera.postError(msg);
+    }
 
-  window.log = log;
+    window.log = log;
 
-  $.openOverlay =
-      function(options) {
+    $.openOverlay = function (options) {
         if (typeof (options) === 'string') {
-          options = {
-            url : options
-          }
+            options = {
+                url: options
+            };
         }
         var m = $('#cgaf-modal');
-        var options = $.extend(options, options
-            || {
-              title : 'test',
-              backdrop : true,
-              show : false
-            });
+        var opts = $.extend(options, options || {
+            title: 'test',
+            backdrop: true,
+            show: false
+        });
         if (m.length == 0) {
-          m =
-              $('<div id="cgaf-modal" class="modal fade in"/>')
-                  .appendTo('body');
-          $(
-              '<div class="modal-header"><a class="icon-remove close" data-dismiss="modal"></a><h3></h3></div><div class="modal-body"></div> <div class="modal-footer"></div>')
-              .appendTo(m);
+            m = $('<div id="cgaf-modal" class="modal fade in"/>').appendTo(
+                'body');
+            $(
+                '<div class="modal-header"><a class="icon-remove close" data-dismiss="modal"></a><h3></h3></div><div class="modal-body"></div> <div class="modal-footer"></div>')
+                .appendTo(m);
         }
         var b = m.find('.modal-body').empty();
 
-        var modal = new $.fn.modal.Constructor(m, options);
-        options.title = options.title || '&nbsp;';
-        m.find('.modal-header h3').html(options.title);
-        if (options.url) {
-          b.addClass('loading');
-          var url = cgaf.url(options.url, {
-            __uimode : 'dialog'
-          }).toString();
-          b.load(url, function(data, s, xhr) {
-            if (options.callback) {
-              options.callback.call(modal, b);
-            }
-            b.removeClass('loading');
-          });
-        } else if (options.contents) {
-          var content = options.contents;
-          if (typeof (content) === 'object') {
-            var tmp = '<ul>';
-            for ( var i in content) {
-              if (typeof (content[i]) === 'string') {
-                tmp += '<li>'
-                    + content[i] + '</li>';
-              } else if (typeof (content[i]) === 'object') {
-
-                for ( var j in content[i]) {
-                  tmp += '<li>';
-                  tmp += content[i][j];
-                  tmp += '</li>';
+        var modal = new $.fn.modal.Constructor(m, opts);
+        opts.title = opts.title || '&nbsp;';
+        m.find('.modal-header h3').html(opts.title);
+        if (opts.url) {
+            b.addClass('loading');
+            var url = cgaf.url(opts.url, {
+                __uimode: 'dialog'
+            }).toString();
+            b.load(url, function (data, s, xhr) {
+                if (opts.callback) {
+                    opts.callback.call(modal, b);
                 }
-              }
+                b.removeClass('loading');
+            });
+        } else if (opts.contents) {
+            var content = opts.contents;
+            if (typeof (content) === 'object') {
+                var tmp = '<ul>';
+                for (var i in content) {
+                    if (typeof (content[i]) === 'string') {
+                        tmp += '<li>' + content[i] + '</li>';
+                    } else if (typeof (content[i]) === 'object') {
+
+                        for (var j in content[i]) {
+                            tmp += '<li>';
+                            tmp += content[i][j];
+                            tmp += '</li>';
+                        }
+                    }
+                }
+                tmp += '</ul>';
+                content = tmp;
             }
-            tmp += '</ul>'
-            content = tmp;
-          }
-          b.html(content);
+            b.html(content);
         }
         modal.show();
-      };
-
-  $.showErrorMessage = function(msg) {
-    $.openOverlay({
-      title : 'Error',
-      contents : msg
-    });
-  };
-
-  $.fn.openOverlay = $.openOverlay;
-  $.filterProperties = function(r, o) {
-    var retval = {};
-    for ( var s in r) {
-      var value = o[s];
-      if (typeof value !== "undefined"
-          && value !== null)
-        retval[s] = value;
-    }
-    return retval;
-  };
-  function Q() {
-    var _finish = [], _queue = [];
-    this._started = false;
-    return {
-      onFinish : function(callback) {
-        _finish.push(callback);
-        this._started = false;
-      },
-      add : function(callback) {
-        _queue.push(callback);
-      },
-      next : function() {
-        if (_queue.length === 0) {
-          $(_finish).each(function() {
-            this.call();
-          });
-          return
-
-          
-
-                    
-
-          
-
-                              
-
-          
-
-                    
-
-          
-
-                                        
-
-          
-
-                    
-
-          
-
-                              
-
-          
-
-                    
-
-          
-
-                                                  
-
-          
-
-                    
-
-          
-
-                              
-
-          
-
-                    
-
-          
-
-                                        
-
-          
-
-                    
-
-          
-
-                              
-
-          
-
-                    
-
-          
-
-                                                            
-
-          
-
-                    
-
-          
-
-                              
-
-          
-
-                    
-
-          
-
-                                        
-
-          
-
-                    
-
-          
-
-                              
-
-          
-
-                    
-
-          
-
-                                                  
-
-          
-
-                    
-
-          
-
-                              
-
-          
-
-                    
-
-          
-
-                                        
-
-          
-
-                    
-
-          
-
-                              
-
-          
-
-                    
-
-          
-
-        }
-        this._started = true;
-        callback = _queue.shift();
-        callback.call(this);
-      },
-      start : function() {
-        this.next();
-      }
     };
-  }
 
-  function CGAFEvent() {
-    var _events = [];
-    return {
-      Event : function(e, s, a) {
-        var propagationStopped = false;
-        this.EventName = e;
-        this.Source = s;
-        this.args = a;
-        this.stopPropagation = function() {
-          propagationStopped = true;
-        };
-        this.propagationStoped = function() {
-          return propagationStopped;
-        }
-      },
-      bind : function(event, callback) {
-        _events.push({
-          name : event,
-          callback : callback
+    $.showErrorMessage = function (msg) {
+        $.openOverlay({
+            title: 'Error',
+            contents: msg
         });
-      },
-      trigger : function(event, data) {
-        for ( var e in _events) {
-          var ev = _events[e];
-          if (ev.name === event)
-            ev.callback(data);
-        }
-      },
-      unbind : function(event, data) {
-        for ( var e in _events) {
-          var ev = _events[e];
-          try {
-            if (ev.name === event
-                && ev.callback == data) {
-              _events.splice(e, 1);
-              break;
-            }
-          } catch (e) {
-            console.log(e);
-          }
-        }
-      }
     };
-  }
 
-  var CGAF =
-      function() {
-        var _queue = [], pluginLoader = new Q, cgafconfig = {}, _queueRunning =
-            false, loadedJQ = {
-          "jquery.mousewheel" : ""
+    $.fn.openOverlay = $.openOverlay;
+    $.filterProperties = function (r, o) {
+        var retval = {};
+        for (var s in r) {
+            var value = o[s];
+            if (typeof value !== "undefined" && value !== null)
+                retval[s] = value;
+        }
+        return retval;
+    };
+    function Q() {
+        var _finish = [], _queue = [];
+        this._started = false;
+        return {
+            onFinish: function (callback) {
+                _finish.push(callback);
+                this._started = false;
+            },
+            add: function (callback) {
+                _queue.push(callback);
+            },
+            next: function () {
+                if (_queue.length === 0) {
+                    $(_finish).each(function () {
+                        this.call();
+                    });
+                    return;
+                }
+                this._started = true;
+                callback = _queue.shift();
+                callback.call(this);
+            },
+            start: function () {
+                this.next();
+            }
+        };
+    }
+
+    function CGAFEvent() {
+        var _events = [];
+        return {
+            Event: function (e, s, a) {
+                var propagationStopped = false;
+                this.EventName = e;
+                this.Source = s;
+                this.args = a;
+                this.stopPropagation = function () {
+                    propagationStopped = true;
+                };
+                this.propagationStoped = function () {
+                    return propagationStopped;
+                };
+            },
+            bind: function (event, callback) {
+                _events.push({
+                    name: event,
+                    callback: callback
+                });
+            },
+            trigger: function (event, data) {
+                for (var e in _events) {
+                    var ev = _events[e];
+                    if (ev.name === event)
+                        ev.callback(data);
+                }
+            },
+            unbind: function (event, data) {
+                for (var e in _events) {
+                    var ev = _events[e];
+                    try {
+                        if (ev.name === event && ev.callback == data) {
+                            _events.splice(e, 1);
+                            break;
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+            }
+        };
+    }
+
+    var CGAF = function () {
+        var _queue = [], pluginLoader = new Q, cgafconfig = {}, _queueRunning = false, loadedJQ = {
+            "jquery.mousewheel": ""
         }, loadedCSS = {}, _event = new CGAFEvent, _module = {};
 
         function CGAF(options) {
-          if (window.cgaf)
-            return window.cgaf;
-          return new CGAF.fn.init(options);
+            if (window.cgaf)
+                return window.cgaf;
+            return new CGAF.fn.init(options);
         }
 
-        CGAF.fn =
-            CGAF.prototype =
-                {
-                  defaults : {
-                    ismobile : false
-                  },
-                  init : function(options) {
-                    var me = this;
-                    cgafconfig = $.extend(this.defaults, options
-                        || {});
-                    var lo = $("#loading");
-                    if (lo.length === 0)
-                      lo =
-                          $(
-                              '<div id="loading" class="loading"><span>loading...</span></div>')
-                              .appendTo("body").hide();
-                    lo.bind("ajaxSend", function() {
-                      $(this).show();
-                    }).bind("ajaxComplete", function() {
-                      me.defaultUIHandler();
-                      $(this).hide();
+        CGAF.fn = CGAF.prototype = {
+            defaults: {
+                ismobile: false
+            },
+            init: function (options) {
+                var me = this;
+                cgafconfig = $.extend(this.defaults, options || {});
+                var lo = $("#loading");
+                if (lo.length === 0)
+                    lo = $(
+                        '<div id="loading" class="loading"><span>loading...</span></div>')
+                        .appendTo("body").hide();
+                lo.bind("ajaxSend",function () {
+                    $(this).show();
+                }).bind("ajaxComplete", function () {
+                        me.defaultUIHandler();
+                        $(this).hide();
                     });
-                    this.Events = {
-                      CGAF_READY : "cgaf-ready",
-                      STATUS_CHANGED : "status-changed"
-                    };
-                  },
-                  getModuleInfo : function(m) {
-                    if (typeof m === "object")
-                      m = m._m;
-                    for ( var key in _module) {
-                      var obj = _module[key];
-                      if (isNaN(m)) {
+                this.Events = {
+                    CGAF_READY: "cgaf-ready",
+                    STATUS_CHANGED: "status-changed"
+                };
+            },
+            getModuleInfo: function (m) {
+                if (typeof m === "object")
+                    m = m._m;
+                for (var key in _module) {
+                    var obj = _module[key];
+                    if (isNaN(m)) {
                         if (obj.mod_dir.toLowerCase() == m.toLowerCase())
-                          return obj
-                      } else if (key.toString().toLowerCase() == m.toString()
-                          .toLowerCase())
-                        return obj
-                    }
-                  },
-                  getJSAsync : function(url, config) {
-                    var callback = null;
-                    if (typeof (url) === 'string')
-                      url = [
-                        url
-                      ];
-                    if (typeof (config) === 'function')
-                      callback = config;
-                    var loader = function(src, handler) {
-                      var script = document.createElement("script");
-                      script.src = src;
-                      script.onload = script.onreadystatechange = function() {
+                            return obj;
+                    } else if (key.toString().toLowerCase() == m.toString()
+                        .toLowerCase())
+                        return obj;
+                }
+            },
+            getJSAsync: function (url, config) {
+                var callback = null;
+                if (typeof (url) === 'string')
+                    url = [ url ];
+                if (typeof (config) === 'function')
+                    callback = config;
+                var loader = function (src, handler) {
+                    var script = document.createElement("script");
+                    script.src = src;
+                    script.onload = script.onreadystatechange = function () {
                         script.onreadystatechange = script.onload = null;
                         handler();
-                      }
-                      var head = document.getElementsByTagName("head")[0];
-                      (head || document.body).appendChild(script);
                     };
-                    (function() {
-                      if (url.length != 0) {
+                    var head = document.getElementsByTagName("head")[0];
+                    (head || document.body).appendChild(script);
+                };
+                (function () {
+                    if (url.length != 0) {
                         loader(url.shift(), arguments.callee);
-                      } else {
-                        callback
-                            && callback();
-                      }
-                    })();
-                  },
-                  getJS : function(scripts, onComplete, id) {
-                    var i = 1;
-                    var ii = typeof scripts !== "string" ? scripts.length : 1;
+                    } else {
+                        callback && callback();
+                    }
+                })();
+            },
+            getJS: function (scripts, onComplete, id) {
+                var i = 1;
+                var ii = typeof scripts !== "string" ? scripts.length : 1;
 
-                    function onScriptLoaded(data, response) {
-                      if (i++ == ii)
+                function onScriptLoaded(data, response) {
+                    if (i++ == ii)
                         if (typeof onComplete !== "undefined")
-                          onComplete();
-                    }
+                            onComplete();
+                }
 
-                    function onScriptError() {
-                      cgaf.log(arguments);
-                      i++;
-                    }
+                function onScriptError() {
+                    cgaf.log(arguments);
+                    i++;
+                }
 
-                    if (typeof scripts === "string")
-                      try {
+                if (typeof scripts === "string")
+                    try {
                         this.getJSAsync(scripts, onScriptLoaded);
-                        //$.getScript(scripts, onScriptLoaded)
-                      } catch (e) {
+                        // $.getScript(scripts, onScriptLoaded)
+                    } catch (e) {
                         onScriptError(e);
-                      }
-                    else if (typeof scripts === "object")
-                      for ( var s in scripts) {
-                        var sc = scripts[s];
-                        if (typeof sc !== "string")
-                          continue;
+                    }
+                else if (typeof scripts === "object")
+                    for (var s in scripts) {
+                        if (typeof scripts[s] !== "string")
+                            continue;
                         try {
-                          this.getJSAsync(scripts, onScriptLoaded);
-                          //$.getScript(sc, onScriptLoaded);
+                            this.getJSAsync(scripts, onScriptLoaded);
+                            // $.getScript(sc, onScriptLoaded);
                         } catch (e) {
-                          onScriptError(e);
+                            onScriptError(e);
                         }
-                      }
-                    else
-                      cgaf.log(typeof scripts);
-                  },
-                  ui : {},
-                  rescheduleQueue : function() {
-                    if (_queueRunning)
-                      return;
-                    if (_queue.length == 0)
-                      return;
-                    _queueRunning = true;
-                    var q = _queue.shift();
-                    var old = q.data.callback
-                        || function() {
-                        };
-                    var me = this;
-                    q.data.callback = function() {
-                      try {
-                        old.apply(this, arguments)
-                      } catch (e) {
-                      }
-                      _queueRunning = false;
-                      me.rescheduleQueue()
-                    };
-                    q.callback.call(this, q.data)
-                  },
-                  isJQPluginLoaded : function(js) {
-                    return loadedJQ.hasOwnProperty(js)
-                  },
-                  loadStyleSheet : function(url) {
-                    if (Object.keys(loadedCSS).length == 0)
-                      $("head > link").each(function(key, item) {
+                    }
+                else
+                    cgaf.log(typeof scripts);
+            },
+            ui: {},
+            rescheduleQueue: function () {
+                if (_queueRunning)
+                    return;
+                if (_queue.length == 0)
+                    return;
+                _queueRunning = true;
+                var q = _queue.shift();
+                var old = q.data.callback || function () {
+                };
+                var me = this;
+                q.data.callback = function () {
+                    try {
+                        old.apply(this, arguments);
+                    } catch (e) {
+                    }
+                    _queueRunning = false;
+                    me.rescheduleQueue();
+                };
+                q.callback.call(this, q.data);
+            },
+            isJQPluginLoaded: function (js) {
+                return loadedJQ.hasOwnProperty(js);
+            },
+            loadStyleSheet: function (url) {
+                if (Object.keys(loadedCSS).length == 0)
+                    $("head > link").each(function (key, item) {
                         var href = $(item).attr("href");
                         loadedCSS[href] = true;
-                      });
-                    if (loadedCSS.hasOwnProperty(url))
-                      return;
-                    loadedCSS[url] = true;
-                    console.log(url);
-                    $("head").append(
-                        $('<link rel="stylesheet" type="text/css" />').attr(
-                            "href", url))
-                  },
-                  isURL : function(textval) {
-                    var urlregex =
-                        new RegExp(
-                            "^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&amp;%\$\-]+)*@)*((25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])|([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&amp;%\$#\=~_\-]+))*$");
-                    return urlregex.test(textval);
-                  },
-                  loadJQPlugin : function(jq, callback) {
-                    if (typeof jq === "object") {
-                      var self = this;
-                      pluginLoader.onFinish(callback);
-                      $.each(jq, function(k, item) {
-                        pluginLoader.add(function() {
-                          self.loadJQPlugin(item, function() {
-                            pluginLoader.next()
-                          })
-                        })
-                      });
-                      pluginLoader.start();
-                      return;
-                    }
-                    if (this.isJQPluginLoaded(jq)) {
-                      this.trigger("onpluginloaded", jq);
-                      if ($.isFunction(callback))
-                        callback.call(this);
-                      return;
-                    }
-                    version = this.getConfig("jq.version", "latest");
-                    var url =
-                        this.getConfig("jqurl", this.getConfig("asseturl", ""))
-                            + "js/jQuery/plugins/" + jq + ".js";
-                    loadedJQ[jq] = url;
-                    this.require(url, callback)
-                  },
-                  require : function(ns, callback) {
-                    this.getJS(ns, function() {
-                      if (typeof callback !== "undefined")
-                        callback.call(this, arguments)
-                    })
-                  },
-                  getJSON : function(url, data, callback, err) {
-                    var me = this;
-                    data = $.extend({
-                      __data : "json"
-                    }, data
-                        || {});
-                    return jQuery.get(url, data, function(d) {
-                      var j;
-                      try {
-                        j = (new Function("return "
-                            + d))()
-                      } catch (e) {
-                        if (err) {
-                          err.call(this, e, d)
-                        } else {
-                          cgaf.log(e.toString()
-                              + ":" + d);
-                          me.showError("Invalid JSON Data<br/>"
-                              + d);
-                        }
-                        return false
-                      }
-                      if (callback)
-                        callback.call(this, j)
-                    }, "text")
-                  },
-                  getJSONApp : function(data, callback) {
-                    var appurl = cgaf.getConfig("appurl");
-                    return jQuery.get(appurl, data, function(d) {
-                      if (typeof callback !== "undefined")
-                        callback.call(this, (new Function("return "
-                            + d))())
-                    }, "text");
-                  },
-                  ErrorType : {
-                    Notice : "error-type-notice",
-                    Warning : "error-type-warning",
-                    Error : "error-type-error"
-                  },
-                  defaultUIHandler : function() {
-                    if (!$("#sysmessage").attr("handled"))
-                      $("#sysmessage").bind("click", function() {
-                        $(this).hide();
-                      }).attr("handled", true);
-                    $("a[rel=__overlay]").each(function() {
-                      if (!$(this).attr("__overlay")) {
-                        $(this).attr("__overlay", 1);
-                        $(this).click(function(e) {
-                          e.preventDefault();
-                          $.openOverlay($(this).attr("href"));
-                        });
-                      }
                     });
-                    $("a[data-target]").each(
-                        function() {
-                          var href = $(this).attr('href');
+                if (loadedCSS.hasOwnProperty(url))
+                    return;
+                loadedCSS[url] = true;
+                console.log(url);
+                $("head").append(
+                    $('<link rel="stylesheet" type="text/css" />').attr(
+                        "href", url));
+            },
+            isURL: function (textval) {
+                var urlregex = new RegExp(
+                    "^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&amp;%\$\-]+)*@)*((25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])|([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&amp;%\$#\=~_\-]+))*$");
+                return urlregex.test(textval);
+            },
+            loadJQPlugin: function (jq, callback) {
+                if (typeof jq === "object") {
+                    var self = this;
+                    pluginLoader.onFinish(callback);
+                    $.each(jq, function (k, item) {
+                        pluginLoader.add(function () {
+                            self.loadJQPlugin(item, function () {
+                                pluginLoader.next();
+                            });
+                        });
+                    });
+                    pluginLoader.start();
+                    return;
+                }
+                if (this.isJQPluginLoaded(jq)) {
+                    this.trigger("onpluginloaded", jq);
+                    if ($.isFunction(callback))
+                        callback.call(this);
+                    return;
+                }
+                version = this.getConfig("jq.version", "latest");
+                var url = this.getConfig("jqurl", this
+                    .getConfig("asseturl", ""))
+                    + "js/jQuery/plugins/" + jq + ".js";
+                loadedJQ[jq] = url;
+                this.require(url, callback);
+            },
+            require: function (ns, callback) {
+                this.getJS(ns, function () {
+                    if (typeof callback !== "undefined")
+                        callback.call(this, arguments);
+                });
+            },
+            getJSON: function (url, data, callback, err,async) {
+                var me = this;
+                data = $.extend({
+                    __data: "json"
+                }, data || {});
+                return jQuery.get(url, data, function (d) {
+                    var j;
 
-                          if (href 
-                              && (href.substring(0,window.location.protocol.length) == window.location.protocol || href[0] ==='/')
-                              && $($(this).attr('data-target')).length >0) {
+                    try {
+                        j = (new Function("return " + d))();
+                    } catch (e) {
+                        if (err) {
+                            err.call(this, e, d);
+                        } else {
+                            cgaf.log(e.toString() + ":" + d);
+                            me.showError("Invalid JSON Data<br/>" + d);
+                        }
+                        return false;
+                    }
+                    if (callback)
+                        callback.call(this, j);
+                }, "text");
+            },
+            getJSONApp: function (data, callback) {
+                var appurl = cgaf.getConfig("appurl");
+                return jQuery.get(appurl, data, function (d) {
+                    if (typeof callback !== "undefined")
+                        callback.call(this, (new Function("return " + d))());
+                }, "text");
+            },
+            ErrorType: {
+                Notice: "error-type-notice",
+                Warning: "error-type-warning",
+                Error: "error-type-error"
+            },
+
+            setSysMessage: function (msg) {
+                var sm = $("#sysmessage");
+                if (sm) {
+                    sm.find('.alert-content').html(msg);
+                    sm.show('slow');
+                }
+            },
+            defaultUIHandler: function () {
+                /*if (!$("#sysmessage").attr("handled"))
+                 $("#sysmessage").bind("click", function() {
+                 $(this).hide();
+                 }).attr("handled", true);*/
+                $("a[rel=__overlay]").each(function () {
+                    if (!$(this).attr("__overlay")) {
+                        $(this).attr("__overlay", 1);
+                        $(this).click(function (e) {
+                            e.preventDefault();
+                            $.openOverlay($(this).attr("href"));
+                        });
+                    }
+                });
+                $("a[data-target]")
+                    .each(
+                    function () {
+                        var href = $(this).attr('href');
+
+                        if (href
+                            && (href
+                            .substring(
+                                0,
+                                window.location.protocol.length) == window.location.protocol || href[0] === '/')
+                            && $($(this).attr('data-target')).length > 0) {
                             if (!$(this).data('data-target')) {
-                              $(this).click(
-                                  function(e) {
-                                    e.preventDefault();
-                                    $($(this).attr('data-target')).load(
-                                        $(this).attr('href'));
-                                  });
+                                $(this)
+                                    .click(
+                                    function (e) {
+                                        e
+                                            .preventDefault();
+                                        $(
+                                            $(this)
+                                                .attr(
+                                                    'data-target'))
+                                            .load(
+                                                $(
+                                                    this)
+                                                    .attr(
+                                                        'href'));
+                                    });
                             }
                             $(this).data('data-target', true);
-                          }
-                        });
-                    $("a[rel=__confirm]").each(function() {
-                      if (!$(this).attr("__confirm")) {
-                        $(this).attr("__confirm", 1);
-                        $(this).click(function(e) {
-                          e.preventDefault();
-                          var title = $(this).attr("ctitle");
-                          if (!title)
-                            title = $(this).attr("title");
-                          var me = $(this);
-                          cgaf.confirm(title, function() {
-                            var url = $.url(me.attr("href"));
-                            url.param("__confirm", 1);
-                            $.openOverlay(url.toString());
-                          });
-                        });
-                      }
-                    });
-                  },
-                  setReady : function() {
-                    this.defaultUIHandler();
-                    this.trigger(this.Events.CGAF_READY);
-                  },
-                  trigger : function() {
-                    _event.trigger.apply(this, arguments);
-                  },
-                  bind : function() {
-                    _event.bind.apply(this, arguments);
-                  },
-                  Windows : function() {
-                    return {
-                      open : function(url) {
-                        return $.openOverlay(url);
-                      }
-                    };
-                  },
-                  Plugins : function() {
-                    return {
-                      select : function() {
-                      }
-                    };
-                  },
-                  setStatus : function(msg) {
-                    cgaf.trigger(cgaf.Events.STATUS_CHANGED, msg);
-                  },
-                  setConfig : function(name, value) {
-                    if (typeof value === "undefined") {
-                      var self = this;
-                      $.each(name, function(k, v) {
-                        self.setConfig(k, v);
-                      });
-                    } else
-                      cgafconfig[name] = value;
-                  },
-                  confirm : function(msg, callback) {
-                    var dlf = $("#confirm-dialog");
-                    if (dlf.length === 0)
-                      dlf =
-                          $('<div id="confirm-dialog"></div>').appendTo("body");
-                    dlf.html(msg);
-                    dlf.dialog({
-                      modal : true,
-                      buttons : {
-                        Confirm : function() {
-                          if (callback)
-                            callback.call(this);
-                          $(this).dialog("close");
-                        },
-                        Cancel : function() {
-                          $(this).dialog("close")
                         }
-                      }
                     });
-                    dlf.dialog("open")
-                  },
-                  dateFromISO : function(date, format) {
-                    date = new Date(date);
-                    return date.format(format);
-                  },
-                  showError : function(msg) {
-                    $.showErrorMessage(msg);
-                  },
-                  getConfig : function(name, def) {
-                    return typeof cgafconfig[name] === "undefined" ? def
-                        : cgafconfig[name];
-                  },
-                  log : function(args, etype) {
-                    window.log(arguments);
-                  },
-                  url : function(uri, data) {
-                    var r = new $.url(uri);
-                    r.setParam(data);
-                    return r;
-                  },
-                  Queue : function(id, callback, data) {
-                    _queue.push({
-                      id : id,
-                      data : data,
-                      callback : callback
-                    });
-                    this.rescheduleQueue();
-                  },
-                  toJSON : function(o) {
-                    if (typeof o === "string")
-                      try {
-                        return (new Function("return "
-                            + o))();
-                      } catch (e) {
-                        return null;
-                      }
-                    cgaf.log($(this));
-                    return o;
-                  },
-                  Socket : function() {
-                  }
+                $("a[rel=__confirm]").each(function () {
+                    if (!$(this).attr("__confirm")) {
+                        $(this).attr("__confirm", 1);
+                        $(this).click(function (e) {
+                            e.preventDefault();
+                            var title = $(this).attr("ctitle");
+                            if (!title)
+                                title = $(this).attr("title");
+                            var me = $(this);
+                            cgaf.confirm(title, function () {
+                                var url = $.url(me.attr("href"));
+                                url.param("__confirm", 1);
+                                $.openOverlay(url.toString());
+                            });
+                        });
+                    }
+                });
+            },
+            setReady: function () {
+                this.defaultUIHandler();
+                this.trigger(this.Events.CGAF_READY);
+            },
+            trigger: function () {
+                _event.trigger.apply(this, arguments);
+            },
+            bind: function () {
+                _event.bind.apply(this, arguments);
+            },
+            Windows: function () {
+                return {
+                    open: function (url) {
+                        return $.openOverlay(url);
+                    }
                 };
+            },
+            Plugins: function () {
+                return {
+                    select: function () {
+                    }
+                };
+            },
+            setStatus: function (msg) {
+                cgaf.trigger(cgaf.Events.STATUS_CHANGED, msg);
+            },
+            setConfig: function (name, value) {
+                if (typeof value === "undefined") {
+                    var self = this;
+                    $.each(name, function (k, v) {
+                        self.setConfig(k, v);
+                    });
+                } else
+                    cgafconfig[name] = value;
+            },
+            confirm: function (msg, callback) {
+                var dlf = $("#confirm-dialog");
+                if (dlf.length === 0)
+                    dlf = $('<div id="confirm-dialog"></div>').appendTo("body");
+                dlf.html(msg);
+                dlf.dialog({
+                    modal: true,
+                    buttons: {
+                        Confirm: function () {
+                            if (callback)
+                                callback.call(this);
+                            $(this).dialog("close");
+                        },
+                        Cancel: function () {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+                dlf.dialog("open");
+            },
+            dateFromISO: function (date, format) {
+                date = new Date(date);
+                return date.format(format);
+            },
+            showError: function (msg) {
+                $.showErrorMessage(msg);
+            },
+            getConfig: function (name, def) {
+                return typeof cgafconfig[name] === "undefined" ? def
+                    : cgafconfig[name];
+            },
+            log: function (args, etype) {
+                window.log(arguments);
+            },
+            url: function (uri, data) {
+                var r = new $.url(uri);
+                r.setParam(data);
+                return r;
+            },
+            Queue: function (id, callback, data) {
+                _queue.push({
+                    id: id,
+                    data: data,
+                    callback: callback
+                });
+                this.rescheduleQueue();
+            },
+            toJSON: function (o) {
+                if (typeof o === "string")
+                    try {
+                        return (new Function("return " + o))();
+                    } catch (e) {
+                        return null;
+                    }
+                cgaf.log($(this));
+                return o;
+            },
+            Socket: function () {
+            }
+        };
         CGAF.fn.init.prototype = CGAF.fn;
         return CGAF;
-      }();
-  // window.Util = Util;
-  window.cgaf = new CGAF
+    }();
+    // window.Util = Util;
+    window.cgaf = new CGAF;
 })(jQuery);
-(function($) {
-  var Chat = function() {
 
-  };
-  Chat.prototype =
-      {
-        defaults : {
-          floatMode : true,
-          appId : null
-        },
-        init : function(configs) {
-          if (this.initialize) {
-            return;
-          }
-          this.configs = $.extend(this.defaults, configs
-              || {});
-          if (!this.configs.appId) {
-            this.configs.appId = cgaf.getConfig('appid');
-          }
-          this.initialize = true;
-          this.online = null;
-          var $cont = this.container = $('#chat-container');
-          if ($cont.length === 0) {
-            $cont =
-                this.container =
-                    $(
-                        '<div id="chat-container" class="chat-container'
-                            + (this.configs.floatMode ? ' float' : '')
-                            + '">'
-                            + '    <div class="chat-message-container">'
-                            + '      <div class="message">'
-                            + '      </div>'
-                            + '      <div class="chat-message-action">'
-                            + '        <input type="text" id="msg">'
-                            + '        <button class="btn" type="button" id="send">Go!</button>'
-                            + '      </div>'
-                            + '    </div>'
-                            + '    <div class="chat-contacts">'
-                            + '      <div class="header">'
-                            + '        <label class="label label-status label-important ">Offline</label>'
-                            + '        <div class="btn-group">'
-                            + '          <button class="btn btn-log"><i class="icon icon-list-alt"></i></button>'
-                            + '          <button class="btn btn-refresh"><i class="icon icon-refresh"></i></button>'
-                            + '        </div>' + '      </div>'
-                            + '      <ul class="contact-list"></ul>'
-                            + '    </div>' + '    <div class="chat-log"></div>'
-                            + '</div>').appendTo(
-                        this.configs.floatMode ? 'body' : '#wrapper');
-          }
-          if (this.configs.floatMode) {
-            $cont.hide();
-          }
-          var $status = $cont.find('.label-status'), $connect =
-              $cont.find('#connect'), $disconnect = $cont.find('#disconnect'), $send =
-              $cont.find('#send'), $msg = $cont.find('#msg'), $message =
-              $cont.find('.message'), me = this;
-          this.setOnline(false);
-
-          WebPush.log = function(msg) {
-            me.log(msg, 'LOG : ');
-          }
-          var server = this.server = new WebPush('ws://localhost:8088/');
-          this.$log = $cont.find('.chat-log');
-          this.$contactList = $cont.find('.contact-list');
-          //WebPush events
-          $send.addClass('disabled');
-          $cont.find('.btn-refresh').click($.proxy(this, 'refreshContactList'));
-          server.bind('open', function() {
-            me.setOnline(true);
-            me.refreshContactList();
-          });
-          $cont.find('.btn-log').click(function(e) {
-            e.preventDefault();
-            var $c = me.container.find('.chat-log');
-            $c.toggle();
-            if ($c.is(':visible')) {
-              $(this).addClass('active');
-            } else {
-              $(this).removeClass('active');
-            }
-          });
-          server.bind('connection_disconnected', function() {
-            me.setOnline(false);
-          });
-
-          server.bind('close', function() {
-            me.setOnline(false);
-          });
-          server.bind('connection_failed', function() {
-            me.setOnline(false);
-          });
-
-          server.bind('message', function(msg) {
-            var response = JSON.parse(msg);
-            me.log(msg, '&lt;');
-            var d = new Date();
-            switch (response.service) {
-              case 'chat':
-                switch (response.action) {
-                  case 'userinfo':
-                    
-                    break;
-                  case 'contact_list':
-                    me.refreshContactList(response.data, true);
-                    break;
-                  case 'error':
-                    me.log(response.message, 'ERROR');
-                    break;
-                  default:
-                    $message.append('<div><span class="label label-info t">'
-                        + d.toLocaleTimeString() + '</span>'
-                        + '<a class="from" target="__dialog" href="'+response.from+'"><span>' + response.from + '</span></a>'
-                        + '<span class="m">'
-                        + response.data + '</div></div>').find('.from').click(function(e) {
-                          e.preventDefault();
-                          me.send({
-                            action:'userinfo',
-                            userid: $(this).attr('href')
-                          });
-                        });
-                }
-            }
-          });
-          $disconnect.click(function(e) {
-            e.preventDefault();
-            server.disconnect();
-          });
-          $connect.click(function(e) {
-            e.preventDefault();
-            server.connect();
-          });
-          $status.click(function() {
-            if (!me.online) {
-              me.server.connect();
-            } else {
-              me.server.disconnect();
-            }
-          });
-          $send.click(function() {
-            if (!me.online)
-              return;
-            var d = new Date();
-            $message.append('<div><span class="label label-important s">'
-                + d.toLocaleTimeString() + '</span><span class="m">'
-                + $msg.val() + '</div></div>');
-            me.send({
-              action : 'message',
-              data : $msg.val()
-            });
-            $msg.val('');
-          });
-          $(window).resize($.proxy(this, 'resetui'));
-          this.resetui();
-        },
-        refreshContactList : function(data, datamode) {
-          if (data
-              && datamode) {
-            this.$contactList.empty();
-            for ( var i in data) {
-              $('<li>'
-                  + data[i].id + '</li>').appendTo(this.$contactList);
-            }
-          } else {
-            this.send({
-              service : 'chat',
-              action : 'contact_list'
-            });
-
-          }
-        },
-        log : function(data, p) {
-          p = p
-              || '&gt;';
-          this.container.find('.chat-log').append('<div>'
-              + p + ':' + JSON.stringify(data) + '</div>');
-        },
-        send : function(data) {
-          if (!data.appId) {
-            data.appId = this.configs.appId;
-          }
-          if (!data.service) {
-            data.service = 'chat';
-          }
-          this.log(data, '&gt;&nbsp;');
-          this.server.send(JSON.stringify(data));
-        },
-        setOnline : function(v) {
-          if (this.online !== v) {
-            this.online = v;
-            var $status = this.container.find('.label-status');
-            var $send = this.container.find('#send');
-            var $msg = this.container.find('#msg');
-            if (v) {
-              this.container.find('.btn-refresh').removeClass('disabled');
-              $msg.attr('disabled', false);
-              $status.removeClass('label-important').addClass('label-success')
-                  .html('Online');
-              $msg.removeClass('disabled');
-              $send.removeClass('disabled');
-            } else {
-              $msg.attr('disabled', 'disabled');
-              this.container.find('.btn-refresh').addClass('disabled');
-              $send.addClass('disabled');
-              $status.removeClass('label-success').addClass('label-important')
-                  .html('Offline');
-            }
-          }
-          //me.resetui();
-        },
-        resetui : function() {
-          if (this.container
-              && this.container.is(':visible')) {
-            if (!this.configs.floatMode) {
-              this.container.closest('body').closest('html').css({
-                overflow : 'hidden'
-              });
-              this.container.parent().css({
-                padding : 0
-              })
-            }
-            var oo = this.container.offset();
-            this.container.css({
-              height : (this.configs.floatMode ? $(window).height()
-                  - (oo.top * 2) : $(window).height()
-                  - (40 + oo.top))
-                  + 'px',
-              left : (($(window).width() - this.container.width()) / 2)
-                  + 'px'
-            });
-          }
-        },
-        showMenu : function(e) {
-          if (this.configs.floatMode) {
-            this.container.toggle();
-          }
-          this.resetui();
-        }
-      };
-  $.chat = new Chat();
-
-})(jQuery);/**
- * http://github.com/valums/file-uploader
- * 
- * Multiple file upload component with progress-bar, drag-and-drop. © 2010
- * Andrew Valums ( andrew(at)valums.com )
- * 
- * Licensed under GNU GPL 2 or later and GNU LGPL 2 or later, see license.txt.
- */
-
-//
-// Helper functions
-//
-var qq = qq
-    || {};
-
-/**
- * Adds all missing properties from second obj to first obj
- */
-qq.extend = function(first, second) {
-  for ( var prop in second) {
-    first[prop] = second[prop];
-  }
-};
-
-/**
- * Searches for a given element in the array, returns -1 if it is not present.
- * 
- * @param {Number}
- *          [from] The index at which to begin the search
- */
-qq.indexOf = function(arr, elt, from) {
-  if (arr.indexOf)
-    return arr.indexOf(elt, from);
-
-  from = from || 0;
-  var len = arr.length;
-
-  if (from < 0)
-    from += len;
-
-  for (; from < len; from++) {
-    if (from in arr
-        && arr[from] === elt) {
-      return from;
-    }
-  }
-  return -1;
-};
-
-qq.getUniqueId = (function() {
-  var id = 0;
-  return function() {
-    return id++;
-  };
-})();
-
-//
-// Events
-
-qq.attach = function(element, type, fn) {
-  if (element.addEventListener) {
-    element.addEventListener(type, fn, false);
-  } else if (element.attachEvent) {
-    element.attachEvent('on'
-        + type, fn);
-  }
-};
-qq.detach = function(element, type, fn) {
-  if (element.removeEventListener) {
-    element.removeEventListener(type, fn, false);
-  } else if (element.attachEvent) {
-    element.detachEvent('on'
-        + type, fn);
-  }
-};
-
-qq.preventDefault = function(e) {
-  if (e.preventDefault) {
-    e.preventDefault();
-  } else {
-    e.returnValue = false;
-  }
-};
-
-//
-// Node manipulations
-
-/**
- * Insert node a before node b.
- */
-qq.insertBefore = function(a, b) {
-  b.parentNode.insertBefore(a, b);
-};
-qq.remove = function(element) {
-  element.parentNode.removeChild(element);
-};
-
-qq.contains = function(parent, descendant) {
-  // compareposition returns false in this case
-  if (parent == descendant)
-    return true;
-
-  if (parent.contains) {
-    return parent.contains(descendant);
-  } else {
-    return !!(descendant.compareDocumentPosition(parent) & 8);
-  }
-};
-
-/**
- * Creates and returns element from html string Uses innerHTML to create an
- * element
- */
-qq.toElement = (function() {
-  var div = document.createElement('div');
-  return function(html) {
-    div.innerHTML = html;
-    var element = div.firstChild;
-    div.removeChild(element);
-    return element;
-  };
-})();
-
-//
-// Node properties and attributes
-
-/**
- * Sets styles for an element. Fixes opacity in IE6-8.
- */
-qq.css = function(element, styles) {
-  if (styles.opacity != null) {
-    if (typeof element.style.opacity != 'string'
-        && typeof (element.filters) != 'undefined') {
-      styles.filter = 'alpha(opacity='
-          + Math.round(100 * styles.opacity) + ')';
-    }
-  }
-  qq.extend(element.style, styles);
-};
-qq.hasClass = function(element, name) {
-  var re = new RegExp('(^| )'
-      + name + '( |$)');
-  return re.test(element.className);
-};
-qq.addClass = function(element, name) {
-  if (!qq.hasClass(element, name)) {
-    element.className += ' '
-        + name;
-  }
-};
-qq.removeClass =
-    function(element, name) {
-      var re = new RegExp('(^| )'
-          + name + '( |$)');
-      element.className =
-          element.className.replace(re, ' ').replace(/^\s+|\s+$/g, "");
-    };
-qq.setText = function(element, text) {
-  element.innerText = text;
-  element.textContent = text;
-};
-
-//
-// Selecting elements
-
-qq.children = function(element) {
-  var children = [], child = element.firstChild;
-
-  while (child) {
-    if (child.nodeType == 1) {
-      children.push(child);
-    }
-    child = child.nextSibling;
-  }
-
-  return children;
-};
-
-qq.getByClass = function(element, className) {
-  if (element.querySelectorAll) {
-    return element.querySelectorAll('.'
-        + className);
-  }
-
-  var result = [];
-  var candidates = element.getElementsByTagName("*");
-  var len = candidates.length;
-
-  for ( var i = 0; i < len; i++) {
-    if (qq.hasClass(candidates[i], className)) {
-      result.push(candidates[i]);
-    }
-  }
-  return result;
-};
-
-/**
- * obj2url() takes a json-object as argument and generates a querystring. pretty
- * much like jQuery.param()
- * 
- * how to use:
- * 
- * `qq.obj2url({a:'b',c:'d'},'http://any.url/upload?otherParam=value');`
- * 
- * will result in:
- * 
- * `http://any.url/upload?otherParam=value&a=b&c=d`
- * 
- * @param Object
- *          JSON-Object
- * @param String
- *          current querystring-part
- * @return String encoded querystring
- */
-qq.obj2url =
-    function(obj, temp, prefixDone) {
-      var uristrings = [], prefix = '&', add =
-          function(nextObj, i) {
-            var nextTemp = temp ? (/\[\]$/.test(temp)) // prevent double-encoding
-            ? temp : temp
-                + '[' + i + ']' : i;
-            if ((nextTemp != 'undefined')
-                && (i != 'undefined')) {
-              uristrings
-                  .push((typeof nextObj === 'object') ? qq.obj2url(nextObj,
-                      nextTemp, true)
-                      : (Object.prototype.toString.call(nextObj) === '[object Function]') ? encodeURIComponent(nextTemp)
-                          + '=' + encodeURIComponent(nextObj())
-                          : encodeURIComponent(nextTemp)
-                              + '=' + encodeURIComponent(nextObj));
-            }
-          };
-
-      if (!prefixDone
-          && temp) {
-        prefix = (/\?/.test(temp)) ? (/\?$/.test(temp)) ? '' : '&' : '?';
-        uristrings.push(temp);
-        uristrings.push(qq.obj2url(obj));
-      } else if ((Object.prototype.toString.call(obj) === '[object Array]')
-          && (typeof obj != 'undefined')) {
-        // we wont use a for-in-loop on an array (performance)
-        for ( var i = 0, len = obj.length; i < len; ++i) {
-          add(obj[i], i);
-        }
-      } else if ((typeof obj != 'undefined')
-          && (obj !== null) && (typeof obj === "object")) {
-        // for anything else but a scalar, we will use for-in-loop
-        for ( var i in obj) {
-          add(obj[i], i);
-        }
-      } else {
-        uristrings.push(encodeURIComponent(temp)
-            + '=' + encodeURIComponent(obj));
-      }
-
-      return uristrings.join(prefix).replace(/^&/, '').replace(/%20/g, '+');
-    };
-
-//
-//
-// Uploader Classes
-//
-//
-
-var qq = qq
-    || {};
-
-/**
- * Creates upload button, validates upload, but doesn't create file list or dd.
- */
-qq.FileUploaderBasic =
-    function(o) {
-      this._options =
-          {
-            // set to true to see the server response
-            debug : false,
-            action : '/server/upload',
-            params : {},
-            button : null,
-            multiple : true,
-            maxConnections : 3,
-            // validation        
-            allowedExtensions : [],
-            sizeLimit : 0,
-            minSizeLimit : 0,
-            // events
-            // return false to cancel submit
-            onSubmit : function(id, fileName) {
-            },
-            onProgress : function(id, fileName, loaded, total) {
-            },
-            onComplete : function(id, fileName, responseJSON) {
-            },
-            onCancel : function(id, fileName) {
-            },
-            // messages                
-            messages : {
-              typeError : "{file} has invalid extension. Only {extensions} are allowed.",
-              sizeError : "{file} is too large, maximum file size is {sizeLimit}.",
-              minSizeError : "{file} is too small, minimum file size is {minSizeLimit}.",
-              emptyError : "{file} is empty, please select files again without it.",
-              onLeave : "The files are being uploaded, if you leave now the upload will be cancelled."
-            },
-            showMessage : function(message) {
-              alert(message);
-            }
-          };
-      qq.extend(this._options, o);
-
-      // number of files being uploaded
-      this._filesInProgress = 0;
-      this._handler = this._createUploadHandler();
-
-      if (this._options.button) {
-        this._button = this._createUploadButton(this._options.button);
-      }
-
-      this._preventLeaveInProgress();
-    };
-
-qq.FileUploaderBasic.prototype =
-    {
-      setParams : function(params) {
-        this._options.params = params;
-      },
-      getInProgress : function() {
-        return this._filesInProgress;
-      },
-      _createUploadButton : function(element) {
-        var self = this;
-
-        return new qq.UploadButton({
-          element : element,
-          multiple : this._options.multiple
-              && qq.UploadHandlerXhr.isSupported(),
-          onChange : function(input) {
-            self._onInputChange(input);
-          }
-        });
-      },
-      _createUploadHandler : function() {
-        var self = this, handlerClass;
-
-        if (qq.UploadHandlerXhr.isSupported()) {
-          handlerClass = 'UploadHandlerXhr';
-        } else {
-          handlerClass = 'UploadHandlerForm';
-        }
-
-        var handler = new qq[handlerClass]({
-          debug : this._options.debug,
-          action : this._options.action,
-          maxConnections : this._options.maxConnections,
-          onProgress : function(id, fileName, loaded, total) {
-            self._onProgress(id, fileName, loaded, total);
-            self._options.onProgress(id, fileName, loaded, total);
-          },
-          onComplete : function(id, fileName, result) {
-            self._onComplete(id, fileName, result);
-            self._options.onComplete(id, fileName, result);
-          },
-          onCancel : function(id, fileName) {
-            self._onCancel(id, fileName);
-            self._options.onCancel(id, fileName);
-          }
-        });
-
-        return handler;
-      },
-      _preventLeaveInProgress : function() {
-        var self = this;
-
-        qq.attach(window, 'beforeunload', function(e) {
-          if (!self._filesInProgress) {
-            return;
-          }
-
-          var e = e
-              || window.event;
-          // for ie, ff
-          e.returnValue = self._options.messages.onLeave;
-          // for webkit
-          return self._options.messages.onLeave;
-        });
-      },
-      _onSubmit : function(id, fileName) {
-        this._filesInProgress++;
-      },
-      _onProgress : function(id, fileName, loaded, total) {
-      },
-      _onComplete : function(id, fileName, result) {
-        this._filesInProgress--;
-        if (result.error) {
-          this._options.showMessage(result.error);
-        }
-      },
-      _onCancel : function(id, fileName) {
-        this._filesInProgress--;
-      },
-      _onInputChange : function(input) {
-        if (this._handler instanceof qq.UploadHandlerXhr) {
-          this._uploadFileList(input.files);
-        } else {
-          if (this._validateFile(input)) {
-            this._uploadFile(input);
-          }
-        }
-        this._button.reset();
-      },
-      _uploadFileList : function(files) {
-        for ( var i = 0; i < files.length; i++) {
-          if (!this._validateFile(files[i])) {
-            return;
-          }
-        }
-
-        for ( var i = 0; i < files.length; i++) {
-          this._uploadFile(files[i]);
-        }
-      },
-      _uploadFile : function(fileContainer) {
-        var id = this._handler.add(fileContainer);
-        var fileName = this._handler.getName(id);
-
-        if (this._options.onSubmit(id, fileName) !== false) {
-          this._onSubmit(id, fileName);
-          this._handler.upload(id, this._options.params);
-        }
-      },
-      _validateFile : function(file) {
-        var name, size;
-
-        if (file.value) {
-          // it is a file input            
-          // get input value and remove path to normalize
-          name = file.value.replace(/.*(\/|\\)/, "");
-        } else {
-          // fix missing properties in Safari
-          name = file.fileName != null ? file.fileName : file.name;
-          size = file.fileSize != null ? file.fileSize : file.size;
-        }
-
-        if (!this._isAllowedExtension(name)) {
-          this._error('typeError', name);
-          return false;
-
-        } else if (size === 0) {
-          this._error('emptyError', name);
-          return false;
-
-        } else if (size
-            && this._options.sizeLimit && size > this._options.sizeLimit) {
-          this._error('sizeError', name);
-          return false;
-
-        } else if (size
-            && size < this._options.minSizeLimit) {
-          this._error('minSizeError', name);
-          return false;
-        }
-
-        return true;
-      },
-      _error : function(code, fileName) {
-        var message = this._options.messages[code];
-        function r(name, replacement) {
-          message = message.replace(name, replacement);
-        }
-
-        r('{file}', this._formatFileName(fileName));
-        r('{extensions}', this._options.allowedExtensions.join(', '));
-        r('{sizeLimit}', this._formatSize(this._options.sizeLimit));
-        r('{minSizeLimit}', this._formatSize(this._options.minSizeLimit));
-
-        this._options.showMessage(message);
-      },
-      _formatFileName : function(name) {
-        if (name.length > 33) {
-          name = name.slice(0, 19)
-              + '...' + name.slice(-13);
-        }
-        return name;
-      },
-      _isAllowedExtension : function(fileName) {
-        var ext =
-            (-1 !== fileName.indexOf('.')) ? fileName.replace(/.*[.]/, '')
-                .toLowerCase() : '';
-        var allowed = this._options.allowedExtensions;
-
-        if (!allowed.length) {
-          return true;
-        }
-
-        for ( var i = 0; i < allowed.length; i++) {
-          if (allowed[i].toLowerCase() == ext) {
-            return true;
-          }
-        }
-
-        return false;
-      },
-      _formatSize : function(bytes) {
-        var i = -1;
-        do {
-          bytes = bytes / 1024;
-          i++;
-        } while (bytes > 99);
-
-        return Math.max(bytes, 0.1).toFixed(1)
-            + [
-                'kB', 'MB', 'GB', 'TB', 'PB', 'EB'
-            ][i];
-      }
-    };
-
-/**
- * Class that creates upload widget with drag-and-drop and file list
- * 
- * @inherits qq.FileUploaderBasic
- */
-qq.FileUploader =
-    function(o) {
-      // call parent constructor
-      qq.FileUploaderBasic.apply(this, arguments);
-
-      // additional options    
-      qq
-          .extend(
-              this._options,
-              {
-                element : null,
-                // if set, will be used instead of qq-upload-list in template
-                listElement : null,
-
-                template : '<div class="qq-uploader">'
-                    + '<div class="qq-upload-drop-area"><span>Drop files here to upload</span></div>'
-                    + '<div class="qq-upload-button">Upload a file</div>'
-                    + '<ul class="qq-upload-list"></ul>' + '</div>',
-
-                // template for one item in file list
-                fileTemplate : '<li>'
-                    + '<span class="qq-upload-file"></span>'
-                    + '<span class="qq-upload-spinner"></span>'
-                    + '<span class="qq-upload-size"></span>'
-                    + '<a class="qq-upload-cancel" href="#">Cancel</a>'
-                    + '<span class="qq-upload-failed-text">Failed</span>'
-                    + '</li>',
-
-                classes : {
-                  // used to get elements from templates
-                  button : 'qq-upload-button',
-                  drop : 'qq-upload-drop-area',
-                  dropActive : 'qq-upload-drop-area-active',
-                  list : 'qq-upload-list',
-
-                  file : 'qq-upload-file',
-                  spinner : 'qq-upload-spinner',
-                  size : 'qq-upload-size',
-                  cancel : 'qq-upload-cancel',
-
-                  // added to list item when upload completes
-                  // used in css to hide progress spinner
-                  success : 'qq-upload-success',
-                  fail : 'qq-upload-fail'
-                }
-              });
-      // overwrite options with user supplied    
-      qq.extend(this._options, o);
-
-      this._element = this._options.element;
-      this._element.innerHTML = this._options.template;
-      this._listElement = this._options.listElement
-          || this._find(this._element, 'list');
-
-      this._classes = this._options.classes;
-
-      this._button =
-          this._createUploadButton(this._find(this._element, 'button'));
-
-      this._bindCancelEvent();
-      this._setupDragDrop();
-    };
-
-// inherit from Basic Uploader
-qq.extend(qq.FileUploader.prototype, qq.FileUploaderBasic.prototype);
-
-qq.extend(qq.FileUploader.prototype, {
-  /**
-   * Gets one of the elements listed in this._options.classes
-   */
-  _find : function(parent, type) {
-    var element = qq.getByClass(parent, this._options.classes[type])[0];
-    if (!element) {
-      throw new Error('element not found '
-          + type);
-    }
-
-    return element;
-  },
-  _setupDragDrop : function() {
-    var self = this, dropArea = this._find(this._element, 'drop');
-
-    var dz = new qq.UploadDropZone({
-      element : dropArea,
-      onEnter : function(e) {
-        qq.addClass(dropArea, self._classes.dropActive);
-        e.stopPropagation();
-      },
-      onLeave : function(e) {
-        e.stopPropagation();
-      },
-      onLeaveNotDescendants : function(e) {
-        qq.removeClass(dropArea, self._classes.dropActive);
-      },
-      onDrop : function(e) {
-        dropArea.style.display = 'none';
-        qq.removeClass(dropArea, self._classes.dropActive);
-        self._uploadFileList(e.dataTransfer.files);
-      }
-    });
-
-    dropArea.style.display = 'none';
-
-    qq.attach(document, 'dragenter', function(e) {
-      if (!dz._isValidFileDrag(e))
-        return;
-
-      dropArea.style.display = 'block';
-    });
-    qq.attach(document, 'dragleave', function(e) {
-      if (!dz._isValidFileDrag(e))
-        return;
-
-      var relatedTarget = document.elementFromPoint(e.clientX, e.clientY);
-      // only fire when leaving document out
-      if (!relatedTarget
-          || relatedTarget.nodeName == "HTML") {
-        dropArea.style.display = 'none';
-      }
-    });
-  },
-  _onSubmit : function(id, fileName) {
-    qq.FileUploaderBasic.prototype._onSubmit.apply(this, arguments);
-    this._addToList(id, fileName);
-  },
-  _onProgress : function(id, fileName, loaded, total) {
-    qq.FileUploaderBasic.prototype._onProgress.apply(this, arguments);
-
-    var item = this._getItemByFileId(id);
-    var size = this._find(item, 'size');
-    size.style.display = 'inline';
-
-    var text;
-    if (loaded != total) {
-      text = Math.round(loaded
-          / total * 100)
-          + '% from ' + this._formatSize(total);
-    } else {
-      text = this._formatSize(total);
-    }
-
-    qq.setText(size, text);
-  },
-  _onComplete : function(id, fileName, result) {
-    qq.FileUploaderBasic.prototype._onComplete.apply(this, arguments);
-
-    // mark completed
-    var item = this._getItemByFileId(id);
-    qq.remove(this._find(item, 'cancel'));
-    qq.remove(this._find(item, 'spinner'));
-
-    if (result.success) {
-      qq.addClass(item, this._classes.success);
-    } else {
-      qq.addClass(item, this._classes.fail);
-    }
-  },
-  _addToList : function(id, fileName) {
-    var item = qq.toElement(this._options.fileTemplate);
-    item.qqFileId = id;
-
-    var fileElement = this._find(item, 'file');
-    qq.setText(fileElement, this._formatFileName(fileName));
-    this._find(item, 'size').style.display = 'none';
-
-    this._listElement.appendChild(item);
-  },
-  _getItemByFileId : function(id) {
-    var item = this._listElement.firstChild;
-
-    // there can't be txt nodes in dynamically created list
-    // and we can  use nextSibling
-    while (item) {
-      if (item.qqFileId == id)
-        return item;
-      item = item.nextSibling;
-    }
-  },
-  /**
-   * delegate click event for cancel link
-   */
-  _bindCancelEvent : function() {
-    var self = this, list = this._listElement;
-
-    qq.attach(list, 'click', function(e) {
-      e = e
-          || window.event;
-      var target = e.target
-          || e.srcElement;
-
-      if (qq.hasClass(target, self._classes.cancel)) {
-        qq.preventDefault(e);
-
-        var item = target.parentNode;
-        self._handler.cancel(item.qqFileId);
-        qq.remove(item);
-      }
-    });
-  }
-});
-
-qq.UploadDropZone = function(o) {
-  this._options = {
-    element : null,
-    onEnter : function(e) {
-    },
-    onLeave : function(e) {
-    },
-    // is not fired when leaving element by hovering descendants   
-    onLeaveNotDescendants : function(e) {
-    },
-    onDrop : function(e) {
-    }
-  };
-  qq.extend(this._options, o);
-
-  this._element = this._options.element;
-
-  this._disableDropOutside();
-  this._attachEvents();
-};
-
-qq.UploadDropZone.prototype = {
-  _disableDropOutside : function(e) {
-    // run only once for all instances
-    if (!qq.UploadDropZone.dropOutsideDisabled) {
-
-      qq.attach(document, 'dragover', function(e) {
-        if (e.dataTransfer) {
-          e.dataTransfer.dropEffect = 'none';
-          e.preventDefault();
-        }
-      });
-
-      qq.UploadDropZone.dropOutsideDisabled = true;
-    }
-  },
-  _attachEvents : function() {
-    var self = this;
-
-    qq.attach(self._element, 'dragover', function(e) {
-      if (!self._isValidFileDrag(e))
-        return;
-
-      var effect = e.dataTransfer.effectAllowed;
-      if (effect == 'move'
-          || effect == 'linkMove') {
-        e.dataTransfer.dropEffect = 'move'; // for FF (only move allowed)    
-      } else {
-        e.dataTransfer.dropEffect = 'copy'; // for Chrome
-      }
-
-      e.stopPropagation();
-      e.preventDefault();
-    });
-
-    qq.attach(self._element, 'dragenter', function(e) {
-      if (!self._isValidFileDrag(e))
-        return;
-
-      self._options.onEnter(e);
-    });
-
-    qq.attach(self._element, 'dragleave', function(e) {
-      if (!self._isValidFileDrag(e))
-        return;
-
-      self._options.onLeave(e);
-
-      var relatedTarget = document.elementFromPoint(e.clientX, e.clientY);
-      // do not fire when moving a mouse over a descendant
-      if (qq.contains(this, relatedTarget))
-        return;
-
-      self._options.onLeaveNotDescendants(e);
-    });
-
-    qq.attach(self._element, 'drop', function(e) {
-      if (!self._isValidFileDrag(e))
-        return;
-
-      e.preventDefault();
-      self._options.onDrop(e);
-    });
-  },
-  _isValidFileDrag : function(e) {
-    var dt = e.dataTransfer,
-    // do not check dt.types.contains in webkit, because it crashes safari 4            
-    isWebkit = navigator.userAgent.indexOf("AppleWebKit") > -1;
-
-    // dt.effectAllowed is none in Safari 5
-    // dt.types.contains check is for firefox            
-    return dt
-        && dt.effectAllowed != 'none' && (dt.files || (!isWebkit
-            && dt.types.contains && dt.types.contains('Files')));
-
-  }
-};
-
-qq.UploadButton = function(o) {
-  this._options = {
-    element : null,
-    // if set to true adds multiple attribute to file input      
-    multiple : false,
-    // name attribute of file input
-    name : 'file',
-    onChange : function(input) {
-    },
-    hoverClass : 'qq-upload-button-hover',
-    focusClass : 'qq-upload-button-focus'
-  };
-
-  qq.extend(this._options, o);
-
-  this._element = this._options.element;
-
-  // make button suitable container for input
-  qq.css(this._element, {
-    position : 'relative',
-    overflow : 'hidden',
-    // Make sure browse button is in the right side
-    // in Internet Explorer
-    direction : 'ltr'
-  });
-
-  this._input = this._createInput();
-};
-
-qq.UploadButton.prototype = {
-  /* returns file input element */
-  getInput : function() {
-    return this._input;
-  },
-  /* cleans/recreates the file input */
-  reset : function() {
-    if (this._input.parentNode) {
-      qq.remove(this._input);
-    }
-
-    qq.removeClass(this._element, this._options.focusClass);
-    this._input = this._createInput();
-  },
-  _createInput : function() {
-    var input = document.createElement("input");
-
-    if (this._options.multiple) {
-      input.setAttribute("multiple", "multiple");
-    }
-
-    input.setAttribute("type", "file");
-    input.setAttribute("name", this._options.name);
-
-    qq.css(input, {
-      position : 'absolute',
-      // in Opera only 'browse' button
-      // is clickable and it is located at
-      // the right side of the input
-      right : 0,
-      top : 0,
-      fontFamily : 'Arial',
-      // 4 persons reported this, the max values that worked for them were 243, 236, 236, 118
-      fontSize : '118px',
-      margin : 0,
-      padding : 0,
-      cursor : 'pointer',
-      opacity : 0
-    });
-
-    this._element.appendChild(input);
-
-    var self = this;
-    qq.attach(input, 'change', function() {
-      self._options.onChange(input);
-    });
-
-    qq.attach(input, 'mouseover', function() {
-      qq.addClass(self._element, self._options.hoverClass);
-    });
-    qq.attach(input, 'mouseout', function() {
-      qq.removeClass(self._element, self._options.hoverClass);
-    });
-    qq.attach(input, 'focus', function() {
-      qq.addClass(self._element, self._options.focusClass);
-    });
-    qq.attach(input, 'blur', function() {
-      qq.removeClass(self._element, self._options.focusClass);
-    });
-
-    // IE and Opera, unfortunately have 2 tab stops on file input
-    // which is unacceptable in our case, disable keyboard access
-    if (window.attachEvent) {
-      // it is IE or Opera
-      input.setAttribute('tabIndex', "-1");
-    }
-
-    return input;
-  }
-};
-
-/**
- * Class for uploading files, uploading itself is handled by child classes
- */
-qq.UploadHandlerAbstract = function(o) {
-  this._options = {
-    debug : false,
-    action : '/upload.php',
-    // maximum number of concurrent uploads        
-    maxConnections : 999,
-    onProgress : function(id, fileName, loaded, total) {
-    },
-    onComplete : function(id, fileName, response) {
-    },
-    onCancel : function(id, fileName) {
-    }
-  };
-  qq.extend(this._options, o);
-
-  this._queue = [];
-  // params for files in queue
-  this._params = [];
-};
-qq.UploadHandlerAbstract.prototype = {
-  log : function(str) {
-    if (this._options.debug
-        && window.console)
-      console.log('[uploader] '
-          + str);
-  },
-  /**
-   * Adds file or file input to the queue
-   * 
-   * @returns id
-   */
-  add : function(file) {
-  },
-  /**
-   * Sends the file identified by id and additional query params to the server
-   */
-  upload : function(id, params) {
-    var len = this._queue.push(id);
-
-    var copy = {};
-    qq.extend(copy, params);
-    this._params[id] = copy;
-
-    // if too many active uploads, wait...
-    if (len <= this._options.maxConnections) {
-      this._upload(id, this._params[id]);
-    }
-  },
-  /**
-   * Cancels file upload by id
-   */
-  cancel : function(id) {
-    this._cancel(id);
-    this._dequeue(id);
-  },
-  /**
-   * Cancells all uploads
-   */
-  cancelAll : function() {
-    for ( var i = 0; i < this._queue.length; i++) {
-      this._cancel(this._queue[i]);
-    }
-    this._queue = [];
-  },
-  /**
-   * Returns name of the file identified by id
-   */
-  getName : function(id) {
-  },
-  /**
-   * Returns size of the file identified by id
-   */
-  getSize : function(id) {
-  },
-  /**
-   * Returns id of files being uploaded or waiting for their turn
-   */
-  getQueue : function() {
-    return this._queue;
-  },
-  /**
-   * Actual upload method
-   */
-  _upload : function(id) {
-  },
-  /**
-   * Actual cancel method
-   */
-  _cancel : function(id) {
-  },
-  /**
-   * Removes element from queue, starts upload of next
-   */
-  _dequeue : function(id) {
-    var i = qq.indexOf(this._queue, id);
-    this._queue.splice(i, 1);
-
-    var max = this._options.maxConnections;
-
-    if (this._queue.length >= max
-        && i < max) {
-      var nextId = this._queue[max - 1];
-      this._upload(nextId, this._params[nextId]);
-    }
-  }
-};
-
-/**
- * Class for uploading files using form and iframe
- * 
- * @inherits qq.UploadHandlerAbstract
- */
-qq.UploadHandlerForm = function(o) {
-  qq.UploadHandlerAbstract.apply(this, arguments);
-
-  this._inputs = {};
-};
-// @inherits qq.UploadHandlerAbstract
-qq.extend(qq.UploadHandlerForm.prototype, qq.UploadHandlerAbstract.prototype);
-
-qq
-    .extend(
-        qq.UploadHandlerForm.prototype,
-        {
-          add : function(fileInput) {
-            fileInput.setAttribute('name', 'qqfile');
-            var id = 'qq-upload-handler-iframe'
-                + qq.getUniqueId();
-
-            this._inputs[id] = fileInput;
-
-            // remove file input from DOM
-            if (fileInput.parentNode) {
-              qq.remove(fileInput);
-            }
-
-            return id;
-          },
-          getName : function(id) {
-            // get input value and remove path to normalize
-            return this._inputs[id].value.replace(/.*(\/|\\)/, "");
-          },
-          _cancel : function(id) {
-            this._options.onCancel(id, this.getName(id));
-
-            delete this._inputs[id];
-
-            var iframe = document.getElementById(id);
-            if (iframe) {
-              // to cancel request set src to something else
-              // we use src="javascript:false;" because it doesn't
-              // trigger ie6 prompt on https
-              iframe.setAttribute('src', 'javascript:false;');
-
-              qq.remove(iframe);
-            }
-          },
-          _upload : function(id, params) {
-            var input = this._inputs[id];
-
-            if (!input) {
-              throw new Error(
-                  'file with passed id was not added, or already uploaded or cancelled');
-            }
-
-            var fileName = this.getName(id);
-
-            var iframe = this._createIframe(id);
-            var form = this._createForm(iframe, params);
-            form.appendChild(input);
-
-            var self = this;
-            this._attachLoadEvent(iframe, function() {
-              self.log('iframe loaded');
-
-              var response = self._getIframeContentJSON(iframe);
-
-              self._options.onComplete(id, fileName, response);
-              self._dequeue(id);
-
-              delete self._inputs[id];
-              // timeout added to fix busy state in FF3.6
-              setTimeout(function() {
-                qq.remove(iframe);
-              }, 1);
-            });
-
-            form.submit();
-            qq.remove(form);
-
-            return id;
-          },
-          _attachLoadEvent : function(iframe, callback) {
-            qq.attach(iframe, 'load', function() {
-              // when we remove iframe from dom
-              // the request stops, but in IE load
-              // event fires
-              if (!iframe.parentNode) {
-                return;
-              }
-
-              // fixing Opera 10.53
-              if (iframe.contentDocument
-                  && iframe.contentDocument.body
-                  && iframe.contentDocument.body.innerHTML == "false") {
-                // In Opera event is fired second time
-                // when body.innerHTML changed from false
-                // to server response approx. after 1 sec
-                // when we upload file with iframe
-                return;
-              }
-
-              callback();
-            });
-          },
-          /**
-           * Returns json object received by iframe from server.
-           */
-          _getIframeContentJSON : function(iframe) {
-            // iframe.contentWindow.document - for IE<7
-            var doc =
-                iframe.contentDocument ? iframe.contentDocument
-                    : iframe.contentWindow.document, response;
-
-            this.log("converting iframe's innerHTML to JSON");
-            this.log("innerHTML = "
-                + doc.body.innerHTML);
-
-            try {
-              response = eval("("
-                  + doc.body.innerHTML + ")");
-            } catch (err) {
-              response = {};
-            }
-
-            return response;
-          },
-          /**
-           * Creates iframe with unique name
-           */
-          _createIframe : function(id) {
-            // We can't use following code as the name attribute
-            // won't be properly registered in IE6, and new window
-            // on form submit will open
-            // var iframe = document.createElement('iframe');
-            // iframe.setAttribute('name', id);
-
-            var iframe = qq.toElement('<iframe src="javascript:false;" name="'
-                + id + '" />');
-            // src="javascript:false;" removes ie6 prompt on https
-
-            iframe.setAttribute('id', id);
-
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-
-            return iframe;
-          },
-          /**
-           * Creates form, that will be submitted to iframe
-           */
-          _createForm : function(iframe, params) {
-            // We can't use the following code in IE6
-            // var form = document.createElement('form');
-            // form.setAttribute('method', 'post');
-            // form.setAttribute('enctype', 'multipart/form-data');
-            // Because in this case file won't be attached to request
-            var form =
-                qq
-                    .toElement('<form method="post" enctype="multipart/form-data"></form>');
-
-            var queryString = qq.obj2url(params, this._options.action);
-
-            form.setAttribute('action', queryString);
-            form.setAttribute('target', iframe.name);
-            form.style.display = 'none';
-            document.body.appendChild(form);
-
-            return form;
-          }
-        });
-
-/**
- * Class for uploading files using xhr
- * 
- * @inherits qq.UploadHandlerAbstract
- */
-qq.UploadHandlerXhr = function(o) {
-  qq.UploadHandlerAbstract.apply(this, arguments);
-
-  this._files = [];
-  this._xhrs = [];
-
-  // current loaded size in bytes for each file 
-  this._loaded = [];
-};
-
-// static method
-qq.UploadHandlerXhr.isSupported =
-    function() {
-      var input = document.createElement('input');
-      input.type = 'file';
-
-      return ('multiple' in input
-          && typeof File != "undefined" && typeof (new XMLHttpRequest()).upload != "undefined");
-    };
-
-// @inherits qq.UploadHandlerAbstract
-qq.extend(qq.UploadHandlerXhr.prototype, qq.UploadHandlerAbstract.prototype)
-
-qq.extend(qq.UploadHandlerXhr.prototype, {
-  /**
-   * Adds file to the queue Returns id to use with upload, cancel
-   */
-  add : function(file) {
-    if (!(file instanceof File)) {
-      throw new Error('Passed obj in not a File (in qq.UploadHandlerXhr)');
-    }
-
-    return this._files.push(file) - 1;
-  },
-  getName : function(id) {
-    var file = this._files[id];
-    // fix missing name in Safari 4
-    return file.fileName != null ? file.fileName : file.name;
-  },
-  getSize : function(id) {
-    var file = this._files[id];
-    return file.fileSize != null ? file.fileSize : file.size;
-  },
-  /**
-   * Returns uploaded bytes for file identified by id
-   */
-  getLoaded : function(id) {
-    return this._loaded[id] || 0;
-  },
-  /**
-   * Sends the file identified by id and additional query params to the server
-   * 
-   * @param {Object}
-   *          params name-value string pairs
-   */
-  _upload : function(id, params) {
-    var file = this._files[id], name = this.getName(id), size =
-        this.getSize(id);
-
-    this._loaded[id] = 0;
-
-    var xhr = this._xhrs[id] = new XMLHttpRequest();
-    var self = this;
-
-    xhr.upload.onprogress = function(e) {
-      if (e.lengthComputable) {
-        self._loaded[id] = e.loaded;
-        self._options.onProgress(id, name, e.loaded, e.total);
-      }
-    };
-
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState == 4) {
-        self._onComplete(id, xhr);
-      }
-    };
-
-    // build query string
-    params = params
-        || {};
-    params['qqfile'] = name;
-    var queryString = qq.obj2url(params, this._options.action);
-
-    xhr.open("POST", queryString, true);
-    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    xhr.setRequestHeader("X-File-Name", encodeURIComponent(name));
-    xhr.setRequestHeader("Content-Type", "application/octet-stream");
-    xhr.send(file);
-  },
-  _onComplete : function(id, xhr) {
-    // the request was aborted/cancelled
-    if (!this._files[id])
-      return;
-
-    var name = this.getName(id);
-    var size = this.getSize(id);
-
-    this._options.onProgress(id, name, size, size);
-
-    if (xhr.status == 200) {
-      this.log("xhr - server response received");
-      this.log("responseText = "
-          + xhr.responseText);
-
-      var response;
-
-      try {
-        response = eval("("
-            + xhr.responseText + ")");
-      } catch (err) {
-        response = {};
-      }
-
-      this._options.onComplete(id, name, response);
-
-    } else {
-      this._options.onComplete(id, name, {});
-    }
-
-    this._files[id] = null;
-    this._xhrs[id] = null;
-    this._dequeue(id);
-  },
-  _cancel : function(id) {
-    this._options.onCancel(id, this.getName(id));
-
-    this._files[id] = null;
-
-    if (this._xhrs[id]) {
-      this._xhrs[id].abort();
-      this._xhrs[id] = null;
-    }
-  }
-});/**
-**/
-
-
-(function(){var a=function(){function e(a){return Array.isArray?Array.isArray(a):a.constructor.toString().indexOf("Array")!=-1}function d(a,c,d){var e=b[c][d];for(var f=0;f<e.length;f++)e[f].win===a&&e.splice(f,1);b[c][d].length===0&&delete b[c][d]}function c(a,c,d,e){function f(b){for(var c=0;c<b.length;c++)if(b[c].win===a)return!0;return!1}var g=!1;if(c==="*")for(var h in b){if(!b.hasOwnProperty(h))continue;if(h==="*")continue;if(typeof b[h][d]=="object"){g=f(b[h][d]);if(g)break}}else b["*"]&&b["*"][d]&&(g=f(b["*"][d])),!g&&b[c]&&b[c][d]&&(g=f(b[c][d]));if(g)throw"A channel is already bound to the same window which overlaps with origin '"+c+"' and has scope '"+d+"'";typeof b[c]!="object"&&(b[c]={}),typeof b[c][d]!="object"&&(b[c][d]=[]),b[c][d].push({win:a,handler:e})}"use strict";var a=Math.floor(Math.random()*1000001),b={},f={},g=function(a){try{var c=JSON.parse(a.data);if(typeof c!="object"||c===null)throw"malformed"}catch(a){return}var d=a.source,e=a.origin,g,h,i;if(typeof c.method=="string"){var j=c.method.split("::");j.length==2?(g=j[0],i=j[1]):i=c.method}typeof c.id!="undefined"&&(h=c.id);if(typeof i=="string"){var k=!1;if(b[e]&&b[e][g])for(var h=0;h<b[e][g].length;h++)if(b[e][g][h].win===d){b[e][g][h].handler(e,i,c),k=!0;break}if(!k&&b["*"]&&b["*"][g])for(var h=0;h<b["*"][g].length;h++)if(b["*"][g][h].win===d){b["*"][g][h].handler(e,i,c);break}}else typeof h!="undefined"&&f[h]&&f[h](e,i,c)};window.addEventListener?window.addEventListener("message",g,!1):window.attachEvent&&window.attachEvent("onmessage",g);return{build:function(b){var g=function(a){if(b.debugOutput&&window.console&&window.console.log){try{typeof a!="string"&&(a=JSON.stringify(a))}catch(c){}console.log("["+j+"] "+a)}};if(!window.postMessage)throw"jschannel cannot run this browser, no postMessage";if(!window.JSON||!window.JSON.stringify||!window.JSON.parse)throw"jschannel cannot run this browser, no JSON parsing/serialization";if(typeof b!="object")throw"Channel build invoked without a proper object argument";if(!b.window||!b.window.postMessage)throw"Channel.build() called without a valid window argument";if(window===b.window)throw"target window is same as present window -- not allowed";var h=!1;if(typeof b.origin=="string"){var i;b.origin==="*"?h=!0:null!==(i=b.origin.match(/^https?:\/\/(?:[-a-zA-Z0-9_\.])+(?::\d+)?/))&&(b.origin=i[0].toLowerCase(),h=!0)}if(!h)throw"Channel.build() called with an invalid origin";if(typeof b.scope!="undefined"){if(typeof b.scope!="string")throw"scope, when specified, must be a string";if(b.scope.split("::").length>1)throw"scope may not contain double colons: '::'"}var j=function(){var a="",b="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";for(var c=0;c<5;c++)a+=b.charAt(Math.floor(Math.random()*b.length));return a}(),k={},l={},m={},n=!1,o=[],p=function(a,b,c){var d=!1,e=!1;return{origin:b,invoke:function(b,d){if(!m[a])throw"attempting to invoke a callback of a nonexistent transaction: "+a;var e=!1;for(var f=0;f<c.length;f++)if(b===c[f]){e=!0;break}if(!e)throw"request supports no such callback '"+b+"'";t({id:a,callback:b,params:d})},error:function(b,c){e=!0;if(!m[a])throw"error called for nonexistent message: "+a;delete m[a],t({id:a,error:b,message:c})},complete:function(b){e=!0;if(!m[a])throw"complete called for nonexistent message: "+a;delete m[a],t({id:a,result:b})},delayReturn:function(a){typeof a=="boolean"&&(d=a===!0);return d},completed:function(){return e}}},q=function(a,b,c){return window.setTimeout(function(){if(l[a]){var d="timeout ("+b+"ms) exceeded on method '"+c+"'";(1,l[a].error)("timeout_error",d),delete l[a],delete f[a]}},b)},r=function(a,c,d){if(typeof b.gotMessageObserver=="function")try{b.gotMessageObserver(a,d)}catch(h){g("gotMessageObserver() raised an exception: "+h.toString())}if(d.id&&c){if(k[c]){var i=p(d.id,a,d.callbacks?d.callbacks:[]);m[d.id]={};try{if(d.callbacks&&e(d.callbacks)&&d.callbacks.length>0)for(var j=0;j<d.callbacks.length;j++){var n=d.callbacks[j],o=d.params,q=n.split("/");for(var r=0;r<q.length-1;r++){var s=q[r];typeof o[s]!="object"&&(o[s]={}),o=o[s]}o[q[q.length-1]]=function(){var a=n;return function(b){return i.invoke(a,b)}}()}var t=k[c](i,d.params);!i.delayReturn()&&!i.completed()&&i.complete(t)}catch(h){var u="runtime_error",v=null;typeof h=="string"?v=h:typeof h=="object"&&(h&&e(h)&&h.length==2?(u=h[0],v=h[1]):typeof h.error=="string"&&(u=h.error,h.message?typeof h.message=="string"?v=h.message:h=h.message:v=""));if(v===null)try{v=JSON.stringify(h),typeof v=="undefined"&&(v=h.toString())}catch(w){v=h.toString()}i.error(u,v)}}}else d.id&&d.callback?!l[d.id]||!l[d.id].callbacks||!l[d.id].callbacks[d.callback]?g("ignoring invalid callback, id:"+d.id+" ("+d.callback+")"):l[d.id].callbacks[d.callback](d.params):d.id?l[d.id]?(d.error?(1,l[d.id].error)(d.error,d.message):d.result!==undefined?(1,l[d.id].success)(d.result):(1,l[d.id].success)(),delete l[d.id],delete f[d.id]):g("ignoring invalid response: "+d.id):c&&k[c]&&k[c](null,d.params)};c(b.window,b.origin,typeof b.scope=="string"?b.scope:"",r);var s=function(a){typeof b.scope=="string"&&b.scope.length&&(a=[b.scope,a].join("::"));return a},t=function(a,c){if(!a)throw"postMessage called with null message";var d=n?"post  ":"queue ";g(d+" message: "+JSON.stringify(a));if(!c&&!n)o.push(a);else{if(typeof b.postMessageObserver=="function")try{b.postMessageObserver(b.origin,a)}catch(e){g("postMessageObserver() raised an exception: "+e.toString())}b.window.postMessage(JSON.stringify(a),b.origin)}},u=function(a,c){g("ready msg received");if(n)throw"received ready message while in ready state.  help!";c==="ping"?j+="-R":j+="-L",v.unbind("__ready"),n=!0,g("ready msg accepted."),c==="ping"&&v.notify({method:"__ready",params:"pong"});while(o.length)t(o.pop());typeof b.onReady=="function"&&b.onReady(v)},v={unbind:function(a){if(k[a]){if(delete k[a])return!0;throw"can't delete method: "+a}return!1},bind:function(a,b){if(!a||typeof a!="string")throw"'method' argument to bind must be string";if(!b||typeof b!="function")throw"callback missing from bind params";if(k[a])throw"method '"+a+"' is already bound!";k[a]=b;return this},call:function(b){if(!b)throw"missing arguments to call function";if(!b.method||typeof b.method!="string")throw"'method' argument to call must be string";if(!b.success||typeof b.success!="function")throw"'success' callback missing from call";var c={},d=[],e=function(a,b){if(typeof b=="object")for(var f in b){if(!b.hasOwnProperty(f))continue;var g=a+(a.length?"/":"")+f;typeof b[f]=="function"?(c[g]=b[f],d.push(g),delete b[f]):typeof b[f]=="object"&&e(g,b[f])}};e("",b.params);var g={id:a,method:s(b.method),params:b.params};d.length&&(g.callbacks=d),b.timeout&&q(a,b.timeout,s(b.method)),l[a]={callbacks:c,error:b.error,success:b.success},f[a]=r,a++,t(g)},notify:function(a){if(!a)throw"missing arguments to notify function";if(!a.method||typeof a.method!="string")throw"'method' argument to notify must be string";t({method:s(a.method),params:a.params})},destroy:function(){d(b.window,b.origin,typeof b.scope=="string"?b.scope:""),window.removeEventListener?window.removeEventListener("message",r,!1):window.detachEvent&&window.detachEvent("onmessage",r),n=!1,k={},m={},l={},b.origin=null,o=[],g("channel destroyed"),j=""}};v.bind("__ready",u),setTimeout(function(){},0);return v}}}();WinChan=function(){function j(){var b=window.location,c=window.opener.frames,d=b.protocol+"//"+b.host;for(i=c.length-1;i>=0;i++)try{if(c[i].location.href.indexOf(d)===0&&c[i].name===a)return c[i]}catch(e){}return}function h(a){/^https?:\/\//.test(a)||(a=window.location.href);var b=/^(https?:\/\/[-_a-zA-Z\.0-9:]+)/.exec(a);return b?b[1]:a}function g(){return window.JSON&&window.JSON.stringify&&window.JSON.parse&&window.postMessage}function f(){try{return d.indexOf("Fennec/")!=-1||d.indexOf("Firefox/")!=-1&&d.indexOf("Android")!=-1}catch(a){}return!1}function e(){var a=-1;if(navigator.appName=="Microsoft Internet Explorer"){var b=navigator.userAgent,c=new RegExp("MSIE ([0-9]{1,}[.0-9]{0,})");c.exec(b)!=null&&(a=parseFloat(RegExp.$1))}return a>=8}function c(a,b,c){a.detachEvent?a.detachEvent("on"+b,c):a.removeEventListener&&a.removeEventListener(b,c,!1)}function b(a,b,c){a.attachEvent?a.attachEvent("on"+b,c):a.addEventListener&&a.addEventListener(b,c,!1)}var a="__winchan_relay_frame",k=e();return g()?{open:function(d,e){function p(a){try{var b=JSON.parse(a.data);b.a==="ready"?l.postMessage(n,j):b.a==="error"?e&&(e(b.d),e=null):b.a==="response"&&(c(window,"message",p),c(window,"unload",o),o(),e&&(e(null,b.d),e=null))}catch(a){}}function o(){i&&document.body.removeChild(i),i=undefined,m&&m.close(),m=undefined}if(!e)throw"missing required callback argument";var g;d.url||(g="missing required 'url' parameter"),d.relay_url||(g="missing required 'relay_url' parameter"),g&&setTimeout(function(){e(g)},0);if(!d.window_features||f())d.window_features=undefined;var i,j=h(d.url);if(j!==h(d.relay_url))return setTimeout(function(){e("invalid arguments: origin of url and relay_url must match")},0);var l;k&&(i=document.createElement("iframe"),i.setAttribute("src",d.relay_url),i.style.display="none",i.setAttribute("name",a),document.body.appendChild(i),l=i.contentWindow);var m=window.open(d.url,null,d.window_features);l||(l=m);var n=JSON.stringify({a:"request",d:d.params});b(window,"unload",o),b(window,"message",p);return{close:o,focus:function(){if(m)try{m.focus()}catch(a){}}}}}:{open:function(a,b,c,d){setTimeout(function(){d("unsupported browser")},0)}}}();var b=function(){function l(){return c}function k(){c=g()||h()||i()||j();return!c}function j(){if(!(window.JSON&&window.JSON.stringify&&window.JSON.parse))return"JSON_NOT_SUPPORTED"}function i(){if(!a.postMessage)return"POSTMESSAGE_NOT_SUPPORTED"}function h(){try{var b="localStorage"in a&&a.localStorage!==null;if(b)a.localStorage.setItem("test","true"),a.localStorage.removeItem("test");else return"LOCALSTORAGE_NOT_SUPPORTED"}catch(c){return"LOCALSTORAGE_DISABLED"}}function g(){return f()}function f(){var a=e(),b=a>-1&&a<8;if(b)return"BAD_IE_VERSION"}function e(){var a=-1;if(b.appName=="Microsoft Internet Explorer"){var c=b.userAgent,d=new RegExp("MSIE ([0-9]{1,}[.0-9]{0,})");d.exec(c)!=null&&(a=parseFloat(RegExp.$1))}return a}function d(c,d){b=c,a=d}var a=window,b=navigator,c;return{setTestEnv:d,isSupported:k,getNoSupportReason:l}}();navigator.id||(navigator.id={});if(!navigator.id.request||navigator.id._shimmed){var c="https://browserid.org",d=navigator.userAgent,e=d.indexOf("Fennec/")!=-1||d.indexOf("Firefox/")!=-1&&d.indexOf("Android")!=-1,f=e?undefined:"menubar=0,location=1,resizable=1,scrollbars=1,status=0,dialog=1,width=700,height=375",g,h={login:null,logout:null,ready:null},j=undefined;function k(a){a!==!0;if(j===undefined)j=a;else if(j!=a)throw"you cannot combine the navigator.id.watch() API with navigator.id.getVerifiedEmail() or navigator.id.get()this site should instead use navigator.id.request() and navigator.id.watch()"}var l;function m(){try{if(!l){var b=window.document,d=b.createElement("iframe");d.style.display="none",b.body.appendChild(d),d.src=c+"/communication_iframe",l=a.build({window:d.contentWindow,origin:c,scope:"mozid_ni",onReady:function(){l.call({method:"loaded",success:function(){h.ready&&h.ready()},error:function(){}})}}),l.bind("logout",function(a,b){h.logout&&h.logout()}),l.bind("login",function(a,b){h.login&&h.login(b)})}}catch(e){l=undefined}}function n(a){if(typeof a=="object"){if(a.onlogin&&typeof a.onlogin!="function"||a.onlogout&&typeof a.onlogout!="function"||a.onready&&typeof a.onready!="function")throw"non-function where function expected in parameters to navigator.id.watch()";h.login=a.onlogin||null,h.logout=a.onlogout||null,h.ready=a.onready||null,m(),typeof a.email!="undefined"&&l&&l.notify({method:"loggedInUser",params:a.email})}}function o(a){if(g)try{g.focus()}catch(d){}else{if(!b.isSupported()){var e=b.getNoSupportReason(),i="unsupported_dialog";e==="LOCALSTORAGE_DISABLED"&&(i="cookies_disabled"),g=window.open(c+"/"+i,null,f);return}l&&l.notify({method:"dialog_running"}),g=WinChan.open({url:c+"/sign_in",relay_url:c+"/relay",window_features:f,params:{method:"get",params:a}},function(b,c){l&&(!b&&c&&c.email&&l.notify({method:"loggedInUser",params:c.email}),l.notify({method:"dialog_complete"})),g=undefined;if(!b&&c&&c.assertion)try{h.login&&h.login(c.assertion)}catch(d){}a&&a.onclose&&a.onclose(),delete a.onclose})}}navigator.id={experimental:{request:function(a){k(!1);return o(a)},watch:function(a){k(!1),n(a)}},logout:function(a){m(),l.notify({method:"logout"}),typeof a=="function"&&setTimeout(a,0)},get:function(a,b){b=b||{},k(!0),n({onlogin:function(b){a&&(a(b),a=null)}}),b.onclose=function(){a&&(a(null),a=null),n({})},b&&b.silent?a&&setTimeout(function(){a(null)},0):o(b)},getVerifiedEmail:function(a){k(!0),navigator.id.get(a)},_shimmed:!0}}})()

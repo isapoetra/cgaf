@@ -3,8 +3,8 @@
 class YUICompressor {
 
 	// absolute path to YUI jar file.
-	private static $JAR_PATH;
-	private static $TEMP_FILES_DIR;
+	private $JAR_PATH;
+	private $TEMP_FILES_DIR;
 	private $options = array(
 		'type' => 'js', 'linebreak' => false, 'verbose' => false, 'nomunge' => false, 'semi' => false, 'nooptimize' => false);
 	private $files = array();
@@ -12,8 +12,8 @@ class YUICompressor {
 
 	// construct with a path to the YUI jar and a path to a place to put temporary files
 	function __construct($JAR_PATH, $TEMP_FILES_DIR, $options = array()) {
-		$this->JAR_PATH = $JAR_PATH;
-		$this->TEMP_FILES_DIR = $TEMP_FILES_DIR;
+        $this->JAR_PATH = $JAR_PATH;
+        $this->TEMP_FILES_DIR = $TEMP_FILES_DIR;
 
 		foreach ($options as $option => $value) {
 			$this->setOption($option, $value);
@@ -45,7 +45,7 @@ class YUICompressor {
 
 		// create single file from all input
 		$input_hash = sha1($this->string);
-		$file = $this->TEMP_FILES_DIR . '/' . $input_hash . '.txt';
+		$file = $this->TEMP_FILES_DIR. '/' . $input_hash . '.txt';
 		$fh = fopen($file, 'w') or die("Can't create new file");
 		fwrite($fh, $this->string);
 

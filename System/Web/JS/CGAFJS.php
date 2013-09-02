@@ -31,13 +31,15 @@ final class CGAFJS {
       $appOwner = \AppManager::getInstance ();
     }
     self::$_appOwner = $appOwner;
+    self::setConfig ( 'asseturl', ASSET_URL );
+    if (!self::$_jq) self::$_jq = $jq = new jQuery ( $appOwner );
+
     if (! $force) {
       if (self::$_initialized || Request::isAJAXRequest ())
-        return;
+        return true;
     }
     self::$_initialized = true;
     $appOwner->clearClient ();
-    self::$_jq = $jq = new jQuery ( $appOwner );
     $fv = $appOwner->getConfig ( 'js.fancybox.version', '1.3.4' );
     self::$_pluginsLoader = array();
     /*array (
@@ -52,7 +54,7 @@ final class CGAFJS {
 
     if (! Request::isDataRequest ()) {
       $info = $jq->getInfo ();
-      self::setConfig ( 'asseturl', ASSET_URL );
+
       self::setConfig ( 'jq.version', $info ['version'] );
       self::setConfig ( 'jq.compat', $info ['compat'] );
       self::setConfig ( 'baseurl', BASE_URL );
@@ -67,16 +69,13 @@ final class CGAFJS {
       $assets [] ='jQuery/jquery-mobile/jquery.mobile.structure.css';
       $assets [] ='jQuery/jquery-mobile/jquery.mobile.theme.css';
     }
-    if ($appOwner->getConfig ( 'js.bootstrap.enabled', true )) {
-      $assets[]= 'bootstrap/css/bootstrap.css';
-
-      $assets[]= 'cgaf/css/cgaf-all.css';
-      $assets[]= 'bootstrap/js/bootstrap.js';
-      $plugins = $appOwner->getConfigs ( 'js.bootstrap.plugins', array () );
-      foreach ( $plugins as $p ) {
-        $assets[]= 'bootstrap/js/' . $p ;
-      }
+    $assets[]= 'cgaf/css/cgaf-all.css';
+    $assets[]= 'bootstrap/js/bootstrap.js';
+    $plugins = $appOwner->getConfigs ( 'js.bootstrap.plugins', array () );
+    foreach ( $plugins as $p ) {
+          $assets[]= 'bootstrap/js/' . $p ;
     }
+
     $assets[] = 'cgaf/cgaf.js';
     $assets[] = 'cgaf/cgaf-ui.js';
     if (! \Request::isMobile ()) {
@@ -88,7 +87,7 @@ final class CGAFJS {
 
     } else {
       $assets [] ='cgaf/mobile/cgaf.js';
-      $assets[]= 'bootstrap/css/bootstrap-responsive.css';
+      //[]= 'bootstrap/css/bootstrap-responsive.css';
       $assets [] ='jQuery/jquery-mobile/jquery.mobile.js';
       $assets [] ='cgaf/css/cgaf-mobile.css';
     }
@@ -125,6 +124,9 @@ final class CGAFJS {
   public static function addJQAsset($asset) {
     if (! self::$_appOwner) {
       return null;
+    }
+    if (!self::$_jq) {
+    	self::$_jq = $jq = new jQuery ( self::$_appOwner );
     }
     $asset = self::$_jq->getAsset ( $asset );
     return self::$_appOwner->addClientAsset ( $asset );

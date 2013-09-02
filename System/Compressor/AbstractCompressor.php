@@ -1,9 +1,13 @@
 <?php
 namespace System\Compressor;
 use System\Configurations\Configuration;
+use System\Configurations\IConfiguration;
 
 abstract class AbstractCompressor extends \BaseObject {
-	protected $_config;
+    /**
+     * @var IConfiguration
+     */
+    protected $_config;
 	protected $_currentPath;
 	function __construct() {
 		$this->reset();

@@ -757,6 +757,7 @@ class DBQuery extends \BaseObject implements IQuery {
 		}
 		if (empty ($sql)) {
 			if ($this->_throwOnError) {
+                ppd('empty');
 				throw new \Exception ("Empty SQL");
 			}
 			return false;

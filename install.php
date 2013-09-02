@@ -57,7 +57,7 @@ class Install extends WebApplication {
 		return null;
 	}
 
-	function isAllow($id, $group, $access = 'view') {
+	function isAllow($id, $group, $access = 'view',$user=null) {
 		return \CGAF::isInstalled() === false;
 	}
 

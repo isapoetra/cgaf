@@ -72,3 +72,6 @@ currencies.suffix=,-
 birth_date=Birth Date
 messages=Messages
 menus=Menus
+
+decimalSeparator=,
+thousandsSeparator=.

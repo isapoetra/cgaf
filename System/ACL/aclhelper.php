@@ -68,7 +68,7 @@ class ACLHelper
     /**
      *
      * Enter description here ...
-     * @return System\ACL\IACL
+     * @return \System\ACL\IACL
      */
     public static function getInstance()
     {
@@ -91,12 +91,10 @@ class ACLHelper
 
     public static function isAllowUID($uid = null, $access = "view", $rnull = false)
     {
-        $data = AppManager::getInstance()->getAuthInfo();
+        //$data = AppManager::getInstance()->getAuthInfo();
         $uid = $uid == null ? self::getUserId() : $uid;
         if ((int)$uid !== (int)ACLHelper::getUserId()) {
             return AppManager::getInstance()->getACL()->isAdmin() ? $uid : ACLHelper::getUserId();
-        } else {
-            return $uid;
         }
         return $rnull ? null : (int)$uid;
     }
@@ -122,7 +120,7 @@ class ACLHelper
         $acl = AppManager::getInstance($appOwner);
         if (!$acl)
             return false;
-        return $acl->isAllow($modid, 'modules', $op);
+        return $acl->isAllow($modid, 'modules', $op,$user);
     }
 
     /**
@@ -174,7 +172,7 @@ class ACLHelper
             return false;
         }
         $retval = false;
-        if (is_array($access)) {
+        if ($access === (array)$access) {
             foreach ($access as $p) {
                 if (is_numeric($access2) && is_numeric($p)) {
                     if ((int)$p === 0) return false;

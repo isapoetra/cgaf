@@ -11,9 +11,13 @@ class Yahoo extends PublicApi {
 		$cfg = new \stdClass ();
 		\Convert::toObject ( $config, $cfg, true );
 		if (! isset ( $cfg->username )) {
-			return null;
+            if (isset($cfg->id)) {
+                $cfg->username = $cfg->id;
+            }else{
+			    return null;
+            }
 		}
 		// <span>' . __ ( 'share.ym', 'Send Message' ) . '</span>
-		return '<a href="ymsgr:sendim?' . $cfg->username . '"><img border="0" src="http://opi.yahoo.com/yahooonline/u=' . $cfg->username . '/m=g/t=2/l=us/opi.jpg"/></a>';
+		return '<a href="ymsgr:sendim?' . $cfg->username . '"><img border="0" src="http://opi.yahoo.com/yahooonline/u=' . $cfg->username . '/m=g/t=1/l=us/opi.jpg"/></a>';
 	}
 }

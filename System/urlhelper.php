@@ -1,15 +1,20 @@
 <?php
-define('ALLOWED_CHARS', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+define('ALLOWED_CHARS',
+		'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
 class URLHelper {
 	private static $selfUrl;
+
 	public static function getCurrentProtocol() {
-		$protocol = isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on') ? 'https' : 'http';
+		$protocol = isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on') ? 'https'
+				: 'http';
 		return $protocol;
 	}
+
 	public static function getOrigin() {
 		return \Request::getOrigin();
 	}
+
 	public static function selfUrl() {
 		if (self::$selfUrl !== null) {
 			return self::$selfUrl;
@@ -71,6 +76,7 @@ class URLHelper {
 		self::$selfUrl = $url;
 		return self::$selfUrl;
 	}
+
 	public static function parseURL($url) {
 		$r = "(?:([a-z0-9+-._]+)://)?";
 		$r .= "(?:";
@@ -99,26 +105,29 @@ class URLHelper {
 				"fragment" => ''
 		);
 		switch (count($match)) {
-		case 10:
-			$parts['fragment'] = $match[9];
-		case 9:
-			$parts['query'] = $match[8];
-		case 8:
-			$parts['path'] = $match[7];
-		case 7:
-			$parts['path'] = $match[6] . $parts['path'];
-		case 6:
-			$parts['port'] = $match[5];
-		case 5:
-			$parts['host'] = $match[3] ? "[" . $match[3] . "]" : $match[4];
-		case 4:
-			$parts['userinfo'] = $match[2];
-		case 3:
-			$parts['scheme'] = $match[1];
+			case 10:
+				$parts['fragment'] = $match[9];
+			case 9:
+				$parts['query'] = $match[8];
+			case 8:
+				$parts['path'] = $match[7];
+			case 7:
+				$parts['path'] = $match[6] . $parts['path'];
+			case 6:
+				$parts['port'] = $match[5];
+			case 5:
+				$parts['host'] = $match[3] ? "[" . $match[3] . "]" : $match[4];
+			case 4:
+				$parts['userinfo'] = $match[2];
+			case 3:
+				$parts['scheme'] = $match[1];
 		}
-		$parts['authority'] = ($parts['userinfo'] ? $parts['userinfo'] . "@" : "") . $parts['host'] . ($parts['port'] ? ":" . $parts['port'] : "");
+		$parts['authority'] = ($parts['userinfo'] ? $parts['userinfo'] . "@"
+				: "") . $parts['host']
+				. ($parts['port'] ? ":" . $parts['port'] : "");
 		return $parts;
 	}
+
 	public static function explode($sUrl) {
 		$aUrl = self::parseURL($sUrl);
 		//pp ( $aUrl );
@@ -138,35 +147,54 @@ class URLHelper {
 			}
 			$aUrl['query_params'][$sKey] = urldecode($sValue);
 		}
-		$aUrl['path'] = $aUrl['path'] ? Utils::explode("/", $aUrl['path'], true) : array();
+		$aUrl['path'] = $aUrl['path'] ? Utils::explode("/", $aUrl['path'], true)
+				: array();
 		return $aUrl;
 	}
-	public static function implode($aUrl,$encode =true) {
+
+	public static function implode($aUrl, $encode = true) {
 		$sQuery = '';
 		// Compile query
 		if (isset($aUrl['query_params']) && is_array($aUrl['query_params'])) {
 			$aPairs = array();
 			foreach ($aUrl['query_params'] as $sKey => $sValue) {
-				$aPairs[] = $sKey . '=' . ($encode ? urlencode($sValue) :  $sValue);
+				if (is_array($sValue)) {
+					$aPairs[] = $sKey . '=' . implode($sValue, ',');
+				} else {
+					$aPairs[] = $sKey . '='
+							. ($encode ? urlencode($sValue) : $sValue);
+				}
 			}
 			$sQuery = implode('&', $aPairs);
 		} else {
 			$sQuery = $aUrl['query'];
 		}
-		$path = (count($aUrl['path']) ? '/' . Utils::implode('/', $aUrl['path']) : '/');
+		$path = (count($aUrl['path']) ? '/'
+						. Utils::implode('/', $aUrl['path']) : '/');
 		if (strpos($path, '.') !== false) {
 			$path = substr($path, 0, strlen($path) - 1);
 		}
 		// Compile url
-		$sUrl = (isset($aUrl['scheme']) ? $aUrl['scheme'] . '://' : BASE_URL . '/') . (isset($aUrl['user']) && $aUrl['user'] != '' && isset($aUrl['pass']) ? $aUrl['user'] . ':' . $aUrl['pass'] . '@' : '') . (isset($aUrl['host']) ? $aUrl['host'] : '') . $path . ($sQuery != '' ? '?' . $sQuery : '') . (isset($aUrl['fragment']) && $aUrl['fragment'] != '' ? '#' . $aUrl['fragment'] : '');
+		$sUrl = (isset($aUrl['scheme']) ? $aUrl['scheme'] . '://'
+				: BASE_URL . '/')
+				. (isset($aUrl['user']) && $aUrl['user'] != ''
+						&& isset($aUrl['pass']) ? $aUrl['user'] . ':'
+								. $aUrl['pass'] . '@' : '')
+				. (isset($aUrl['host']) ? $aUrl['host'] : '') . $path
+				. ($sQuery != '' ? '?' . $sQuery : '')
+				. (isset($aUrl['fragment']) && $aUrl['fragment'] != '' ? '#'
+								. $aUrl['fragment'] : '');
 		return $sUrl;
 	}
+
 	public static function addPath($url, $path) {
 		return self::add($url, $path, null);
 	}
+
 	public static function addParam($url, $param) {
 		return self::add($url, null, $param);
 	}
+
 	private static function merge($url, $arg, $param) {
 		$path = $url['path'];
 		$q = $url['query_params'];
@@ -176,71 +204,74 @@ class URLHelper {
 				'PHPSESSID'
 		);
 		switch ($arg) {
-		case 'path':
-			$param = array_merge($path, $param);
-			for ($i = 0; $i < count($param); $i++) {
-				if (isset($q[$param[$i]]))
-					continue;
-				$retval[] = $param[$i];
-				if (isset($param[$i + 1])) {
-					$retval[] = $param[$i + 1];
-				} else {
-					$retval[] = null;
+			case 'path':
+                if (!is_array($param)) ppd($param);
+				$param = array_merge($path, $param);
+				for ($i = 0; $i < count($param); $i++) {
+					if (isset($q[$param[$i]]))
+						continue;
+					$retval[] = $param[$i];
+					if (isset($param[$i + 1])) {
+						$retval[] = $param[$i + 1];
+					} else {
+						$retval[] = null;
+					}
+					$i++;
 				}
-				$i++;
-			}
-			break;
-		case 'query_params':
-			if (is_string($param)) {
-				$p = explode('&', $param);
-				$param = array();
-				foreach ($p as $v) {
-					list($key, $val) = explode('=', $v);
-					$param[$key] = $val;
-				}
-			}
-			if (!is_array($param) ){
-				ppd($param);
-			}
-			$q = array_merge($q, $param);
-			foreach ($q as $k => $v) {
-				$exist = false;
-				if (in_array($k, $ignore))
-					continue;
-				for ($i = 0; $i < count($path); $i += 2) {
-					if ($path[$i] == $k) {
-						$path[$i] = $v;
-						$exist = true;
+				break;
+			case 'query_params':
+				if (is_string($param)) {
+					$p = explode('&', $param);
+					$param = array();
+					foreach ($p as $v) {
+						list($key, $val) = explode('=', $v);
+						$param[$key] = $val;
 					}
 				}
-				if (!$exist) {
-					$retval[$k] = $v;
+				if (!is_array($param)) {
+					ppd($param);
 				}
-			}
-			break;
-		default:
-			$retval = array_merge($url[$arg], $param);
+				$q = array_merge($q, $param);
+				foreach ($q as $k => $v) {
+					$exist = false;
+					if (in_array($k, $ignore))
+						continue;
+					for ($i = 0; $i < count($path); $i += 2) {
+						if ($path[$i] == $k) {
+							$path[$i] = $v;
+							$exist = true;
+						}
+					}
+					if (!$exist) {
+						$retval[$k] = $v;
+					}
+				}
+				break;
+			default:
+				$retval = array_merge($url[$arg], $param);
 		}
 		return $retval;
 	}
-	public static function add($url, $path = null, $param = null, $replacer = null,$encode =false) {
+
+	public static function add($url, $path = null, $param = null,
+			$replacer = null, $encode = false) {
 		if (!$url) {
 			$url = BASE_URL;
 		}
 		$addparams = null;
 		if (is_string($path) && strpos($path, '?') !== false) {
 			$addparams = substr($path, strpos($path, '?') + 1);
+
 			$path = substr($path, 0, strpos($path, '?'));
-		}elseif (is_array($path)) {
+		} elseif (is_array($path)) {
 			//Act as params
 			$param = $path;
-			$path=null;
+			$path = null;
 		}
 		$url = self::explode($url);
-
 		if ($path) {
 			if (is_string($path)) {
-				$path =trim($path,'/ ');
+				$path = trim($path, '/ ');
 				$path = explode('/', $path);
 			}
 			$url['path'] = self::merge($url, 'path', $path);
@@ -251,9 +282,9 @@ class URLHelper {
 		if ($param) {
 			$url['query_params'] = self::merge($url, 'query_params', $param);
 		}
-		$retval = self::implode($url,$encode);
+		$retval = self::implode($url, $encode);
 		if ($replacer) {
-			$retval =urldecode($retval);
+			$retval = urldecode($retval);
 			if ($replacer) {
 				foreach ($replacer as $k => $v) {
 					$retval = str_replace('#' . $k . '#', $v, $retval);
@@ -262,6 +293,7 @@ class URLHelper {
 		}
 		return $retval;
 	}
+
 	private static function getURLShortenerInstance() {
 		static $us;
 		if (!$us) {
@@ -269,32 +301,64 @@ class URLHelper {
 		}
 		return $us;
 	}
+
 	public static function shortURL($url) {
 		return self::getURLShortenerInstance()->shortUrl($url);
 	}
+
 	public static function unshortURL($id) {
 		return self::getURLShortenerInstance()->UnshortUrl($id);
 	}
+    public static function getIdFromRequest($int =true) {
+        if ($val = \Request::get('id')) {
+            return $val;
+        }
+        $retval = array_pop(self::explode(self::getOrigin())['path']);
+       return $int ? (int)$retval : $retval;
+    }
+
+    public static function removeParam($url, $string)
+    {
+        $u = self::explode($url);
+        if (is_array($string)) {
+            foreach($string as $s) {
+                if (isset($u['query_params'][$s])) {
+                    unset($u['query_params'][$s]);
+                }
+            }
+        }else{
+            if (isset($u['query_params'][$string])) {
+                unset($u['query_params'][$string]);
+            }
+        }
+        return self::implode($u,false);
+    }
 }
+
 class URLShortener {
 	private $_cachePath;
 	private $_urlCache = array();
 	private $_urlMap = array();
+
 	function __construct($configs = null) {
 		$this->_cachePath = CGAF::getInternalStorage('shorturl', false);
 		Utils::makeDir($this->_cachePath);
 		if (is_file($this->_cachePath . DS . 'url.map')) {
-			$this->_urlMap = unserialize(file_get_contents($this->_cachePath . DS . 'url.map'));
+			$this->_urlMap = unserialize(
+					file_get_contents($this->_cachePath . DS . 'url.map'));
 		}
 	}
+
 	function __destruct() {
 		//ppd($this->_urlMap);
-		file_put_contents($this->_cachePath . DS . 'url.map', serialize($this->_urlMap));
+		file_put_contents($this->_cachePath . DS . 'url.map',
+				serialize($this->_urlMap));
 		foreach ($this->_urlMap as $k => $v) {
 			$fcache = $this->_cachePath . DS . $v;
 			file_put_contents($fcache, serialize($this->_urlCache[$v]));
 		}
 	}
+
 	private function _getById($fid) {
 		if (isset($this->_urlCache[$fid])) {
 			return $this->_urlCache[$fid];
@@ -306,11 +370,13 @@ class URLShortener {
 		}
 		return null;
 	}
+
 	private function _getCache($url) {
 		$surl = URLHelper::explode($url);
 		$fid = hash('crc32b', $url);
 		return $this->_getById($fid);
 	}
+
 	private function _putCache($url, $short) {
 		$fid = hash('crc32b', $url);
 		$this->_urlCache[$fid] = array(
@@ -322,6 +388,7 @@ class URLShortener {
 		return $this->_urlCache[$fid];
 	}
 	//source : https://github.com/briancray/PHP-URL-Shortener.git
+
 	private function getShortenedURLFromID($url, $base = ALLOWED_CHARS) {
 		$length = strlen($base);
 		$out = '';
@@ -332,6 +399,7 @@ class URLShortener {
 		}
 		return $out;
 	}
+
 	function shortURL($url, $full = false) {
 		$retval = $this->_getCache($url);
 		if (!$retval) {
@@ -340,6 +408,7 @@ class URLShortener {
 		}
 		return $full ? $retval : $retval['short'];
 	}
+
 	function UnshortUrl($id, $full = false) {
 		if (!isset($this->_urlMap[$id])) {
 			return null;

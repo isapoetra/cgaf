@@ -25,7 +25,12 @@ class AuthResult extends \BaseObject {
 	function getStates() {
 		return $this->_states;
 	}
-	function getUserInfo() {
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    function getUserInfo() {
 		if (!$this->_userInfo) {
 			throw new \Exception('userinfo not set');
 		}

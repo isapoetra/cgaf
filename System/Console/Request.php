@@ -11,11 +11,14 @@ class Request extends \BaseObject implements \IRequest {
 		array_shift($arg);
 		$this->parse($arg);
 	}
-	
-	/**
-	 * @param unknown_type $varname
-	 * @param unknown_type $default
-	 */
+
+    /**
+     * @param string $varname
+     * @param mixed $default
+     * @param bool $secure
+     * @param null $place
+     * @return mixed|null
+     */
 	public function get($varname, $default = null, $secure = true, $place = null) {
 		return isset($this->_input[$varname]) ? $this->_input[$varname] : $default;
 	}
@@ -68,9 +71,12 @@ class Request extends \BaseObject implements \IRequest {
 		}
 		return $_ARG;
 	}
-	/**
-	 * @param unknown_type $place
-	 */
+
+    /**
+     * @param string $place
+     * @param bool $secure
+     * @return
+     */
 	public function gets($place = null, $secure = true) {
 		return $this->_input;
 	}

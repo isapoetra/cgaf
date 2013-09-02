@@ -111,4 +111,9 @@ class Response extends AbstractResponse {
 			$this->WriteColor('DEBUG:'.$msg, 'blue',null ,'underscore');
 		}
 	}
+
+    function forceContentExpires()
+    {
+        // TODO: Implement forceContentExpires() method.
+    }
 }

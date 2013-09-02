@@ -5,10 +5,18 @@ use System\Web\UI\Controls\HTMLControl;
 
 class ControlCollection extends Collection {
 	
-	function Render(IWriter $writer) {
-		foreach ( $this->Items as $v ) {
-			$v->Render ( $writer );
+	function Render($return =true) {
+        $retval = '';
+        /**
+         * @var \IRenderable $v
+         */
+        foreach ( $this->Items as $v ) {
+			$retval .= $v->Render ( true );
 		}
+        if (!$return) {
+            \Response::write($retval);
+        }
+        return $retval;
 	}
 	
 	public function add($item, $multi = false) {

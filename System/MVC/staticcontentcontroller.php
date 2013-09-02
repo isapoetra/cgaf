@@ -53,14 +53,15 @@ abstract class StaticContentController extends Controller {
     }
   }
 
-  /**
-   * Enter description here ...
-   * @param string $a
-   * @param string $f
-   * @return NULL
-   */
+    /**
+     * Enter description here ...
+     * @param string $a
+     * @param string $f
+     * @param null $params
+     * @return NULL
+     */
   protected function renderFile($a, $f,$params=null) {
-    return $this->renderStaticConent($a, $f, $this->_template,$params);
+    return $this->renderStaticContent($a, $f, $this->_template,$params);
   }
   /* (non-PHPdoc)
    * @see System\MVC.Controller::Index()

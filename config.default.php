@@ -25,10 +25,9 @@ return array(
 				'shared.path' => realpath(dirname(__FILE__) . DS . 'shared/'),
 				'libspath' => realpath(dirname(__FILE__) . DS . 'Libs/'),
 				'description' => 'Cipta Graha Application Framework v.' . CGAF_VERSION,
-				'tags' => 'CGAF Framework PHP Application'
-		),
-	//change with your appid leave blank for use desktop
-	//'defaultAppId'=> 'D85217B3-B696-6FFD-E0DC-453FBEB4AAF5',
+				'tags' => 'CGAF Framework PHP Application',
+				'defaultAppId'=>'__cgaf' // change with your application id
+		),	
 		'db' => array(
 				'type' => 'mysql',
 				'host' => 'localhost',

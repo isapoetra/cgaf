@@ -14,7 +14,7 @@ final class Logger {
 	public static function debug() {
 		if (!CGAF_DEBUG)
 			return;
-		return self::write(self::format(func_get_args()), E_DEBUG,false);
+		return self::write(self::format(func_get_args()), E_DEBUG, false);
 	}
 
 	public static function Warning() {
@@ -91,10 +91,15 @@ final class Logger {
 				$trace = $args->getTrace();
 				foreach ($trace as $v) {
 					if (isset($v['file']) && isset($v['line'])) {
-						$retval .= "\nFile : " . $v['file'] . " Line " . $v['line'] . " \n";
+						$retval .= "\nFile : " . $v['file'] . " Line "
+								. $v['line'] . " \n";
 					}
 					if (isset($v["class"])) {
-						$retval .= 'Function : ' . $v['class'] . '->' . $v['function'] . "\n" . '<div onclick="this.childNodes[0].currentStyle.display=\'none\'">Args : <span style="display:block">' . self::printArgs($v['args'], false) . '</span></div>';
+						$retval .= 'Function : ' . $v['class'] . '->'
+								. $v['function'] . "\n"
+								. '<div onclick="this.childNodes[0].currentStyle.display=\'none\'">Args : <span style="display:block">'
+								. self::printArgs($v['args'], false)
+								. '</span></div>';
 					}
 				}
 				$retval .= print_r($trace, true);
@@ -120,8 +125,13 @@ final class Logger {
 			$r .= '<div class="row">';
 			//$r .= isset($b['file']) ? "" : "<span>#$idx</span>";
 			//$r .= ! isset($b['file']) ? "" : "<span>#$idx</span>";
-			$msg = (isset($b['class']) ? $b['class'] : '') . (isset($b['type']) ? $b['type'] : '') . $b['function'];
-			$f = (isset($b['file']) ? '<span class="file">@' . (CGAF_DEBUG ? @$b['file'] : str_replace(CGAF_PATH, "", @$b['file'])) : "&nbsp;") . (isset($b['line']) ? ':' . $b['line'] . '</span>' : '');
+			$msg = (isset($b['class']) ? $b['class'] : '')
+					. (isset($b['type']) ? $b['type'] : '') . $b['function'];
+			$f = (isset($b['file']) ? '<span class="file">@'
+							. (CGAF_DEBUG ? @$b['file']
+									: str_replace(CGAF_PATH, "", @$b['file']))
+					: "&nbsp;")
+					. (isset($b['line']) ? ':' . $b['line'] . '</span>' : '');
 			if ($showargs && isset($b['args']) && count($b['args'])) {
 				$msg .= "(";
 				foreach ($b['args'] as $arg) {
@@ -133,7 +143,8 @@ final class Logger {
 				$msg .= '<div class="args"><span>Args</span>';
 				$msg .= "<ul>";
 				foreach ($b['args'] as $arg) {
-					$msg .= "<li> <pre>" . self::printArgs($arg) . "</pre></li>";
+					$msg .= "<li> <pre>" . self::printArgs($arg)
+							. "</pre></li>";
 					$aidx++;
 				}
 				$msg .= "</ul>";
@@ -158,7 +169,8 @@ final class Logger {
 		$args = func_get_args();
 		array_shift($args);
 		$event = strtolower($event);
-		$trigger = isset(self::$_callbacks[$event]) ? self::$_callbacks[$event] : array();
+		$trigger = isset(self::$_callbacks[$event]) ? self::$_callbacks[$event]
+				: array();
 		foreach ($trigger as $v) {
 			call_user_func_array($v, $args);
 		}
@@ -166,12 +178,14 @@ final class Logger {
 
 	public static function trace($file, $line, $level, $message, $group) {
 		//__FILE__, __LINE__, E_NOTICE, "--------------Projects List ----------\n", "DB"
-		self::write(implode('::', array(
-				$group,
-				$file,
-				$line,
-				$message
-		)), $level);
+		self::write(
+				implode('::',
+						array(
+								$group,
+								$file,
+								$line,
+								$message
+						)), $level);
 	}
 
 	private static function error2string($value) {
@@ -233,7 +247,6 @@ final class Logger {
 	}
 
 	public static function write($s, $level = E_NOTICE, $die = null) {
-
 		if (System::isConsole() && CGAF_DEBUG) {
 			if (class_exists('Response', false)) {
 				Response::writeln($s);
@@ -245,9 +258,11 @@ final class Logger {
 		if (CGAF::isDebugMode()) {
 			self::trigger('onLog', $s, $level);
 		}
-		$logPath = CGAF::getConfig('errors.error_log', \CGAF::getInternalStorage('log', false, true, 0770) . DS);
+		$logPath = CGAF::getConfig('errors.error_log',
+				\CGAF::getInternalStorage('log', false, true, 0770) . DS);
 		$logFile = $logPath . strtolower(self::error2string($level)) . '.log';
-		$msg = time() . '#' . \System::getRemoteAddress() . '#' . $s . '#' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
+		$msg = time() . '#' . \System::getRemoteAddress() . '#' . $s . '#'
+				. (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
 		$replevel = error_reporting();
 		if (($level & $replevel) != $level) {
 			return true;
@@ -257,8 +272,21 @@ final class Logger {
 			return 0;
 		}
 		fwrite($f, $msg . "\n");
+		if (\CGAF::isDebugMode()) {
+			$bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+			array_shift($bt);			
+			foreach ($bt as $b) {
+				
+				fwrite($f,
+						"\t" . @$b['file'] . '::' . @$b['line'] . '-->'
+								. @$b['function'] . ':' . @$b['class'] . "\n");
+			}
+		}
 		fclose($f);
-		$die = $level > 0 && $die !== null ? $die : $level == E_ERROR || $level == E_USER_ERROR || $level == E_CORE_ERROR || $level === E_RECOVERABLE_ERROR;
+		$die = $level > 0 && $die !== null ? $die
+				: $level == E_ERROR || $level == E_USER_ERROR
+						|| $level == E_CORE_ERROR
+						|| $level === E_RECOVERABLE_ERROR;
 		if ($die) {
 			echo $msg;
 			if (CGAF_DEBUG) {
@@ -310,11 +338,15 @@ final class Logger {
 		if ($f === false) {
 			return 0;
 		}
-		fwrite($f, (isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : '') . "\n--------------------------\n");
+		fwrite($f,
+				(isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : '')
+						. "\n--------------------------\n");
 		foreach (self::$_logdata as $level => $data) {
 			$attr = self::getTag($level);
 			foreach ($data as $s) {
-				fwrite($f, "<" . $attr["__tag"] . " class=\"" . $attr["class"] . "\">$s</" . $attr["__tag"] . ">");
+				fwrite($f,
+						"<" . $attr["__tag"] . " class=\"" . $attr["class"]
+								. "\">$s</" . $attr["__tag"] . ">");
 				if ((error_reporting() & $level) == $level) {
 					if (substr($s, 0, strlen($s)) == "\n") {
 						$s = substr($s, 0, strlen($s) - 1);

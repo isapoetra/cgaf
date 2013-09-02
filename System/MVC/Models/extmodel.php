@@ -23,7 +23,15 @@ class ExtModel extends Model {
 	 * @var \DateTime Date Created
 	 */
 	public $date_created;
+	/**
+	 * 
+	 * @var int
+	 */
 	public $user_modified;
+	/**
+	 * @FieldType DateTime	 	 
+	 * @var \DateTime Date Modified
+	 */
 	public $date_modified;
 	/**
 	 * @FieldDefaultValue 1

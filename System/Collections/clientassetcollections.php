@@ -28,19 +28,20 @@ class ClientAssetCollections extends Collection implements \IRenderable {
 		return parent::contains($item);
 	}
 
-	/**
-	 * @param      $item
-	 * @param null $group
-	 * @return int
-	 */
-	function add($item, $group = null) {
+    /**
+     * @param mixed $item
+     * @param null $group
+     * @param null $type
+     * @return int
+     */
+	function add($item, $group = null,$type=null) {
 		if (is_array($item)) {
 			foreach ($item as $value) {
-				$this->add($value, $group);
+				$this->add($value, $group,$type);
 			}
 			return $this->_c - 1;
 		} elseif (is_string($item)) {
-			return $this->add(new AssetItem($item, $group,$this->_appOwner));
+			return $this->add(new AssetItem($item, $group,$this->_appOwner,$type));
 		}
 		return parent::add($item);
 	}
@@ -53,7 +54,10 @@ class ClientAssetCollections extends Collection implements \IRenderable {
 	 */
 	function Render($return = false, $type = null, $clear = false) {
 		$retval = '';
-		foreach ($this->toArray() as $v) {
+        /**
+         * @var \System\Collections\Items\AssetItem $v
+         */
+        foreach ($this->toArray() as $v) {
 			if ($type) {
 				$item = $v->getLiveResourceByType($type);
 				if ($item) {
