@@ -1,6 +1,7 @@
 <?php
 
-interface IIODevice {
+interface IIODevice
+{
 }
 
 ?>

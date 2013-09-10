@@ -1,5 +1,6 @@
 <?php
 namespace System\MVC\Models;
+
 use System\MVC\Model;
 
 class TreeModel extends Model

@@ -1,21 +1,24 @@
 <?php
 namespace System\Applications;
-use System\DB\DBUtil;
-
-use System\Configurations\UserConfiguration;
-use System\Locale\Locale;
-use System\DB\DBQuery;
-use System\ACL\ACLHelper;
-use System\Events\AuthEvent;
-use CGAF, Utils, Request, Response, Logger;
-use System\Session\Session;
-use System\Configurations\Configuration;
-use System\Collections\ClientAssetCollections;
-use System\DB\DB;
-use System\Exceptions\SystemException;
-use System\Collections\Items\AssetItem;
-use System\Assets\AssetBuilder;
 use AppManager;
+use CGAF;
+use Logger;
+use Request;
+use Response;
+use System\ACL\ACLHelper;
+use System\Assets\AssetBuilder;
+use System\Collections\ClientAssetCollections;
+use System\Collections\Items\AssetItem;
+use System\Configurations\Configuration;
+use System\Configurations\UserConfiguration;
+use System\DB\DB;
+use System\DB\DBQuery;
+use System\DB\DBUtil;
+use System\Events\AuthEvent;
+use System\Exceptions\SystemException;
+use System\Locale\Locale;
+use System\Session\Session;
+use Utils;
 
 /**
  * Enter description here .
@@ -72,6 +75,11 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
     private $_assetURL;
     protected $_appInfo;
     protected $_clientAssets;
+    private $_cached = array();
+    /**
+     * @var array
+     * @deprecated
+     */
     protected $_cachedAssets = array();
     /**
      * @var \System\Cache\Engine\ICacheEngine
@@ -97,7 +105,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         $this->_appPath = $appPath;
         $this->_appName = $appName;
         $this->_isAuthentificated = Session::get("__auth", false) && is_object(Session::get("__logonInfo", null));
-        $cf = $this->_appPath . DS . "config.php";
+        //$cf = $this->_appPath . DS . "config.php";
         $this->_configs = new Configuration ();
         $this->_configFile = $this->_configFile ? $this->_configFile : $this->_appPath . DS . 'config';
 
@@ -140,7 +148,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
      * @param null $type
      * @return null|AbstractApplication
      */
-    public function addClientAsset($assetName, $group = null,$type=null)
+    public function addClientAsset($assetName, $group = null, $type = null)
     {
         if (!$assetName) {
             return null;
@@ -152,17 +160,17 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
             }
             foreach ($assetName as $k => $v) {
                 if (is_numeric($k)) {
-                    $this->addClientAsset($v,$group,$type);
+                    $this->addClientAsset($v, $group, $type);
                 } else {
-                    $this->addClientAsset($assetName, $group,$type);
+                    $this->addClientAsset($assetName, $group, $type);
                 }
             }
             return $this;
         }
 
-        $this->_clientAssets->add($assetName, $group,$type);
+        $this->_clientAssets->add($assetName, $group, $type);
         if (CGAF_DEBUG) {
-            $this->_clientAssets->add(\Utils::changeFileName($assetName, \Utils::getFileName($assetName, false) . '_debug'), $group,$type);
+            $this->_clientAssets->add(\Utils::changeFileName($assetName, \Utils::getFileName($assetName, false) . '_debug'), $group, $type);
         }
         return $this;
     }
@@ -396,10 +404,10 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         return $retval;
     }
 
-    function isValidToken($req = "__token",$place ='p')
+    function isValidToken($req = "__token", $place = 'p')
     {
         $st = Session::get('__token');
-        $rt = Request::get($req, null, true,$place);
+        $rt = Request::get($req, null, true, $place);
         return $rt !== null && $st === $rt;
     }
 
@@ -452,11 +460,11 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
      * @param mixed|null $user
      * @return bool
      */
-    public function isAllow($id, $group, $access = 'view',$user =null)
+    public function isAllow($id, $group, $access = 'view', $user = null)
     {
         return $this
             ->getACL()
-            ->isAllow($id, $group, $access,$user);
+            ->isAllow($id, $group, $access, $user);
     }
 
     function isDebugMode()
@@ -511,7 +519,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
 
     protected function switchApp($appId)
     {
-        if (CGAF::isAllow($appId, ACLHelper::APP_GROUP) && AppManager::isAppIdInstalled($appId)) {
+        if (CGAF::isAllow($appId, ACLHelper::APP_GROUP) && AppManager::isAppInstalled($appId, false)) {
             Session::set("_appId", $appId);
             return true;
         }
@@ -605,16 +613,31 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         if ($this->isDebugMode()) {
             CGAF::addAlowedLiveAssetPath($this->getDevPath());
         }
+        CGAF::addClassPath('System', $this->getAppPath() . DS . 'classes' . DS);
+        CGAF::addClassPath('System', $this->getAppPath() . DS . 'classes' . DS . 'System' . DS);
         $this->_initialized = true;
         $this->initSession();
-        $this->_cachedAssets = unserialize(
-            $this
-                ->getInternalCache()
-                ->getContent('assets', 'app')
-        );
-        $this->_cachedAssets = $this->_cachedAssets ? $this->_cachedAssets : array();
         $this->getACL();
+        $this->getInternalCache();
         return $this->_initialized;
+    }
+
+    public function getCached($type, $id, $default = null)
+    {
+        if (!isset($this->_cached[$type])) {
+            $scache = $this->getInternalCache()->getContent($type, 'app');
+            $scache = $scache ? unserialize($scache) : null;
+            $this->_cached[$type] = $scache ? $scache : array();
+        }
+        return isset($this->_cached[$type][$id]) ? $this->_cached[$type][$id] : $default;
+    }
+
+    public function putCache($type, $id, $value)
+    {
+        if (!isset($this->_cached[$type])) {
+            $this->_cached[$type] = array();
+        }
+        $this->_cached[$type][$id] = $value;
     }
 
     function Shutdown()
@@ -628,9 +651,10 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
             */
         }
         if (\CGAF::isInstalled()) {
-            $this
-                ->getInternalCache()
-                ->put('assets', $this->_cachedAssets, 'app');
+            $cc = $this->getInternalCache();
+            foreach ($this->_cached as $k => $v) {
+                $cc->put($k, $v, 'app');
+            }
         }
     }
 
@@ -723,19 +747,20 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
             }
             return $retval;
         }
-        $pr = $prefix ? $prefix : '__common';
-        if (isset ($this->_cachedAssets [$data] [$pr])) {
-            if (is_file($this->_cachedAssets [$data] [$pr])) {
-                return $this->_cachedAssets [$data] [$pr];
-            }
-        }
         if (!is_string($data) || !$data) {
             return null;
         }
-        if (Utils::isLive($data)) {
-            return $data;
+        $pr = $prefix ? $prefix : '__common';
+        $cid = md5($pr . $data);
+        $cache = $this->getCached('assets', $cid);
+        if ($cache !== null) {
+            return $cache;
         }
-        if (is_file($data)) {
+        if (Utils::isLive($data)) {
+            $this->putCache('assets', $cid, $data);
+            return $data;
+        } else if (is_file($data)) {
+            $this->putCache('assets', $cid, $data);
             return $data;
         }
         $search = $this->getAssetPath($data, $prefix);
@@ -759,13 +784,11 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
                     pp($prefix);
                     ppd($data);
                 }
-                if (!isset ($this->_cachedAssets [$data])) {
-                    $this->_cachedAssets [$data] = array();
-                }
-                $this->_cachedAssets [$data] [$pr] = $retval;
+                $this->putCache('assets', $cid, $retval);
                 return $retval;
             }
         }
+        $this->putCache('assets', $cid, false);
         //pp($s);
         return null;
     }
@@ -793,7 +816,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
      */
     function getCachePath()
     {
-        return $this->getTemporaryPath() . 'cache' . DS;
+        return $this->getLivePath(false) . 'cache' . DS;
     }
 
     /**
@@ -804,7 +827,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         if ($this->_cacheManager == null) {
             $class = "\\System\\Cache\\Engine\\" . $this->getConfig("cache.engine", "Base");
             $this->_cacheManager = new $class ($this);
-            $this->_cacheManager->setCachePath($this->getTemporaryPath());
+            $this->_cacheManager->setCachePath($this->getLivePath(false));
         }
         return $this->_cacheManager;
     }
@@ -850,13 +873,9 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
     }
 
     /**
-     * @param
-     *          $data
-     * @param
-     *          $prefix
-     * @param
-     *          $callback
-     *
+     * @param string $data
+     * @param null $prefix
+     * @param null $callback
      * @return array|mixed|null|void
      * @deprecated use getLiveAsset
      */

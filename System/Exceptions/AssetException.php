@@ -1,4 +1,5 @@
 <?php
 namespace System\Exceptions;
-class AssetException extends SystemException {
+class AssetException extends SystemException
+{
 }

@@ -128,69 +128,66 @@ abstract class Convert
 
     public static function Unit($from, $to, $unit)
     {
-        $from =strtolower($from);
-        $to =strtolower($to);
-        if ($from===$to) return $unit;
+        $from = strtolower($from);
+        $to = strtolower($to);
+        if ($from === $to) return $unit;
         $weight_array = array('g', 'oz', 'lb', 'kg');
         $distance_array = array('cm', 'in', 'ft', 'yd', 'm', 'km', 'mi');
         $volume_array = array('l', 'gal');
         $temperature_array = array('F', 'C');
 
-        $w = in_array($from, $weight_array)&&in_array($to, $weight_array);
-        $d = in_array($from, $distance_array)&&in_array($to, $distance_array);
-        $v = in_array($from, $volume_array)&&in_array($to, $volume_array);
-        $m = in_array($from, $temperature_array)&&in_array($to, $temperature_array);
+        $w = in_array($from, $weight_array) && in_array($to, $weight_array);
+        $d = in_array($from, $distance_array) && in_array($to, $distance_array);
+        $v = in_array($from, $volume_array) && in_array($to, $volume_array);
+        $m = in_array($from, $temperature_array) && in_array($to, $temperature_array);
 
-        $c = array('oz g' => $unit*28.35,
-            'lb g' => $unit*453.59,
-            'kg g' => $unit*1000,
-            'g oz' => $unit/28.35,
-            'kg oz' => $unit*35.274,
-            'lb oz' => $unit*16,
-            'g lb' => $unit/453.59,
-            'oz lb' => $unit/16,
-            'kg lb' => $unit*2.205,
-            'g kg' => $unit/1000,
-            'oz kg' => $unit/35.274,
-            'lb kg' => $unit/2.205,
-            'in cm' => $unit*2.54,
-            'ft cm' => $unit*30.48,
-            'yd cm' => $unit*91.44,
-            'mi cm' => $unit*160934,
-            'cm in' => $unit/2.54,
-            'ft in' => $unit*12,
-            'km m' =>$unit*1000,
-            'm km' =>$unit/1000,
-            'yd in' => $unit*36,
-            'mi in' => $unit*63360,
-            'cm ft' => $unit/30.48,
-            'in ft' => $unit/12,
-            'yd ft' => $unit*3,
-            'mi ft' => $unit*5280,
-            'cm yd' => $unit/91.44,
-            'in yd' => $unit/36,
-            'ft yd' => $unit/3,
-            'mi yd' => $unit*1760,
-            'cm mi' => $unit/160934,
-            'in mi' => $unit/63360,
-            'ft mi' => $unit/5280,
-            'yd mi' => $unit/1760,
-            'l quarts' => $unit*1.057,
-            'l gal' => $unit/3.785,
-            'quarts l' => $unit/1.057,
-            'quarts gal' => $unit/4,
-            'gal l' => $unit*3.785,
-            'gal quarts' => $unit*4,
-            'C F' => ((9/5)*$unit)+32,
-            'F C' => 5/9*($unit-32));
+        $c = array('oz g' => $unit * 28.35,
+            'lb g' => $unit * 453.59,
+            'kg g' => $unit * 1000,
+            'g oz' => $unit / 28.35,
+            'kg oz' => $unit * 35.274,
+            'lb oz' => $unit * 16,
+            'g lb' => $unit / 453.59,
+            'oz lb' => $unit / 16,
+            'kg lb' => $unit * 2.205,
+            'g kg' => $unit / 1000,
+            'oz kg' => $unit / 35.274,
+            'lb kg' => $unit / 2.205,
+            'in cm' => $unit * 2.54,
+            'ft cm' => $unit * 30.48,
+            'yd cm' => $unit * 91.44,
+            'mi cm' => $unit * 160934,
+            'cm in' => $unit / 2.54,
+            'ft in' => $unit * 12,
+            'km m' => $unit * 1000,
+            'm km' => $unit / 1000,
+            'yd in' => $unit * 36,
+            'mi in' => $unit * 63360,
+            'cm ft' => $unit / 30.48,
+            'in ft' => $unit / 12,
+            'yd ft' => $unit * 3,
+            'mi ft' => $unit * 5280,
+            'cm yd' => $unit / 91.44,
+            'in yd' => $unit / 36,
+            'ft yd' => $unit / 3,
+            'mi yd' => $unit * 1760,
+            'cm mi' => $unit / 160934,
+            'in mi' => $unit / 63360,
+            'ft mi' => $unit / 5280,
+            'yd mi' => $unit / 1760,
+            'l quarts' => $unit * 1.057,
+            'l gal' => $unit / 3.785,
+            'quarts l' => $unit / 1.057,
+            'quarts gal' => $unit / 4,
+            'gal l' => $unit * 3.785,
+            'gal quarts' => $unit * 4,
+            'C F' => ((9 / 5) * $unit) + 32,
+            'F C' => 5 / 9 * ($unit - 32));
 
-        if($w||$d||$v||$m)
-        {
-            $x = $c[$from." ".$to];
+        if ($w || $d || $v || $m) {
+            $x = $c[$from . " " . $to];
             return $x;
-        }
-        else
-        {
+        } else {
             echo 'Improper Conversion';
         }
     }

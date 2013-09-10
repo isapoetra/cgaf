@@ -1,5 +1,6 @@
 <?php
 namespace System\Auth;
 
-class RemoteUser extends \BaseObject {
+class RemoteUser extends \BaseObject
+{
 }

@@ -7,6 +7,7 @@
  * Time: 12:06 AM
  */
 namespace System\Captcha;
-interface ICaptcha extends \IRenderable{
-	function validateRequest();
+interface ICaptcha extends \IRenderable
+{
+    function validateRequest();
 }

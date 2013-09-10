@@ -3,9 +3,7 @@
 include dirname(__FILE__) . '/../System/cgaf.php';
 if (CGAF::Initialize(true)) {
 	$url = $_REQUEST['__url'];
-
     if (\Strings::BeginWith($url, 'assets')) {
-		//header("HTTP/1.0 304 Not Modified");
 		$f = realpath(dirname(__FILE__) . substr($url, 6));
 	} else {
 		$f = realpath(dirname(__FILE__) . $url);

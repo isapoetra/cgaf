@@ -1,31 +1,40 @@
 <?php
 namespace System\Configurations\Parsers;
-use \Utils;
-class INIParser implements IConfigurationParser  {
-	function parseFile($f) {
-		if (!is_file($f)) {
-			return null;
-		}
-		$retval = array();
-		$arrs =  Utils::parseIni($f);
-		foreach($arrs as $k=>$v) {
-			 if ($k==='Default') {
-			 		foreach($v as $kk=>$vv) {
-				 		$retval['System'][$kk] =  $vv;
-			 		}
-			 }else{
-			 		$retval[$k]=$v;
-			 }
-		}
-		unset($arrs);
-		return $retval;
-	}
-	function parseString($s) {
+
+use Utils;
+
+class INIParser implements IConfigurationParser
+{
+    function parseFile($f)
+    {
+        if (!is_file($f)) {
+            return null;
+        }
+        $retval = array();
+        $arrs = Utils::parseIni($f);
+        foreach ($arrs as $k => $v) {
+            if ($k === 'Default') {
+                foreach ($v as $kk => $vv) {
+                    $retval['System'][$kk] = $vv;
+                }
+            } else {
+                $retval[$k] = $v;
+            }
+        }
+        unset($arrs);
+        return $retval;
+    }
+
+    function parseString($s)
+    {
 
 
-	}
-	public function save($fileName, $configs,$settings=null) {
-		return true;
-	}
+    }
+
+    public function save($fileName, $configs, $settings = null)
+    {
+        return true;
+    }
 }
+
 ?>

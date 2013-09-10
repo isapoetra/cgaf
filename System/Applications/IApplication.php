@@ -160,7 +160,7 @@ interface IApplication extends IDBAware
 
     public function getConfig($string1, $def = null);
 
-    function addClientAsset($assetName, $group = null,$type=null);
+    function addClientAsset($assetName, $group = null, $type = null);
 
     function getAppInfo();
 
@@ -226,7 +226,14 @@ interface IApplication extends IDBAware
      * @param mixed $user
      * @return bool
      */
-    function isAllow($id, $group, $access = 'view',$user =null);
+    function isAllow($id, $group, $access = 'view', $user = null);
+
+    /**
+     * @param $file
+     * @param string $access
+     * @return mixed
+     */
+    function isAllowFile($file, $access = 'view');
 
     /**
      * @param null $model
@@ -259,4 +266,26 @@ interface IApplication extends IDBAware
      * @return void
      */
     function LogUserAction($action, $descr = null, $uid = null);
+
+    /**
+     * Reset Application state to factory default
+     * @return mixed
+     */
+    function Reset();
+
+    /**
+     * @param $type
+     * @param $id
+     * @param $value
+     * @return mixed
+     */
+    function putCache($type, $id, $value);
+
+    /**
+     * @param $type
+     * @param $id
+     * @param null $default
+     * @return mixed
+     */
+    function getCached($type, $id, $default = null);
 }

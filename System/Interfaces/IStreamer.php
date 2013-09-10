@@ -1,4 +1,5 @@
 <?php
-interface IStreamer {
-	function stream();
+interface IStreamer
+{
+    function stream();
 }

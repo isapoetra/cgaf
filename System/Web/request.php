@@ -1,16 +1,22 @@
 <?php
 namespace System\Web;
-use System\Web\Utils\HTMLUtils;
 
-use \CGAF as CGAF, \Utils as Utils;
+use CGAF as CGAF;
+use System\Web\Security\IWebFilterInput;
+use System\Web\Security\Security;
+use System\Web\Utils\HTMLUtils;
+use Utils as Utils;
 
 class Request implements \IRequest
 {
+    public $_securityFilters = array(
+        'filterxss'
+    );
     protected $_secure = array();
     private $input;
     private $_filters = array();
     private $_inputbyplace;
-    private $_ignore =array(
+    private $_ignore = array(
         '_gauges_unique_month',
         '_gauges_unique_year',
         '_gauges_unique',
@@ -18,6 +24,7 @@ class Request implements \IRequest
         '_gauges_unique_hour'
 
     );
+
     function __construct($order = null)
     {
         $order = $order ? $order : CGAF::getConfig("request_method", "fgpc");
@@ -37,9 +44,10 @@ class Request implements \IRequest
                 continue;
             foreach ($arr as $var => $value) {
                 if (in_array($var, $this->_ignore)) continue;
-                if (is_array($value)) {
-                    //$this->input [$var] = $this->workArray($value);
-                } else {
+                if (!is_array($value)) {
+                    /**
+                     * @var IWebFilterInput $filter
+                     */
                     foreach ($this->_filters as $filter) {
                         $value = $filter->filterInput($value);
                     }
@@ -58,7 +66,16 @@ class Request implements \IRequest
             }
         }
     }
-
+    public  function addFilterInput($name) {
+        if (!in_array($name,$this->_filters)) {
+            $this->_filters[] = $name;
+        }
+    }
+    public  function addSecurityFilter($name) {
+        if (!in_array($name,$this->_securityFilters)) {
+            $this->_securityFilters[] = $name;
+        }
+    }
     public function __get($varname)
     {
         if (isset($this->input[$varname])) {
@@ -91,13 +108,13 @@ class Request implements \IRequest
                     if (isset($p[$varName])) {
                         $r = $p[$varName];
                         if ($secure) {
-                            $r = $r ? htmlentities(Utils::filterXSS($r)) : null;
+                            $r = $r ? self::getSecure($varName, $default) : null; // htmlentities(Utils::filterXSS($r))
                         }
                     }
                     return $r === null || $r == "" ? $default : $r;
                 }
             } else {
-                $r = $secure ? $this->getSec($varName, $default) : $this->$varName;
+                $r = $secure ? $this->getSecure($varName, $default) : $this->$varName;
             }
             return $r === null || $r == "" ? $default : $r;
         } else {
@@ -109,22 +126,23 @@ class Request implements \IRequest
         }
     }
 
-    protected function getSec($varName, $default)
+    protected function getSecure($varName, $default = null, $place = null)
     {
         if (isset($this->_secure[$varName])) {
             return $this->_secure[$varName];
         }
-        $retval = $this->$varName;
-        $this->_secure[$varName] = is_string($retval) ? HTMLUtils::removeTag($retval) : $retval;
+        $retval = $this->get($varName, $default, false, $place);
+        $this->_secure[$varName] = $this->secureVar($retval); //is_string($retval) ? HTMLUtils::removeTag($retval) : $retval;
 
         return $this->_secure[$varName] !== null ? $this->_secure[$varName] : $default;
     }
 
-    function getSecure($varName, $default = null)
-    {
-        return isset($this->_secure[$varName]) ? $this->_secure[$varName] : $this->getSec($varName, $default);
-    }
 
+    /**
+     * @param string $varName
+     * @param mixed $value
+     * @return $this
+     */
     public function set($varName, $value)
     {
         if (is_array($varName) && $value === null) {
@@ -144,7 +162,7 @@ class Request implements \IRequest
     {
 
         if (is_array($place)) {
-            $r = array();
+            $retval = array();
             foreach ($place as $p) {
                 $x = null;
                 if ($secure) {
@@ -189,6 +207,32 @@ class Request implements \IRequest
         }
         return $retval;
     }
+
+    public function secureVar($val)
+    {
+        if (is_array($val) || is_object($val)) {
+            $retval = is_array($val) ? array() : new \stdClass();
+            foreach ($val as $k => $v) {
+                $tmp = $this->secureVar($v);
+                if (is_array($val)) {
+                    $retval[$k] = $tmp;
+                } else {
+                    $retval->$k = $tmp;
+                }
+            }
+            return $retval;
+        }
+        $retval = $val;
+        foreach ($this->_securityFilters as $filter) {
+            $instance = Security::getInstance($filter);
+            if ($instance) {
+                $retval = $instance->clean($retval);
+            }
+        }
+        return htmlentities($retval);
+    }
+
+
 }
 
 ?>

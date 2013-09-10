@@ -231,7 +231,7 @@ abstract class DBUtil
                 }
                 break;
             default :
-               \Logger::debug(__CLASS__ . '@' . __LINE__ . " Unknown Format " . $fieldtype);
+                \Logger::debug(__CLASS__ . '@' . __LINE__ . " Unknown Format " . $fieldtype);
                 break;
         }
         // CGAF :: $Message->Add("Format : ".$fieldtype." $retval");

@@ -1,15 +1,13 @@
 <?php
 namespace System\ACL\Provider;
+
+
+use AppManager;
 use System\ACL\ACLHelper;
 use System\ACL\BaseACL;
 use System\DB\DBQuery;
-
-
-use /** @noinspection PhpUndefinedNamespaceInspection */
-    System\Models\User;
-use /** @noinspection PhpUndefinedNamespaceInspection */
-    System\Models\UserRoles;
-use AppManager;
+use System\Models\User;
+use System\Models\UserRoles;
 use System\MVC\Model;
 
 class Db extends BaseACL

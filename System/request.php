@@ -1,9 +1,10 @@
 <?php
-if (!defined("CGAF"))
-    die("Restricted Access");
 use System\Applications\IApplication;
 use System\Session\Session;
 use System\Web\ClientInfo;
+
+if (!defined("CGAF"))
+    die("Restricted Access");
 
 abstract class Request
 {
@@ -74,8 +75,7 @@ abstract class Request
 
     public static function isAndroid()
     {
-        $info = self::getClientInfo();
-        return (CGAF_DEBUG ? (self::get("__android") == 1) : false) && stripos("android", $info->get("agent", null)) !== false;
+        return self::getClientInfo()->get("platform", null)=='android';
     }
 
     public static function getClientPlatform()
@@ -168,7 +168,7 @@ abstract class Request
      */
     public static function &getClientInfo()
     {
-        $ci = null;
+        //Session::set('__clientInfo',null);
         $ci = Session::get('__clientInfo');
         if ($ci && isset($_SERVER["HTTP_USER_AGENT"]) && $ci->agent !== $_SERVER["HTTP_USER_AGENT"]) {
             Session::set('__clientInfo', null);
@@ -178,6 +178,7 @@ abstract class Request
 
             Session::set('__clientInfo', $ci);
         }
+
         return $ci;
     }
 
@@ -315,10 +316,10 @@ abstract class Request
         }
     }
 
-    public static function getDefaultIgnore($ignores =array())
+    public static function getDefaultIgnore($ignores = array())
     {
         if (!$ignores) $ignores = array();
-        return array_merge(array('__url', '__appId', '__data', 'CGAFSESS', '__c', '__a','__data'),$ignores);
+        return array_merge(array('__url', '__appId', '__data', 'CGAFSESS', '__c', '__a', '__data'), $ignores);
     }
 }
 

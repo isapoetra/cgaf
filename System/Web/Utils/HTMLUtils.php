@@ -1,19 +1,19 @@
 <?php
 namespace System\Web\Utils;
-use System\Web\JS\CGAFJS;
-use System\Captcha\Captcha;
-use System\Web\UI\Controls\Button;
-use System\Web\WebUtils;
-use System\JSON\JSON;
-use System\Web\UI\Items\MenuItem;
+
 use AppManager;
-use System\Web\UI\Controls\Anchor;
-use Utils;
-use System\Session\Session;
-use Request;
-use System\Template\TemplateHelper;
 use IRenderable;
+use Request;
+use System\Captcha\Captcha;
+use System\JSON\JSON;
+use System\Session\Session;
+use System\Template\TemplateHelper;
+use System\Web\JS\CGAFJS;
+use System\Web\UI\Controls\Button;
+use System\Web\UI\Items\MenuItem;
 use System\Web\UI\JQ\HTMLEditor;
+use System\Web\WebUtils;
+use Utils;
 
 abstract class HTMLUtils
 {
@@ -599,7 +599,7 @@ JS;
                 }
                 break;
             case "checkbox":
-                $st =null;
+                $st = null;
                 if ($editMode) {
 
                     $st = "<input type=\"$type\" value=\"$value\" id=\"$id\" name=\"$id\" $attr/>";
@@ -609,10 +609,10 @@ JS;
                 }
                 $retval = $st;
                 if ($renderlabel) {
-                    $retval = self::renderLabel($id, $st.$title);
-                    $renderlabel =false;
+                    $retval = self::renderLabel($id, $st . $title);
+                    $renderlabel = false;
                 }
-                return '<div class="' . $groupClass . '">'.$retval.'</div>';
+                return '<div class="' . $groupClass . '">' . $retval . '</div>';
                 break;
             case 'hidden':
                 $renderlabel = false;
@@ -931,7 +931,7 @@ JS;
             } elseif ($item instanceof \IRenderable) {
                 $ir = $item->Render(true);
             } elseif (is_array($item)) {
-                $id = isset($item['id']) ? $item['id'] : ( is_numeric($k) ? 'menu-item-'.$k  : $k);
+                $id = isset($item['id']) ? $item['id'] : (is_numeric($k) ? 'menu-item-' . $k : $k);
                 $nitem = new MenuItem($id, @$item['title'], $item['url'],
                     isset($item['selected']) ? $item['selected'] : false);
                 $nitem->setDescr(isset($item['descr']) ? $item['descr'] : '');
@@ -1271,15 +1271,15 @@ EOT;
         return self::renderTextArea($title, $id, $value);
     }
 
-    public static function formatCurrency($price,$curr )
+    public static function formatCurrency($price, $curr)
     {
-        $app =\AppManager::getInstance();
+        $app = \AppManager::getInstance();
         if (!$curr) {
             $curr = __('currencies.prefix');
         }
         $retval = '<div class="currency">';
-        $retval .= '<i class="icon-'.strtolower($curr).' icon-currency"></i>';
-        $retval .= (int)$price <=0 ? 'CALL' : \Utils::formatNumber($price);
+        $retval .= '<i class="icon-' . strtolower($curr) . ' icon-currency"></i>';
+        $retval .= (int)$price <= 0 ? 'CALL' : \Utils::formatNumber($price);
         $retval .= '</div>';
         return $retval;
     }

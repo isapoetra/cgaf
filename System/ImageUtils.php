@@ -1,6 +1,7 @@
 <?php
-use System\Exceptions\SystemException;
+
 use System\Exceptions\IOException;
+use System\Exceptions\SystemException;
 
 abstract class ImageUtils
 {
@@ -86,7 +87,7 @@ abstract class ImageUtils
         return true;
     }
 
-    public static function ImageError($message,$w=800,$h=300,$showdebug = true)
+    public static function ImageError($message, $w = 800, $h = 300, $showdebug = true)
     {
 
         /* get all of the required data from the HTTP request */
@@ -108,7 +109,7 @@ abstract class ImageUtils
         $text_color = ImageColorAllocate($im, 233, 14, 91);
         $message_color = ImageColorAllocate($im, 91, 112, 233);
         $l = 20;
-        $font =3;
+        $font = 3;
         if (!$showdebug) {
             $font_width = ImageFontWidth($font);
             $font_height = ImageFontHeight($font);
@@ -117,7 +118,7 @@ abstract class ImageUtils
             $text_height = $font_height;
             $position_middle = ceil(($h - $text_height) / 2);
             ImageString($im, 3, $position_center, $position_middle, $message, $message_color);
-        }else{
+        } else {
             ImageString($im, 3, 5, 25, $message, $message_color);
         }
         if (CGAF_DEBUG && $showdebug) {
@@ -128,8 +129,8 @@ abstract class ImageUtils
                 "SOURCE FILE IS: $source_file",
                 "DEVICE IS MOBILE? $is_mobile"
             );
-            foreach($msgs as $m){
-                $l+=20;
+            foreach ($msgs as $m) {
+                $l += 20;
                 ImageString($im, 5, 5, $l, $m, $text_color);
 
             }
@@ -143,14 +144,14 @@ abstract class ImageUtils
 
     }
 
-    public static function resizeImage($image, $size, $outputPath,$force=false)
+    public static function resizeImage($image, $size, $outputPath, $force = false)
     {
         $img = new \System\Documents\Image($image);
-        $fname= $outputPath .DS.\Utils::getFileName($image).'_'.$size.\Utils::getFileExt($image);
-        if (!$force && is_file($fname)){
+        $fname = $outputPath . DS . \Utils::getFileName($image) . '_' . $size . \Utils::getFileExt($image);
+        if (!$force && is_file($fname)) {
             return $fname;
         }
-        if ($img->resize($size,$fname)) {
+        if ($img->resize($size, $fname)) {
             return $fname;
         }
         return null;
@@ -158,9 +159,9 @@ abstract class ImageUtils
 
     public static function WatermarkPath($dir, $watermarkFile)
     {
-        $files = \Utils::getDirFiles($dir,$dir);
-        foreach($files as $file){
-            self::drawWatermark($file,$watermarkFile);
+        $files = \Utils::getDirFiles($dir, $dir);
+        foreach ($files as $file) {
+            self::drawWatermark($file, $watermarkFile);
         }
     }
 }

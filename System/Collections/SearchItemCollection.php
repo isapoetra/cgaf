@@ -1,8 +1,8 @@
 <?php
 namespace System\Collections;
-use System\Exceptions\SystemException;
 
 use System\Collections\Items\SearchItem;
+use System\Exceptions\SystemException;
 
 class SearchItemCollection extends Collection
 {

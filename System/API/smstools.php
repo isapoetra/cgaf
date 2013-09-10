@@ -1,11 +1,12 @@
 <?php
 namespace System\API;
-use System\Events\Event;
-use System\Collections\Collection;
-use System\Exceptions\SystemException;
-use System\Configurations\Configuration;
+
+use CGAF;
 use System\Applications\IApplication;
-use \CGAF;
+use System\Collections\Collection;
+use System\Configurations\Configuration;
+use System\Events\Event;
+use System\Exceptions\SystemException;
 
 class SMSData
 {

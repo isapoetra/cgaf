@@ -1,13 +1,16 @@
 <?php
 
-defined("CGAF") or die ("Restricted Access");
+use System\ACL\ACLHelper;
+use System\Exceptions\AccessDeniedException;
+use System\Exceptions\IOException;
 use System\Exceptions\SystemException;
 use System\Locale\Locale;
-use \System\Exceptions\IOException;
-use System\ACL\ACLHelper, System\Exceptions\AccessDeniedException;
+
+defined("CGAF") or die ("Restricted Access");
 
 abstract class Utils
 {
+    private static $_securityInstance = array();
     private static $_imagesExt = array(
         'jpeg',
         'jpg',
@@ -16,190 +19,6 @@ abstract class Utils
     );
     private static $_agentSuffix;
 
-    /**
-     * Removes all XSS attacks that came in the input.
-     * Function taken from:
-     * http://quickwired.com/smallprojects/php_xss_filter_function.php
-     *
-     * @param $val mixed
-     *             The Value to filter
-     * @return mixed
-     */
-    public static function filterXSS($val)
-    {
-        // remove all non-printable characters. CR(0a) and LF(0b) and TAB(9) are
-        // allowed
-        // this prevents some character re-spacing such as <java\0script>
-        // note that you have to handle splits with \n, \r, and \t later since
-        // they *are* allowed in some inputs
-        $val = preg_replace('/([\x00-\x08][\x0b-\x0c][\x0e-\x20])/', '', $val);
-        // straight replacements, the user should never need these since they're
-        // normal characters
-        // this prevents like <IMG
-        // SRC=&#X40&#X61&#X76&#X61&#X73&#X63&#X72&#X69&#X70&#X74&#X3A&#X61&#X6C&#X65&#X72&#X74&#X28&#X27&#X58&#X53&#X53&#X27&#X29>
-        $search = 'abcdefghijklmnopqrstuvwxyz';
-        $search .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $search .= '1234567890!@#$%^&*()';
-        $search .= '~`";:?+/={}[]-_|\'\\';
-        for ($i = 0; $i < strlen($search); $i++) {
-            // ;? matches the ;, which is optional
-            // 0{0,7} matches any padded zeros, which are optional and go up to
-            // 8 chars
-            // &#x0040 @ search for the hex values
-            $val = preg_replace('/(&#[x|X]0{0,8}' . dechex(ord($search [$i])) . ';?)/i', $search [$i], $val); // with
-            // a
-            // ;
-            // &#00064
-            // @
-            // 0{0,7}
-            // matches
-            // '0'
-            // zero
-            // to
-            // seven
-            // times
-            $val = preg_replace('/(&#0{0,8}' . ord($search [$i]) . ';?)/', $search [$i], $val); // with
-            // a
-            // ;
-        }
-        // now the only remaining whitespace attacks are \t, \n, and \r
-        $ra1 = Array(
-            'javascript',
-            'vbscript',
-            'expression',
-            'applet',
-            'meta',
-            'xml',
-            'blink',
-            'link',
-            'style',
-            'script',
-            'embed',
-            'object',
-            'iframe',
-            'frame',
-            'frameset',
-            'ilayer',
-            'layer',
-            'bgsound',
-            'title',
-            'base'
-        );
-        $ra2 = Array(
-            'onabort',
-            'onactivate',
-            'onafterprint',
-            'onafterupdate',
-            'onbeforeactivate',
-            'onbeforecopy',
-            'onbeforecut',
-            'onbeforedeactivate',
-            'onbeforeeditfocus',
-            'onbeforepaste',
-            'onbeforeprint',
-            'onbeforeunload',
-            'onbeforeupdate',
-            'onblur',
-            'onbounce',
-            'oncellchange',
-            'onchange',
-            'onclick',
-            'oncontextmenu',
-            'oncontrolselect',
-            'oncopy',
-            'oncut',
-            'ondataavailable',
-            'ondatasetchanged',
-            'ondatasetcomplete',
-            'ondblclick',
-            'ondeactivate',
-            'ondrag',
-            'ondragend',
-            'ondragenter',
-            'ondragleave',
-            'ondragover',
-            'ondragstart',
-            'ondrop',
-            'onerror',
-            'onerrorupdate',
-            'onfilterchange',
-            'onfinish',
-            'onfocus',
-            'onfocusin',
-            'onfocusout',
-            'onhelp',
-            'onkeydown',
-            'onkeypress',
-            'onkeyup',
-            'onlayoutcomplete',
-            'onload',
-            'onlosecapture',
-            'onmousedown',
-            'onmouseenter',
-            'onmouseleave',
-            'onmousemove',
-            'onmouseout',
-            'onmouseover',
-            'onmouseup',
-            'onmousewheel',
-            'onmove',
-            'onmoveend',
-            'onmovestart',
-            'onpaste',
-            'onpropertychange',
-            'onreadystatechange',
-            'onreset',
-            'onresize',
-            'onresizeend',
-            'onresizestart',
-            'onrowenter',
-            'onrowexit',
-            'onrowsdelete',
-            'onrowsinserted',
-            'onscroll',
-            'onselect',
-            'onselectionchange',
-            'onselectstart',
-            'onstart',
-            'onstop',
-            'onsubmit',
-            'onunload'
-        );
-        $ra = array_merge($ra1, $ra2);
-        $found = true; // keep replacing as long as the previous round replaced
-        // something
-        while ($found == true) {
-            $val_before = $val;
-            for ($i = 0; $i < sizeof($ra); $i++) {
-                $pattern = '/';
-                for ($j = 0; $j < strlen($ra [$i]); $j++) {
-                    if ($j > 0) {
-                        $pattern .= '(';
-                        $pattern .= '(&#[x|X]0{0,8}([9][a][b]);?)?';
-                        $pattern .= '|(&#0{0,8}([9][10][13]);?)?';
-                        $pattern .= ')?';
-                    }
-                    $pattern .= $ra [$i] [$j];
-                }
-                $pattern .= '/i';
-                $replacement = substr($ra [$i], 0, 2) . '<x>' . substr($ra [$i], 2); // add
-                // in
-                // <>
-                // to
-                // nerf
-                // the
-                // tag
-                $val = preg_replace($pattern, $replacement, $val); // filter out
-                // the
-                // hex tags
-                if ($val_before == $val) {
-                    // no replacements were made, so exit the loop
-                    $found = false;
-                }
-            }
-        }
-        return $val;
-    }
 
     public static function IncludeFile($fname)
     {
@@ -633,7 +452,7 @@ abstract class Utils
 
     public static function getFileMime($filename, $mimePath = null)
     {
-        $mimePath = $mimePath ? $mimePath : \CGAF::getInternalStorage(null,false);
+        $mimePath = $mimePath ? $mimePath : \CGAF::getInternalStorage(null, false);
         $fileext = substr(strrchr($filename, '.'), 1);
         if (empty ($fileext))
             return (false);
@@ -1007,8 +826,7 @@ EOT;
     public static function generateId($prefix = null)
     {
         $m = microtime(true);
-        return $prefix. sprintf("%8x%05x\n", floor($m), ($m - floor($m)) * 1000000);
-
+        return $prefix . sprintf("%8x%05x", floor($m), ($m - floor($m)) * 1000000);
     }
 
     public static function parseSysParam($args)
@@ -1615,8 +1433,7 @@ EOT;
         $bin = '';
         $length = strlen($hex);
 
-        for ($i = 0; $i < $length; $i += 2)
-        {
+        for ($i = 0; $i < $length; $i += 2) {
             $tmp = sscanf(substr($hex, $i, 2), '%x');
             $bin .= chr(array_shift($tmp));
         }
@@ -1641,8 +1458,7 @@ EOT;
         $aprmd5 = '';
         $count = abs($count);
 
-        while (--$count)
-        {
+        while (--$count) {
             $aprmd5 .= $APRMD5[$value & 0x3f];
             $value >>= 6;
         }
@@ -1656,6 +1472,39 @@ EOT;
         }
         return empty($o);
     }
+
+
+    /**
+     * Remove Invisible Characters
+     *
+     * This prevents sandwiching null characters
+     * between ascii characters, like Java\0script.
+     * @see codeigniter
+     * @param    string
+     * @param    bool
+     * @return    string
+     */
+    public static function RemoveInvisibleCharacters($str, $url_encoded = TRUE)
+    {
+
+        $non_displayables = array();
+        // every control character except newline (dec 10),
+        // carriage return (dec 13) and horizontal tab (dec 09)
+        if ($url_encoded) {
+            $non_displayables[] = '/%0[0-8bcef]/'; // url encoded 00-08, 11, 12, 14, 15
+            $non_displayables[] = '/%1[0-9a-f]/'; // url encoded 16-31
+        }
+
+        $non_displayables[] = '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/S'; // 00-08, 11, 12, 14-31, 127
+
+        do {
+            $str = preg_replace($non_displayables, '', $str, -1, $count);
+        } while ($count);
+
+        return $str;
+    }
+
+
 }
 
 ?>

@@ -1,5 +1,7 @@
 <?php
-interface IConnection {
-	function Open();
-	function Close();
+interface IConnection
+{
+    function Open();
+
+    function Close();
 }

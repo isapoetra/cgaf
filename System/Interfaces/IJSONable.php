@@ -1,5 +1,7 @@
 <?php
-interface IJSONable {
-	function toJSON();
+interface IJSONable
+{
+    function toJSON();
 }
+
 ?>

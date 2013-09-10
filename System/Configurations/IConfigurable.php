@@ -5,8 +5,10 @@ namespace System\Configurations;
  * Date: 04/03/12
  * Time: 11:41
  */
-interface IConfigurable {
-  function getConfig($configName, $default = null);
-  function setConfig($configName, $value = null);
+interface IConfigurable
+{
+    function getConfig($configName, $default = null);
+
+    function setConfig($configName, $value = null);
 
 }

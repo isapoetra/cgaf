@@ -1,14 +1,14 @@
 <?php
 namespace System\API;
 // TODO move to System.Web.JS.API
-using('Libs.Google');
+use AppManager;
 use System\Auth\Auth;
-
+use System\Exceptions\SystemException;
+use System\JSON\JSON;
 use System\Web\JS\CGAFJS;
 use System\Web\Utils\HTMLUtils;
-use System\JSON\JSON;
-use System\Exceptions\SystemException;
-use AppManager;
+
+using('Libs.Google');
 
 class google extends PublicApi
 {
@@ -114,7 +114,7 @@ SC;
     public function follow($params)
     {
         self::initgplus();
-        $params =\Convert::toObject($params);
+        $params = \Convert::toObject($params);
         $id = $params->id;
         if (!is_numeric($id)) throw new \InvalidArgumentException('required integer parameter for google id');
         $params->{'data-href'} = '//plus.google.com/' . $id;
@@ -145,8 +145,10 @@ SC;
         $ret = '<div class="g-plusone" ' . $params . '></div>';
         return $ret;
     }
-    public function person($params) {
-        $params = $this->mergeParams($params,__FUNCTION__);
+
+    public function person($params)
+    {
+        $params = $this->mergeParams($params, __FUNCTION__);
         if (!isset($params->id)) return null;
         $id = $params->id;
         self::initgplus();
@@ -154,8 +156,9 @@ SC;
 
         $params->{'data-href'} = 'https://plus.google.com/' . $id . '?rel=publisher';
         $params = HTMLUtils::renderAttr($params);
-        return '<div class="g-person" '.$params.'></div>';
+        return '<div class="g-person" ' . $params . '></div>';
     }
+
     public function analitycs()
     {
         $gag = $this->getConfig('google.analytics.account');
@@ -179,7 +182,7 @@ SC;
         $retval = \Convert::toObject($params);
         $objs = $this->_config->getConfigs($f);
         if ($objs) {
-            foreach($objs as $k =>$v) {
+            foreach ($objs as $k => $v) {
                 if (!isset($retval->{$k})) {
                     $retval->{$k} = $v;
                 }

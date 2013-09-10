@@ -1,6 +1,8 @@
 <?php
 namespace System\Configurations;
-use CGAF, Utils, System\Exceptions\SystemException;
+use CGAF;
+use System\Exceptions\SystemException;
+use Utils;
 
 /**
  * Enter description here .
@@ -256,21 +258,23 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable
 
     private function findConfigFile($f)
     {
+
         if (is_file($f)) {
             return $f;
         }
+        $retval = null;
         if (is_file($f = Utils::changeFileExt($f, 'php'))) {
-            return $f;
+            $retval= $f;
         } elseif (is_file($f = Utils::changeFileExt($f, 'ini'))) {
-            return $f;
+            $retval =$f;
         } elseif (is_file($f = Utils::changeFileExt($f, 'config'))) {
-            return $f;
+            $retval =$f;
         } elseif (is_file($f = Utils::changeFileExt($f, 'xml'))) {
-            return $f;
+            $retval= $f;
         } elseif (is_file($f = Utils::changeFileExt($f, 'properties'))) {
-            return $f;
+            $retval = $f;
         }
-        return null;
+        return $retval;
     }
 
     /**
@@ -295,7 +299,6 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable
                 break;
         }
         $c = '\\System\\Configurations\\Parsers\\' . strtoupper($ext) . 'Parser';
-        $this->_parser [$ext] = new $c ();
         if (class_exists($c, true)) {
             $this->_parser [$ext] = new $c ();
         } else {

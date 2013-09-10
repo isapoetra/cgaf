@@ -1,7 +1,8 @@
 <?php
+use System\Session\Session;
+
 include 'cgafinit.php';
 define('NO_COOKIE', true);
-use \System\Session\Session;
 Session::Start();
 $id = \Utils::getFileName($_SERVER['PATH_INFO'], false);
 $store = Session::get('mediaStreaming');

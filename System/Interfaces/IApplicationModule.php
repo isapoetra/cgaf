@@ -1,5 +1,6 @@
 <?php
 namespace System;
-interface IApplicationModule {
-	
+interface IApplicationModule
+{
+
 }

@@ -7,4 +7,6 @@ namespace System\Events;
  * @deprecated use AuthEvent
  */
 
-class LoginEvent extends AuthEvent {}
+class LoginEvent extends AuthEvent
+{
+}

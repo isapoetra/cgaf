@@ -1,6 +1,7 @@
 <?php
 
-final class IOHelper {
+final class IOHelper
+{
 
 }
 

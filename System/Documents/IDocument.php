@@ -1,5 +1,6 @@
 <?php
 namespace System\Documents;
-interface IDocument extends  \IRenderable{
-	function loadFile($f);
+interface IDocument extends \IRenderable
+{
+    function loadFile($f);
 }

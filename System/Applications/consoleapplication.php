@@ -1,9 +1,8 @@
 <?php
 namespace System\Applications;
 use System\Exceptions\SystemException;
-
-use \System;
-use \Utils;
+use System;
+use Utils;
 
 /**
  * Base class for Console Application
@@ -19,7 +18,7 @@ class ConsoleApplication extends System\MVC\Application
         Utils::sysexec('set TERM=linux');
     }
 
-    function isAllow($id, $group, $access = 'view')
+    function isAllow($id, $group, $access = 'view', $user = nul)
     {
         return System::isConsole();
     }
@@ -69,6 +68,17 @@ class ConsoleApplication extends System\MVC\Application
                         $selected = null, $class = null, $renderdiv = true)
     {
         // TODO: Implement renderMenu() method.
+    }
+
+    function renderContents($rows, $location, $params = null, $tabmode = false, $controller = null)
+    {
+        // TODO: Implement renderContents() method.
+    }
+
+    function renderContent($location, $controller = null, $returnori = false,
+                           $return = true, $params = null, $tabMode = false, $appId = null)
+    {
+        // TODO: Implement renderContent() method.
     }
 }
 

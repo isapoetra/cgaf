@@ -1,11 +1,13 @@
 <?php
 namespace System\DB;
 
-class IndexInfo {
-	
-	function __construct() {
-	
-	}
+class IndexInfo
+{
+
+    function __construct()
+    {
+
+    }
 }
 
 ?>

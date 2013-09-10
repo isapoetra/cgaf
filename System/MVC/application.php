@@ -1,24 +1,26 @@
 <?php
 namespace System\MVC;
-use System\DB\DBQuery;
-use System\Web\JS\CGAFJS;
-use System\Web\JS\JSUtils;
-use System\Exceptions\InvalidDataTypeException;
-use System\ACL\ACLHelper;
-use System\DB\DBUtil;
-use System\JSON\JSONResult;
-use CGAF, Utils;
-use Request;
+
+use CGAF;
 use Logger;
-use System\Exceptions\SystemException;
+use ModuleManager;
+use Request;
+use Response;
+use System\ACL\ACLHelper;
+use System\Applications\AbstractApplication;
+use System\DB\DBQuery;
+use System\DB\DBUtil;
 use System\Exceptions\AccessDeniedException;
+use System\Exceptions\InvalidDataTypeException;
+use System\Exceptions\SystemException;
+use System\JSON\JSONResult;
 use System\Session\Session;
 use System\Session\SessionEvent;
-use System\Web\Utils\HTMLUtils;
-use ModuleManager;
 use System\Template\TemplateHelper;
-use Response;
-use \System\Applications\AbstractApplication;
+use System\Web\JS\CGAFJS;
+use System\Web\JS\JSUtils;
+use System\Web\Utils\HTMLUtils;
+use Utils;
 
 abstract class Application extends AbstractApplication
 {
@@ -445,7 +447,7 @@ abstract class Application extends AbstractApplication
 
             $deftitle = $this->getAppId() === \CGAF::APP_ID ? \CGAF::getConfig(
                 'cgaf.description')
-                : $this->getConfig('app.title', $this->getAppName().' v.'.$this->getAppInfo()->app_version);
+                : $this->getConfig('app.title', $this->getAppName() . ' v.' . $this->getAppInfo()->app_version);
             $this
                 ->Assign('title',
                     $this->getConfig('app.title', $deftitle) . ' ::: '
@@ -533,8 +535,8 @@ abstract class Application extends AbstractApplication
             $path = $this->getAppPath();
             $this->_searchPath[] = $path;
             $this->addSearchPath(\CGAF::getConfigs('cgaf.paths.shared'));
-            CGAF::addClassPath($this->getAppName(), $path . DS . 'classes' . DS);
-            CGAF::addClassPath('System', $path . DS, $first);
+            //CGAF::addClassPath($this->getAppName(), $path . DS . 'classes' . DS);
+            //CGAF::addClassPath('System', $path . DS, $first);
             CGAF::addClassPath('Controller', $path . DS . 'Controllers' . DS,
                 $first);
             CGAF::addClassPath('Controllers', $path . DS . 'Controllers' . DS,
@@ -1167,8 +1169,8 @@ abstract class Application extends AbstractApplication
                                 ) {
                                     isset($params['__renderActionContent']) ? ppd(
                                         $params) : null;
-                                    $ctl->initAction($row->actions,$params);
-                                    $hcontent .= $ctl->renderActions(null,null,array('_a'=>$row->actions));
+                                    $ctl->initAction($row->actions, $params);
+                                    $hcontent .= $ctl->renderActions(null, null, array('_a' => $row->actions));
                                 }
                                 try {
                                     $haction = $ctl->getAction(null);
@@ -1273,7 +1275,8 @@ abstract class Application extends AbstractApplication
             'actions' => $haction
         );
     }
-    abstract function renderContents($rows, $location, $params = null, $tabmode = false,$controller=null);
+
+    abstract function renderContents($rows, $location, $params = null, $tabmode = false, $controller = null);
 
     function getItemContents($location, $controller, $appId = null)
     {
@@ -1305,8 +1308,9 @@ abstract class Application extends AbstractApplication
         $m->orderBy('idx');
         return $m->loadObjects();
     }
+
     abstract function renderContent($location, $controller = null, $returnori = false,
-                           $return = true, $params = null, $tabMode = false, $appId = null);
+                                    $return = true, $params = null, $tabMode = false, $appId = null);
 
 
     function renderControllerMenu($position = "top")

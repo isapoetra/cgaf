@@ -1,7 +1,8 @@
 <?php
 namespace System\Documents;
+
 use System\Exceptions\SystemException;
-use \Utils;
+use Utils;
 
 class Image extends \BaseObject implements IDocument
 {

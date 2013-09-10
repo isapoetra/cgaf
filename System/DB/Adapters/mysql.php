@@ -1,16 +1,17 @@
 <?php
 namespace System\DB\Adapters;
+
+use DateUtils;
+use Exception;
 use System\ACL\ACLHelper;
 use System\DB\DB;
 use System\DB\DBConnection;
+use System\DB\DBException;
 use System\DB\DBFieldDefs;
 use System\DB\DBFieldInfo;
-use DateUtils;
+use System\DB\DBIndexInfo;
 use System\DB\DBQuery;
 use System\DB\DBReflectionClass;
-use System\DB\DBException;
-use Exception;
-use System\DB\DBIndexInfo;
 use System\DB\Table;
 use System\Exceptions\SystemException;
 
@@ -53,13 +54,16 @@ class MySQL extends DBConnection
         $this->setConnected($this->_resource != false);
         return $this->isConnected();
     }
-    function Close() {
+
+    function Close()
+    {
         if ($this->_resource) {
             mysql_close($this->_resource);
         }
-        $this->_resource =null;
+        $this->_resource = null;
         parent::Close();
     }
+
     public function createDBObjectFromClass($classInstance, $objecttype,
                                             $objectName)
     {
@@ -198,6 +202,9 @@ class MySQL extends DBConnection
                 break;
             case 'boolean':
                 $r = 'bit';
+                break;
+            case 'text':
+                $r = $type;
                 break;
             case 'timestamp':
                 $r = $type;
@@ -395,7 +402,7 @@ class MySQL extends DBConnection
         $this->Open();
         switch ($objectType) {
             case "table":
-                $objectName = str_replace('`','',$objectName);
+                $objectName = str_replace('`', '', $objectName);
                 $sql = "select * from information_schema.TABLES where TABLE_NAME='"
                     . $this->getArg('table_prefix', "") . $objectName
                     . "' and TABLE_SCHEMA='" . $this->_database . "'";

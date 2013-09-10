@@ -1,7 +1,8 @@
 <?php
 namespace System\ACL;
-use \CGAF;
-use \AppManager;
+
+use AppManager;
+use CGAF;
 
 class ACLHelper
 {
@@ -120,7 +121,7 @@ class ACLHelper
         $acl = AppManager::getInstance($appOwner);
         if (!$acl)
             return false;
-        return $acl->isAllow($modid, 'modules', $op,$user);
+        return $acl->isAllow($modid, 'modules', $op, $user);
     }
 
     /**

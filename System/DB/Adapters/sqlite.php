@@ -1,10 +1,11 @@
 <?php
 namespace System\DB\Adapters;
+
+use System\DB\DBConnection as DBConnection;
+use System\DB\DBException;
 use System\DB\DBFieldInfo;
 use System\DB\DBQuery;
 use System\DB\DBReflectionClass;
-use System\DB\DBException;
-use System\DB\DBConnection as DBConnection;
 use System\DB\DBResultList;
 use System\DB\Table;
 

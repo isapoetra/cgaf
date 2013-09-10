@@ -1,5 +1,6 @@
 <?php
 namespace System\DB;
-class UnchangedDataException extends DBException {
-	
+class UnchangedDataException extends DBException
+{
+
 }

@@ -1,5 +1,6 @@
 <?php
 namespace System\Installer;
-class Application extends AbstractInstaller {
+class Application extends AbstractInstaller
+{
 
 }

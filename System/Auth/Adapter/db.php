@@ -1,12 +1,12 @@
 <?php
 namespace System\Auth\Adapter;
 
-use System\Session\Session;
+use CGAF;
+use System\Applications\IApplication;
 use System\Auth\AuthResult;
 use System\Auth\IAuthentificatorAdapter;
 use System\DB\Table;
-use \CGAF;
-use System\Applications\IApplication;
+use System\Session\Session;
 
 class db extends Table implements IAuthentificatorAdapter
 {

@@ -1,15 +1,17 @@
-<?php if (!defined('CGAF')) {
+<?php
+use System\ACL\ACLHelper;
+use System\Applications\WebApplication;
+use System\DB\DB;
+use System\DB\DBQuery;
+use System\Session\Session;
+
+if (!defined('CGAF')) {
 	include 'cgafinit.php';
 }
 if (CGAF::isInstalled()) {
 	Response::Redirect('index.php');
 	exit (0);
 }
-use System\DB\DBQuery;
-use System\Applications\WebApplication;
-use System\Session\Session;
-use System\DB\DB;
-use System\ACL\ACLHelper;
 
 class Install extends WebApplication {
 	private $_postError = array();

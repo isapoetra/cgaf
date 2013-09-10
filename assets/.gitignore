@@ -1,2 +1,5 @@
 applications/
 .cache/
+js/ckeditor/*
+js/jQuery-UI/*
+js/leaflet/*

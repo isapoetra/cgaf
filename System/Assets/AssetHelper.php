@@ -1,11 +1,10 @@
 <?php
 namespace System\Assets;
-use System\Exceptions\SystemException;
 
+use CGAF;
+use System\Exceptions\SystemException;
 use System\Web\JS\JSUtils;
-use \CGAF;
-use \Utils;
-use \System\Configurations\Configuration;
+use Utils;
 
 final class AssetHelper
 {

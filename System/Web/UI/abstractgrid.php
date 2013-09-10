@@ -7,10 +7,12 @@
  */
 namespace System\Web\UI;
 
-use \System\Web\UI\Controls\WebControl;
+use System\Web\UI\Controls\WebControl;
 
-abstract class abstractGrid extends WebControl {
-	function __construct() {
-		parent::__construct('table');
-	}
+abstract class abstractGrid extends WebControl
+{
+    function __construct()
+    {
+        parent::__construct('table');
+    }
 }

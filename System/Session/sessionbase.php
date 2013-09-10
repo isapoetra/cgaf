@@ -1,7 +1,8 @@
 <?php
 namespace System\Session;
 
-use \CGAF as CGAF, \Utils as Utils;
+use CGAF as CGAF;
+use Utils as Utils;
 
 abstract class SessionBase extends \BaseObject implements \ISession
 {
@@ -170,7 +171,7 @@ abstract class SessionBase extends \BaseObject implements \ISession
         $this->_setTimers();
         // perform security checks
         if (!$this->_validate($restart, $new)) {
-            if (CGAF_DEBUG) {
+            if (!CGAF_DEBUG) {
                 throw new \Exception('Security Violation');
             }
             return $this->restart();

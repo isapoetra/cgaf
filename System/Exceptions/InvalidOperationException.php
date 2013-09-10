@@ -1,4 +1,5 @@
 <?php
 namespace System\Exceptions;
-class InvalidOperationException extends CGAFException {
+class InvalidOperationException extends CGAFException
+{
 }

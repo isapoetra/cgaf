@@ -1,3 +1,4 @@
 <?php
-interface IMailProtocol {
+interface IMailProtocol
+{
 }

@@ -1,5 +1,7 @@
 <?php
 namespace System\Exceptions;
-class SystemException extends CGAFException  {
+class SystemException extends CGAFException
+{
 }
+
 ?>

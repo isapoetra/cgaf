@@ -1,4 +1,4 @@
 <?php
-if (! defined("CGAF"))
-	die("Restricted Access");
+if (!defined("CGAF"))
+    die("Restricted Access");
 

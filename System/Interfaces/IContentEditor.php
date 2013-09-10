@@ -1,4 +1,5 @@
 <?php
-interface IContentEditor {
-	function setContent($value);
+interface IContentEditor
+{
+    function setContent($value);
 }

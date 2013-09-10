@@ -1,9 +1,10 @@
 <?php
 namespace System\Collections\Items;
-use System\Assets\AssetHelper;
+
 use AppManager;
-use Utils;
 use Logger;
+use System\Assets\AssetHelper;
+use Utils;
 
 class AssetItem extends \BaseObject implements \IRenderable, \IItem
 {
@@ -13,12 +14,13 @@ class AssetItem extends \BaseObject implements \IRenderable, \IItem
     //private $_type = 'js';
     private $_appOwner = null;
     private $_type;
-    function __construct($resource, $group = null, $appOwner = null,$type=null)
+
+    function __construct($resource, $group = null, $appOwner = null, $type = null)
     {
         parent::__construct();
 
         $this->_appOwner = $appOwner ? $appOwner : \AppManager::getInstance();
-        $this->_type= $type;
+        $this->_type = $type;
         $this->Resource = $resource;
         $this->_group = $group;
 
@@ -55,7 +57,7 @@ class AssetItem extends \BaseObject implements \IRenderable, \IItem
 
             if (strpos($res, '.' . $type) !== false || $this->isType($type)) {
                 //pp($res.$type);
-                return new AssetItem ($res, $this->_group,$this->_type);
+                return new AssetItem ($res, $this->_group, $this->_type);
             }
         }
         return null;

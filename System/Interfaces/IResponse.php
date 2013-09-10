@@ -8,9 +8,13 @@ interface IResponse
     function getBuffer();
 
     function clearBuffer();
+
     function StartBuffer();
-    function EndBuffer($flush=true);
+
+    function EndBuffer($flush = true);
+
     function flush();
+
     function forceContentExpires();
 
 }

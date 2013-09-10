@@ -7,42 +7,49 @@
  * Time: 12:13 AM
  */
 namespace System\Captcha;
-use \System\Configurations\Configuration;
+
 use System\Applications\IApplication;
+use System\Configurations\Configuration;
 
-abstract class AbstractCaptcha extends \BaseObject implements ICaptcha {
-	/**
-	 * @var \System\Applications\IApplication
-	 */
-	protected $_appOwner;
-	/**
-	 * @var Configuration $_configs;
-	 */
-	private $_configs;
-	private $_prefix;
-	protected $_errorMessage = null;
-	private $_defaultConfigs;
-	function __construct($prefix, IApplication $appOwner,$defaultConfig = array()) {
-		$this->_appOwner = $appOwner;
-		$this->_prefix = $prefix;
-		$this->_defaultConfigs = $defaultConfig;
-		$this->_initialize();
-	}
+abstract class AbstractCaptcha extends \BaseObject implements ICaptcha
+{
+    /**
+     * @var \System\Applications\IApplication
+     */
+    protected $_appOwner;
+    /**
+     * @var Configuration $_configs;
+     */
+    private $_configs;
+    private $_prefix;
+    protected $_errorMessage = null;
+    private $_defaultConfigs;
 
-	protected function _initialize() {
-		$configs = $this->_appOwner->getConfigInstance()->getConfigs('captcha.' . $this->_prefix, $this->_defaultConfigs);
-		if (!$configs) {
-			$configs = \CGAF::getConfigs('captcha.' . $this->_prefix, array());
-		}
-		$this->_configs = new Configuration($configs, false);
-	}
+    function __construct($prefix, IApplication $appOwner, $defaultConfig = array())
+    {
+        $this->_appOwner = $appOwner;
+        $this->_prefix = $prefix;
+        $this->_defaultConfigs = $defaultConfig;
+        $this->_initialize();
+    }
 
-	function setConfig($configName, $value) {
-		$this->_configs->setConfig($configName, $value);
-	}
+    protected function _initialize()
+    {
+        $configs = $this->_appOwner->getConfigInstance()->getConfigs('captcha.' . $this->_prefix, $this->_defaultConfigs);
+        if (!$configs) {
+            $configs = \CGAF::getConfigs('captcha.' . $this->_prefix, array());
+        }
+        $this->_configs = new Configuration($configs, false);
+    }
 
-	function getConfig($configName, $default = null) {
+    function setConfig($configName, $value)
+    {
+        $this->_configs->setConfig($configName, $value);
+    }
 
-		return $this->_configs->getConfig($configName, $default);
-	}
+    function getConfig($configName, $default = null)
+    {
+
+        return $this->_configs->getConfig($configName, $default);
+    }
 }

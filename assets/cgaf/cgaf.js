@@ -1,4 +1,89 @@
 /**
+ *
+ * Find more about the floating layer at
+ * http://cubiq.org/followalong
+ *
+ * Copyright (c) 2010 Matteo Spinelli, http://cubiq.org/
+ * Released under MIT license
+ * http://cubiq.org/dropbox/mit-license.txt
+ *
+ * Version 0.1 - Last updated: 2010.09.12
+ *
+ */
+
+(function () {
+    var followAlong = function (el, options) {
+            var that = this,
+                i;
+
+            // Default options
+            that.options = {
+                duration: '100ms'
+            };
+
+            // User defined options
+            if (typeof options == 'object') {
+                for (i in options) {
+                    that.options[i] = options[i];
+                }
+            }
+
+            that.element = typeof el == 'object' ? el : document.getElementById(el);
+            that.element.style.webkitTransitionProperty = '-webkit-transform';
+            that.element.style.webkitTransitionTimingFunction = 'cubic-bezier(0,0,0.25,1)';
+            that.element.style.webkitTransitionDuration = that.element.style.webkitTransitionDuration = that.options.duration;
+            that.element.style.webkitTransform = translateOpen + '0,0' + translateClose;
+
+            el = that.element;
+            that.x1 = that.x2 = that.y1 = that.y2 = 0;
+            do {
+                that.x1 += el.offsetLeft;
+                that.y1 += el.offsetTop;
+            } while (el = el.offsetParent);
+
+            that.x2 = that.x1 + that.element.offsetWidth;
+            that.y2 = that.y1 + that.element.offsetHeight;
+
+            setTimeout(function () {
+                that.follow();
+            }, 0);
+
+            window.addEventListener('scroll', that, false);
+        },
+        has3d = ('WebKitCSSMatrix' in window && 'm11' in new WebKitCSSMatrix()),
+        translateOpen = 'translate' + (has3d ? '3d(' : '('),
+        translateClose = has3d ? ',0)' : ')';
+
+
+    followAlong.prototype = {
+        handleEvent: function (e) {
+            if (e.type == 'scroll') {
+                this.follow(e);
+            }
+        },
+
+        follow: function (e) {
+            var that = this,
+                scrollX = window.scrollX,
+                scrollY = window.scrollY;
+
+            if (window.scrollX > that.x1 || window.scrollY > that.y1) {
+                that.element.className = that.element.className ? that.element.className + ' float' : 'float';
+                that.element.style.left = that.x1 + 'px';
+                that.element.style.top = that.y1 + 'px';
+                that.element.style.webkitTransform = translateOpen + scrollX + 'px,' + scrollY + 'px' + translateClose;
+            } else {
+                that.element.style.webkitTransform = translateOpen + '0,0' + translateClose;
+                that.element.className = that.element.className.replace(/(^|\\s)float(\\s|$)/gi, '');
+                that.element.style.left = '';
+                that.element.style.top = '';
+            }
+        }
+    }
+
+    window.followAlong = followAlong;
+
+})();/**
  * jQuery Form Plugin
  * version: 3.03 (08-MAR-2012)
  * @requires jQuery v1.3.2 or later
@@ -2509,7 +2594,38 @@ $.format = $.validator.format;
         $(this).validate(validconfig);
         return false;
       };
-})(jQuery);(function ($) {
+})(jQuery);if (!Function.prototype.bind) {
+    Function.prototype.bind = function (oThis) {
+        if (typeof this !== "function") {
+            // closest thing possible to the ECMAScript 5 internal IsCallable function
+            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+        }
+
+        var aArgs = Array.prototype.slice.call(arguments, 1),
+            fToBind = this,
+            fNOP = function () {
+            },
+            fBound = function () {
+                return fToBind.apply(this instanceof fNOP && oThis
+                    ? this
+                    : oThis,
+                    aArgs.concat(Array.prototype.slice.call(arguments)));
+            };
+
+        fNOP.prototype = this.prototype;
+        fBound.prototype = new fNOP();
+
+        return fBound;
+    };
+}
+
+function bind(scope, fn) {
+    return function () {
+        fn.apply(scope, arguments);
+    };
+}
+
+(function ($) {
     function log() {
         if (!$.fn.ajaxSubmit.debug)
             return;
@@ -2535,17 +2651,20 @@ $.format = $.validator.format;
             show: false
         });
         if (m.length == 0) {
-            m = $('<div id="cgaf-modal" class="modal fade in"/>').appendTo(
+            m = $('<div id="cgaf-modal" class="modal fade"/>').appendTo(
                 'body');
-            $(
-                '<div class="modal-header"><a class="icon-remove close" data-dismiss="modal"></a><h3></h3></div><div class="modal-body"></div> <div class="modal-footer"></div>')
-                .appendTo(m);
+            $('<div class="modal-dialog"><div class="modal-content">'
+                + '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'
+                + '<h4></h4></div>'
+                + '<div class="modal-body"></div>'
+                + '<div class="modal-footer"></div>'
+                + '</div></div>').appendTo(m);
         }
         var b = m.find('.modal-body').empty();
 
         var modal = new $.fn.modal.Constructor(m, opts);
         opts.title = opts.title || '&nbsp;';
-        m.find('.modal-header h3').html(opts.title);
+        m.find('.modal-header h4').html(opts.title);
         if (opts.url) {
             b.addClass('loading');
             var url = cgaf.url(opts.url, {
@@ -2853,14 +2972,13 @@ $.format = $.validator.format;
                         callback.call(this, arguments);
                 });
             },
-            getJSON: function (url, data, callback, err,async) {
+            getJSON: function (url, data, callback, err) {
                 var me = this;
                 data = $.extend({
                     __data: "json"
                 }, data || {});
                 return jQuery.get(url, data, function (d) {
                     var j;
-
                     try {
                         j = (new Function("return " + d))();
                     } catch (e) {
