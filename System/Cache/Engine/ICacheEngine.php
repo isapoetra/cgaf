@@ -8,17 +8,9 @@ interface ICacheEngine
 
     function clear();
 
-    public function putString($s, $id, $ext = null);
-
     public function getId($o);
 
-    public function isCacheValid($fname, $timeout = null);
-
-    public function putFile($fname, $id, $callback = null, $group = "misc");
-
-    function getContent($id, $prefix, $suffix = null, $timeout = NULL);
-
-    public function setCachePath($path);
-
     public function put($id, $o, $group, $add = false, $ext = null);
+
+    public function setCacheTimeOut($int);
 }

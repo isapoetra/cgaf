@@ -133,7 +133,6 @@ $('#{$this->getId()}').tab().bind('show', function(e) {
         __ajax : 1
        }).toString();
        var me =this;
-
        $(contentID).addClass('loading').load(url, function(){
            $(this).removeClass('loading');
            $(me).tab(); //reinitialize tabs

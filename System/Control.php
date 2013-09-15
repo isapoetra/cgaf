@@ -12,6 +12,7 @@ abstract class Control extends \BaseObject implements \IRenderable
         $this->_events = array();
     }
 
+
     function getAppOwner()
     {
         return AppManager::getInstance();

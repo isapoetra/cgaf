@@ -18,8 +18,7 @@ upload.php
 .upload
 userconfig/
 /sql/
-/as
-testx/
+test/
 testmail.php
 assets.php
 assets/js/jQuery/plugins/

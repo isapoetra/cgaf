@@ -1220,6 +1220,7 @@ final class CGAF
     {
         if (self::$_internalCache == null) {
             self::$_internalCache = \System\Cache\CacheFactory::getInstance();
+            self::$_internalCache->setCacheTimeOut(0);
             self::$_internalCache
                 ->setCachePath(
                     self::getInternalStorage('.cache', false, true));
@@ -1573,10 +1574,11 @@ final class CGAF
             return true;
         }
         if ($throw) {
-            //pp($namespaces);
-            //pp($nspath);
-            //ppd($fdebug);
-            throw new SystemException('class not found');
+            pp($fns);
+            pp($namespaces);
+            pp($nspath);
+            ppd($fdebug);
+            throw new SystemException('Class ['.$className .'] not found');
         }
         return false;
     }

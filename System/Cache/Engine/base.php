@@ -11,9 +11,10 @@ class Base implements ICacheEngine
     private $_cachePath;
     private $_mcache = array();
 
-    function __construct()
+    function __construct($appOwner=null,$timeout=null)
     {
-        $this->_cacheTimeOut = (CGAF_DEBUG ? 5 : 120);
+        $def = CGAF_DEBUG ? 5 : 120;
+        $this->_cacheTimeOut =$timeout ? $timeout : ($appOwner ? $appOwner->getConfig('cache.timeout', $def) : $def);
         $this->setCachePath(\CGAF::getInternalStorage('.cache', true));
 
     }
@@ -33,7 +34,10 @@ class Base implements ICacheEngine
 
     function setCacheTimeOut($value)
     {
-        $this->_cacheTimeOut = $value;
+        if ($value != $this->_cacheTimeOut) {
+            $this->_cacheTimeOut = $value;
+            $this->_mcache=array();
+        }
     }
 
     function setCachePath($path)

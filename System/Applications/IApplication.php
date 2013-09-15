@@ -124,6 +124,16 @@ interface IApplication extends IDBAware
 
     function setUserConfig($configName, $value = null, $uid = null);
 
+    /**
+     * @param $key
+     * @param null $default
+     * @return mixed
+     */
+    function getConfigs($key, $default=null);
+
+    /**
+     * @return mixed
+     */
     function getAppId();
 
     /**
@@ -288,4 +298,6 @@ interface IApplication extends IDBAware
      * @return mixed
      */
     function getCached($type, $id, $default = null);
+
+
 }

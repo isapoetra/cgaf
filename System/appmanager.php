@@ -50,10 +50,11 @@ abstract class AppManager extends \StaticObject
 
     /**
      * @param null $appId
-     * @return null|IApplication
+     * @return null|\System\Applications\IApplication|\System\Applications\WebApplication
      * @throws System\Exceptions\AccessDeniedException
      * @throws System\Exceptions\SystemException
      */
+
     public static function getInstance($appId = null)
     {
         if ($appId instanceof IApplication) {
@@ -667,6 +668,8 @@ abstract class AppManager extends \StaticObject
         \Utils::makeDir($path . 'Controllers');
         \Utils::makeDir($path . 'Models');
         \Utils::makeDir($path . 'Views');
+        \Utils::makeDir($path . 'locale/en/');
+        \Utils::makeDir($path . 'locale/id/');
 
     }
 }

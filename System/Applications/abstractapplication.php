@@ -844,7 +844,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
     {
         if ($this->_internalCache == null) {
             $class = '\\System\\Cache\\Engine\\' . $this->getConfig("cache.engine", "Base");
-            $this->_internalCache = new $class ($this);
+            $this->_internalCache = new $class ($this,0);
             $this->_internalCache->setCachePath($this->getInternalStorage('.cache', true));
         }
         return $this->_internalCache;

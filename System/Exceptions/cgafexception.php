@@ -1,6 +1,6 @@
 <?php
 namespace System\Exceptions;
-class CGAFException extends \Exception
+class CGAFException extends \RuntimeException
 {
     function __construct($msgs)
     {
