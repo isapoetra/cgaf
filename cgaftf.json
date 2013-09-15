@@ -1,0 +1,45 @@
+{
+    "settings":{
+        "require": {
+            "cgaf": "1.0"
+        },
+        "ignore": {
+            "paths":[
+                "tests/*"
+            ]
+        },
+        "database": {
+            "mysql": {
+                "host":"localhost",
+                "database":"cgaf",
+                "username":"root",
+                "password":""
+            }
+        }
+    },
+    "setup": {
+        "composer":{
+            "action":"install"
+        }
+    },
+    "test": {
+        "php_unit": {
+        },
+        "php_mess_detector": {
+
+        },
+        "php_code_sniffer": {
+
+        },
+        "php_cpd": {
+
+        }
+    },
+    "complete" : {
+
+    },
+    "failure": {
+
+    }
+
+}

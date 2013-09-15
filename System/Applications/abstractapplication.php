@@ -726,7 +726,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
     }
 
     protected abstract function getAssetPath($data, $prefix = null);
-
+    abstract function assetToLive($asset);
     /**
      * @param      $data
      * @param null $prefix
@@ -1136,7 +1136,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         return $this->getConfig('app.installed', false) === true;
     }
 
-    abstract function assetToLive($asset);
+
 
     function getAssetCachePath()
     {

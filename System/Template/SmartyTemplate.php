@@ -20,6 +20,7 @@ function smarty_loader($class)
     } elseif ($f) {
         ppd($f);
     }
+    return false;
 }
 
 CGAF::RegisterAutoLoad('\\System\\Template\\smarty_loader');
@@ -63,7 +64,9 @@ class SmartyTemplate extends BaseTemplate implements \ITemplate
 
     private function initSmarty()
     {
-        $p = $this->getAppOwner()->getInternalCache()->getCachePath('.template', false) . '';
+        $p = $this->getAppOwner()
+                ->getInternalCache()
+                ->getCachePath('.template', false) . '';
         $this->_smarty->setCompileDir($p);
         $this->_smarty->clearAllAssign();
         $this->_smarty->assign($this->_vars);

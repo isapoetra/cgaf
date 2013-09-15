@@ -8,10 +8,7 @@ use System\DB\IDBAware;
  */
 interface IApplication extends IDBAware
 {
-    /**
-     * Run Application
-     */
-    public function Run();
+
 
     /**
      * Get Applicaton content
@@ -299,5 +296,8 @@ interface IApplication extends IDBAware
      */
     function getCached($type, $id, $default = null);
 
-
+    /**
+     * Run Application
+     */
+    public function Run();
 }

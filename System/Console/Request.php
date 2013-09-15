@@ -93,4 +93,8 @@ class Request extends \BaseObject implements \IRequest
     }
 
 
+    public function secureVar($var)
+    {
+        return $var;
+    }
 }

@@ -103,7 +103,7 @@ final class CGAF
         $path = self::getInternalStorage(
             '.cache/request/' . ($sessionBase ? session_id() . '/' : ''),
             false, true);
-        $f = $path . DS . md5($_SERVER['REQUEST_URI']);
+        $f = $path . DS . md5(isset($_SERVER["REQUEST_URI"]) ? $_SERVER['REQUEST_URI']:$_SERVER['PWD'].DS.$_SERVER['PHP_SELF']);
         return $f;
     }
 
@@ -256,8 +256,8 @@ final class CGAF
 
     public static function exception_handler(\Exception $ex)
     {
-        if (self::$_shutdown || \System::isConsole()) {
-            if (CGAF_DEBUG) die($ex->getMessage());
+        if (self::$_shutdown || (\System::isConsole()&&CGAF_DEBUG)) {
+            die($ex->getMessage());
             return false;
         }
         if (\Request::isDataRequest()) {
@@ -736,7 +736,7 @@ final class CGAF
             //$icon = 'assets/icons/favicon.ico';
             $_REQUEST["__url"] = 'assets/icons/favicon.ico';
         }
-        if (substr($_SERVER["REQUEST_URI"], 0, 7) == '/assets') {
+        if (isset($_SERVER["REQUEST_URI"]) && substr($_SERVER["REQUEST_URI"], 0, 7) == '/assets') {
             $_REQUEST["__url"] = substr($_SERVER["REQUEST_URI"], 7);
             return self::handleAssetNotFound();
         }
