@@ -23,6 +23,8 @@ defined('CGAF_VERSION') or define('CGAF_VERSION', '2.0.0');
 final class CGAF
 {
     const APP_ID = '__cgaf';
+    private static $_internalClassCache = array();
+    private static $_dbConfigs;
     private static $_initialized = false;
     private static $_namespaces = array();
     private static $_messages;
@@ -63,6 +65,10 @@ final class CGAF
             return;
         }
         self::$_running = false;
+        if (self::$_initialized) {
+            file_put_contents(self::getInternalStorage('.cache', false).'classes' ,serialize(self::$_internalClassCache));
+        }
+
         if (class_exists('AppManager', false)) {
             AppManager::Shutdown();
         }
@@ -72,8 +78,7 @@ final class CGAF
         if (class_exists('Response', false)) {
             Response::Flush();
         }
-        while (@ob_end_flush())
-            ;
+        while (@ob_end_flush());
         self::$_initialized = false;
     }
 
@@ -103,7 +108,7 @@ final class CGAF
         $path = self::getInternalStorage(
             '.cache/request/' . ($sessionBase ? session_id() . '/' : ''),
             false, true);
-        $f = $path . DS . md5(isset($_SERVER["REQUEST_URI"]) ? $_SERVER['REQUEST_URI']:$_SERVER['PWD'].DS.$_SERVER['PHP_SELF']);
+        $f = $path . DS . md5(isset($_SERVER["REQUEST_URI"]) ? $_SERVER['REQUEST_URI'] : $_SERVER['PWD'] . DS . $_SERVER['PHP_SELF']);
         return $f;
     }
 
@@ -173,8 +178,7 @@ final class CGAF
                         'validDay' => $valid,
                         'originalFile' => $originalFile
                     )));
-            header(
-                'Cache-Control: public, max-age='
+            header('Cache-Control: public, max-age='
                 . ($valid * 30 * 24 * 60 * 60));
             header(
                 'Last-Modified:' . gmdate("D, d M Y H:i:s", $lastModified)
@@ -256,7 +260,7 @@ final class CGAF
 
     public static function exception_handler(\Exception $ex)
     {
-        if (self::$_shutdown || (\System::isConsole()&&CGAF_DEBUG)) {
+        if (self::$_shutdown || (\System::isConsole() && CGAF_DEBUG)) {
             die($ex->getMessage());
             return false;
         }
@@ -399,11 +403,29 @@ final class CGAF
         }
         define('CGAF_SYS_PATH', CGAF_PATH . 'System' . DS);
         self::addClassPath('system', CGAF_SYS_PATH);
-        //self::addClassPath('system', CGAF_SYS_PATH.'Interfaces/');
         self::$_searchPath['System'] = array(
             CGAF_SYS_PATH
         );
-        //NSHelper::Using(CGAF_SYS_PATH . 'system.php');
+        self::Using(array(
+            CGAF_SYS_PATH . 'baseobject.php',
+            CGAF_SYS_PATH . 'system.php',
+            CGAF_SYS_PATH . 'utils.php',
+            CGAF_SYS_PATH . 'DB/IDBAware.php',
+            CGAF_SYS_PATH . 'Interfaces/IRenderable.php',
+            CGAF_SYS_PATH . 'Applications/IApplication.php',
+            CGAF_SYS_PATH . 'Configurations/IConfigurable.php',
+            CGAF_SYS_PATH . 'Configurations/IConfiguration.php',
+            CGAF_SYS_PATH . 'Configurations/Configuration.php',
+            CGAF_SYS_PATH . 'Configurations/Parsers/IConfigurationParser.php',
+            CGAF_SYS_PATH . 'Configurations/Parsers/PHPParser.php',
+            CGAF_SYS_PATH . 'Strings.php',
+            CGAF_SYS_PATH . 'Convert.php',
+            CGAF_SYS_PATH . 'MVC/MVCHelper.php'
+        ));
+        $cachefile =realpath(self::getInternalStorage('.cache', false).'classes');
+        if ($cachefile) {
+            self::$_internalClassCache  = unserialize(file_get_contents($cachefile));
+        }
         System::Initialize();
         if (!defined("CGAF_CONTEXT")) {
             if (php_sapi_name() == 'cli' || php_sapi_name() == 'cgi-fcgi') {
@@ -458,11 +480,8 @@ final class CGAF
             ->getConfigs('cgaf.paths.app', array());
         $rpath = array();
         foreach ($paths as $v) {
-            if (realpath($v)) {
-                $p = realpath($v) . '/';
-                if ($p) {
-                    $rpath[] = $p;
-                }
+            if ($p = realpath($v)) {
+                $rpath[] = $p . DS;
             } else if (self::isDebugMode()) {
                 Logger::Error('Application Path not found @' . $v);
             }
@@ -791,7 +810,7 @@ final class CGAF
                             AppManager::getInstance(self::APP_ID)->getACL()
                                 ->clearCache();
                             //AppManager::getInstance()->Reset();
-                            Session::set('__clientInfo',null);
+                            Session::set('__clientInfo', null);
                             Session::remove('__appId');
                             Session::clearPast();
                         } catch (Exception $e) {
@@ -904,12 +923,27 @@ final class CGAF
      */
     public static function getActiveApp()
     {
-        if (class_exists('AppManager',false)) {
+        if (class_exists('AppManager', false)) {
             if (AppManager::isAppStarted()) {
                 return AppManager::getInstance();
             }
         }
         return null;
+    }
+
+    public static function getDBConfigs()
+    {
+        if (!self::$_dbConfigs) {
+            $args = self::getConfigs("cgaf.db", array());
+            $defargs = self::getConfigs('db');
+            foreach ($defargs as $k => $v) {
+                if (!isset($args[$k])) {
+                    $args[$k] = $v;
+                }
+            }
+            self::$_dbConfigs = $args;
+        }
+        return self::$_dbConfigs;
     }
 
     /**
@@ -955,10 +989,7 @@ final class CGAF
         $d = readdir($dir);
         while ($d) {
             if (substr($d, 0, 1) !== "." && is_file($fname . DS . $d)) {
-                //$ext2 = substr($d, strlen($d) - 3);
-                if (is_file($fname . DS . $d)) {
-                    self::Using($fname . DS . $d, false);
-                }
+                self::Using($fname . DS . $d, false);
             }
             $d = readdir($dir);
         }
@@ -1033,7 +1064,8 @@ final class CGAF
         $ext = substr($ns, strrpos($ns, '.', -4));
         foreach (self::$_classPath as $k => $v) {
             foreach ($v as $p) {
-                if (substr($ns, 0, strlen($p)) === $p) {
+                //if (substr($ns, 0, strlen($p)) === $p) {
+                if (strpos($ns,$p) === 0){
                     $ns = $k . DS . substr($ns, strlen($p));
                 }
             }
@@ -1074,10 +1106,10 @@ final class CGAF
         if ($spath) {
             foreach ($spath as $path) {
                 $fname = $path . $fns;
-                if (is_file($fname . CGAF_CLASS_EXT)) {
+                if (file_exists($fname . CGAF_CLASS_EXT)) {
                     $retval = Utils::arrayMerge($retval,
                         $fname . CGAF_CLASS_EXT, true);
-                } elseif (is_file($path . strtolower($fns) . CGAF_CLASS_EXT)) {
+                } elseif (file_exists($path . strtolower($fns) . CGAF_CLASS_EXT)) {
                     $retval = Utils::arrayMerge($retval,
                         $path . strtolower($fns) . CGAF_CLASS_EXT, true);
                 } elseif (is_dir($fname)) {
@@ -1105,7 +1137,7 @@ final class CGAF
         return $retval;
     }
 
-    public static function Using($namespace = null, $throw = true)
+    public static function Using($namespace = null, $throw = true,$checkfile=true)
     {
         if ($namespace === null) {
             return self::$_namespaces;
@@ -1113,7 +1145,7 @@ final class CGAF
         if ($namespace === (array)$namespace) {
             $retval = array();
             foreach ($namespace as $k => $v) {
-                $retval[$k] = self::Using($v, true);
+                $retval[$k] = self::Using($v, true,$checkfile);
             }
             return $retval;
         }
@@ -1127,8 +1159,9 @@ final class CGAF
         }
 
         $nsnormal = self::_toNS($namespace);
-        $rpath = realpath($namespace);
+        $rpath =$checkfile ? realpath($namespace) : $namespace;
         if (!$star && $rpath) {
+            if ($checkfile && is_dir($rpath)) return self::UsingDir($rpath);
             $namespace = $rpath;
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                 $namespace = strtolower($namespace);
@@ -1219,11 +1252,9 @@ final class CGAF
     public static function getInternalCacheManager()
     {
         if (self::$_internalCache == null) {
-            self::$_internalCache = \System\Cache\CacheFactory::getInstance();
+            self::$_internalCache = \System\Cache\CacheFactory::getInstance(true, 'Base');
             self::$_internalCache->setCacheTimeOut(0);
-            self::$_internalCache
-                ->setCachePath(
-                    self::getInternalStorage('.cache', false, true));
+            //self::$_internalCache->setCachePath(self::getInternalStorage('.cache', false, true));
         }
         return self::$_internalCache;
     }
@@ -1331,7 +1362,7 @@ final class CGAF
         return self::$_shutdown;
     }
 
-    public static function RegisterAutoLoad($func)
+    public static function RegisterAutoLoad(callable $func)
     {
         if (!in_array($func, self::$_autoLoadCallBack)) {
             self::$_autoLoadCallBack[] = $func;
@@ -1479,13 +1510,22 @@ final class CGAF
         }
 
         if ($cache !== null) {
-            self::Using($cache);
+            self::Using($cache,true,false);
             return true;
         }
         return false;
     }
 
-    public static function LoadClass($className, $throw = true)
+    private static function loadCoreClass($classname)
+    {
+        if (isset(self::$_internalClassCache[$classname])) {
+            self::Using(self::$_internalClassCache[$classname],true,false);
+            return true;
+        }
+        return false;
+    }
+
+    public static function loadClass($className, $throw = true)
     {
         $rClassName = NSS . trim($className, NSS);
         $className = trim(
@@ -1494,6 +1534,8 @@ final class CGAF
             ), NSS, $className), ' ' . NSS);
         $namespaces = explode(NSS, $className);
         if (self::loadAppClass($rClassName)) {
+            return true;
+        } elseif (self::loadCoreClass($className)) {
             return true;
         }
         //unset($namespaces[sizeof($namespaces) - 1]);
@@ -1527,7 +1569,7 @@ final class CGAF
                 }
                 self::$loadedNamespaces[] = $current;
                 $current = str_replace('\\', DS, $current);
-                $fnload = self::toDirectory($p . $current .DS. "__init.php");
+                $fnload = self::toDirectory($p . $current . DS . "__init.php");
                 if (file_exists($fnload)) {
                     self::Using($fnload);
                 }
@@ -1569,7 +1611,11 @@ final class CGAF
                 if (\AppManager::isAppStarted()) {
                     $app = \AppManager::getInstance();
                     $app->putCache('classes', $rClassName, $fclass);
+                }else{
+                    self::$_internalClassCache[$className] = $fclass;
                 }
+            } else {
+                self::$_internalClassCache[$className] = $fclass;
             }
             return true;
         }
@@ -1578,7 +1624,7 @@ final class CGAF
             pp($namespaces);
             pp($nspath);
             ppd($fdebug);
-            throw new SystemException('Class ['.$className .'] not found');
+            throw new SystemException('Class [' . $className . '] not found');
         }
         return false;
     }
@@ -1603,12 +1649,9 @@ final class CGAF
     {
         if (self::$_dbConnection == null) {
             self::using('System.DB');
-            $args = self::getConfigs("cgaf.db");
-            if (!$args) {
-                $args = self::getConfigs('db');
-            }
+
             try {
-                self::$_dbConnection = DB::Connect($args);
+                self::$_dbConnection = DB::Connect(self::getDBConfigs());
                 self::$_dbConnection->setThrowOnError(true);
             } catch (\Exception $e) {
                 if (\System::isWebContext()) {
@@ -1685,6 +1728,6 @@ final class CGAF
     }
 }
 
-spl_autoload_register('CGAF::LoadClass');
+spl_autoload_register('CGAF::loadClass');
 include 'cgaf.func.php';
 ?>

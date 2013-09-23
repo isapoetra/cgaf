@@ -153,7 +153,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         if (!$assetName) {
             return null;
         }
-        if (is_array($assetName) || is_object($assetName)) {
+        if ($assetName===(array)$assetName || is_object($assetName)) {
             if (is_object($assetName) && $assetName instanceof AssetItem) {
                 $this->_clientAssets->add($assetName, $group);
                 return $this;
@@ -510,7 +510,9 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
     {
         if ($this->_dbConnection == null) {
             $configs = $this->getConfigs("db", array());
-            $cconfigs = \CGAF::getConfiguration()->getConfigs('db');
+
+            $cconfigs = \CGAF::getDBConfigs();
+
             $configs = array_merge($cconfigs, $configs);
             $this->_dbConnection = DB::Connect($configs);
         }
@@ -690,7 +692,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         $basePx = $this->getConfig("livedatapath", "assets");
         $baseP = $baseP ? $baseP : $basePx;
         $retval = $search;
-        if (is_array($search2)) {
+        if ($search2===(array)$search2) {
             foreach ($search2 as $v) {
                 $retval = $this->_mergeAssetPath($retval, $v, $baseP);
             }
@@ -716,7 +718,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         if (!isset ($this->_assetPath [$prefix])) {
             $this->_assetPath [$prefix] = array();
         }
-        if (is_array($path)) {
+        if ($path===(array)$path) {
             foreach ($path as $p) {
                 $this->_assetPath [$prefix] [] = $p;
             }
@@ -735,7 +737,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
      */
     function getAsset($data, $prefix = null)
     {
-        if (is_array($data)) {
+        if ($data===(array)$data) {
             $retval = array();
             foreach ($data as $k => $v) {
                 if ($v) {
@@ -780,7 +782,7 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
                         $retval = $fname;
                         break;
                 }
-                if (is_array($prefix) || is_array($data)) {
+                if ($prefix===(array)$prefix || $data===(array)$data) {
                     pp($prefix);
                     ppd($data);
                 }
@@ -845,7 +847,6 @@ abstract class AbstractApplication extends \BaseObject implements IApplication
         if ($this->_internalCache == null) {
             $class = '\\System\\Cache\\Engine\\' . $this->getConfig("cache.engine", "Base");
             $this->_internalCache = new $class ($this,0);
-            $this->_internalCache->setCachePath($this->getInternalStorage('.cache', true));
         }
         return $this->_internalCache;
     }

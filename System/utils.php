@@ -44,14 +44,15 @@ abstract class Utils
 
     public static function isLive($f)
     {
-        if (is_array($f)) {
+        if ($f===(array)$f) {
             $retval = array();
             foreach ($f as $k => $v) {
                 $retval [$k] = self::isLive($v);
             }
             return $retval;
         }
-        return Strings::BeginWith("./", $f) || Strings::BeginWith($f, "http://") || Strings::BeginWith($f, "https://") || (is_file($f) && substr($f, 0, strlen(SITE_PATH)) === SITE_PATH);
+        //substr($f, 0, strlen(SITE_PATH)) === SITE_PATH
+        return strpos($f,SITE_PATH) === 0  || strpos($f,'://') !==false;
     }
 
     public static function makeDir($pathname, $mode = 0750, $securepatern = null)
@@ -1150,6 +1151,7 @@ EOT;
                 }
             }
         } else {
+            if (!$a2 ||!is_array($a2)) ppd($a2);
             foreach ($a2 as $k => $v) {
                 if (is_numeric($k)) {
                     $a1 [] = $v;
@@ -1256,6 +1258,7 @@ EOT;
 
     public static function getObjectProperty($o, $index)
     {
+        if (!$o || !is_object($o)) return null;
         $vars = get_object_vars($o);
         $k = array_keys($vars);
         return isset ($k [$index]) ? $o->$k [$index] : null;
@@ -1502,6 +1505,17 @@ EOT;
         } while ($count);
 
         return $str;
+    }
+
+    public static function getImageFiles($path, $base, $recurse =false)
+    {
+        $retval = array();
+
+        foreach(self::$_imagesExt as $ext) {
+            $files=  self::getDirFiles($path,$base,$recurse,'/\.'.$ext.'$/i');
+            foreach($files as $f ) $retval[] = $f;
+        }
+        return $retval;
     }
 
 

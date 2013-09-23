@@ -3,6 +3,11 @@ namespace System\Cache;
 
 use System\Configurations\Configuration;
 
+/**
+ * Class CachedData
+ * @package System\Cache
+ * @deprecated
+ */
 class CachedData extends Configuration
 {
     private $_file;

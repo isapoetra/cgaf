@@ -113,11 +113,11 @@ abstract class Convert
         if ($o == null) return null;
         if (!$o) return array();
         $retval = $o;
-        if (is_object($o) || is_array($o)) {
+        if (is_object($o) || $o===(array)$o) {
             $retval = array();
             foreach ($o as $k => $v) {
                 $tmp = $v;
-                if (is_object($v) || is_array($v)) {
+                if (is_object($v) || $v === (array) $v) {
                     $tmp = self::toArray($v);
                 }
                 $retval[$k] = $tmp;

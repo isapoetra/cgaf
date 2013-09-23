@@ -52,21 +52,6 @@ abstract class BaseACL extends \BaseObject implements IACL
         if ($appOwner instanceof IApplication) {
             $this->setAppOwner($appOwner);
         }
-        /*if ($appOwner instanceof \IApplication) {
-            $appOwner->addEventListener ( LoginEvent::LOGIN, array (
-                    $this,
-                    "onAuth"
-            ) );
-        $appOwner->addEventListener ( LoginEvent::LOGOUT, array (
-                $this,
-                "onAuth"
-        ) );
-        $this->setAppOwner ( $appOwner );
-        }
-        Session::getInstance ()->addEventListener ( SessionEvent::DESTROY, array (
-                $this,
-                'onSessionDestroy'
-        ) );*/
     }
 
     public function onSessionDestroy($event)
@@ -196,6 +181,9 @@ abstract class BaseACL extends \BaseObject implements IACL
 
     protected function getCacheManager()
     {
+        if ($this->_appOwner) {
+            return $this->_appOwner->getInternalCache();
+        }
         return CGAF::getInternalCacheManager();
     }
 

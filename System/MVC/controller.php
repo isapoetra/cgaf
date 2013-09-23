@@ -89,6 +89,18 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
         }
     }
 
+    /**
+     * @param string|array $action
+     */
+    protected  function addInternalAction($action) {
+        if (is_array($action)) {
+            foreach($action as $a) {
+                $this->_internalAction[] = $a;
+            }
+        }elseif (is_string($action)) {
+            $this->_internalAction[] = $action;
+        }
+    }
     public function getRenderInternalAction()
     {
         return $this->_renderInternalAction;
@@ -701,7 +713,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
         }
         $retval = $this->getAppOwner()->isAllow($this->getControllerName(), "controller", $access);
         if ($access !== 'view' && $this->getAppOwner()->getConfig('app.security.forcefromhome', true)) {
-            $retval = $retval && (Session::get('fromhome') || $this->getAppOwner()->isAuthentificated());
+            $retval = $retval && ($this->getAppOwner()->isFromHome() || $this->getAppOwner()->isAuthentificated());
         }
         return $retval;
     }
@@ -760,7 +772,7 @@ abstract class Controller extends \BaseObject implements IController, \ISearchPr
                 $r = str_ireplace("Controller", "", $cl);
             }
             $cp = $this->getAppOwner()->getClassPrefix();
-            if (substr($r, 0, strlen($cp)) === $cp) {
+            if (substr($r, 0, strlen($cp)) === $cp && $cp!=$r) {
                 $r = substr($r, strlen($cp));
             }
             $this->_routeName = strtolower($r);

@@ -33,7 +33,7 @@ abstract class Application extends AbstractApplication
     private $_messages;
     private $_ignoreJSMin = array();
     private $_userInfo = array();
-
+    protected $_isDebugMode =null;
     function __construct($appPath, $appName)
     {
         parent::__construct($appPath, $appName);
@@ -439,11 +439,13 @@ abstract class Application extends AbstractApplication
             throw $e;
             //return;
         }
-        $rname = $controller ? $controller->getControllerName() : 'Home';
+        $rname = $controller ? $controller->getControllerName() : $this->getConfig('app.defaultcontroller','home');
         if (!Request::isDataRequest() && !$this->getVars('title')) {
+            $rtitle =
             $title = $this
                 ->getConfig($rname . '.title',
-                    ucwords(__($rname . '.site.title', $rname)));
+                    __($rname.'.'.$this->getRoute('_a').'.title',
+                        ucwords(__($rname . '.site.title', $rname))));
 
             $deftitle = $this->getAppId() === \CGAF::APP_ID ? \CGAF::getConfig(
                 'cgaf.description')
@@ -499,7 +501,7 @@ abstract class Application extends AbstractApplication
                         switch ($id) {
                             case 'about':
                             case 'auth':
-                            case 'home':
+                            case  $this->getConfig('app.defaultcontroller','home'):
                             case 'asset':
                             case 'share' :
                             case 'search':
@@ -529,18 +531,20 @@ abstract class Application extends AbstractApplication
         }
         if (parent::Initialize()) {
             $first = \AppManager::isAppStarted() === false;
+            MVCHelper::setDefaultRoute(array(
+                    '_c' => $this->getConfig('app.defaultcontroller','home'),
+                    '_a' => $this->getConfig('app.defaultcontrolleraction','index')
+                )
+            );
             $this->_route = MVCHelper::getRoute();
             $this->_action = $this->_route["_a"];
             $libs = $this->getConfig('apps.libs');
             $path = $this->getAppPath();
             $this->_searchPath[] = $path;
             $this->addSearchPath(\CGAF::getConfigs('cgaf.paths.shared'));
-            //CGAF::addClassPath($this->getAppName(), $path . DS . 'classes' . DS);
-            //CGAF::addClassPath('System', $path . DS, $first);
-            CGAF::addClassPath('Controller', $path . DS . 'Controllers' . DS,
-                $first);
-            CGAF::addClassPath('Controllers', $path . DS . 'Controllers' . DS,
-                $first);
+
+            CGAF::addClassPath('Controller', $path . DS . 'Controllers' . DS,$first);
+            CGAF::addClassPath('Controllers', $path . DS . 'Controllers' . DS, $first);
             CGAF::addClassPath('Models', $path . DS . 'Models' . DS, $first);
             CGAF::addClassPath('Modules', $path . DS . 'Modules' . DS, $first);
             if ($libs) {
@@ -929,7 +933,7 @@ abstract class Application extends AbstractApplication
     protected function renderHeader()
     {
         $controller = null;
-        if (\Request::isMobile() || !Request::isAJAXRequest()) {
+        if (\Request::isMobile() || !\Request::isAJAXRequest()) {
             try {
                 $controller = $this->getMainController();
             } catch (\Exception $e) {

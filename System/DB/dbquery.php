@@ -467,12 +467,12 @@ class DBQuery extends \BaseObject implements IQuery
 
     protected function quoteField($fields)
     {
-        if (is_array($fields)) {
+        if ($fields===(array)$fields) {
             $retval = '';
             foreach ($fields as $k => $v) {
                 $field = $v;
                 $func = false;
-                if (is_array($v)) {
+                if ($v===(array)$v) {
                     $field = $v ['field'];
                     $func = $v ['func'];
                 }

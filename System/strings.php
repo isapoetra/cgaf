@@ -15,6 +15,7 @@ class Strings extends stdClass
      * @param string $str
      * @param string $o
      * @param boolean $caseSensitive
+     * @return bool
      */
     public static function EndWith($str, $o, $caseSensitive = false)
     {
@@ -32,13 +33,14 @@ class Strings extends stdClass
             $str = strtolower($str);
             $o = strtolower($o);
         }
-        $f = substr($str, strlen($str) - strlen($o));
-        return $f === $o;
+        return $o === "" || substr($str, -strlen($o)) === $o;
+        //$f = substr($str, strlen($str) - strlen($o));
+        //return $f === $o;
     }
 
     public static function BeginWith($str, $o, $caseSensitive = false)
     {
-        if (is_array($o)) {
+        if ($o ===(array)$o) {
             foreach ($o as $s) {
                 if (self::BeginWith($str, $s, $caseSensitive)) {
                     return true;
@@ -52,8 +54,9 @@ class Strings extends stdClass
             $str = strtolower($str);
             $o = strtolower($o);
         }
-        $f = substr($str, 0, strlen($o));
-        return $f === $o;
+        return $o === "" || strpos($str,$o) === 0;
+        //$f = substr($str, 0, strlen($o));
+        //return $f === $o;
     }
 
     public static function FromPos($str, $needle)

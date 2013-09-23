@@ -243,7 +243,7 @@ class MenuItem extends WebControl
         if ($this->_showIcon && $this->_icon) {
             $icon = AppManager::getInstance()->getLiveAsset($this->_icon, 'images');
             if (!$icon) {
-                $icon = BASE_URL . '/assets/images/blank.png';
+                $icon = AppManager::getInstance()->getLiveAsset('blank.png', 'images');
             }
             $this->_link->addChild('<img src="' . $icon . '"/>');
         } elseif ($this->_showIcon && $this->_iconClass) {

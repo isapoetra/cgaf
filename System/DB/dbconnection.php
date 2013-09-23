@@ -3,9 +3,15 @@ namespace System\DB;
 
 use Logger;
 use Strings;
+use System\Cache\CacheFactory;
+use System\Cache\Engine\ICacheEngine;
 
 abstract class DBConnection implements IDBConnection
 {
+    /**
+     * @var ICacheEngine
+     */
+    private  $_cacheEngine=null;
     protected $_connArgs;
     private $_connected = false;
     /**
@@ -223,6 +229,7 @@ abstract class DBConnection implements IDBConnection
                 $r->Assign($s);
             }
         }
+        $this->putCached($this->getLastSQL(),$r);
         return $r;
     }
 
@@ -257,7 +264,7 @@ abstract class DBConnection implements IDBConnection
     public function DateToDB($date = null)
     {
         $dt = new \CDate($date);
-        return $dt->format(FMT_DATETIME_MYSQL);
+        return $dt->format(\CDate::FMT_DATETIME_MYSQL);
     }
 
     public function drop($id, $type = 'table')
@@ -300,6 +307,32 @@ abstract class DBConnection implements IDBConnection
     public function getFieldConfig($fieldType = null)
     {
         return array();
+    }
+
+
+    //Cache Manager
+    protected function getCacheEngine() {
+        if ($this->getArg('cache.enabled')) {
+            if (!$this->_cacheEngine) {
+            //default cache timeout 10 minutes
+            $timeout = $this->getArg('cachetimeout',10);
+            $this->_cacheEngine = CacheFactory::getInstance(true,$this->getArg('cache.engine','MemCached'));
+            $this->_cacheEngine->setCacheTimeOut($timeout);
+            }
+        }
+        return $this->_cacheEngine;
+    }
+    protected function getCached($sql) {
+        if ($ce =  $this->getCacheEngine()) {
+            return $ce->get(md5($sql),'sql');
+        }
+        return null;
+    }
+    protected function putCached($sql,$result) {
+        if ($ce =  $this->getCacheEngine()) {
+            return $ce->put(md5($sql),$result,'sql');
+        }
+        return null;
     }
 }
 

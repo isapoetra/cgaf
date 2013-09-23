@@ -5,10 +5,8 @@ use System\Exceptions\SystemException;
 use Utils;
 
 /**
- * Enter description here .
- * ..
- *
- * @author e1
+ * @author Iwan Sapoetra
+ * TODO Optimize!!!!  Convert::toArray slow and performance hits  to huge,,, cache ?
  */
 class Configuration extends \BaseObject implements IConfiguration, \IRenderable
 {
@@ -25,6 +23,19 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable
     {
         $this->_useDef = $useDefault;
         $this->setConfigs($configs);
+    }
+
+    function __destruct()
+    {
+        if ($this->_dirty && $this->_configFile) {
+            file_put_contents($this->getCacheFile(), serialize(array(
+                        'mtime' => filemtime($this->_configFile),
+                        'configs' => $this->_configs,
+                        'cached' => $this->_configCache)
+                )
+            );
+        }
+        parent::__destruct();
     }
 
     public function setConfigFile($value)
@@ -226,9 +237,14 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable
 
     public function getConfig($configName, $default = null)
     {
-        if (isset ($this->_configCache [$configName])) {
-            return $this->_configCache [$configName];
+        if (array_key_exists ($configName,$this->_configCache)) {
+            if ($this->_configCache[$configName] ===null && $default !==null) {
+                $this->_configCache[$configName] = $default;
+                $this->_dirty =true;
+            }
+            return $this->_configCache[$configName];
         }
+        if (!$this->_configs) return $default;
         $retval = Utils::findConfig('System.' . $configName, $this->_configs, false);
         if ($retval === null) {
             $retval = Utils::findConfig($configName, $this->_configs);
@@ -264,13 +280,13 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable
         }
         $retval = null;
         if (is_file($f = Utils::changeFileExt($f, 'php'))) {
-            $retval= $f;
+            $retval = $f;
         } elseif (is_file($f = Utils::changeFileExt($f, 'ini'))) {
-            $retval =$f;
+            $retval = $f;
         } elseif (is_file($f = Utils::changeFileExt($f, 'config'))) {
-            $retval =$f;
+            $retval = $f;
         } elseif (is_file($f = Utils::changeFileExt($f, 'xml'))) {
-            $retval= $f;
+            $retval = $f;
         } elseif (is_file($f = Utils::changeFileExt($f, 'properties'))) {
             $retval = $f;
         }
@@ -314,6 +330,8 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable
             return false;
         }
         $this->_configFile = $f;
+        if ($this->getCached($f)) return true;
+
         $ext = Utils::getFileExt($f, false);
         $parser = $this->getParser($ext);
         $configs = null;
@@ -323,6 +341,7 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable
         if ($configs) {
             $this->Merge($configs);
         }
+
         return true;
     }
 
@@ -345,8 +364,38 @@ class Configuration extends \BaseObject implements IConfiguration, \IRenderable
         }
         return $arr;
     }
+
+    private function getCacheFile()
+    {
+        return \CGAF::getInternalStorage('.cache/configurations/', false, true) . md5($this->_configFile);
+    }
+
+    private function getCached()
+    {
+        $fname = $this->getCacheFile();
+        if (file_exists($fname)) {
+            //unlink($fname);
+            $mtime = filemtime($this->_configFile);
+            $configs = unserialize(file_get_contents($fname));
+            //ppd($configs);
+            if ($mtime === $configs['mtime']) {
+                $this->_dirty = false;
+                $this->_configs = $configs['configs'];
+                $this->_configCache = $configs['cached'];
+                return true;
+            } else {
+                @unlink($fname);
+            }
+        }
+        return false;
+    }
 }
 
+/**
+ * Class Configurationx
+ * @package System\Configurations
+ * @deprecated
+ */
 final class Configurationx
 {
     private static $_initialized;

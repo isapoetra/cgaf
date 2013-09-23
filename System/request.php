@@ -321,6 +321,11 @@ abstract class Request
         if (!$ignores) $ignores = array();
         return array_merge(array('__url', '__appId', '__data', 'CGAFSESS', '__c', '__a', '__data'), $ignores);
     }
+
+    public static function secureVar($var)
+    {
+        return self::getInstance()->secureVar($var);
+    }
 }
 
 ?>

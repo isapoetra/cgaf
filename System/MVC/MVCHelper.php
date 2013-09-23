@@ -11,8 +11,10 @@ use Utils;
 
 abstract class MVCHelper
 {
-    private static $_route;
-
+    static $_defaultRoute = array(
+            '_c' => 'home',
+            '_a' => 'index',
+        );
     public static function Initialize()
     {
         $shared = CGAF::getConfigs('cgaf.paths.shared', array(CGAF_PATH . 'shared/'));
@@ -30,6 +32,10 @@ abstract class MVCHelper
         ));
     }
 
+    /**
+     * @param $basepath
+     * @deprecated
+     */
     public static function addSearchPath($basepath)
     {
         $arr = array(
@@ -40,7 +46,7 @@ abstract class MVCHelper
         foreach ($arr as $k => $v) {
             $path = Utils::ToDirectory($basepath . DS . $v);
             if (is_dir($path)) {
-                CGAF::addStandardSearchPath($v, $path, false);
+               \ CGAF::addStandardSearchPath($v, $path, false);
             } elseif (CGAF::isDebugMode()) {
                 Logger::Warning('No standar path @' . $basepath . ' for ' . $v);
             }
@@ -56,10 +62,7 @@ abstract class MVCHelper
     public static function getRoute($var = null)
     {
         $var = $var ? $var : (isset ($_REQUEST ["__url"]) ? $_REQUEST ["__url"] : null);
-        $retval = array(
-            "_a" => "index",
-            "_c" => "home"
-        );
+        $retval = static::$_defaultRoute;
         if (!empty ($var)) {
             $var_array = explode("/", $var ? $var : null);
             if (!empty ($var_array [0])) {
@@ -225,6 +228,18 @@ abstract class MVCHelper
         array_shift($url);
         array_shift($url);
         return $url;
+    }
+
+    public static function setDefaultRoute($route)
+    {
+        if (!is_array($route)) return;
+        if (!isset($route['_c']) || !$route['_c']) {
+            $route['_c'] = static::$_defaultRoute['_c'];
+        }
+        if (!isset($route['_a']) || !$route['_a']) {
+            $route['_a'] = static::$_defaultRoute['_a'];
+        }
+        static::$_defaultRoute = $route;
     }
 }
 

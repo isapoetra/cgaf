@@ -11,23 +11,33 @@ use System\Applications\IApplication;
 class MemCached implements ICacheEngine
 {
     private $_timeout;
-    private $_appOwner;
+    //private $_appOwner;
     /**
      * @var \Memcached
      */
     private $_mcached;
 
-    function __construct(IApplication $appOwner, $timeout = null)
+    function __construct(IApplication $appOwner = null, $timeout = null)
     {
-        $this->_appOwner = $appOwner;
 
-        $server = $appOwner->getConfigs('cache.memcached.servers', array(
-            array(
-                'host' => 'localhost',
-                'port' => 11211
-            )
-        ));
-        $this->_mcached = new \Memcached($appOwner->getACL());
+        if ($appOwner) {
+            $server = $appOwner->getConfigs('cache.memcached.servers', array(
+                array(
+                    'host' => 'localhost',
+                    'port' => 11211
+                )
+            ));
+            $id = $appOwner->getAppId();
+        } else {
+            $server = \CGAF::getConfigs('cache.memcached.servers', array(
+                array(
+                    'host' => 'localhost',
+                    'port' => 11211
+                )
+            ));
+            $id = \CGAF::APP_ID;
+        }
+        $this->_mcached = new \Memcached($id);
         $this->_mcached->addServers($server);
     }
 
@@ -38,7 +48,7 @@ class MemCached implements ICacheEngine
 
     function get($id, $prefix, $suffix = null, $timeout = NULL, callable $cb = null)
     {
-        return $this->_mcached->getByKey($this->_appOwner->getAppId(), $id . $prefix . $suffix);
+        return $this->_mcached->get( $id . $prefix . $suffix);
     }
 
     function clear()
@@ -58,7 +68,7 @@ class MemCached implements ICacheEngine
 
     public function put($id, $o, $group, $add = false, $ext = null)
     {
-        $this->_mcached->setByKey($this->_appOwner->getAppId(), $id . $group, $o);
+        $this->_mcached->set($id . $group, $o);
         return $this->_mcached->getResultCode() === \Memcached::RES_SUCCESS ? true : false;
     }
 

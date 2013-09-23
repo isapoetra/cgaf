@@ -9,6 +9,7 @@ if (CGAF::Initialize(true)) {
 		$f = realpath(dirname(__FILE__) . $url);
 	}
 	if ($f && Strings::BeginWith($f, dirname(__FILE__))) {
+        \CGAF::cacheRequest(filemtime($f),60,false,$f);
         \Streamer::Stream($f, null, false, true);
 	} else {
 		$fileext = substr(strrchr($url, '.'), 1);

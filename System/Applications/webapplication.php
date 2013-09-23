@@ -79,7 +79,7 @@ class WebApplication extends Application implements IWebApplication
         if (!$script) {
             return;
         }
-        if (is_array($script)) {
+        if ($script===(array)$script) {
             $script = implode(CGAF_DEBUG ? PHP_EOL : '', $script);
         }
         $this->_clientScripts [] = $script;
@@ -144,17 +144,17 @@ class WebApplication extends Application implements IWebApplication
     {
         $rattr = array();
         $metas = null;
-        if (is_array($name)) {
+        if ($name===(array)$name) {
             $rattr = $name;
         } elseif (is_string($attr)) {
             if (!$attr) {
                 return;
             }
             $rattr ["content"] = $attr;
-        } elseif (is_array($attr) || is_object($attr)) {
+        } elseif ($attr === (array)$attr || is_object($attr)) {
             $found = false;
             foreach ($attr as $k => $v) {
-                if (is_array($v)) {
+                if ($v === (array)$v) {
                     $this->_metas [] = array(
                         'tag' => $name,
                         'attr' => $v
@@ -206,7 +206,7 @@ class WebApplication extends Application implements IWebApplication
 
     function getAsset($data, $prefix = null)
     {
-        if (!is_array($data)) {
+        if (!($data===(array)$data)) {
             $ext = strtolower(Utils::getFileExt($data, false));
             switch ($ext) {
                 case 'css' :
@@ -606,27 +606,27 @@ class WebApplication extends Application implements IWebApplication
             }
             $_crumbs = array();
             $route = $this->getRoute();
-            if ($route ['_c'] !== 'home') {
+            if ($route ['_c'] !== $this->getConfig('app.defaultcontroller','home')) {
                 $_crumbs [] = array(
                     'url' => $this->getAppUrl(),
                     'title' => ucwords(__('home')),
                     'class' => 'home'
                 );
             }
-            if ($route ['_c'] !== 'home') {
+            if ($route ['_c'] !== $this->getConfig('app.defaultcontroller','home')) {
                 $_crumbs [] = array(
                     'title' => __('app.route.' . $route ['_c'] . '.title', ucwords($route ['_c'])),
                     'url' => URLHelper::add(APP_URL, $route ['_c'])
                 );
             }
-            if ($route ['_a'] !== 'index') {
+            if ($route ['_a'] !== $this->getConfig('app.defaultcontrolleraction','index')) {
                 $_crumbs [] = array(
                     'title' => ucwords(__($route ['_c'] . '.' . $route ['_a'], $route ['_a'])),
                     'url' => URLHelper::add(APP_URL, $route ['_c'] . '/' . $route ['_a'])
                 );
             }
             // Session::set('app.isfromhome', false);
-            if (Session::get('app.isfromhome') == null && $route ['_c'] === 'home') {
+            if (Session::get('app.isfromhome') == null && $route ['_c'] === $this->getConfig('app.defaultcontroller','home')) {
                 Session::set('app.isfromhome', true);
             }
 
@@ -689,7 +689,7 @@ class WebApplication extends Application implements IWebApplication
                 unlink($fname);
             }
             $parsed = array();
-            if (is_array($css)) {
+            if ($css===(array)$css) {
                 foreach ($css as $v) {
                     $parsed [] = $this->getAsset($v ['url']);
                     $ta = $this->getAssetAgent($v ['url']);
@@ -720,7 +720,7 @@ class WebApplication extends Application implements IWebApplication
 
     function assetToLive($asset, $sessionBased = false)
     {
-        if (is_array($asset)) {
+        if ($asset===(array)$asset) {
             $retval = array();
             foreach ($asset as $ff) {
                 if (!$ff)
@@ -744,7 +744,7 @@ class WebApplication extends Application implements IWebApplication
         }
         $asset = Utils::toDirectory($asset);
 
-        if (!is_file($asset)) {
+        if (!file_exists($asset)) {
             return null;
         }
         $ext = Utils::getFileExt($asset, FALSE);

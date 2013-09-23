@@ -56,7 +56,7 @@ abstract class AbstractJSEngine implements \IJSEngine
 
     protected function getConfig($configName, $def = null)
     {
-        return $this->_appOwner->getConfig('js.' . $this->_baseConfig . '.' . $configName, $def);
+        return $this->_appOwner->getConfig('app.js.' . $this->_baseConfig . '.' . $configName, $def);
     }
 
     protected abstract function getJSAsset();
@@ -66,7 +66,7 @@ abstract class AbstractJSEngine implements \IJSEngine
         if (is_array($asset)) {
             $retval = array();
             foreach ($asset as $k => $v) {
-                $asset = $this->getAsset($v, $prefix);
+                $asset = $this->getAsset($v, $prefix,$throw);
                 if ($asset) {
                     $retval [$k] = $asset;
                 }

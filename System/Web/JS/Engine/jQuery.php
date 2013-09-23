@@ -17,7 +17,6 @@ class jQuery extends AbstractJSEngine
     {
         if ($this->_loaded)
             return array();
-
         if (!$this->getConfig('ui.enabled', true)) {
             return array();
         }
@@ -25,6 +24,7 @@ class jQuery extends AbstractJSEngine
         $assets = array();
         $version = $this->getConfig('ui.version', '1.10.3');
         $ui = 'jQuery-UI/' . $version . DS;
+        $assets[] = 'cgaf/cgaf-ui.js';
         if ($this->getConfig('usecdn', CGAF_DEBUG == false)) {
             $assets[] = 'http://code.jquery.com/ui/' . $version . '/jquery-ui.js'; //'jquery-ui.js';
             $assets[] = 'http://code.jquery.com/ui/' . $version . '/themes/smoothness/jquery-ui.css'; //'themes/base/jquery-ui.css';
@@ -62,8 +62,8 @@ class jQuery extends AbstractJSEngine
 
     protected function getJSAsset()
     {
-        $prefix = strtolower($this->_baseConfig);
-        $assets = array('jquery.js', 'plugins/jquery.url.js');
+        //$prefix = strtolower($this->_baseConfig);
+        $assets = array('jquery.js');
         $ui = array();
         if ($this->_useui) {
             $ui = $this->loadUI(false);

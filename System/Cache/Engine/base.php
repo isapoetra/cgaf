@@ -2,6 +2,7 @@
 namespace System\Cache\Engine;
 
 use CGAF;
+use System\Applications\IApplication;
 use Utils;
 
 class Base implements ICacheEngine
@@ -11,11 +12,15 @@ class Base implements ICacheEngine
     private $_cachePath;
     private $_mcache = array();
 
-    function __construct($appOwner=null,$timeout=null)
+    /**
+     * @param IApplication $appOwner
+     * @param null $timeout
+     */
+    function __construct($appOwner = null, $timeout = null)
     {
         $def = CGAF_DEBUG ? 5 : 120;
-        $this->_cacheTimeOut =$timeout ? $timeout : ($appOwner ? $appOwner->getConfig('cache.timeout', $def) : $def);
-        $this->setCachePath(\CGAF::getInternalStorage('.cache', true));
+        $this->_cacheTimeOut = $timeout !== null ? $timeout : ($appOwner ? $appOwner->getConfig('cache.timeout', $def) : $def);
+        $this->setCachePath($appOwner ? $appOwner->getInternalStorage('.cache', true) : \CGAF::getInternalStorage('.cache',false, true));
 
     }
 
@@ -36,11 +41,14 @@ class Base implements ICacheEngine
     {
         if ($value != $this->_cacheTimeOut) {
             $this->_cacheTimeOut = $value;
-            $this->_mcache=array();
+            $this->_mcache = array();
         }
     }
 
-    function setCachePath($path)
+    /**
+     * @param $path
+     */
+    private function setCachePath($path)
     {
         $this->_cachePath = Utils::toDirectory($path);
         Utils::makeDir($this->_cachePath);
@@ -108,6 +116,7 @@ class Base implements ICacheEngine
     function getContent($id, $prefix, $suffix = null, $timeout = NULL)
     {
         $fname = $this->get($id, $prefix, $suffix);
+        if (!$this->isCacheValid($fname, $timeout)) return null;
         if (is_readable($fname)) {
             return file_get_contents($fname);
         }

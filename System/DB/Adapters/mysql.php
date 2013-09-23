@@ -358,7 +358,7 @@ class MySQL extends DBConnection
 
     function quoteTable($table, $includedbname = false)
     {
-        if (is_array($table)) {
+        if ($table===(array)$table) {
             $retval = '';
             foreach ($table as $t) {
                 $retval .= $this->quoteTable($t, $includedbname) . ',';
@@ -597,9 +597,13 @@ where table_name = ' . $this->quote($objectId) . ' and table_schema='
     function Query($sql, $fetchMode = DB::DB_FETCH_OBJECT)
     {
         $this->Open();
+
+
         $sql = $this->prepareQuery($sql);
         $this->setLastSQL($sql);
         $this->Log($sql);
+        $cache = $this->getCached($sql);
+        if ($cache) return $cache;
         $this->_result = @mysql_query($sql, $this->_resource);
         if ($this->_result == false) {
             $err = mysql_error($this->_resource);

@@ -4,8 +4,9 @@ define('E_DEBUG', 1);
 
 final class Logger
 {
+    private static $_fhandle;
     private static $_logdata = array();
-    private static $_firsttime = true;
+    //private static $_firsttime = true;
     private static $_callbacks = array();
 
     public static function info()
@@ -15,7 +16,7 @@ final class Logger
 
     public static function debug()
     {
-        if (!CGAF_DEBUG)
+        if (!\CGAF::isDebugMode())
             return;
         return self::write(self::format(func_get_args()), E_DEBUG, false);
     }
@@ -47,7 +48,7 @@ final class Logger
 
     public static function WriteDebug()
     {
-        return CGAF_DEBUG ? self::format(func_get_args()) : "";
+        return \CGAF::isDebugMode() ? self::format(func_get_args()) : "";
     }
 
     public static function Error()
@@ -139,7 +140,7 @@ final class Logger
             $msg = (isset($b['class']) ? $b['class'] : '')
                 . (isset($b['type']) ? $b['type'] : '') . $b['function'];
             $f = (isset($b['file']) ? '<span class="file">@'
-                    . (CGAF_DEBUG ? @$b['file']
+                    . (\CGAF::isDebugMode() ? @$b['file']
                         : str_replace(CGAF_PATH, "", @$b['file']))
                     : "&nbsp;")
                 . (isset($b['line']) ? ':' . $b['line'] . '</span>' : '');
@@ -264,6 +265,7 @@ final class Logger
 
     public static function write($s, $level = E_NOTICE, $die = null)
     {
+        if (\CGAF::isDebugMode()) return; // Error displayed on browser/console
         if (System::isConsole() && CGAF_DEBUG) {
             if (class_exists('Response', false)) {
                 Response::writeln($s);
@@ -275,31 +277,33 @@ final class Logger
         if (CGAF::isDebugMode()) {
             self::trigger('onLog', $s, $level);
         }
-        $logPath = CGAF::getConfig('errors.error_log',
-            \CGAF::getInternalStorage('log', false, true, 0770) . DS);
-        $logFile = $logPath . strtolower(self::error2string($level)) . '.log';
         $msg = time() . '#' . \System::getRemoteAddress() . '#' . $s . '#'
             . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
+
         $replevel = error_reporting();
         if (($level & $replevel) != $level) {
             return true;
         }
-        $f = @fopen($logFile, 'a');
-        if ($f === false) {
+        if (!self::$_fhandle) {
+            $logPath = CGAF::getConfig('errors.error_log',
+                \CGAF::getInternalStorage('log', false, true, 0770) . DS);
+            $logFile = $logPath . strtolower(self::error2string($level)) . '.log';
+            self::$_fhandle = @fopen($logFile, 'a');
+        }
+        if (self::$_fhandle === false) {
             return 0;
         }
-        fwrite($f, $msg . "\n");
+        fwrite(self::$_fhandle, $msg . "\n");
         if (\CGAF::isDebugMode()) {
             $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
             array_shift($bt);
             foreach ($bt as $b) {
-
-                fwrite($f,
+                fwrite(self::$_fhandle,
                     "\t" . @$b['file'] . '::' . @$b['line'] . '-->'
                             . @$b['function'] . ':' . @$b['class'] . "\n");
             }
         }
-        fclose($f);
+
         $die = $level > 0 && $die !== null ? $die
             : $level == E_ERROR || $level == E_USER_ERROR
             || $level == E_CORE_ERROR
@@ -349,9 +353,11 @@ final class Logger
 
     public static function Flush($direct = false)
     {
+        if (self::$_fhandle) @fclose(self::$_fhandle);
         if (!count(self::$_logdata)) {
             return false;
         }
+
         Utils::makeDir(CGAF_PATH . "/protected/log/");
         $f = @fopen(CGAF_PATH . "/protected/cgaf.log", 'a');
         if ($f === false) {

@@ -45,18 +45,6 @@ final class CGAFJS
         $appOwner->clearClient();
 
         self::$_pluginsLoader = array();
-        /*
-         * $fv = $appOwner->getConfig('js.fancybox.version', '1.3.4');
-         * array (
-         'fancybox' => array (
-             'configs' => $appOwner->getConfig ( 'js.fancybox.configs', array () ),
-             'assets' => array (
-                 'js/jQuery/plugins/fancybox/' . $fv . '/jquery.fancybox-' . $fv . '.css',
-                 'js/jQuery/plugins/fancybox/' . $fv . '/jquery.fancybox-' . $fv . '.js'
-             )
-         )
-        );*/
-
         if (!Request::isDataRequest()) {
             $info = $jq->getInfo();
 
@@ -82,7 +70,7 @@ final class CGAFJS
         }
 
         $assets[] = 'cgaf/cgaf.js';
-        $assets[] = 'cgaf/cgaf-ui.js';
+
         if (!\Request::isMobile()) {
             if (CGAF_DEBUG) {
                 $assets [] = 'cgaf/debug.js';
@@ -102,7 +90,7 @@ final class CGAFJS
 
         try {
             Utils::arrayMerge($assets, $jq->loadUI(false));
-            self::$_appOwner->addClientAsset($jq->getAsset($assets));
+            self::$_appOwner->addClientAsset($jq->getAsset($assets,null,false));
         } catch (\Exception $e) {
             ppd($e);
             if (CGAF_DEBUG) {
